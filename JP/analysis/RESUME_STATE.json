@@ -1,14 +1,13 @@
 {
   "schema_version": 8,
-  "status": "ready",
+  "status": "blocked",
   "project": "Akumajou Densetsu JP decomp/recomp",
   "repository": "Hyperbog/CVIII-Decomp",
   "branch": "decompilation",
   "rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
-  "safe_forward_work": true,
-  "last_completed_checkpoint": "04FF",
-  "last_completed_checkpoint_commit": "ff17ba76318420aea62648dda1d504b3e1ce79e2",
-  "previous_checkpoint_audit": "tools/audit_nmi_main_script_dispatch.py",
+  "safe_forward_work": false,
+  "last_completed_checkpoint": "04FE",
+  "previous_checkpoint_audit": "tools/audit_nmi_fixed_e7fb_dispatch.py",
   "vpp": {"earned": 21, "total": 100},
   "execution_context": {
     "mapping": "fixed_prg",
@@ -22,7 +21,7 @@
     "last_closed_physical_prg_bank": 31,
     "next_unprocessed_cpu": "F3DD",
     "next_physical_prg_bank": 31,
-    "next_checkpoint": "0500",
+    "next_checkpoint": "04FF",
     "domain_transition": false,
     "initial_window_start_cpu": "F3DD",
     "initial_window_end_cpu_inclusive": "F7FF",
@@ -36,7 +35,7 @@
     "length": 64,
     "sha256": "81d06cd79d64c3d4cfe14bbefa851e74e748536f723636abaf82870ec065d22f",
     "semantic_unit": "32-entry nested E7FB inline pointer table indexed from $2C",
-    "coverage_accounting": "verification-only; these 64 bytes were already counted and must never be counted again"
+    "coverage_accounting": "verification-only; these 64 bytes are part of 04FE and must never be counted again"
   },
   "frontier_fingerprint": {
     "physical_prg_bank": 31,
@@ -47,29 +46,19 @@
     "sha256": "65d47f163ffad5ca20903cece8606c76416ceb5cb8edba99780be720730f08aa",
     "purpose": "alignment/fingerprint only; does not establish semantic closure"
   },
-  "closed_state": [
-    "04FF independently reconfirmed the JP $E7FB/$E814 stack-consuming inline-dispatch ABI",
-    "the NMI first-level table at $E363-$E382 has 16 encoded targets, but $18 producer-domain bounds remain unresolved",
-    "state $04 reaches nested $2C dispatcher at $F39A with a 32-entry inline table at $F39D-$F3DC",
-    "the nested table structural boundary is proven; $F3DD begins executable code",
-    "no selector clamp is inferred from either table length"
-  ],
   "open_edges": [
-    "$18 producer domain for the first-level NMI dispatcher remains unresolved",
-    "$2C producer domain and reachable nested target graph remain unresolved",
-    "21 mapper-dependent first-level exits into CPU $8000-$BFFF remain unresolved until actual mapper state is proven"
+    "$18 producer domain for the first-level NMI E7FB selector is unresolved",
+    "$2C producer domain for the nested E7FB selector is unresolved",
+    "nested target graph beginning at fixed PRG31 $F3DD remains unresolved",
+    "21 first-level mapper-dependent exits into CPU $8000-$BFFF remain unresolved until actual VRC6 mapper state is proven"
   ],
   "checkpoint_constraints": [
-    "0500 begins exactly at fixed PRG31 CPU $F3DD",
-    "treat $F39D-$F3DC strictly as verification-only inline pointer data",
-    "prove live $2C producer values from JP-ROM producer/control flow before claiming the table is bounded",
-    "reuse all prior fixed-bank manifests and subtract every overlap from new-byte accounting",
-    "resolve mapper state before traversing any $8000-$BFFF external edge",
-    "preserve exact stack/Y/ZP $00-$03 behavior of $E7FB and exact 6502/VRC6 semantics"
+    "04FF begins exactly at fixed PRG31 CPU $F3DD",
+    "treat $F39D-$F3DC as verification-only inline pointer data and never as executable fall-through",
+    "prove live $2C producer values from JP-ROM producer/control flow before claiming the 32-entry table is bounded",
+    "reuse all 04FE noncontiguous manifest ranges as prior coverage and subtract overlaps from new-byte accounting",
+    "resolve actual mapper state before traversing any $8000-$BFFF external edge",
+    "do not infer $18 or $2C selector clamps from encoded table lengths"
   ],
-  "acceleration_policy": [
-    "Japanese ROM and reproducible parity evidence are authoritative",
-    "use external disassemblies, CDL/traces, Ghidra, retrodisasm, decompilers, nesrecomp and NSF metadata as secondary accelerators",
-    "US Castlevania III symbols/structures remain provisional until JP equivalence is verified"
-  ]
+  "recovery_note": "A premature resume-state advancement was corrected immediately. Treat 04FF as incomplete until new analysis/audit/progress/continuity are committed and this file is advanced last."
 }
