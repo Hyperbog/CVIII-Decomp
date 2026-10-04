@@ -2,26 +2,38 @@
 
 ## Current status
 
-Work proceeds in ROM-backed semantic checkpoints. Large whole-bank/full-PRG discovery sweeps are encouraged, but candidate decodes become verified coverage only when JP-ROM control flow, producer domains, mapper context, parser semantics, or runtime evidence justify the exact bytes.
+Work proceeds in ROM-backed semantic checkpoints with large whole-bank/full-PRG discovery sweeps. Candidate decodes and cross-version matches become verified coverage only when JP-ROM control flow, producer domains, mapper context, parser semantics, or runtime evidence justify the exact bytes.
 
 After interruption read `docs/INTERRUPTION_RECOVERY.md`, `docs/ACCELERATION_POLICY.md`, `docs/WHOLE_PRG_ATLAS.md`, `analysis/RESUME_STATE.json`, then run `tools/check_resume_frontier.py`.
 
-Primary metric: **Verified Parity Progress (VPP) = 21 / 100**. This is an evidence rubric, not raw byte coverage.
+Primary parity metric: **VPP = 21 / 100**. This is a coarse evidence rubric, not a byte-progress meter.
 
-**0500 is complete after an accounting repair.** The earlier 933-byte draft omitted the explicit `$F800` fallthrough boundary carried from 04FF. The controlling audit now seeds `$F800` and proves **414 instruction starts / 982 genuinely new semantic bytes**, while preserving shared ZP `$10` locally.
+Current quantitative dashboard:
+
+```text
+whole JP PRG scanned/indexed                 262144 / 262144 = 100%
+strict semantically verified PRG floor        48821 / 262144 = 18.6237%
+exact unique JP<->US correspondence           115865 / 262144 = 44.1990%
+exact-or-normalized structural candidates     149607 / 262144 = 57.0705%
+```
+
+The last two are accelerators only; they do not promote semantic verification.
 
 ## Stable foundation
 
 - JP ROM SHA-256 `958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28`.
-- PRG 256 KiB, CHR 128 KiB, mapper 24 / VRC6a.
+- US comparison ROM SHA-256 `1c7b2ed2c1fb5839a6764006aa476f5c9d48f99465b6141980f3a5af1dfec0d6`.
+- PRG 256 KiB, CHR 128 KiB, JP mapper 24 / VRC6a.
 - RESET `$E00B`, NMI `$E057`, IRQ `$E0F5`.
 - VRC6 switchable/fixed PRG model established.
 - IRQ dispatcher and raw bank `$01` state table reconciled.
 - PRG26 `$8001` OAM renderer baseline implemented and tested.
-- Whole-PRG atlas performs aggressive 256 KiB candidate/xref sweeps without promoting false-positive data decodes.
+- Whole-PRG atlas performs aggressive 256 KiB candidate/xref sweeps.
 - Recovery tooling verifies switchable-bank and fixed-bank frontiers.
 
 ## Pre-render shared ZP `$10` provenance
+
+Earlier checkpoints established:
 
 - 04F2 IRQ graph: preserves `$10`.
 - 04F3 fixed NMI `$E057-$E365`: preserves `$10`.
@@ -29,162 +41,162 @@ Primary metric: **Verified Parity Progress (VPP) = 21 / 100**. This is an eviden
 - 04F5-04F6 raw bank `$0C`: live graph preserves `$10`.
 - 04F7-04FA raw bank `$04`: parser + **96/96 roots** preserve `$10`.
 - 04FB-04FD raw bank `$05`: parser + **72/72 roots** preserve `$10`; live `$E7` domains ROM-proven.
-- 04FE `$E7FB` first-level fixed graph: preserves `$10`.
-- 04FF nested `$2C` fixed head: 401 instruction starts, **931 new bytes**, preserves `$10`.
-- 0500 deferred primary + secondary `$68` fixed graph: 414 instruction starts, **982 new bytes**, preserves `$10` locally.
+- 04FE `$E7FB` first-level fixed graph: locally preserves `$10`.
+- 04FF nested `$2C` fixed head: 401 instruction starts, **931 new bytes**, locally preserves `$10`.
+- 0500 deferred primary + secondary `$68` fixed graph: 414 instruction starts, **982 new bytes**, locally preserves `$10`.
 
-## Critical invariants
+0501 changes the model: the scheduler-selected raw bank `$0B` object/collision graph contains seven real reachable `STA $10` sites, so `$10` is not globally preserved. It is reused as collision/distance coordinate scratch before the renderer later consumes its inherited value.
 
-- JP ROM / observed JP behavior are authoritative.
-- US disassembly, CDL, Ghidra, decompilers and atlas results are accelerators only.
-- Table length is never a selector-domain proof; do not invent clamps for `$18`, `$2C`, `$68`.
-- CPU `$8000-$DFFF` targets require proven VRC6 mapper state.
-- Coverage is semantic and exact; unreached bytes remain unclaimed even inside a raw investigation interval.
-- Variable-width streams require every operand byte actually read to be inside the claimed dependency span.
+## 0501 — fixed scheduler + mapper-selected banked roots
 
-## Raw-bank closures
-
-Bank `$04`: **96/96 roots closed**. Final 04FA dependency `$B1F0-$BE7D`, 3184 genuinely new bytes after prior probes.
-
-Bank `$05`: **72/72 roots closed**:
+Controlling evidence:
 
 ```text
-04FB $87AE-$9A6A   4797 new
-04FC $9A6B-$AD96   4908 new
-04FD $AD97-$BF05   4463 new
-```
-
-## Fixed-dispatch chain
-
-### 04FE
-
-`$E7FB-$E813` is a stack-return-address inline tail dispatcher writing only `$00-$03`. The first-level NMI selector is `$18`; nested state `$04` reaches `$F390`, loads `$2C`, and dispatches through the 32 pointer pairs at `$F39D-$F3DC`.
-
-04FE: **957 genuinely new bytes**, ordered manifest SHA:
-`a672f908a238bea20902fc40c5417622bdb9af675cda3b982a6f0ce494ebad32`.
-
-### 04FF
-
-26 nested `$2C` roots entering `$F3DD-$F7FF` were admitted. Exact result:
-
-```text
-instruction starts 401
-new bytes          931
-manifest SHA       2e8b703b970ca2f1eae61f5fd1a4850da6b8e5d4af1a894fb8075657299ae0d4
-```
-
-It deliberately left `$F706-$F712`, `$F724-$F738`, `$F782-$F791`, `$F7B7-$F7CE` unclaimed and handed an explicit fallthrough boundary at `$F800` to 0500.
-
-### 0500 — corrected secondary `$68` graph
-
-Deferred primary states:
-
-```text
-$08 -> $F965
-$0B -> $F831
-$0C -> $F839
-$0D -> $F841
-$0E -> $F841
-$10 -> $F849
-```
-
-`$F849: LDA $68 / JSR $E7FB` has 16 encoded targets at `$F84E-$F86D`. Entries `$0C-$0F` target the four former 04FF gaps, so those gaps are now admitted by real pointer-table control flow.
-
-`$F965: LDA $68 / JSR $E7FB` has 10 encoded targets at `$F96A-$F97D`. Neither table length is treated as a live selector bound.
-
-Corrected 0500 roots:
-
-```text
-F800 F831 F839 F841 F849 F965
+analysis/NMI_FIXED_SCHEDULER_BANKED_0501.md
+tools/audit_nmi_fixed_scheduler_banked.py
 ```
 
 Strict result:
 
 ```text
-instruction starts                414
-reachable store/RMW instructions   82
-indexed write/RMW forms             9
-direct/indexed ZP $10 aliases       0
-genuinely new semantic bytes      982
+fixed PRG31 graph                 161 instruction starts    298 new bytes
+raw bank $09 graph               479 instruction starts   1050 new bytes
+raw bank $0A graph                57 instruction starts    120 new bytes
+raw bank $0B graph              1338 instruction starts   2896 new bytes
+-----------------------------------------------------------------------
+0501 total                      2035 instruction starts   4364 new bytes
 ```
 
-Exact new-byte manifest:
+Tagged ordered-manifest SHA-256:
+`639e20f7e96e816a40ef4ef7d8585c809ce670ac5384f3c2fabc9a77d275737e`.
+
+The tracked strict PRG floor advances from `44,457` to **48,821 bytes = 18.6237%**.
+
+The fixed scheduler proves these mapper contexts before traversal:
 
 ```text
-F706-F712    13   8745c6e3d3acdd90bf3b1cafaf32f9e981a606070ba5d2b365cace8f56fa3025
-F724-F738    21   41cad7c7b722c299f4111083f871fd996a0cfa517bd990d3b37ddce6ac30072e
-F782-F791    16   17bbb4663de8e617686c27ab5ad5554a69c0062d9c8bff1d353fd6487028546b
-F7B7-F7CE    24   0d93fcf865fdae96f01a0640e3769924b558f1cb0aaa0dbe7d2fedfdf17462be
-F800-FA9F   672   6dea651f93c64d59355c4180907677d367bb705ed84cbfa6ec59da79009028a8
-FAAA-FB95   236   5d32479e3af38c5477b4a3c076b3c3d0a0bd07f4c572a35a115bd6e347720402
+raw $0B  $80E3
+raw $0B  $B1F8
+raw $0B  $BD11
+raw $09  $8001
+raw $0B  $8001
+raw $0B  $8161
+raw $0B  $826C
+raw $0A  $84EA
 ```
 
-Ordered manifest SHA:
-`fdc1a53db0ee18ca5e70188d2c8b31d1b350c91d011f72fddb4b6fcb7434984e`.
+No `$8000-$BFFF` target is followed under guessed mapper state.
 
-`$FB31-$FB36` is exact six-byte ROM data proven by the bounded Y=0..5 loop. `$FAA0-$FAA9` remains unclaimed pending `$62/$054E` index-domain proof.
+### `$FE95` inline dispatch
 
-Reachable `$2C` mutations: `$F736,$F78F,$F7CC,$F962,$FB77`.
-
-Reachable `$68` mutations: `$F706,$F72F,$F78D,$F874,$F896,$F8AE,$F8E6,$F916,$F957,$F9B4,$F9D0,$F9FC,$F9FF,$FAB7,$FAD7,$FB04`.
-
-Controlling evidence:
-
-- `analysis/NMI_FIXED_68_DISPATCH.md`
-- `tools/audit_nmi_fixed_68_dispatch.py`
-
-The previous 933-byte 0500 result is superseded because it failed to seed `$F800`.
-
-## Whole-PRG acceleration
-
-Use before narrow searching:
+`$FE8C-$FE95` shifts `$0565,X` right six times then invokes `$E7FB`. The encoded table at `$FE98-$FE9D` contains exactly three pointer pairs:
 
 ```text
-tools/build_whole_prg_atlas.py
-tools/query_whole_prg_atlas.py
-tools/audit_whole_prg_atlas.py
-analysis/WHOLE_PRG_ATLAS_MANIFEST.json
-analysis/WHOLE_PRG_FOCUS_SUMMARY.md
+00 -> $FE9E
+01 -> $FEB1
+02 -> $FEC6
 ```
 
-Lossless bank dumps are generated locally only, never committed.
+`$FE9E` is executable code and must not be swallowed as a fictitious fourth pointer. Arithmetic can produce selector `$03`; its live producer domain remains open.
+
+### Raw-bank `$0B` `$10` writes
+
+Verified direct stores:
+
+```text
+$B3B6
+$B3D2
+$B40E
+$B460
+$B65F
+$B740
+$B76C
+```
+
+Cross-version structural comparison supports their role as collision/distance scratch, but JP bytes/control flow remain controlling. The exact final writer/value reaching renderer entry remains open.
+
+## Cross-version acceleration
+
+### Exact correspondence
+
+Tools:
+
+```text
+tools/match_jp_us_exact.py
+tools/audit_jp_us_exact_match.py
+analysis/JP_US_EXACT_MATCH_SUMMARY.md
+```
+
+Unique 32-byte US anchors produce:
+
+```text
+115865 exact unique JP bytes
+44.1990% of PRG
+821 exact correspondence runs
+73 overlapping ambiguous JP bytes excluded
+```
+
+High-correspondence banks include PRG16 99.85%, PRG12 98.06%, PRG13 97.44%, PRG17 93.04%, PRG15 89.18%.
+
+### Relocation-normalized structural correspondence
+
+Tools:
+
+```text
+tools/match_jp_us_normalized.py
+tools/audit_jp_us_normalized_match.py
+analysis/JP_US_NORMALIZED_MATCH_SUMMARY.md
+```
+
+A 16-instruction normalized signature zeros branch displacements, JSR/JMP destinations, and ROM operands >= `$8000` while preserving opcode bytes, immediates, and RAM/I/O operands.
+
+Result:
+
+```text
+24014 unique normalized JP<->US candidate matches
+68009 JP bytes covered by normalized candidates
+149607 bytes covered by exact-or-normalized candidates = 57.0705%
+calibration on exact-supported starts: 13232 / 13232 agree, 0 disagree
+```
+
+These remain candidate structural evidence, not semantic verification.
+
+## Critical invariants
+
+- JP ROM / observed JP behavior are authoritative.
+- US disassembly, US ROM matches, CDL, Ghidra, decompilers and atlas results are accelerators only.
+- Table length is never a selector-domain proof; do not invent clamps for `$18`, `$2C`, `$68`, or `$0565 >> 6`.
+- CPU `$8000-$DFFF` targets require proven mapper state.
+- Coverage is semantic and exact; unreached bytes remain unclaimed inside raw investigation windows.
+- Variable-width streams require every operand byte actually read to be inside the claimed dependency span.
+- Lossless ROM-equivalent dumps are generated locally only and never committed.
 
 ## Current provenance boundary
 
 ```text
-verified IRQ graph                    -> preserves $10
-fixed NMI span $E057-$E365           -> preserves $10
-$ED46 helper graph                    -> preserves $10
-raw bank $0C / PRG24                 -> preserves $10 on live paths
-raw bank $04 parser + 96/96 roots    -> preserves $10
-raw bank $05 parser + 72/72 roots    -> preserves $10
-$E7FB + first-level fixed graph       -> preserves $10
-04FF nested fixed head                -> preserves $10
-0500 secondary $68 fixed graph        -> preserves $10 locally
-$18 producer domain                   -> unresolved
-full $2C producer/alias closure       -> unresolved
-full $68 producer/alias closure       -> unresolved
-mapper-dependent exits                -> unresolved
-PRG26 renderer                        -> consumes/persists $10 exactly
+verified IRQ / fixed NMI / sound-side predecessors  -> preserve $10
+fixed scheduler local graph                         -> preserves $10
+raw bank $09 local graph                            -> preserves $10
+raw bank $0A local graph                            -> preserves $10
+raw bank $0B object/collision graph                  -> WRITES $10 at 7 verified sites
+renderer                                             -> consumes/persists inherited $10 exactly
 ```
+
+Still open:
+
+- exact final-writer/value domain for the seven raw-bank `$0B` `$10` stores;
+- raw-$09 indirect / `$E5DA` selected callees;
+- raw-$0B `$E7FB` dispatch sites `$A15A/$A2CC/$A3A9`;
+- raw-$0B indirect jumps `$BD56/$BD64`;
+- first-level `$18`, full `$2C`, and full `$68` producer closure;
+- `$0565 >> 6` selector `$03` live-domain question;
+- `$FAA0-$FAA9` indexed data domain;
+- physically unprocessed fixed-tail bytes beginning at raw frontier `$FB96`.
 
 VPP remains **21/100**.
 
-## Next checkpoint — 0501
+## Next checkpoint — 0502
 
-Raw fixed-bank frontier: `$FB96`.
+Use the whole-PRG atlas and JP<->US correspondence first. Primary semantic target is the raw-bank `$0B` final-writer/value problem for `$10/$11`, including callers/returns around the seven verified stores. Secondary target is to resolve the three raw-$0B `$E7FB` dispatches and indirect object-dispatch edges where mapper context is already proven.
 
-```text
-initial raw window    $FB96-$FFFF   1130 bytes
-SHA-256               0cbfd0aa79f3c7d1db7a756c08c47bfe01cba321900fb8955e77ec8525d38d44
-
-verification overlap  $FB76-$FB95     32 bytes
-SHA-256               e4fa5e06e439ca12a84d935eb80224f448276c722399fe76fe0ce60013cc4ee7
-
-frontier fingerprint  $FB96-$FBB5     32 bytes
-SHA-256               a5437f0f20034ba34d65afeec353d28846a321134061f765814d28eaa3f69157
-```
-
-Only still-unclaimed bytes below the raw frontier: `$FAA0-$FAA9` (10 bytes).
-
-0501 should sweep the remaining fixed tail, classify the `$FE95: JSR $E7FB` atlas candidate from real control flow, reconcile exact data dependencies, and continue `$18/$2C/$68` producer plus mapper-state closure.
+The raw fixed investigation frontier remains `$FB96` because 0501 followed the first verified inbound root `$FDE4` noncontiguously rather than claiming `$FB96-$FFFF` by physical contiguity.
