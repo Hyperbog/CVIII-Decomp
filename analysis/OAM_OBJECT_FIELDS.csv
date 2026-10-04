@@ -2,7 +2,7 @@ base,end,count,renderer_role,confidence
 0400,041B,28,"zero suppresses object; nonzero byte offsets selected second-level frame-pointer table",proven
 041C,0437,28,"base Y added to arithmetic-shifted descriptor Y delta",proven
 0438,0453,28,"base X added to descriptor X delta / mirrored transformed X delta",proven
-0454,046F,28,"when nonzero replaces descriptor attribute low two bits",proven
+0454,046F,28,"when nonzero renderer computes (descriptor_attribute & $FC) | this full byte; producers can set bits above the low two",proven
 0470,048B,28,"bit 7 set suppresses object before renderer call",proven
 048C,04A7,28,"byte offset into first-level sprite-set pointer block at $817F",proven
 04A8,04C3,28,"zero selects horizontal-mirror path; nonzero selects non-mirrored path",proven
