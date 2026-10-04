@@ -75,38 +75,58 @@ Evidence: `analysis/PRG06_SELECTOR10_DIRECT_DOMAIN.md`, `tools/audit_prg06_selec
 
 ## Checkpoint 04E3 — fixed animation system supplies frame `$14`
 
-This checkpoint identifies the missing **transitive** frame mutation mechanism.
+PRG06 `$823E-$8251` selects animation ID from base Y `$041C,X`: Y `>= $A8` -> `$08`; Y `$A0-$A7` -> `$09`; Y `< $A0` -> `$0A`. It then loads A=`$10` and tail-calls fixed helper `$EF7F`.
 
-PRG06 `$823E-$8251` selects animation ID from base Y `$041C,X`:
+`$EF7F` installs selector `$10`, the animation ID, cursor zero, and timer one. Fixed updater `$EF93/$EF99` uses those fields and writes the resulting frame to `$0400,X` at `$EFB5`.
 
-- Y `>= $A8` -> animation `$08`
-- Y `$A0-$A7` -> animation `$09`
-- Y `< $A0` -> animation `$0A`
-
-It then loads A=`$10` and tail-calls fixed helper `$EF7F`.
-
-`$EF7F` stores:
-
-- `$048C,X = $10`
-- `$05AA,X = animation ID`
-- `$0593,X = 0`
-- `$057C,X = 1`
-
-Fixed updater `$EF93/$EF99` uses `$048C` to choose an animation table, `$05AA` as a three-byte record index, `$0593` as an even frame cursor, and stores the resulting frame to `$0400,X` at `$EFB5`.
-
-Selector `$10` points to the fixed animation table `$F272-$F37C` (89 records). Animation ID `$09` is:
-
-```text
-$F28D: 14 08 02
-```
-
-Therefore the first update with `$0593=0` writes **frame `$14`**. This is the missing machine mechanism that can produce selector `$10` + frame `$14`, hence descriptor `$9FA9`.
-
-The fixed object loop contains the shared post-behavior animation call `$FE60: JSR $EF93` for active objects whose `$0470` bit `$20` is clear. The local PRG06 path leading toward `$823E` writes `$40` to `$0470,X`, so it does not locally suppress that animation tick.
+Selector `$10` points to animation table `$F272-$F37C`; animation ID `$09` is `$F28D: 14 08 02`. Its first update therefore writes frame `$14`.
 
 Evidence: `analysis/PRG06_SELECTOR10_FIXED_ANIM.md`, `tools/audit_prg06_fixed_animation.py`.
 
-**VPP remains 21/100 after 04E3.** The mechanism resolves a reachability dependency but does not yet complete another fixed rubric point.
+**VPP remained 21/100 after 04E3.**
+
+## Checkpoint 04E4 — PRG06 `$823E` owner and scheduler link
+
+The fixed active-object loop processes X slots `$01-$12`. Primary types below `$30` are routed through VRC6 bank `$09`'s common dispatcher. For primary type `$08`, that dispatcher resolves:
+
+```text
+bank selector = $03
+behavior pointer = $8021
+```
+
+so type `$08` executes `PRG06:$8021` with the same object-slot X.
+
+Within PRG06, internal state `$0606,X=$01` selects the `$81E0` path, which writes `$0470,X=$40` and can reach `$823E`. If base Y `$041C,X` is `$A0-$A7`, `$823E` installs selector `$10` / animation ID `$09` through `$EF7F`.
+
+After object-specific behavior returns, the same fixed-loop iteration observes `$0470` bit `$40` set and can run the bank-`$0B` movement integrator; bit `$20` is clear, so it then reaches `$FE60: JSR $EF93` for the same X slot. Checkpoint 04E3 proves that animation ID `$09` under selector `$10` writes frame `$14`.
+
+The renderer mapping then resolves:
+
+```text
+selector $10 -> frame table $9E6D
+frame offset $14 -> descriptor $9FA9
+```
+
+Thus the exact machine path is now proven conditionally:
+
+```text
+fixed slot X=$01..$12
+primary type $08
+  -> bank-$09 common dispatcher
+  -> bank-$03 PRG06:$8021
+  -> internal state $01
+  -> base Y $A0-$A7
+  -> selector $10 / animation $09
+  -> same fixed-loop scheduler reaches $EF93
+  -> frame $14
+  -> PRG26 descriptor $9FA9
+```
+
+What is **not yet proved** is normal-gameplay provenance of the base-Y predicate `$A0-$A7`. Therefore `$9FA9` is machine-reachable under a fully reconciled state predicate, but normal-gameplay reachability is not yet claimed.
+
+Evidence: `analysis/PRG06_TYPE08_823E_OWNER.md`, `tools/audit_prg06_type08_owner.py`.
+
+**VPP remains 21/100 after 04E4.** This resolves owner/slot/scheduler structure but does not complete another fixed gameplay/object-system rubric point.
 
 ## Authoritative continuation files
 
@@ -129,15 +149,14 @@ Evidence: `analysis/PRG06_SELECTOR10_FIXED_ANIM.md`, `tools/audit_prg06_fixed_an
 - `analysis/PRG18_E1_SELECTOR10_FRAME.md`
 - `analysis/PRG06_SELECTOR10_DIRECT_DOMAIN.md`
 - `analysis/PRG06_SELECTOR10_FIXED_ANIM.md`
+- `analysis/PRG06_TYPE08_823E_OWNER.md`
 - `src/oam_renderer.*`
 - `tests/oam_renderer_test.cpp`
 - current audit scripts under `tools/`
 
 ## Unresolved / do not assume
 
-- exact runtime owner/slot path that reaches PRG06 `$823E` animation ID `$09`
-- whether that path is processed by `$EF93` in the same scheduler iteration or a later one
-- which concrete object slot(s) can render `$9FA9`
+- whether a normal primary-type `$08`, internal-state `$01` path actually attains base Y `$A0-$A7`
 - incoming cached attribute `$10` at the first compressed sprite of reachable `$9FA9`
 - whether render ordering guarantees a prior explicit-attribute sprite before `$9FA9`
 - whole-ROM selector/frame producer closure
@@ -148,4 +167,4 @@ Evidence: `analysis/PRG06_SELECTOR10_FIXED_ANIM.md`, `tools/audit_prg06_fixed_an
 
 ## Next manageable checkpoint
 
-**04E4: PRG06 `$823E` owner/scheduler link only.** Identify the exact object/state path that reaches animation ID `$09`, prove the slot/range under which it runs, and connect that path to fixed `$EF93` scheduling. Stop once `$9FA9` runtime reachability is either proved or disproved for that path. Do not expand into cached-attribute ordering yet. Update VPP only if the fixed rubric earns another point.
+**04E5: base-Y `$A0-$A7` provenance only.** Trace primary type `$08`, internal state `$01` from its authoritative initialization and velocity/update path far enough to prove or disprove that normal execution reaches `$041C,X=$A0-$A7`. Do not expand into cached-attribute `$10` ordering yet. Update VPP only if the fixed rubric earns another point.
