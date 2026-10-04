@@ -83,6 +83,39 @@ void test_first_compressed_record_uses_incoming_cache() {
     assert(ram[0x10] == 0xA7);    // compressed record does not transform/update cache
 }
 
+void test_cache_persists_across_object_boundary() {
+    Ram ram{};
+    Bank bank{};
+    put_ptr(bank, 0x817F, 0x9000);
+    put_ptr(bank, 0x9002, 0x9100);
+    put_ptr(bank, 0x9004, 0x9120);
+
+    auto* first = &bank[0x9100 - 0x8000];
+    first[0] = 1;
+    first[1] = 0x02; first[2] = 0x30; first[3] = 0x23; first[4] = 0x00;
+
+    auto* second = &bank[0x9120 - 0x8000];
+    second[0] = 1;
+    second[1] = 0x03;  // compressed: inherit $10 written by prior object
+    second[2] = 0x31;
+    second[3] = 0x00;
+
+    set_object(ram, 0, 0, 2, 0x10, 0x20, 0x00, true);
+    set_object(ram, 1, 0, 4, 0x30, 0x40, 0x00, true);
+    ram[0x22] = 0xBC;
+
+    cv3::OamContext ctx{ram, bank};
+    assert(cv3::build_oam_shadow(ctx) == cv3::OamFrameResult::Completed);
+
+    assert(ram[0x0202] == 0x23);
+    constexpr std::uint8_t second_oam = 0xC4;
+    assert(ram[0x0200 + second_oam] == 0x31);
+    assert(ram[0x0201 + second_oam] == 0x31);
+    assert(ram[0x0202 + second_oam] == 0x23);  // inherited across object boundary
+    assert(ram[0x0203 + second_oam] == 0x40);
+    assert(ram[0x10] == 0x23);
+}
+
 void test_mirror_and_tile_plus_80() {
     Ram ram{};
     Bank bank{};
@@ -137,6 +170,7 @@ void test_oam_full_non_local_exit() {
 int main() {
     test_attribute_override_and_compressed_reuse();
     test_first_compressed_record_uses_incoming_cache();
+    test_cache_persists_across_object_boundary();
     test_mirror_and_tile_plus_80();
     test_oam_full_non_local_exit();
 }
