@@ -21,11 +21,13 @@ If the state is blocked/provisional, repair only the recorded affected boundary/
 
 For variable-length instructions or streams, a claimed dependency span must include every operand/parameter byte actually read, not just the command byte.
 
+`tools/check_resume_frontier.py` supports mapper-bank domain transitions: the pre-frontier overlap and the next-frontier fingerprint may identify different raw VRC6 banks. Do not fake CPU-address contiguity across a bank transition.
+
 ## Objective and controlling evidence
 
 Faithfully reverse engineer the Japanese NES release of **Akumajou Densetsu** into an evidence-accountable native PC decompilation/recompilation. Preserve original behavior first; QoL/mod work comes later.
 
-ROM bytes are controlling evidence. Hardware documentation, public disassemblies, emulator behavior, NSF/M3U data, names, and hypotheses are secondary. Never commit the source ROM.
+ROM bytes are controlling evidence. Hardware documentation, public disassemblies, emulator behavior, NSF/M3U data, names, decompiler output, and hypotheses are secondary. Never commit the source ROM.
 
 Target ROM:
 
@@ -50,6 +52,16 @@ Each user `continue` means one bounded checkpoint:
 - confirm branch head before reporting.
 
 Never guess code/data boundaries, producer domains, or semantics. Track physical PRG bank + CPU address. Preserve 6502 widths, flags, wrapping, stack/interrupt behavior and shared zero page. Preserve VRC6 bank/IRQ semantics. Never add host-side bounds/defaults without producer proof. Keep `$10` as shared NES RAM.
+
+## Acceleration policy
+
+Read `docs/ACCELERATION_POLICY.md`.
+
+Use external resources aggressively to reduce identification time: NESdev, CDL/traces, Ghidra/NES tooling, `retrodisasm`, decompilers, `nesrecomp`, NSF metadata, and especially the existing Castlevania III disassembly in `cyneprepou4uk/NES-Games-Disassembly`.
+
+The Japanese ROM always wins disagreements. US-version symbols/structures are candidate annotations until JP bytes and JP call/data flow verify equivalence. US mapper/audio behavior must not be transplanted into the VRC6 JP version. Dynamic traces prove observed execution, not global non-reachability.
+
+Planned reusable accelerators include a normalized JP<->US routine/table matcher, whole-PRG reference atlas, RAM-symbol confidence map, trace import, and parity harnesses.
 
 ## Stable cartridge / interrupt facts
 
@@ -82,19 +94,20 @@ Native baseline: `src/oam_renderer.*`, `tests/oam_renderer_test.cpp`.
 - **04F5:** raw bank `$0C` resolved graph is `$10`-clean; `$842D` left open conservatively.
 - **04F6:** bank/parser state proves `$842D` is not live for bank `$0C`.
 - **04F7:** raw bank `$04` parser core `$8001-$87AD` is byte-identical to audited bank `$0C` core; resolved graph is `$10`-clean. Bank `$04` metadata: 102 refs / 96 roots, all alternate-parser mode.
-- **04F8:** first 34 bank-$04 roots are fully reconciled under strict recursive stream decoding through `$A013`.
-- **04F9:** next 32 roots are closed through `$B1EF`; cumulative bank-$04 closure is now 66/96.
+- **04F8:** first 34 bank-$04 roots are reconciled through `$A013` with strict operand accounting.
+- **04F9:** next 32 roots are closed through `$B1EF`.
+- **04FA:** final 30 roots are closed through semantic dependency `$BE7D`; bank `$04` is now **96/96 roots closed**.
 
 ## Reconciled 04F7/04F8 boundary
 
-The recovery checker found two four-byte commands whose operands extended beyond the old recorded spans:
+The recovery checker found two four-byte commands whose operands extended beyond old recorded spans:
 
 ```text
 9208: FE FF 33 91 -> $9133
 A010: FE FF 85 9E -> $9E85
 ```
 
-The hardened audit requires every multi-byte command's entire parameter footprint to lie inside its claimed semantic span before any operand is read.
+The hardened stream audits require every multi-byte command's entire parameter footprint to lie inside its claimed semantic span before any operand is read.
 
 04F8 authoritative dependency:
 
@@ -106,19 +119,7 @@ SHA-256 728c86cd808e178821f7f72d1f0371eb16a5bde3a1dda495543338391a5e7b3c
 3583 genuinely new bytes
 ```
 
-The first 34 roots revalidate with zero decoded `$E7`, zero operand escapes, and zero pointer-target escapes.
-
-Evidence:
-
-- `analysis/NMI_BANK04_ALT_PARSER_BOUNDARY.md`
-- `analysis/NMI_BANK04_PRG08_TAIL.md`
-- `tools/audit_nmi_bank04_prg08_tail.py`
-
-## 04F9 — PRG09 middle closure
-
-Recovery started from committed frontier `$A014` after ROM identity, overlap, fingerprint, and the 04F8 audit all passed.
-
-Authoritative 04F9 span:
+## 04F9
 
 ```text
 raw bank $04 / physical PRG09
@@ -127,38 +128,50 @@ CPU $A014-$B1EF
 SHA-256 55e35f223091a0c50beaf7ba0561445cc5c07d11ae83bfe827abcc22aa2d5a5b
 32 prior root-mode probe bytes overlap
 4540 genuinely new bytes
+32 roots closed
+states 5869; unique commands 3776; decoded E7 0
 ```
 
-32 roots from sounds `$60,$61,$62,$63,$64,$66` close under strict recursive `FB`/`FD`/`FE` decoding:
+## 04FA — complete bank `$04`
+
+Authoritative dependency:
 
 ```text
-states:                  5869
-unique commands:         3776
-latest command:          $B1EC
-FD call/return:           9 / 4
-FE jump/loop:             20 / 62
+raw bank $04 / physical PRG09
+CPU $B1F0-$BE7D
+3214 dependency bytes
+SHA-256 a7f0a8308ed9335b27de8eaf3df440f0d28cd6f57fb97e4123222e3116fc5f55
+30 prior root-mode probe bytes overlap
+3184 genuinely new bytes
+```
+
+36 metadata references / 30 distinct roots from sounds `$5F,$68,$6A,$6C,$6D,$6E` close with:
+
+```text
+states:                  3426
+unique commands:         2595
+latest command:          $BE7D
+FD call/return:           20 / 20
+FE jump/loop:             17 / 16
 decoded E7:              0
 operand/path escapes:     0
 pointer-target escapes:   0
 ```
 
-There are zero raw `$E7` bytes in `$A014-$B1EF`. These roots cannot activate `$840F/$842D`, so the already-audited parser core remains ZP `$10`-clean for this producer domain.
-
-The next root `$B1F0` requires data through `$B3CB`. Pulling it into 04F9 would require 5015 genuinely new bytes, so it is deferred rather than exceeding budget.
+`$B81A == $E7` is only the pointer-low operand of `$B818: FE FF E7 B7 -> $B7E7`. `$BFEB == $E7` lies beyond all reachable bank-$04 commands/operands. Thus no bank-$04 root reaches `$840F/$842D`.
 
 Result:
 
 ```text
 bank-$04 roots total       96
-closed                     66
-remaining                  30
-first unresolved root      $B1F0
+closed                     96
+remaining                   0
 ```
 
 Evidence:
 
-- `analysis/NMI_BANK04_PRG09_MID.md`
-- `tools/audit_nmi_bank04_prg09_mid.py`
+- `analysis/NMI_BANK04_PRG09_TAIL.md`
+- `tools/audit_nmi_bank04_prg09_tail.py`
 
 Do not add a host-side bound to `$842D`.
 
@@ -169,10 +182,7 @@ verified IRQ graph                 -> preserves $10
 fixed NMI span $E057-$E365        -> preserves $10
 $ED46 helper graph                 -> preserves $10
 live raw bank $0C / PRG24         -> preserves $10
-raw bank $04 parser $8001-$87AD   -> preserves $10 on resolved graph
-raw bank $04 first 34 roots       -> reconciled; no live $E7
-raw bank $04 next 32 roots        -> closed through $B1EF; no live $E7
-raw bank $04 remaining 30 roots   -> unresolved, first root $B1F0
+raw bank $04 parser + all roots   -> preserves $10; 96/96 roots closed
 raw instrument bank $05           -> unresolved
 $E7FB / inline dispatch            -> unresolved
 PRG26 renderer                     -> consumes/persists $10 exactly
@@ -196,19 +206,30 @@ Mandatory restart artifacts:
 
 ## Current next checkpoint
 
-**04FA — finish raw bank `$04` / physical PRG09 tail.**
+**04FB — raw instrument bank `$05` / physical PRG10-PRG11.**
 
-Start exactly at CPU `$B1F0`. Initial bounded window:
+ROM metadata already establishes:
 
 ```text
-$B1F0-$BFFF
-3600 contiguous bytes
+bank-$05 references:       84
+distinct roots:            72
+first root:                $87AE
+last root:                 $BEE8
 ```
 
-The remaining 30 root-mode probe bytes were already counted by 04F7 and must not be counted again. Carry strict `FB` loop-anchor, `FD` call/return, and `FE` counted/absolute-pointer state. Every multi-byte command must pass operand-in-span checks before reading operands.
+All 84 bank-$05 references initialize alternate-parser mode under the same ROM rule, and raw bank `$05:$8001-$87AD` is byte-identical to the already-audited bank-$04 alternate-parser core.
 
-Do not open raw bank `$05` or fixed `$E7FB` in the same checkpoint.
+Initial bounded window:
+
+```text
+$87AE-$99FF
+4690 contiguous bytes
+```
+
+04FB should first assert parser-core identity and the exact metadata domain, then recursively close the largest root set fitting the normal 500-5000 genuinely-new-byte budget. Keep strict operand-in-span checks and pointer-target closure. If `$E7` is decoded, investigate its live parameter/domain; do not assume bank `$05` matches bank `$04` data behavior merely because the parser code matches.
+
+Do not open fixed `$E7FB` in the same checkpoint.
 
 ## User-facing handoff prompt
 
-> Continue the faithful Akumajou Densetsu decomp/recomp on branch `decompilation`. First read `docs/INTERRUPTION_RECOVERY.md` and `analysis/RESUME_STATE.json` and run `tools/check_resume_frontier.py` against the exact JP ROM. Resume only from the committed ready frontier. Preserve exact 6502/VRC6/shared-ZP semantics, require full operand-in-span accounting for variable-length streams, count only genuinely new bytes, update `RESUME_STATE.json` last, and commit one bounded checkpoint. Current target: 04FA, finish raw bank `$04` from CPU `$B1F0` through physical PRG09.
+> Continue the faithful Akumajou Densetsu decomp/recomp on branch `decompilation`. First read `docs/INTERRUPTION_RECOVERY.md`, `docs/ACCELERATION_POLICY.md`, and `analysis/RESUME_STATE.json`, then run `tools/check_resume_frontier.py` against the exact JP ROM. Resume only from the committed ready frontier. Use external disassemblies/CDL/tools aggressively as secondary accelerators, but Japanese-ROM evidence controls. Preserve exact 6502/VRC6/shared-ZP semantics, require full operand-in-span accounting, count only genuinely new bytes, update `RESUME_STATE.json` last, and commit one bounded checkpoint. Current target: 04FB, raw bank `$05` from CPU `$87AE`.
