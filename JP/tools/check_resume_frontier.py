@@ -27,6 +27,30 @@ def main(rom_path: str) -> None:
     raw_bank = prg[first_prg * 0x2000 : (first_prg + 2) * 0x2000]
     assert len(raw_bank) == 0x4000
 
+    status = state.get("status", "ready")
+    if status != "ready":
+        print("ROM identity: OK", rom_sha)
+        print("RESUME FRONTIER: BLOCKED", status)
+        repair = state.get("repair_required", {})
+        for reason in repair.get("reasons", []):
+            print("-", reason)
+        candidate = repair.get("candidate_dependency_span")
+        if candidate:
+            start = int(candidate["start_cpu"], 16)
+            end = int(candidate["end_cpu_inclusive"], 16)
+            data = cpu_slice(raw_bank, start, end)
+            digest = hashlib.sha256(data).hexdigest()
+            assert len(data) == candidate["length"]
+            assert digest == candidate["sha256"], (digest, candidate["sha256"])
+            print(
+                "repair candidate bytes: OK",
+                f"${start:04X}-${end:04X}",
+                f"({len(data)} bytes)",
+                digest,
+            )
+        print("required action:", repair.get("next_action", "reconcile the blocked checkpoint before forward work"))
+        raise SystemExit(2)
+
     overlap = state["verification_overlap"]
     ostart = int(overlap["start_cpu"], 16)
     oend = int(overlap["end_cpu_inclusive"], 16)
