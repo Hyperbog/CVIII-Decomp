@@ -2,7 +2,11 @@
 
 ## Current status
 
-Project initialized from the verified Japanese `Akumajou Densetsu` Mapper-24 ROM. Work is proceeding in **small bounded checkpoints**: one narrow binary question, direct ROM verification, documentation/audit/test update, commit, then stop. No global translated-byte percentage is claimed yet; whole-PRG accounting remains intentionally deferred until the denominator is conservative and reproducible.
+Project initialized from the verified Japanese `Akumajou Densetsu` Mapper-24 ROM. Work is proceeding in **small bounded checkpoints**: one narrow binary question, direct ROM verification, documentation/audit/test update, commit, then stop.
+
+Primary high-level progress metric: **Verified Parity Progress (VPP) = 21 / 100 (21%)**.
+
+VPP is a fixed evidence rubric, not a time estimate or raw disassembly-byte percentage. See `docs/PROGRESS_METRIC.md`, `analysis/PROGRESS_SCORE.csv`, and `tools/progress_score.py`. Useful micro-checkpoints may leave the score unchanged; points are added only when a larger committed parity milestone satisfies the fixed rubric.
 
 ## Stable foundation
 
@@ -121,44 +125,69 @@ Within type `$26`, the two normal action-`$5C` entries are immediately preceded 
 - state `$13`: `0B 12 12 00` -> selector `$12`, frame `$12`
 - state `$14`: action `$5C`
 
-Action `$0B` at `$8519` directly writes record byte 1 to `$048C,X` and byte 2 to `$0400,X`.
-
 Enumerating every action-`$0B` record in the complete type-`$26` table shows that its explicit selector values are only `$12` and `$08`; selector `$10` never occurs.
 
 Therefore `$8745` belongs to the type-`$26` `$12/$08` sprite-set family and does **not** establish the missing selector-`$10` + frame-`$14` path to `$9FA9`.
 
-Scope limit: this does not claim arbitrary external code could never mutate `$048C,X` for a type-`$26` object. It proves that the authoritative type-`$26` state machine itself does not provide selector `$10`, and its ordinary `$871E` entries are directly preceded by selector `$12` setup.
-
 Evidence: `analysis/PRG22_8745_OWNER.md`; audit: `tools/audit_prg22_8745_owner.py`.
+
+## Checkpoint 04E1 — PRG18 type `$E1` selector-`$10` closure
+
+This checkpoint closes one proven selector-`$10` family without expanding into the PRG06 families.
+
+PRG18 creation code at `$9DE0-$9E1B` sets:
+
+- type `$05EF = $E1`
+- selector `$048C = $10`
+- state `$05C1 = 0`
+- initial frame `$0400 = $E8` or `$EC`
+
+The PRG18/19 dispatcher maps type `$E1` to exactly six two-byte state records at `$8FC4-$8FCF`.
+
+The only frame mutation in that six-state path is state `$04`, action `$46`, parameter index `$58`. The three parameter bytes are `FF 00 FF`. Action `$46` interprets the first `$FF` as two `INC $0400,X` operations.
+
+Thus the complete proven type-`$E1` frame evolution is:
+
+```text
+$E8 -> $EA
+or
+$EC -> $EE
+```
+
+State `$05` resolves to `$8662`, which is `RTS`. Type `$E1` therefore cannot produce selector `$10` + frame `$14` through its authoritative state machine and does not establish `$9FA9` reachability.
+
+Evidence: `analysis/PRG18_E1_SELECTOR10_FRAME.md`; audit: `tools/audit_prg18_e1_frame.py`.
+
+**VPP remains 21/100 after 04E1.** This closure is useful evidence but does not complete another point in the fixed gameplay/object-system rubric.
 
 ## Authoritative continuation files
 
 1. `docs/DECOMPILATION_CONTINUITY.md`
 2. `docs/PROGRESS.md`
-3. `docs/ROM_IDENTITY.md`
-4. `analysis/PRG31_boot_and_interrupts.asm`
-5. `analysis/PRG02_IRQ_dispatch.md`
-6. `analysis/IRQ_STATE_MACHINE.csv`
-7. `analysis/PRG26_OAM_frame.md`
-8. `analysis/PRG26_SPRITE_FORMAT.md`
-9. `analysis/SPRITE_SET_TABLE.csv`
-10. `analysis/SPRITE_MASTER_TABLES.csv`
-11. `analysis/OAM_OBJECT_FIELDS.csv`
-12. `analysis/ZP10_OAM_STATE.md`
-13. `analysis/PRG26_9FA9_REACHABILITY.md`
-14. `analysis/PRG22_8745_OWNER.md`
-15. `src/oam_renderer.hpp`
-16. `src/oam_renderer.cpp`
-17. `tests/oam_renderer_test.cpp`
-18. `tools/analyze_rom.py`
-19. `tools/audit_irq_dispatch.py`
-20. `tools/audit_oam_tables.py`
-21. `tools/audit_sprite_descriptors.py`
-22. `tools/audit_oam_zp10.py`
-23. `tools/audit_prg22_8745_owner.py`
+3. `docs/PROGRESS_METRIC.md`
+4. `docs/ROM_IDENTITY.md`
+5. `analysis/PROGRESS_SCORE.csv`
+6. `analysis/PRG31_boot_and_interrupts.asm`
+7. `analysis/PRG02_IRQ_dispatch.md`
+8. `analysis/IRQ_STATE_MACHINE.csv`
+9. `analysis/PRG26_OAM_frame.md`
+10. `analysis/PRG26_SPRITE_FORMAT.md`
+11. `analysis/SPRITE_SET_TABLE.csv`
+12. `analysis/SPRITE_MASTER_TABLES.csv`
+13. `analysis/OAM_OBJECT_FIELDS.csv`
+14. `analysis/ZP10_OAM_STATE.md`
+15. `analysis/PRG26_9FA9_REACHABILITY.md`
+16. `analysis/PRG22_8745_OWNER.md`
+17. `analysis/PRG18_E1_SELECTOR10_FRAME.md`
+18. `src/oam_renderer.hpp`
+19. `src/oam_renderer.cpp`
+20. `tests/oam_renderer_test.cpp`
+21. `tools/progress_score.py`
+22. current ROM/subsystem audit scripts under `tools/`
 
 ## Unresolved / do not assume
 
+- whether any PRG06 selector-`$10` family can mutate `$0400` to `$14`
 - actual reachable mechanism, if any, producing selector `$10` plus frame `$14`
 - which object slots can reach `$9FA9`
 - whether object ordering guarantees a prior explicit-attribute sprite before `$9FA9`
@@ -169,8 +198,8 @@ Evidence: `analysis/PRG22_8745_OWNER.md`; audit: `tools/audit_prg22_8745_owner.p
 - semantic identities of individual frame tables/descriptors
 - gameplay meaning/producers of every `$0400-$04C3` field beyond proven renderer behavior
 - exact visual/game-state meanings of IRQ states `$00-$2C`
-- whole-PRG code/data accounting denominator
+- conservative ROM-byte code/data coverage metric (future companion metric, not VPP)
 
 ## Next manageable checkpoint
 
-**04E: selector-`$10` frame mutation mechanism only.** Starting from the already-proven selector-`$10` producer families, identify how their `$0400` frame field changes after setup and determine whether any reachable table/increment/copy path can produce frame `$14`. Do not broaden into unrelated object types or general animation semantics.
+**04E2: PRG06 selector-`$10` families only.** Enumerate the direct PRG06 selector-`$10` setup/helper paths and trace their frame mutations far enough to determine whether any authoritative PRG06 path can produce frame `$14`. Do not expand into unrelated banks/object families. Update VPP only if the fixed rubric actually earns another point.
