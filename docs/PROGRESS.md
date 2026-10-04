@@ -2,7 +2,9 @@
 
 ## Current status
 
-Work proceeds in **small bounded checkpoints**: one narrow binary question, direct ROM verification, focused artifact/audit update, commit, then stop.
+Work proceeds in **small bounded checkpoints**: one narrow question, direct ROM verification, focused artifact/audit update, commit, then stop.
+
+Byte-budget policy: default to roughly **1 KiB of new ROM span per checkpoint**, with an allowed range of about **500-5000 bytes**. Stop and report before expanding beyond that span unless a few isolated signatures are needed to prove the same question.
 
 Primary high-level progress metric: **Verified Parity Progress (VPP) = 21 / 100 (21%)**.
 
@@ -65,13 +67,7 @@ Direct selector-`$10` setup frames are high values; the only direct frame `$14` 
 
 ### 04E3 — transitive animation mechanism
 
-PRG06 `$823E-$8251` chooses animation ID `$09` when base Y is `$A0-$A7` and installs selector `$10`. Fixed selector-`$10` animation record `$09` is:
-
-```text
-$F28D: 14 08 02
-```
-
-so `$EF93` writes frame `$14`.
+PRG06 `$823E-$8251` chooses animation ID `$09` when base Y is `$A0-$A7` and installs selector `$10`. Fixed selector-`$10` animation record `$09` is `$F28D: 14 08 02`, so `$EF93` writes frame `$14`.
 
 ### 04E4 — owner/scheduler link
 
@@ -86,54 +82,15 @@ frame $14    -> descriptor $9FA9
 
 ### 04E5 — deterministic vertical path
 
-State `$00` initializes:
-
-```text
-$041C = $C0
-$0537 = $00
-$0520 = $FE
-$0606 -> $01
-```
-
-The bank-`$0B` movement integrator therefore changes Y by exactly `-2` per scheduled tick.
-
-For the established consumer index domain, the state-1 target table max is `$98`, so the trajectory necessarily includes `$A6/$A4/$A2/$A0`, all of which select animation `$09`.
+State `$00` initializes base Y `$C0` and exact vertical velocity `-2`. The bank-`$0B` movement integrator therefore steps `$C0,$BE,...,$A8,$A6,$A4,$A2,$A0,...` while state `$01` is active. For the established consumer domain, the target table max is `$98`, so the `$A0-$A7` animation-`$09` window is necessarily crossed.
 
 ### 04E6 — root `$0645` producer closure
 
-The remaining root-construction uncertainty is now closed for the normal type-`$08` path.
+Normal low-type construction clears `$0606/$061D/$0633/$0645` before type `$08` is stored. The PRG20 constructor that later writes room-position byte `$73` to `$0645` is a high-type-only spawner path; its audited record tables contain no type `$08` record.
 
-Authoritative JP facts:
+Thus normal root type `$08` begins with `$0633=$0645=0`. State `$00` makes the first state-1 index exactly `$01`, with target `$840F[$01]=$90`.
 
-- fixed `$FF24` clears `$0606/$061D/$0633/$0645`;
-- the standard low-slot allocator `PRG18:$86E3` resets through `$86D1/$8692` before storing its caller-supplied type;
-- the PRG20 path that later writes room-position byte `$73` to `$0645` is a **high-type** spawner path only;
-- its two pointer tables at `$A56B/$A66B` yield 251 valid pointed records in the audit, with **zero type `$08` records**; nonempty record first bytes are `$80+`;
-- the complete PRG contains no literal `LDA #$08 / STA $054E,X` constructor.
-
-Thus normal root type `$08` begins:
-
-```text
-$0606 = $00
-$0633 = $00
-$0645 = $00
-```
-
-State `$00` increments/masks `$0633`, making the first state-1 index exactly:
-
-```text
-$0633 + $0645 = $01
-```
-
-and target:
-
-```text
-$840F[$01] = $90
-```
-
-Therefore the normal state-machine path necessarily traverses `$A6/$A4/$A2/$A0`, selects animation `$09`, reaches selector `$10` + frame `$14`, and renders descriptor `$9FA9`.
-
-**Normal gameplay `$9FA9` reachability is now proven for this root type-`$08` path.**
+Therefore the normal state-machine path necessarily reaches selector `$10` + frame `$14` and renders descriptor `$9FA9`.
 
 Evidence:
 
@@ -144,7 +101,36 @@ Evidence:
 - `tools/audit_prg06_type08_vertical_path.py`
 - `tools/audit_prg06_type08_0645.py`
 
-**VPP remains 21/100 after 04E6.** This closes a reachability dependency but does not yet complete another fixed-rubric gameplay/object-system point.
+### 04F1 — incoming `$10` is inherited variable state
+
+Primary ROM span for this checkpoint: PRG26 `$8001-$81FF` plus isolated verification of `$9FA9` and two PRG28 slot-0 mirror-state writes.
+
+The outer renderer walks slots strictly upward from `$00` through `$1B` and does not initialize ZP `$10`. Compressed records read `$10`; full records store their final transformed attribute into `$10`.
+
+`$9FA9` begins:
+
+```text
+04 DF 8A F0  E1 8C F8  E5 8E 00  04 E4 90 03
+```
+
+Its first three records are compressed. Therefore their attribute is inherited from prior shared renderer state.
+
+The value is **not a single game constant**. It is:
+
+- the final explicit attribute emitted by the highest lower-index object that rendered earlier in the frame; or
+- the pre-render shared RAM value if no lower slot emitted an explicit attribute.
+
+JP PRG28 also contains immediate writes of both `1` and `0` to slot-0 `$04A8`. Since `$04A8==0` selects the mirror path and the mirror path XORs `$40` before updating `$10`, an earlier slot can legitimately leave different cache values solely from mirror state.
+
+The native regression suite already includes `test_cache_persists_across_object_boundary()`, which verifies that a compressed record in a later object consumes the prior object's cached attribute.
+
+Evidence:
+
+- `analysis/PRG26_9FA9_INCOMING_ATTR.md`
+- `tools/audit_prg26_9fa9_cache.py`
+- `tests/oam_renderer_test.cpp`
+
+**VPP remains 21/100 after 04F1.** This closes an exact renderer-state contract but does not complete another fixed-rubric point.
 
 ## Authoritative continuation files
 
@@ -159,6 +145,7 @@ Evidence:
 - `analysis/PRG26_OAM_frame.md`
 - `analysis/PRG26_SPRITE_FORMAT.md`
 - `analysis/ZP10_OAM_STATE.md`
+- `analysis/PRG26_9FA9_INCOMING_ATTR.md`
 - `analysis/PRG06_SELECTOR10_FIXED_ANIM.md`
 - `analysis/PRG06_TYPE08_823E_OWNER.md`
 - `analysis/PRG06_TYPE08_VERTICAL_PATH.md`
@@ -169,8 +156,7 @@ Evidence:
 
 ## Unresolved / do not assume
 
-- incoming cached attribute `$10` at the first compressed record of reachable `$9FA9`
-- whether object/render ordering guarantees the intended prior explicit-attribute value before `$9FA9`
+- whether any verified IRQ handler can write ZP `$10` between NMI `CLI` and the PRG26 renderer call
 - whole-ROM type-transition / selector-frame producer closure
 - higher-level meaning of `$AD`
 - semantic identities of individual sprite descriptors
@@ -179,4 +165,4 @@ Evidence:
 
 ## Next manageable checkpoint
 
-**04F1 — reachable `$9FA9` incoming ZP `$10` only.** Trace the render ordering and immediately preceding attribute-cache writer for the proven type-`$08` `$9FA9` object. Determine the exact `$10` value consumed by its first compressed record, or prove that it is intentionally inherited from a variable prior object. Do not expand into unrelated sprite descriptors or background rendering.
+**04F2 — IRQ-side `$10` interference only.** Restrict new ROM analysis to the verified IRQ handler region `PRG02/PRG03:$9F99-$A526` (about 1.4 KiB) plus the fixed IRQ entry/exit signatures already mapped. Determine whether any reachable IRQ handler can write ZP `$10` during the NMI window before `PRG26:$8001`. Do not expand into other gameplay banks or background rendering.
