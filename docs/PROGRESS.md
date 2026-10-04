@@ -2,7 +2,7 @@
 
 ## Current status
 
-Project initialized on 2026-10-03 from the verified Japanese `Akumajou Densetsu` Mapper-24 ROM. The first bank-aware control-flow pass is committed. No source-level translated-byte percentage is claimed yet: code/data classification and a defensible coverage denominator have not been established across all 256 KiB PRG.
+Project initialized on 2026-10-03 from the verified Japanese `Akumajou Densetsu` Mapper-24 ROM. Two bank-aware analysis batches are committed. No source-level translated-byte percentage is claimed yet: code/data classification and a defensible coverage denominator have not been established across all 256 KiB PRG.
 
 ### Completed foundation
 
@@ -15,8 +15,9 @@ Project initialized on 2026-10-03 from the verified Japanese `Akumajou Densetsu`
   - IRQ `$E0F5`
 - Added first instruction-level fixed-bank disassembly in `analysis/PRG31_boot_and_interrupts.asm`.
 - Traced the first banked NMI frame routine through `PRG26:$8001..$817E` and classified `$817F+` as pointer/data space for that path.
-- Traced the IRQ dispatch table in `PRG02` and discovered a real code/data overlap at `$9F60`.
-- Added reproducible identity/bank analyzer `tools/analyze_rom.py`.
+- Correctly bounded the IRQ dispatch table to states `$00-$2C` and mapped every table target/state transition.
+- Added machine-readable `analysis/IRQ_STATE_MACHINE.csv`.
+- Added reproducible ROM and IRQ audits in `tools/analyze_rom.py` and `tools/audit_irq_dispatch.py`.
 
 ## Proven architecture from PRG31
 
@@ -50,46 +51,96 @@ Later in that path it selects bank value `$0D` and calls CPU `$8001`. VRC6 bank 
 
 `$22` advances by `$44` modulo 256 each invocation and seeds the OAM destination offset. This is consistent with sprite-order rotation, but the exact gameplay intent remains provisional.
 
-`$8070..$817E` performs two-level pointer lookup and emits OAM fields. `$8119` XORs the attribute byte with `$40`, proving a horizontal-flip path. `$817F+` is read as little-endian pointer-table data by this routine and must not be linearly disassembled as code without another proven entry.
+`$8070..$817E` performs two-level pointer lookup and emits OAM fields. `$8119` XORs the attribute byte with `$40`, proving a horizontal-flip path. `$817F+` is read as pointer-table data by this routine and must not be linearly disassembled as code without another proven entry.
 
 Full notes: `analysis/PRG26_OAM_frame.md`.
 
-### IRQ dispatch and overlap
+## Batch 02 — IRQ state-machine closure and correction
 
-IRQ at `PRG31:$E0F5` saves A/X/Y plus zero-page `$00/$01`, directly selects 16 KiB bank `$01` through `$E2D2`, and indexes a pointer table beginning at CPU `$9F01`. Bank `$01` maps physical `PRG02/PRG03`.
+### Corrected table boundary
 
-The table yields plausible handler pointers for indices `$00..$2F`. The next would-be entry overlaps sequential code and decodes to an implausible execution target, but the actual domain of `$6A` still needs producer-side proof.
+The initial pass incorrectly extended the IRQ pointer table through candidate states `$2D-$2F` and claimed `$9F60` was an overlapping code/data byte. Fresh direct disassembly corrected this.
 
-Critical fidelity fact: table entry `$2F` uses bytes `$9F5F=$26` and `$9F60=$A5` to form target `$A526`, while `$9F60` is simultaneously the first opcode of a valid routine (`LDA $7A`). Therefore this ROM contains at least one proven **code/data-overlap byte**. Coverage/accounting must allow one physical byte to participate in more than one semantic role rather than forcing a disjoint partition.
+The actual table is exactly:
 
-Full notes: `analysis/PRG02_IRQ_dispatch.md`.
+- `PRG02:$9F01-$9F5A`
+- 90 bytes
+- 45 entries
+- states `$00-$2C`
 
-## Files that are authoritative for continuation
+`$9F5B` begins executable `CE 81 07` (`DEC $0781`) and is directly called by `$A090` and `$A185`. Therefore `$9F5B+` is code, not additional dispatch-table data. The old `$9F60` overlap claim is retired and must not be reintroduced.
+
+### State transitions
+
+Every table target is now mapped in `analysis/IRQ_STATE_MACHINE.csv`.
+
+Important closure facts:
+
+- normal table states are `$00-$2C`
+- the highest explicit chain is `29 -> 2A -> 2B -> 2C`
+- state `$2C` does not increment
+- states `$1A/$1B` assign from small local tables rather than simply incrementing
+- several states intentionally remain active across IRQs until a RAM countdown/condition completes
+- bit-7-set `$6A` values bypass the table entirely at the fixed IRQ dispatcher
+
+### `$43` seed / `$6A` active-state contract
+
+NMI copies `$43 -> $6A` at `$E073-$E075`.
+
+`$E616` clears both `$6A` and `$43`.
+
+Whole-PRG producer-pattern auditing plus direct instruction-boundary reconciliation establishes:
+
+- accepted direct immediate `$43` seeds observed in code: `01,05,0B,10,12,13,16,17,19,1A,1E,21,23,29,80`
+- helper `$8E97` supplies additional proven seeds `02`, `09`, and `24` (plus `13` on another branch)
+- `$94D9` restores `$43` from `$A3`, while `$B55A` proves `$A3` is a snapshot of the previous `$43`
+- `$9A67` stores only `01`, because it executes after equality with `CMP #$01`
+- apparent non-STA `$43` mutations and apparent extra `$6A` stores found by raw pattern search fall inside tables/graphics/inline dispatch data and are not accepted as executable writes
+
+The currently proven state domain is therefore table states `$00-$2C` plus `$80` as a high-bit bypass sentinel.
+
+### VRC6 IRQ exit distinction
+
+The two fixed exits are not interchangeable:
+
+- `$E118`: `LDA #0; STA $F001` then falls through `$E11D`
+- `$E11D`: writes to `$F002` and restores the tracked PRG bank
+
+NESdev documents `$F001` as IRQ Control and `$F002` as IRQ Acknowledge. A write to Acknowledge applies the stored A-bit enable-after-ack behavior; a Control write also changes/reloads IRQ state. Preserve this difference in the eventual native VRC6 implementation.
+
+References:
+
+- https://www.nesdev.org/wiki/VRC6
+- https://www.nesdev.org/wiki/VRC_IRQ
+
+## Files authoritative for continuation
 
 1. `docs/DECOMPILATION_CONTINUITY.md`
 2. `docs/PROGRESS.md`
 3. `docs/ROM_IDENTITY.md`
 4. `analysis/PRG31_boot_and_interrupts.asm`
 5. `analysis/PRG02_IRQ_dispatch.md`
-6. `analysis/PRG26_OAM_frame.md`
-7. `tools/analyze_rom.py`
+6. `analysis/IRQ_STATE_MACHINE.csv`
+7. `analysis/PRG26_OAM_frame.md`
+8. `tools/analyze_rom.py`
+9. `tools/audit_irq_dispatch.py`
 
 ## Unresolved / do not assume
 
-- Exact semantic roles of zero-page variables other than those proven by direct use.
-- Exact producer/domain of IRQ index `$6A`; do not yet hard-cap it in reconstructed logic solely from table appearance.
-- Exact purpose of every VRC6 IRQ write in NMI until IRQ mode/latch paths are traced together.
-- Complete extent and index semantics of the `$817F` pointer table.
+- Exact gameplay/render meaning of each `$43/$6A` IRQ program state.
+- Exact producer/valid domains of `$0780/$0781/$0782/$0789-$0794` used by multi-step IRQ handlers.
+- Exact purpose of every VRC6 IRQ latch value until the visual split/scroll programs are connected to frame-side setup.
+- Complete extent and index semantics of the `PRG26:$817F` sprite pointer hierarchy.
 - Complete object-record semantics for arrays `$0400/$041C/$0438/$0454/$0470/$048C/$04A8`.
-- Full code/data/overlap classification of each physical PRG bank.
+- Full code/data classification of each physical PRG bank.
 - Native runtime architecture and translated-source coverage denominator.
 
 ## Next batch
 
-1. Trace all writes to `$6A` and reconcile the IRQ dispatch-index domain.
-2. Disassemble/reconcile unique IRQ targets from the `$9F01` table, especially `$9F99`, `$9FA1`, `$9FD5`, `$9FE3`, `$A01C+`, and common return through fixed `$E118`.
-3. Determine the valid index/stride and full extent of the `PRG26:$817F` sprite pointer table.
-4. Trace producers of the 28-entry `$0400+` object structure-of-arrays fields.
-5. Begin a machine-readable bank-aware symbol/call ledger once these relationships are stable.
+1. Return to `PRG26:$8070` and determine the valid `$048C` selector domain and exact first-level `$817F` pointer-table extent.
+2. Decode the second-level sprite-description pointer format and field stream consumed by `$8070..$817E`.
+3. Trace producers of the 28-entry object structure-of-arrays fields around `$0400-$04A8`.
+4. Connect the `$43` IRQ seed setters to the visual/game states that select each raster program.
+5. Once those RAM contracts are stable, begin the first native mapper/IRQ/OAM subsystem source with regression checks against ROM-derived traces.
 
-The next coherent subsystem target remains **frame OAM construction + interrupt-driven bank context**, now with explicit overlapping-code/data support required by the original ROM.
+No translated-byte percentage is being reported yet. That remains intentionally deferred until the project has a conservative, overlap-safe PRG accounting model rather than an invented early denominator.
