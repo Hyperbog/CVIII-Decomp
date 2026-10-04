@@ -6,9 +6,9 @@
   "branch": "decompilation",
   "rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
   "safe_forward_work": true,
-  "last_completed_checkpoint": "04FA",
-  "last_completed_checkpoint_commit": "9b079fe3601aa724d0acaebafd7bb19fdcfdf7b6",
-  "previous_checkpoint_audit": "tools/audit_nmi_bank04_prg09_tail.py",
+  "last_completed_checkpoint": "04FB",
+  "last_completed_checkpoint_commit": "a1ab459aaeb52a5549e4af7be7ac3018cad4f898",
+  "previous_checkpoint_audit": "tools/audit_nmi_bank05_prg10_head.py",
   "vpp": {
     "earned": 21,
     "total": 100
@@ -20,62 +20,68 @@
     "frontier_physical_prg_bank": 10
   },
   "frontier": {
-    "last_closed_cpu": "BE7D",
-    "last_closed_raw_vrc6_bank": "04",
-    "next_unprocessed_cpu": "87AE",
+    "last_closed_cpu": "9A6A",
+    "last_closed_raw_vrc6_bank": "05",
+    "next_unprocessed_cpu": "9A6B",
     "next_raw_vrc6_bank": "05",
-    "next_checkpoint": "04FB",
-    "domain_transition": true,
-    "initial_window_start_cpu": "87AE",
-    "initial_window_end_cpu_inclusive": "99FF",
+    "next_checkpoint": "04FC",
+    "domain_transition": false,
+    "initial_window_start_cpu": "9A6B",
+    "initial_window_end_cpu_inclusive": "ACBC",
     "initial_window_contiguous_bytes": 4690
   },
   "verification_overlap": {
-    "raw_vrc6_bank": "04",
-    "start_cpu": "BE3E",
-    "end_cpu_inclusive": "BE7D",
+    "raw_vrc6_bank": "05",
+    "start_cpu": "9A2B",
+    "end_cpu_inclusive": "9A6A",
     "length": 64,
-    "sha256": "f40922783896195ec08cc927a4eee26bbde2a7d0aac749a198696904100eb430",
+    "sha256": "8479ed06a5d85600cd0739f7e4f28dad991aab494cb5f8df42ad85f6ee41545f",
     "coverage_accounting": "verification-only; never count these 64 bytes as new coverage"
   },
   "frontier_fingerprint": {
     "raw_vrc6_bank": "05",
-    "start_cpu": "87AE",
-    "end_cpu_inclusive": "87CD",
+    "start_cpu": "9A6B",
+    "end_cpu_inclusive": "9A8A",
     "length": 32,
-    "sha256": "b0b7dd5754f1c65b0926bdbbc8ccbcc8042eb26bd2e018e21ee97aef4f011e86",
+    "sha256": "90c08d360be28c11fb2537b89d570b1655d774163d97cd08bff41d1d460281bc",
     "purpose": "alignment/fingerprint only; does not establish semantic closure"
   },
   "prior_dependency_span": {
-    "raw_vrc6_bank": "04",
-    "start_cpu": "B1F0",
-    "end_cpu_inclusive": "BE7D",
-    "length": 3214,
-    "sha256": "a7f0a8308ed9335b27de8eaf3df440f0d28cd6f57fb97e4123222e3116fc5f55",
-    "04F7_root_probe_overlap_bytes": 30,
-    "exact_new_bytes_in_checkpoint": 3184
+    "raw_vrc6_bank": "05",
+    "start_cpu": "87AE",
+    "end_cpu_inclusive": "9A6A",
+    "length": 4797,
+    "sha256": "58f4a24e41ba95766529e1eaa531c63fc666ca51abc668ec4eb3ba3f4e50eb6b",
+    "exact_new_bytes_in_checkpoint": 4797
+  },
+  "parser_core_verification": {
+    "start_cpu": "8001",
+    "end_cpu_inclusive": "87AD",
+    "length": 1965,
+    "sha256": "e2c3ff3d7e9f96b598610a8028f5b92a606fac7f9acb2977811146fa145fdb67",
+    "relation": "raw bank 05 is byte-identical to the already-audited raw bank 04 core"
   },
   "closed_state": [
-    "raw bank 04 alternate-parser executable core $8001-$87AD is ZP $10-clean on the resolved graph",
-    "all 96 raw-bank 04 metadata roots are recursively closed with strict operand accounting",
-    "bank 04 decoded E7 count is zero across the full producer domain",
-    "raw $E7 at $B81A is an FE-FF pointer operand; $BFEB is outside reachable bank-04 dependency",
-    "raw bank 04 producer domain preserves shared ZP $10"
+    "raw bank 04 alternate-parser executable core and all 96 bank-04 roots preserve shared ZP $10",
+    "raw bank 05 parser core $8001-$87AD is byte-identical to the audited bank-04 core",
+    "raw bank 05 metadata domain is 84 references / 72 roots and all initialize alternate-parser mode",
+    "04FB closes the first 19 bank-05 roots through $9A6A with strict operand accounting",
+    "04FB live E7 following-byte high-nibble domain is exactly $0,$5,$8; all index the in-range $8430-$8443 table and dispatch to audited $8444",
+    "first 19 bank-05 roots preserve shared ZP $10"
   ],
   "open_edges": [
-    "raw instrument bank 05 has 84 metadata references / 72 distinct roots from $87AE-$BEE8",
+    "53 raw-bank 05 roots remain unresolved beginning at $9A6B",
     "fixed $E7FB / inline dispatch remains unresolved"
   ],
   "checkpoint_constraints": [
-    "04FB begins in raw bank 05 exactly at CPU $87AE",
-    "initial bounded window is $87AE-$99FF (4690 contiguous bytes)",
-    "assert raw bank 05 parser core $8001-$87AD byte identity before reusing bank-04 code proof",
-    "reproduce exact 84-reference / 72-root metadata domain and parser-mode initialization",
+    "04FC begins in raw bank 05 exactly at CPU $9A6B",
+    "initial bounded window is $9A6B-$ACBC (4690 contiguous bytes)",
     "carry FB loop-anchor, FD call/return, and FE counted/absolute-pointer stream state",
     "every multi-byte command must pass operand-in-span assertions before operands are read",
     "prove pointer-target closure; raw FF is not a terminator proxy",
-    "if decoded E7 occurs, investigate live parameter/domain; do not assume bank-04 data behavior",
-    "do not open fixed $E7FB during 04FB"
+    "derive every later decoded E7 following-byte domain from the actual producer roots; do not assume the 04FB $0/$5/$8 domain",
+    "for live E7 prove the $842D table index/target from ROM data and do not invent a host-side bound",
+    "do not open fixed $E7FB during 04FC"
   ],
   "acceleration_policy": [
     "Japanese ROM and reproducible parity evidence are authoritative",
@@ -88,6 +94,6 @@
       "$9208 FE FF 33 91 -> $9133; operands through $920B",
       "$A010 FE FF 85 9E -> $9E85; operands through $A013"
     ],
-    "resolution": "hardened audits passed; 04F7 byte coverage unchanged; 04F8 dependency extended to $A013; 04F9 regenerated from $A014; 04FA completed bank $04 through $BE7D"
+    "resolution": "hardened audits passed; 04F7 byte coverage unchanged; 04F8 dependency extended to $A013; 04F9 regenerated from $A014; 04FA completed bank $04; 04FB begins bank $05 with live E7 producer-domain proof"
   }
 }
