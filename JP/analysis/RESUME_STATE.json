@@ -1,5 +1,5 @@
 {
-  "schema_version": 13,
+  "schema_version": 14,
   "status": "ready",
   "project": "Akumajou Densetsu JP decomp/recomp",
   "repository": "Hyperbog/CVIII-Decomp",
@@ -7,7 +7,7 @@
   "rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
   "safe_forward_work": true,
   "last_completed_checkpoint": "0500",
-  "last_completed_checkpoint_commit": "e79038b5f71abca14a62c928f176b1004cb2695a",
+  "last_completed_checkpoint_commit": "308583da8f69073667811b4e87fd966e7dc0ee28",
   "previous_checkpoint_audit": "tools/audit_nmi_fixed_68_dispatch.py",
   "vpp": {"earned": 21, "total": 100},
   "execution_context": {
@@ -28,7 +28,7 @@
     "initial_window_end_cpu_inclusive": "FFFF",
     "initial_window_contiguous_bytes": 1130,
     "initial_window_sha256": "0cbfd0aa79f3c7d1db7a756c08c47bfe01cba321900fb8955e77ec8525d38d44",
-    "frontier_semantics": "raw investigation frontier; semantic coverage remains noncontiguous and pending earlier gaps remain explicitly unclaimed"
+    "frontier_semantics": "raw investigation frontier; semantic coverage remains noncontiguous and the prior indexed-data gap remains explicitly unclaimed"
   },
   "verification_overlap": {
     "physical_prg_bank": 31,
@@ -37,7 +37,7 @@
     "end_cpu_inclusive": "FB95",
     "length": 32,
     "sha256": "e4fa5e06e439ca12a84d935eb80224f448276c722399fe76fe0ce60013cc4ee7",
-    "coverage_accounting": "verification-only; these bytes are already part of the 0500 decoded manifest"
+    "coverage_accounting": "verification-only; these bytes are already part of the corrected 0500 manifest"
   },
   "frontier_fingerprint": {
     "physical_prg_bank": 31,
@@ -55,26 +55,25 @@
     "raw_bounding_window_end_cpu_inclusive": "FBFF",
     "raw_bounding_window_length": 1024,
     "raw_bounding_window_sha256": "f3090b53f174f15eeacad0d9e042efd95ff93ed6b4bfd706ba233ee5f588c86a",
-    "exact_new_bytes_in_checkpoint": 933,
-    "instruction_operand_bytes": 875,
+    "exact_new_bytes_in_checkpoint": 982,
+    "instruction_starts": 414,
     "explicit_table_data_bytes": 58,
-    "ordered_manifest_sha256": "a4ae2796d32ef639940c58f0160af79b8eab8cf80347a998af0ae9c4bab3e44a",
+    "ordered_manifest_sha256": "fdc1a53db0ee18ca5e70188d2c8b31d1b350c91d011f72fddb4b6fcb7434984e",
     "ranges": [
       {"start_cpu":"F706","end_cpu_inclusive":"F712","length":13,"sha256":"8745c6e3d3acdd90bf3b1cafaf32f9e981a606070ba5d2b365cace8f56fa3025"},
       {"start_cpu":"F724","end_cpu_inclusive":"F738","length":21,"sha256":"41cad7c7b722c299f4111083f871fd996a0cfa517bd990d3b37ddce6ac30072e"},
       {"start_cpu":"F782","end_cpu_inclusive":"F791","length":16,"sha256":"17bbb4663de8e617686c27ab5ad5554a69c0062d9c8bff1d353fd6487028546b"},
       {"start_cpu":"F7B7","end_cpu_inclusive":"F7CE","length":24,"sha256":"0d93fcf865fdae96f01a0640e3769924b558f1cb0aaa0dbe7d2fedfdf17462be"},
-      {"start_cpu":"F831","end_cpu_inclusive":"FA9F","length":623,"sha256":"eb0859ea4906556aa18192c14d446c9968b56eda1d0d27ad70138f292d9cd9fe"},
+      {"start_cpu":"F800","end_cpu_inclusive":"FA9F","length":672,"sha256":"6dea651f93c64d59355c4180907677d367bb705ed84cbfa6ec59da79009028a8"},
       {"start_cpu":"FAAA","end_cpu_inclusive":"FB95","length":236,"sha256":"5d32479e3af38c5477b4a3c076b3c3d0a0bd07f4c572a35a115bd6e347720402"}
     ],
     "secondary_tables": [
       {"start_cpu":"F84E","end_cpu_inclusive":"F86D","length":32,"encoded_pointers":16,"sha256":"88065baa658136181547132c1ee61481724cba01f76f0f5aed837a91aa06e549"},
       {"start_cpu":"F96A","end_cpu_inclusive":"F97D","length":20,"encoded_pointers":10,"sha256":"9db34975a37e416e832cc543ae63858c0fa17e5a7b0b5f6f6070a96974838aea"}
     ],
-    "coverage_accounting": "semantic noncontiguous coverage; the secondary table lengths are structural data counts, not live $68 producer bounds"
+    "coverage_accounting": "corrected semantic noncontiguous coverage; $F800 is an explicit 04FF fallthrough root; secondary table lengths are structural data counts, not live $68 bounds"
   },
   "pending_unclaimed_gaps": [
-    {"start_cpu":"F800","end_cpu_inclusive":"F830","length":49,"reason":"not reached by the admitted deferred-primary/secondary target graph"},
     {"start_cpu":"FAA0","end_cpu_inclusive":"FAA9","length":10,"reason":"indexed ROM data dependencies exist but $62/$054E index domains are not yet fully proven"}
   ],
   "closed_state": [
@@ -82,9 +81,9 @@
     "raw bank 05 parser and all 72 bank-05 roots preserve shared ZP $10",
     "fixed PRG31 $E7FB first-level dispatcher graph preserves shared ZP $10",
     "04FF admits 26 nested $2C-table roots and 931 genuinely new bytes while preserving $10 locally",
-    "0500 closes the deferred fixed primary roots and both visible $68 secondary-dispatch structures as a bounded local graph",
+    "0500 closes the explicit $F800 fallthrough, deferred fixed primary roots, and both visible $68 secondary-dispatch structures as a bounded local graph",
     "0500 promotes all four former 04FF gaps because $F84E-$F86D explicitly targets $F706/$F724/$F782/$F7B7",
-    "0500 strictly decodes 395 instruction starts / 875 instruction-operand bytes plus 58 justified table/data bytes = 933 genuinely new bytes",
+    "corrected 0500 strictly decodes 414 instruction starts and 982 genuinely new semantic bytes",
     "0500 admitted graph has no direct or zero-page-indexed store/RMW capable of aliasing ZP $10; absolute-indexed write bases are $0300-$057C"
   ],
   "open_edges": [
@@ -100,8 +99,8 @@
     "0501 begins at raw fixed-bank investigation frontier CPU $FB96",
     "initial raw window is $FB96-$FFFF (1130 bytes); count only bytes actually consumed by admitted code/data",
     "query/regenerate the whole-PRG atlas before narrow manual searching",
-    "reuse all 04FF and 0500 manifests as prior coverage",
-    "$F800-$F830 and $FAA0-$FAA9 remain unclaimed despite lying below the raw frontier",
+    "reuse all 04FF and corrected 0500 manifests as prior coverage",
+    "$FAA0-$FAA9 remains unclaimed despite lying below the raw frontier",
     "classify $FE95 JSR $E7FB and any inline data from actual control flow; raw atlas pattern alone is not evidence",
     "prove $18/$2C/$68 producer domains from JP-ROM producer/control flow before claiming table bounds",
     "resolve actual VRC6 mapper state before traversing CPU $8000-$DFFF targets",
@@ -133,8 +132,9 @@
     "US Castlevania III symbols/structures remain provisional until JP equivalence is verified"
   ],
   "repair_history": {
-    "04FF_accounting_repair": "superseded 1005-byte raw-prefix accounting with strict 931-byte instruction/operand manifest; 74 unreached bytes remained unclaimed",
-    "0500_gap_resolution": "all four 04FF gaps are now admitted by explicit secondary-dispatch targets from $F84E-$F86D",
-    "resolution": "0500 is complete as a bounded checkpoint; recovery is ready for 0501 while producer-domain and mapper-context closure remains explicit open work"
+    "04FF_accounting_repair": "superseded 1005-byte raw-prefix accounting with strict 931-byte instruction/operand manifest; 74 unreached bytes remained unclaimed until 0500",
+    "0500_gap_resolution": "all four 04FF gaps are admitted by explicit secondary-dispatch targets from $F84E-$F86D",
+    "0500_F800_repair": "superseded the 933-byte draft because it omitted the explicit 04FF fallthrough root $F800; corrected result is 414 instruction starts / 982 new semantic bytes / manifest fdc1a53d...984e",
+    "resolution": "0500 is reconciled and recovery is ready for 0501 while selector-domain and mapper-context closure remain explicit open work"
   }
 }
