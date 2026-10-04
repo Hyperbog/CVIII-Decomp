@@ -139,14 +139,40 @@ The audit seeds all **38 unique dispatch targets** in this span and follows reac
 
 Therefore an IRQ taken after NMI `CLI` and before `PRG26:$8001` **preserves ZP `$10`** for the proven IRQ state/handler graph.
 
-This removes IRQ handling as a possible hidden initializer/modifier for the `$9FA9` incoming attribute cache. Pre-render NMI helper work remains a separate question.
-
 Evidence:
 
 - `analysis/IRQ_ZP10_PRESERVATION.md`
 - `tools/audit_irq_zp10.py`
 
-**VPP remains 21/100 after 04F2.** This closes an exact shared-RAM/interrupt contract but does not complete another fixed-rubric point.
+### 04F3 — fixed-bank pre-render NMI span preserves `$10`
+
+Primary new ROM span: `PRG31:$E057-$E365`, **783 bytes**, SHA-256:
+
+```text
+b0e367bb5971310da3bbd066f54cc3def543e82134f4df6b7b82feef06166176
+```
+
+The renderer-reaching NMI path and all helper bodies contained in this span have no direct write/RMW to `$10`. Indexed alias sites are also closed from their local X setup:
+
+- `$E2AF/$E2BA` can touch only `$00-$03`;
+- `$E287-$E28D` can touch only `$28/$29`, `$2A/$2B`, `$F8/$F9`, `$FA/$FB`.
+
+Therefore the fixed-bank code inside `$E057-$E365` preserves `$10`.
+
+Three external pre-render dependencies remain deliberately open:
+
+```text
+$ED46
+raw bank $0C : CPU $89E2
+$E7FB / its inline dispatch targets
+```
+
+Evidence:
+
+- `analysis/NMI_FIXED_ZP10_PRESERVATION.md`
+- `tools/audit_nmi_fixed_zp10.py`
+
+**VPP remains 21/100 after 04F3.** This narrows the shared-RAM provenance boundary but does not complete another fixed-rubric point.
 
 ## Authoritative continuation files
 
@@ -159,6 +185,7 @@ Evidence:
 - `analysis/PRG02_IRQ_dispatch.md`
 - `analysis/IRQ_STATE_MACHINE.csv`
 - `analysis/IRQ_ZP10_PRESERVATION.md`
+- `analysis/NMI_FIXED_ZP10_PRESERVATION.md`
 - `analysis/PRG26_OAM_frame.md`
 - `analysis/PRG26_SPRITE_FORMAT.md`
 - `analysis/ZP10_OAM_STATE.md`
@@ -172,13 +199,13 @@ Evidence:
 
 ## Unresolved / do not assume
 
-- whether the fixed-bank and external NMI helpers executed before `PRG26:$8001` can write ZP `$10`
-- whole-ROM type-transition / selector-frame producer closure
-- higher-level meaning of `$AD`
-- semantic identities of individual sprite descriptors
-- exact visual/game-state meanings of IRQ states
-- conservative ROM-byte code/data coverage companion metric
+- whether `$ED46`, banked `$89E2`, or `$E7FB`/its dispatched targets can write ZP `$10` before `PRG26:$8001`;
+- whole-ROM type-transition / selector-frame producer closure;
+- higher-level meaning of `$AD`;
+- semantic identities of individual sprite descriptors;
+- exact visual/game-state meanings of IRQ states;
+- conservative ROM-byte code/data coverage companion metric.
 
 ## Next manageable checkpoint
 
-**04F3 — fixed-bank NMI-side `$10` interference only.** Analyze `PRG31:$E057-$E365` (about 783 bytes) as the primary new span. Determine whether the fixed-bank pre-render NMI path and fixed helpers in that window can write ZP `$10`. Record any external helper dependency such as `$ED46` for a later checkpoint instead of expanding past the byte budget.
+**04F4 — `$ED46` pre-render helper only.** Analyze primary span `PRG31:$ED46-$EF45` (**512 bytes**). Determine whether the NMI-called `$ED46` path can write ZP `$10`. Record any helper dependency that leaves this 512-byte window and defer it rather than expanding the checkpoint.
