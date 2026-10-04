@@ -20,6 +20,19 @@ The original ROM bytes are controlling evidence. Documentation, emulator behavio
 
 Run `python tools/analyze_rom.py <rom>` before relying on a local ROM.
 
+## Progress metric
+
+Primary high-level metric: **Verified Parity Progress (VPP)**.
+
+- current score: **21/100**
+- rubric: `docs/PROGRESS_METRIC.md`
+- machine-readable score: `analysis/PROGRESS_SCORE.csv`
+- validator: `tools/progress_score.py`
+
+VPP is evidence-based, not a labor/time estimate and not raw disassembly-byte coverage. Category weights are fixed. Increase the score only when a committed artifact satisfies the rubric; corrections may reduce it. Every checkpoint report must include current VPP and state whether it changed.
+
+If a conservative ROM-byte/code-data coverage ledger is later created, report it as a separate companion metric.
+
 ## Non-negotiable fidelity rules
 
 1. Never guess code/data boundaries or routine semantics. Uncertain material stays unresolved.
@@ -35,7 +48,7 @@ Run `python tools/analyze_rom.py <rom>` before relying on a local ROM.
 11. Keep uncertain names conservative; names must not create false certainty.
 12. NSF/M3U are corroborating audio evidence only; ROM bytes remain authoritative.
 13. No original ROM bytes are committed to GitHub.
-14. Every substantive checkpoint updates `docs/PROGRESS.md`; update this file when methodology or a fidelity pitfall changes.
+14. Every substantive checkpoint updates `docs/PROGRESS.md`; update this file when methodology, VPP rules, or a fidelity pitfall changes.
 
 ## Manageable checkpoint policy
 
@@ -44,7 +57,7 @@ Each user `continue` means **one bounded checkpoint**:
 1. choose the narrow question listed as next work;
 2. regenerate only the relevant ROM evidence;
 3. add/update focused analysis/audit/source artifacts;
-4. update progress/continuity;
+4. update `docs/PROGRESS.md` and VPP only if earned;
 5. commit;
 6. stop and report.
 
@@ -91,29 +104,25 @@ Stable facts:
 - `PRG26:$8001` iterates 28 render-object slots in seven parallel 28-byte arrays `$0400-$04C3`.
 - `$048C,X` is a byte offset into first-level block `$817F-$819C`.
 - `$0400,X` is a byte offset into the selected frame-pointer window.
-- The 15 selectors are windows into five physical master pointer blocks: `$819D-$82F4`, `$8AB0-$8C2D`, `$9545-$9620`, `$9E6D-$9F6C`, `$AAA6-$AC5B`.
+- the 15 selectors are windows into five physical master pointer blocks: `$819D-$82F4`, `$8AB0-$8C2D`, `$9545-$9620`, `$9E6D-$9F6C`, `$AAA6-$AC5B`.
 - `$16/$18/$1A/$1C` alias `$00/$02/$04/$06` and can select tile `+$80` under `$AD != 0`.
-- Descriptor byte 0 is count; records are variable length:
+- descriptor byte 0 is count; records are variable length:
   - Y/control bit0 clear: `Y,tile,attribute,X`
   - Y/control bit0 set: `Y,tile,X`, reusing cached final attribute from ZP `$10`
-- Full records update `$10`; compressed records reuse `$10` unchanged.
+- full records update `$10`; compressed records reuse `$10` unchanged.
 - `$9FA9` begins with three compressed records before its first explicit attribute.
 - `$0454,X` operation is `(descriptor_attr & $FC) | full_object_byte` when nonzero; do not mask the object byte to two bits.
 - `$04A8,X == 0` selects mirrored rendering; mirror toggles attr `$40` and uses `$F8-X` transform.
 - OAM traversal adds `$C4` per sprite and frame seed adds `$44`.
 - OAM-full path executes `PLA; PLA; RTS`, skipping `$8001` remainder.
-- Descriptor census: 745 unique referenced descriptors, max 27 sprites, max encoded length 96 bytes, 2,310 compressed attribute-reuse records.
+- descriptor census: 745 unique referenced descriptors, max 27 sprites, max encoded length 96 bytes, 2,310 compressed attribute-reuse records.
 
-### ZP `$10` checkpoint 04B
+### `$9FA9` reachability work
 
-Proven renderer accesses in `$8001-$817E`:
+- checkpoint 04D proved `PRG22:$8745` belongs to type `$26`, whose explicit selector family is `$12/$08`, not `$10`.
+- checkpoint 04E1 proved PRG18 type `$E1` starts selector `$10` at frame `$E8/$EC` and can only mutate to `$EA/$EE` through its six-state table; it cannot reach frame `$14`.
 
-- reads: `$8064`, `$8166`
-- writes: `$80BF`, `$811B`
-
-The top-level fixed NMI body `$E057-$E0C6` contains no direct `$10` store. Unrelated bank-$03` gameplay code uses `$10` as scratch at `$9752/$9769`, proving it is shared machine state rather than renderer-private initialization.
-
-Therefore **do not initialize/reset `$10` in native OAM code**. The exact value observed on every reachable `$9FA9` path remains an upstream object-order/scheduling question.
+See `analysis/PRG22_8745_OWNER.md` and `analysis/PRG18_E1_SELECTOR10_FRAME.md`.
 
 ### Native baseline
 
@@ -122,14 +131,6 @@ Therefore **do not initialize/reset `$10` in native OAM code**. The exact value 
 - `tests/oam_renderer_test.cpp`
 
 The structured lift keeps NES RAM explicit and preserves wrapped 8-bit pointer indexing, variable-width descriptors, persistent `$10`, full-byte `$0454` behavior, mirror/tile transforms, clipping, OAM permutation, and the non-local OAM-full effect via an explicit result.
-
-Current audits:
-
-- `tools/analyze_rom.py`
-- `tools/audit_irq_dispatch.py`
-- `tools/audit_oam_tables.py`
-- `tools/audit_sprite_descriptors.py`
-- `tools/audit_oam_zp10.py`
 
 ## Repository workflow
 
@@ -141,6 +142,7 @@ Primary handoff files:
 
 - `docs/DECOMPILATION_CONTINUITY.md`
 - `docs/PROGRESS.md`
+- `docs/PROGRESS_METRIC.md`
 - `docs/ROM_IDENTITY.md`
 
 Always fetch current file/branch state immediately before editing. Never claim a GitHub change exists until commit/ref is confirmed.
@@ -156,18 +158,19 @@ When the user says `continue`, perform actual ROM analysis and commit **one boun
 Before a continuation:
 
 1. read this file;
-2. read current `docs/PROGRESS.md` and `docs/ROM_IDENTITY.md`;
+2. read current `docs/PROGRESS.md`, `docs/PROGRESS_METRIC.md`, and `docs/ROM_IDENTITY.md`;
 3. inspect current branch head and relevant analysis/source;
 4. reverify target ROM identity if available;
 5. perform only the listed next checkpoint;
-6. commit and report exact findings + commit SHA.
+6. update VPP only if the rubric earns points;
+7. commit and report exact findings + commit SHA + current VPP.
 
 Never count unresolved work as translated.
 
 ## Current next checkpoint
 
-**04C — `$9FA9` reachability/object ordering only.** Trace the executable selector-`$10` / frame-`$14` producer path far enough to identify which object slot(s) can render `$9FA9` and whether a prior rendered slot or another proven path establishes `$10` first. Do not expand into the full object system.
+**04E2 — PRG06 selector-`$10` families only.** Enumerate the direct PRG06 selector-`$10` setup/helper paths and trace their frame mutations far enough to determine whether any authoritative PRG06 path can produce frame `$14`. Do not expand into unrelated banks/object families.
 
 ## User-facing handoff prompt
 
-> Continue the faithful Akumajou Densetsu decomp/recomp in `Hyperbog/CVIII-Decomp` on branch `decompilation`. Read `docs/DECOMPILATION_CONTINUITY.md`, `docs/PROGRESS.md`, and `docs/ROM_IDENTITY.md`, inspect current branch state, and treat the verified Japanese Mapper-24 ROM as immutable controlling evidence. Work one bounded checkpoint only, preserve 6502/VRC6/PPU/APU/interrupt/stack/shared-zero-page semantics exactly, do not invent bounds/table boundaries, and commit before reporting. Current next checkpoint: 04C, resolve `$9FA9` reachability/object ordering and the prior `$10` state path without expanding into the full object system.
+> Continue the faithful Akumajou Densetsu decomp/recomp in `Hyperbog/CVIII-Decomp` on branch `decompilation`. Read `docs/DECOMPILATION_CONTINUITY.md`, `docs/PROGRESS.md`, `docs/PROGRESS_METRIC.md`, and `docs/ROM_IDENTITY.md`, inspect current branch state, and treat the verified Japanese Mapper-24 ROM as immutable controlling evidence. Work one bounded checkpoint only, preserve 6502/VRC6/PPU/APU/interrupt/stack/shared-zero-page semantics exactly, do not invent bounds/table boundaries, update VPP only under its fixed rubric, and commit before reporting. Current next checkpoint: 04E2, close the PRG06 selector-`$10` frame-mutation domain without expanding into unrelated object families.
