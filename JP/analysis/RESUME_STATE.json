@@ -1,23 +1,63 @@
 {
-  "schema_version": 10,
-  "status": "blocked",
+  "schema_version": 11,
+  "status": "ready",
   "project": "Akumajou Densetsu JP decomp/recomp",
   "repository": "Hyperbog/CVIII-Decomp",
   "branch": "decompilation",
   "rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
-  "safe_forward_work": false,
-  "last_completed_checkpoint": "04FE",
+  "safe_forward_work": true,
+  "last_completed_checkpoint": "04FF",
+  "last_completed_checkpoint_commit": "7d83cf8732b46fd1274e1b7810bef8c84975d9a9",
   "previous_checkpoint_audit": "tools/audit_nmi_fixed_2c_head.py",
   "vpp": {"earned": 21, "total": 100},
-  "execution_context": {"mapping":"fixed_prg","cpu_window":"E000-FFFF","physical_prg_banks":[31],"frontier_physical_prg_bank":31,"cpu_base":"E000"},
-  "frontier": {"last_closed_cpu":"F3DC","last_closed_physical_prg_bank":31,"next_unprocessed_cpu":"F3DD","next_physical_prg_bank":31,"next_checkpoint":"04FF","domain_transition":false,"initial_window_start_cpu":"F3DD","initial_window_end_cpu_inclusive":"F7FF","initial_window_contiguous_bytes":1059},
-  "verification_overlap": {"physical_prg_bank":31,"cpu_base":"E000","start_cpu":"F39D","end_cpu_inclusive":"F3DC","length":64,"sha256":"81d06cd79d64c3d4cfe14bbefa851e74e748536f723636abaf82870ec065d22f","semantic_unit":"32-entry nested E7FB inline pointer table indexed from $2C","coverage_accounting":"verification-only; these 64 bytes are part of 04FE and must never be counted again"},
-  "frontier_fingerprint": {"physical_prg_bank":31,"cpu_base":"E000","start_cpu":"F3DD","end_cpu_inclusive":"F3FC","length":32,"sha256":"65d47f163ffad5ca20903cece8606c76416ceb5cb8edba99780be720730f08aa","purpose":"alignment/fingerprint only; does not establish semantic closure"},
-  "partial_04FF": {
-    "raw_bounding_window_start_cpu":"F3DD","raw_bounding_window_end_cpu_inclusive":"F7FF","raw_bounding_window_length":1059,"raw_bounding_window_sha256":"72918e40813310fe3f967790d9b77e344a0f2ede92d12942d95c23849084b1b6",
-    "exact_genuinely_new_decoded_bytes":931,
-    "ordered_manifest_sha256":"2e8b703b970ca2f1eae61f5fd1a4850da6b8e5d4af1a894fb8075657299ae0d4",
-    "decoded_ranges":[
+  "execution_context": {
+    "mapping": "fixed_prg",
+    "cpu_window": "E000-FFFF",
+    "physical_prg_banks": [31],
+    "frontier_physical_prg_bank": 31,
+    "cpu_base": "E000"
+  },
+  "frontier": {
+    "last_closed_cpu": "F7FF",
+    "last_closed_physical_prg_bank": 31,
+    "next_unprocessed_cpu": "F800",
+    "next_physical_prg_bank": 31,
+    "next_checkpoint": "0500",
+    "domain_transition": false,
+    "initial_window_start_cpu": "F800",
+    "initial_window_end_cpu_inclusive": "FBFF",
+    "initial_window_contiguous_bytes": 1024,
+    "initial_window_sha256": "f3090b53f174f15eeacad0d9e042efd95ff93ed6b4bfd706ba233ee5f588c86a",
+    "frontier_semantics": "raw investigation frontier; prior semantic coverage is noncontiguous and pending gaps remain explicitly unclaimed"
+  },
+  "verification_overlap": {
+    "physical_prg_bank": 31,
+    "cpu_base": "E000",
+    "start_cpu": "F7E0",
+    "end_cpu_inclusive": "F7FF",
+    "length": 32,
+    "sha256": "6966c228f397fb1a390562bc871d382f624397bd65f06bb301774b085e7759d1",
+    "coverage_accounting": "verification-only; these bytes are already part of the 04FF decoded manifest"
+  },
+  "frontier_fingerprint": {
+    "physical_prg_bank": 31,
+    "cpu_base": "E000",
+    "start_cpu": "F800",
+    "end_cpu_inclusive": "F81F",
+    "length": 32,
+    "sha256": "322b459da91a43e13712821aba143184801a6b9e6c91e0047f9826846a957f24",
+    "purpose": "alignment/fingerprint only; does not establish semantic closure"
+  },
+  "prior_dependency_manifest": {
+    "checkpoint": "04FF",
+    "mapping": "fixed PRG31 @ $E000-$FFFF",
+    "raw_bounding_window_start_cpu": "F3DD",
+    "raw_bounding_window_end_cpu_inclusive": "F7FF",
+    "raw_bounding_window_length": 1059,
+    "raw_bounding_window_sha256": "72918e40813310fe3f967790d9b77e344a0f2ede92d12942d95c23849084b1b6",
+    "exact_new_bytes_in_checkpoint": 931,
+    "ordered_manifest_sha256": "2e8b703b970ca2f1eae61f5fd1a4850da6b8e5d4af1a894fb8075657299ae0d4",
+    "ranges": [
       {"start_cpu":"F3DD","end_cpu_inclusive":"F6AD","length":721,"sha256":"371c27c08f71624463d2c63097938a30fa57253bd073d2554d454111708f6852"},
       {"start_cpu":"F6E4","end_cpu_inclusive":"F705","length":34,"sha256":"cd2f26e03fcfab69f12aec4fbe3ff9571f8a2633b3c84eb4365a0d8e777378c5"},
       {"start_cpu":"F713","end_cpu_inclusive":"F723","length":17,"sha256":"4bc45df46fbab59efc9b70eb7d577001b8474818f921b86e618b43c4653c8300"},
@@ -25,21 +65,56 @@
       {"start_cpu":"F792","end_cpu_inclusive":"F7B6","length":37,"sha256":"b564a74ff4c6ba3a55b76472c1462ff1b915f0c333c8dc54ccae3b9a76d1e5e1"},
       {"start_cpu":"F7CF","end_cpu_inclusive":"F7FF","length":49,"sha256":"13b6de6ba1671ce00afec40ee8b7886d6ed9126a6261b5a090a15f0cc73b1574"}
     ],
-    "supersedes":"the earlier 1005-byte raw-window-minus-overlap accounting",
-    "audit":"tools/audit_nmi_fixed_2c_head.py"
+    "coverage_accounting": "noncontiguous semantic coverage; never count raw gaps merely because they lie below the raw frontier"
   },
+  "prior_fixed_overlap": {
+    "checkpoint": "04FE",
+    "start_cpu": "F6AE",
+    "end_cpu_inclusive": "F6E3",
+    "length": 54,
+    "sha256": "d79b617b7e27190b6556464a37cc024a1837e949ebe9446d12815da908233dfb",
+    "coverage_accounting": "already counted by 04FE"
+  },
+  "pending_unclaimed_gaps": [
+    {"start_cpu":"F706","end_cpu_inclusive":"F712","length":13},
+    {"start_cpu":"F724","end_cpu_inclusive":"F738","length":21},
+    {"start_cpu":"F782","end_cpu_inclusive":"F791","length":16},
+    {"start_cpu":"F7B7","end_cpu_inclusive":"F7CE","length":24}
+  ],
+  "closed_state": [
+    "raw bank 04 parser and all 96 bank-04 roots preserve shared ZP $10",
+    "raw bank 05 parser and all 72 bank-05 roots preserve shared ZP $10",
+    "fixed PRG31 $E7FB first-level dispatcher graph preserves shared ZP $10",
+    "04FF admits 26 nested $2C-table roots in $F3DD-$F7FF and strictly decodes 401 instruction starts / 931 genuinely new bytes",
+    "04FF admitted fixed graph has no direct or indexed/indirect store/RMW capable of aliasing ZP $10",
+    "04FF coverage excludes four unreached gaps totaling 74 bytes and the prior 04FE helper $F6AE-$F6E3"
+  ],
   "open_edges": [
-    "six deferred primary $2C table entries: $08->$F965, $0B->$F831, $0C->$F839, $0D/$0E->$F841, $10->$F849",
-    "secondary $68 inline dispatchers at $F849 and $F965 and their producer domains",
-    "fixed/banked callees that can return before $2C transitions, under actual mapper state",
-    "$18 producer domain for the first-level NMI E7FB selector remains unresolved"
+    "$18 producer domain for the first-level NMI E7FB selector remains unresolved",
+    "complete $2C producer/alias domain remains unresolved; do not infer $00-$1F from the 32-entry table",
+    "deferred primary $2C entries: $08->$F965, $0B->$F831, $0C->$F839, $0D/$0E->$F841, $10->$F849",
+    "secondary $68 inline dispatchers at $F849 and $F965 and their actual producer domains",
+    "fixed/banked external callees under actual VRC6 mapper state"
   ],
   "checkpoint_constraints": [
-    "continue 04FF; do not start 0500 while status is blocked",
-    "931-byte strict decoded manifest is authoritative for partial 04FF accounting",
-    "do not count unconsumed raw bytes in the $F3DD-$F7FF bounding window as coverage",
-    "resolve actual mapper state before traversing CPU $8000-$DFFF targets",
-    "do not infer $18, $2C, or $68 selector bounds from table lengths or US labels"
+    "0500 begins at raw fixed-bank investigation frontier CPU $F800",
+    "initial raw window is $F800-$FBFF (1024 bytes); count only bytes actually consumed by admitted code/data",
+    "reuse the entire 04FF noncontiguous manifest and 04FE $F6AE-$F6E3 helper as prior coverage",
+    "the four pending 04FF gaps remain new until secondary-dispatch control flow actually admits them",
+    "prove $68 producer domains from JP-ROM producer/control flow before claiming secondary table bounds",
+    "continue the whole-ROM $2C writer/alias audit; direct writer values alone are insufficient if indexed/indirect aliases remain possible",
+    "resolve actual VRC6 mapper state before traversing CPU $8000-$DFFF targets",
+    "do not infer $18, $2C, or $68 selector clamps from table lengths or US labels",
+    "preserve exact $E7FB stack/Y/ZP $00-$03 semantics and shared ZP $10 behavior"
   ],
-  "recovery_note":"04FF remains in progress. Corrected audit supersedes the earlier 1005-byte accounting; working hold is intentional."
+  "acceleration_policy": [
+    "Japanese ROM and reproducible parity evidence are authoritative",
+    "use external disassemblies, CDL/traces, Ghidra, retrodisasm, decompilers, nesrecomp and NSF metadata as secondary accelerators",
+    "US Castlevania III symbols/structures remain provisional until JP equivalence is verified"
+  ],
+  "repair_history": {
+    "04FF_recovery_hold": "a premature state advancement was corrected; 04FF was then redefined at the proven bounded evidence boundary rather than requiring full $2C closure",
+    "04FF_accounting_repair": "superseded 1005-byte raw-prefix accounting with strict 931-byte instruction/operand manifest; 74 unreached bytes remain unclaimed",
+    "resolution": "04FF is complete as a bounded checkpoint and recovery is ready for 0500; full $2C/$68 closure remains an explicit open edge"
+  }
 }
