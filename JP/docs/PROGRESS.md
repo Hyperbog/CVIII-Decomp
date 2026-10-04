@@ -8,7 +8,7 @@ Primary metric: **Verified Parity Progress (VPP) = 21 / 100 (21%)**.
 
 VPP is a fixed evidence rubric, not a time estimate or raw-byte percentage. See `docs/PROGRESS_METRIC.md`, `analysis/PROGRESS_SCORE.csv`, and `tools/progress_score.py`.
 
-The 04F7/04F8 operand-boundary recovery hold is repaired. Checkpoint 04F9 now advances the authoritative raw-bank `$04` frontier to **CPU `$B1F0`**.
+Checkpoint **04FA closes the entire raw-bank `$04` sound-stream producer domain: 96/96 roots are now reconciled and ZP `$10`-safe.** The next sound-side domain is raw instrument bank `$05` / physical PRG10-PRG11.
 
 ## Stable foundation
 
@@ -36,7 +36,8 @@ Native baseline: `src/oam_renderer.*`, `tests/oam_renderer_test.cpp`.
 - **04F6:** PRG24 `$9200-$9FFF`, 3584 bytes. Parser/bank state proves `$842D` is not live for bank `$0C`; no host-side bound is added.
 - **04F7:** raw bank `$04` parser core `$8001-$87AD` is byte-identical to the audited bank `$0C` alternate-parser core. Resolved graph: 786 accepted instruction starts and no write form capable of modifying/aliasing `$10`. Metadata gives 102 bank-$04 refs / 96 roots, all alternate-parser mode.
 - **04F8:** strict recursive stream work closes the first 34 bank-$04 roots through `$A013`, with the 04F7/04F8 operand-boundary repair fully reconciled.
-- **04F9:** closes 32 additional bank-$04 roots through `$B1EF`; cumulative closed roots are now 66/96.
+- **04F9:** closes 32 additional bank-$04 roots through `$B1EF`; cumulative closure 66/96.
+- **04FA:** closes the final 30 bank-$04 roots through semantic dependency `$BE7D`; cumulative closure **96/96**.
 
 ## 04F7/04F8 recovery repair
 
@@ -59,36 +60,26 @@ SHA-256 728c86cd808e178821f7f72d1f0371eb16a5bde3a1dda495543338391a5e7b3c
 3583 genuinely new bytes
 ```
 
-Strict recursive results remain zero decoded `$E7`, zero operand escapes, and zero pointer-target escapes. The first 34 of 96 bank-$04 roots are therefore reconciled and ZP `$10`-safe.
-
-Evidence:
-
-- `analysis/NMI_BANK04_ALT_PARSER_BOUNDARY.md`
-- `analysis/NMI_BANK04_PRG08_TAIL.md`
-- `tools/audit_nmi_bank04_alt_parser.py`
-- `tools/audit_nmi_bank04_prg08_tail.py`
+Strict recursive results remain zero decoded `$E7`, zero operand escapes, and zero pointer-target escapes.
 
 ## 04F9 — physical PRG09 middle roots
 
-Recovery began from the committed ready frontier `$A014`; ROM identity, overlap, frontier fingerprint, and the reconciled 04F8 audit all matched.
-
-The largest clean closure within the 5000-new-byte budget is:
+Authoritative span:
 
 ```text
 raw bank $04 / physical PRG09
 CPU $A014-$B1EF
 4572 dependency bytes
 SHA-256 55e35f223091a0c50beaf7ba0561445cc5c07d11ae83bfe827abcc22aa2d5a5b
-32 root bytes already counted as 04F7 mode probes
+32 prior root-mode probe bytes overlap
 4540 genuinely new bytes
 ```
 
-The 32 roots belong to sound IDs `$60,$61,$62,$63,$64,$66`. Strict recursive decoding gives:
+32 roots close under strict recursive `FB`/`FD`/`FE` decoding:
 
 ```text
 abstract parser states:            5869
 unique decoded command addresses:  3776
-earliest command:                  $A014
 latest command:                    $B1EC
 FD calls / returns:                9 / 4
 FE jumps / loops:                  20 / 62
@@ -96,25 +87,50 @@ decoded E7:                        0
 operand/path/pointer escapes:      0
 ```
 
-There are also zero raw `$E7` bytes in the span. Therefore none of these roots can activate handler `$840F` or indirect dispatch `$842D`; the already-audited parser core remains `$10`-clean on this producer domain.
+## 04FA — physical PRG09 tail closure
 
-The next root is `$B1F0` (sound `$68`, instrument `$03`). Its recursive dependency reaches through `$B3CB`. Including it in 04F9 would require 5048 dependency bytes / **5015 genuinely new bytes**, so it is deliberately deferred rather than exceeding the checkpoint budget.
+The final 36 metadata references share 30 distinct roots across sound IDs `$5F,$68,$6A,$6C,$6D,$6E`.
 
-After 04F9:
+The exact semantic dependency is:
 
 ```text
-bank-$04 roots total       96
-closed                     66
-remaining                  30
-first unresolved root      $B1F0
+raw bank $04 / physical PRG09
+CPU $B1F0-$BE7D
+3214 dependency bytes
+SHA-256 a7f0a8308ed9335b27de8eaf3df440f0d28cd6f57fb97e4123222e3116fc5f55
+30 root bytes already counted as 04F7 mode probes
+3184 genuinely new bytes
 ```
+
+Strict recursive result:
+
+```text
+abstract parser states:            3426
+unique decoded command addresses:  2595
+earliest command:                  $B1F0
+latest command:                    $BE7D
+FD calls / returns:                20 / 20
+FE jumps / loops:                  17 / 16
+decoded E7:                        0
+operand/path/pointer escapes:      0
+```
+
+The raw `$E7` at `$B81A` is the low pointer operand of `$B818: FE FF E7 B7 -> $B7E7`; it is not a command. The only other raw `$E7` in the physical tail is `$BFEB`, beyond all bank-$04 reachable command/operand bytes.
+
+Therefore the entire bank-$04 metadata producer domain cannot activate `$840F/$842D`. Combined with the already-audited parser core, **all 96/96 bank-$04 roots preserve shared ZP `$10`**.
 
 Evidence:
 
-- `analysis/NMI_BANK04_PRG09_MID.md`
-- `tools/audit_nmi_bank04_prg09_mid.py`
+- `analysis/NMI_BANK04_PRG09_TAIL.md`
+- `tools/audit_nmi_bank04_prg09_tail.py`
 
-**VPP remains 21/100 after 04F9.**
+**VPP remains 21/100 after 04FA** because raw bank `$05` and fixed `$E7FB` are still open.
+
+## Acceleration policy
+
+`docs/ACCELERATION_POLICY.md` now records the standing rule: use NESdev, existing Castlevania III disassemblies, CDL/traces, decompilers, Ghidra, `retrodisasm`, `nesrecomp`, NSF metadata, and automated JP<->US matching aggressively for identification and prioritization, while keeping the Japanese ROM and reproducible parity evidence authoritative.
+
+External labels/matches remain provisional until reconciled against JP bytes/control/data flow. Dynamic traces prove observed execution, not global non-reachability.
 
 ## Current provenance boundary
 
@@ -124,9 +140,7 @@ fixed NMI span $E057-$E365        -> preserves $10
 $ED46 helper graph                 -> preserves $10
 raw bank $0C / PRG24              -> preserves $10 on live bank-$0C paths
 raw bank $04 parser $8001-$87AD   -> preserves $10 on resolved graph
-raw bank $04 first 34 roots       -> reconciled; no live $E7
-raw bank $04 next 32 roots        -> closed through $B1EF; no live $E7
-raw bank $04 remaining 30 roots   -> unresolved, first root $B1F0
+raw bank $04 all 96 roots         -> closed; no live $E7; preserves $10
 raw instrument bank $05           -> unresolved
 $E7FB / inline dispatch            -> unresolved
 PRG26 renderer                     -> consumes/persists $10 exactly
@@ -134,23 +148,32 @@ PRG26 renderer                     -> consumes/persists $10 exactly
 
 ## Unresolved / do not assume
 
-- whether the remaining raw bank `$04` / physical PRG09 streams can activate `$842D` or another `$10`-relevant path;
-- whether raw instrument bank `$05` can write/alias `$10`;
+- whether raw instrument bank `$05` can write/alias `$10` or activate `$842D`;
 - whether `$E7FB` or its inline-dispatch targets can write `$10` before rendering;
 - whole-ROM type-transition / selector-frame producer closure;
-- higher-level meaning of `$AD` and exact visual meanings of IRQ states.
+- higher-level meaning of `$AD` and exact visual meanings of IRQ states;
+- gameplay, stage/world, background/PPU and native-runtime systems remain largely open per the VPP rubric.
 
 ## Next manageable checkpoint
 
-**04FA — finish raw bank `$04` / physical PRG09 tail.**
+**04FB — begin raw instrument bank `$05` / physical PRG10-PRG11.**
 
-Start exactly at CPU `$B1F0`. The remaining raw-bank window is:
+The same metadata table contains:
 
 ```text
-$B1F0-$BFFF
-3600 contiguous bytes
+bank-$05 references:       84
+distinct roots:            72
+first root:                $87AE
+last root:                 $BEE8
 ```
 
-Thirty remaining root-mode probe bytes were already counted in 04F7 and must not be counted again. Carry the strict `FB`/`FD`/`FE` recursive state and require every operand byte to lie inside the accounted dependency span before reading it.
+All 84 references initialize alternate-parser mode under the already-proven first-byte/instrument rule, and the bank-$05 executable parser core `$8001-$87AD` is byte-identical to the audited bank-$04 core.
 
-Do not open raw bank `$05` or fixed `$E7FB` in the same checkpoint.
+Initial bounded window for 04FB:
+
+```text
+CPU $87AE-$99FF
+4690 contiguous bytes
+```
+
+Start by reproducing the metadata domain and core identity, then recursively close the largest root set that fits the normal byte budget with strict operand containment and pointer-target closure. Do not open fixed `$E7FB` in the same checkpoint.
