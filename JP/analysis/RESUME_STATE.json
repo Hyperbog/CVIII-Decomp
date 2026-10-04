@@ -1,5 +1,5 @@
 {
-  "schema_version": 11,
+  "schema_version": 12,
   "status": "ready",
   "project": "Akumajou Densetsu JP decomp/recomp",
   "repository": "Hyperbog/CVIII-Decomp",
@@ -99,22 +99,49 @@
   "checkpoint_constraints": [
     "0500 begins at raw fixed-bank investigation frontier CPU $F800",
     "initial raw window is $F800-$FBFF (1024 bytes); count only bytes actually consumed by admitted code/data",
+    "query/regenerate the whole-PRG atlas before narrow manual searching",
     "reuse the entire 04FF noncontiguous manifest and 04FE $F6AE-$F6E3 helper as prior coverage",
     "the four pending 04FF gaps remain new until secondary-dispatch control flow actually admits them",
     "prove $68 producer domains from JP-ROM producer/control flow before claiming secondary table bounds",
     "continue the whole-ROM $2C writer/alias audit; direct writer values alone are insufficient if indexed/indirect aliases remain possible",
     "resolve actual VRC6 mapper state before traversing CPU $8000-$DFFF targets",
-    "do not infer $18, $2C, or $68 selector clamps from table lengths or US labels",
+    "do not infer $18, $2C, or $68 selector clamps from table lengths, candidate scans, or US labels",
     "preserve exact $E7FB stack/Y/ZP $00-$03 semantics and shared ZP $10 behavior"
   ],
+  "acceleration_state": {
+    "whole_prg_atlas": {
+      "status": "implemented_and_audited",
+      "builder": "tools/build_whole_prg_atlas.py",
+      "query": "tools/query_whole_prg_atlas.py",
+      "audit": "tools/audit_whole_prg_atlas.py",
+      "docs": "docs/WHOLE_PRG_ATLAS.md",
+      "manifest": "analysis/WHOLE_PRG_ATLAS_MANIFEST.json",
+      "focus_summary": "analysis/WHOLE_PRG_FOCUS_SUMMARY.md",
+      "full_lossless_corpus_policy": "generated locally only; never commit because it is equivalent to ROM contents",
+      "discovery_policy": "whole-bank/multi-bank/full-PRG sweeps allowed; candidate results remain provisional",
+      "semantic_promotion_policy": "only JP-ROM-backed control-flow/producer/mapper evidence earns verified coverage",
+      "candidate_counts": {
+        "official_opcode": 186258,
+        "control_flow": 110127,
+        "memory_access": 87686,
+        "zero_page_write": 17841,
+        "raw_jsr_e7fb_patterns": 35
+      },
+      "focus_candidate_counts": {"10":534,"18":311,"2C":119,"68":185},
+      "generated_set_sha256": "f0eb130043a8fff1a44bfa3da4504592e6e1d124c54ad26d86ed719d8e729291",
+      "master_reference_sha256": "813b9da1fb3a43709595f5c75e8777cb60e91d816574d3475f6d1ad9389eaf65"
+    }
+  },
   "acceleration_policy": [
     "Japanese ROM and reproducible parity evidence are authoritative",
+    "large discovery sweeps are encouraged but do not become verified coverage automatically",
+    "use whole-PRG atlas queries before repeated narrow ROM inspection",
     "use external disassemblies, CDL/traces, Ghidra, retrodisasm, decompilers, nesrecomp and NSF metadata as secondary accelerators",
     "US Castlevania III symbols/structures remain provisional until JP equivalence is verified"
   ],
   "repair_history": {
     "04FF_recovery_hold": "a premature state advancement was corrected; 04FF was then redefined at the proven bounded evidence boundary rather than requiring full $2C closure",
     "04FF_accounting_repair": "superseded 1005-byte raw-prefix accounting with strict 931-byte instruction/operand manifest; 74 unreached bytes remain unclaimed",
-    "resolution": "04FF is complete as a bounded checkpoint and recovery is ready for 0500; full $2C/$68 closure remains an explicit open edge"
+    "resolution": "04FF is complete as a bounded checkpoint and recovery is ready for 0500; whole-PRG atlas infrastructure is now available for large discovery sweeps"
   }
 }
