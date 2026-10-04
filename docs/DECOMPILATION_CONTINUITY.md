@@ -123,25 +123,27 @@ Read `analysis/PRG26_SPRITE_FORMAT.md`, `analysis/SPRITE_SET_TABLE.csv`, `analys
 - 04D: PRG22 `$8745` was rejected; its owning type `$26` uses selectors `$12/$08`, not `$10`.
 - 04E1: PRG18 type `$E1` was rejected; selector `$10` frames `$E8/$EC` mutate only to `$EA/$EE`.
 - 04E2: direct PRG06/07 selector-`$10` setup frames are high values; direct frame `$14` is paired with selector `$0E`.
-- 04E3: fixed animation supplies the missing transitive mutation. PRG06 `$823E-$8251` picks animation `$09` when base Y is `$A0-$A7`, calls `$EF7F` with selector `$10`; selector-`$10` animation record `$09` at `$F28D` is `14 08 02`, so `$EF93` writes frame `$14`.
-- 04E4: owner/scheduler link is now proven. Fixed object loop X range is `$01-$12`. Primary type `$08` is routed by bank `$09` common dispatch to bank selector `$03`, behavior `$8021` = `PRG06:$8021`. Internal state `$0606=$01` reaches `$81E0`, writes `$0470=$40`, and can reach `$823E`. On the same fixed-loop iteration, bit `$40` permits movement integration and bit `$20` remains clear, so `$FE60` can run `$EF93` for the same X. Selector `$10` -> table `$9E6D`; frame `$14` -> descriptor `$9FA9`.
+- 04E3: fixed animation supplies the transitive mutation. PRG06 `$823E-$8251` picks animation `$09` when base Y is `$A0-$A7`; selector-`$10` animation record `$09` at `$F28D` is `14 08 02`, so `$EF93` writes frame `$14`.
+- 04E4: fixed object loop X range is `$01-$12`; primary type `$08` routes through bank `$09` common dispatch to bank `$03`, `PRG06:$8021`. Internal state `$01` reaches `$81E0`, writes `$0470=$40`, and can reach `$823E`. The same scheduler iteration can run movement integration and `$EF93`. Selector `$10` + frame `$14` resolves to descriptor `$9FA9`.
+- 04E5: state `$00` sets base Y `$C0`, calls `$FF15` to clear movement state, then sets vertical high velocity `$0520=$FE` while `$0537=$00`. State `$01` leaves those velocity bytes unchanged; bank `$0B` movement integration therefore moves Y by exactly `-2` per scheduled tick. For the currently established state-0 consumer index domain `$00-$0E`, target-Y values at `$840F[0..14]` max out at `$98`; the trajectory must therefore pass through `$A6`, which selects animation `$09`.
 
-Exact conditional machine path:
+Exact conditional machine path now established:
 
 ```text
 slot X=$01..$12
 primary type $08
 -> bank-$09 common dispatcher
 -> bank-$03 PRG06:$8021
--> internal state $01
--> base Y $A0-$A7
+-> state $00: Y=$C0, vertical velocity=-2
+-> state $01: target <= $98 for established index domain $00-$0E
+-> Y necessarily reaches $A6
 -> selector $10 / animation $09
 -> fixed $EF93 tick
 -> frame $14
 -> PRG26 descriptor $9FA9
 ```
 
-This proves machine reachability under the stated predicate. It does **not yet** prove that a normal gameplay path produces base Y `$A0-$A7` for that type/state.
+Remaining reachability caveat: the root/creation producer domain of `$0645,X` is not yet closed. Because state `$00` and `$01` index tables using `$0633+$0645`, do **not** infer `$0645` bounds from table shape alone. Until producer values prove the index remains within `$00-$0E`, unconditional normal-gameplay `$9FA9` reachability is not claimed.
 
 See:
 
@@ -150,6 +152,7 @@ See:
 - `analysis/PRG06_SELECTOR10_DIRECT_DOMAIN.md`
 - `analysis/PRG06_SELECTOR10_FIXED_ANIM.md`
 - `analysis/PRG06_TYPE08_823E_OWNER.md`
+- `analysis/PRG06_TYPE08_VERTICAL_PATH.md`
 
 ## Native baseline
 
@@ -182,8 +185,8 @@ When the user says `continue`, perform actual ROM analysis and commit **one boun
 
 ## Current next checkpoint
 
-**04E5 — base-Y `$A0-$A7` provenance only.** Trace primary type `$08`, internal state `$01` from its authoritative initialization and velocity/update path far enough to prove or disprove that normal execution reaches `$041C,X=$A0-$A7`. Do not expand into cached-attribute `$10` ordering yet.
+**04E6 — primary-type `$08` `$0645` producer domain only.** Trace root/creation writes that establish `$0645,X` before type `$08` state `$00`, and prove whether `$0633+$0645` stays within the established `$00-$0E` consumer domain. Do not expand into renderer cached-attribute `$10` ordering yet.
 
 ## User-facing handoff prompt
 
-> Continue the faithful Akumajou Densetsu decomp/recomp in `Hyperbog/CVIII-Decomp` on branch `decompilation`. Read `docs/DECOMPILATION_CONTINUITY.md`, `docs/PROGRESS.md`, `docs/PROGRESS_METRIC.md`, and `docs/ROM_IDENTITY.md`, inspect current branch state, and treat the verified Japanese Mapper-24 ROM as immutable controlling evidence. Work one bounded checkpoint only, preserve 6502/VRC6/PPU/APU/interrupt/stack/shared-zero-page semantics exactly, do not invent bounds/table boundaries, update VPP only under its fixed rubric, and commit before reporting. Current next checkpoint: 04E5, prove or disprove normal execution of the primary-type `$08`, internal-state `$01` base-Y `$A0-$A7` predicate without expanding into renderer `$10` cache ordering.
+> Continue the faithful Akumajou Densetsu decomp/recomp in `Hyperbog/CVIII-Decomp` on branch `decompilation`. Read `docs/DECOMPILATION_CONTINUITY.md`, `docs/PROGRESS.md`, `docs/PROGRESS_METRIC.md`, and `docs/ROM_IDENTITY.md`, inspect current branch state, and treat the verified Japanese Mapper-24 ROM as immutable controlling evidence. Work one bounded checkpoint only, preserve 6502/VRC6/PPU/APU/interrupt/stack/shared-zero-page semantics exactly, do not invent bounds/table boundaries, update VPP only under its fixed rubric, and commit before reporting. Current next checkpoint: 04E6, close the root primary-type `$08` `$0645` producer domain and prove or reject the `$0633+$0645 <= $0E` bound without expanding into renderer `$10` cache ordering.
