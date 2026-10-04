@@ -1,15 +1,19 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
+  "status": "BLOCKED_REPAIR_REQUIRED",
   "project": "Akumajou Densetsu JP decomp/recomp",
   "repository": "Hyperbog/CVIII-Decomp",
   "branch": "decompilation",
   "rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
-  "last_completed_checkpoint": "04F8",
-  "last_completed_checkpoint_commit": "e5b5149b142a0d848ff4cf98a837d30522e8c37a",
+  "safe_forward_work": false,
+  "last_completed_checkpoint": "04F8-provisional",
+  "last_fully_reconciled_checkpoint_before_hold": "04F6",
+  "checkpoint_commit_under_review": "dcd66632a1839287db2966ccd23933a42f754728",
   "previous_checkpoint_audit": "tools/audit_nmi_bank04_prg08_tail.py",
   "vpp": {
     "earned": 21,
-    "total": 100
+    "total": 100,
+    "status": "unchanged; boundary-accounting repair has not invalidated any credited rubric point"
   },
   "execution_context": {
     "raw_vrc6_bank": "04",
@@ -17,51 +21,44 @@
     "physical_prg_banks": [8, 9],
     "frontier_physical_prg_bank": 9
   },
-  "frontier": {
-    "last_closed_cpu": "A011",
-    "next_unprocessed_cpu": "A012",
-    "next_checkpoint": "04F9",
-    "initial_window_start_cpu": "A012",
-    "initial_window_end_cpu_inclusive": "B1FF",
-    "initial_window_contiguous_bytes": 4590
+  "repair_required": {
+    "reasons": [
+      "04F7 root $9133 reaches $9208: FE FF 33 91; operand bytes $920A-$920B were outside the old 04F7 contiguous span ending at $9209",
+      "04F8 root $9E85 reaches $A010: FE FF 85 9E; operand bytes $A012-$A013 were outside the recorded 04F8 span ending at $A011",
+      "the 04F8 decoder read operands beyond its declared dependency range, so the boundary accounting must be hardened before 04F9"
+    ],
+    "scope": "narrow boundary repair only; do not redo the bank-$04 parser core or already closed earlier roots",
+    "first_affected_prior_root": "9133",
+    "first_affected_command_cpu": "9208",
+    "candidate_dependency_span": {
+      "start_cpu": "920A",
+      "end_cpu_inclusive": "A013",
+      "length": 3594,
+      "sha256": "728c86cd808e178821f7f72d1f0371eb16a5bde3a1dda495543338391a5e7b3c",
+      "04F7_root_probe_overlap_bytes": 11,
+      "candidate_exact_new_bytes_for_04F8": 3583
+    },
+    "candidate_next_unresolved_root": "A014",
+    "next_action": "harden audit_nmi_bank04_prg08_tail.py so every decoded multi-byte command asserts all operand bytes are inside the accounted span; revalidate root $9133 with bytes through $920B and the 04F8 roots with bytes through $A013; then reconcile analysis/progress/continuity and only then mark the frontier ready at $A014"
   },
-  "verification_overlap": {
-    "start_cpu": "9FD2",
-    "end_cpu_inclusive": "A011",
-    "length": 64,
-    "sha256": "0e04ebe8c1c612ee0ced07e13be60986cd76f87c0baf0f3d190e8ada919fa933",
-    "coverage_accounting": "verification-only; never count these 64 bytes as new coverage"
-  },
-  "frontier_fingerprint": {
-    "start_cpu": "A012",
-    "end_cpu_inclusive": "A031",
-    "length": 32,
-    "sha256": "cce7701f1732e476f815a6d62a5bb47ff6b35eadac364631c23bc336cacec037",
-    "purpose": "alignment/fingerprint only; does not establish semantic closure"
-  },
-  "prior_dependency_span": {
-    "start_cpu": "920A",
-    "end_cpu_inclusive": "A011",
-    "length": 3592,
-    "sha256": "69e6d56aed2875f3f2840ebb4b5c52b844da4482a150a4db3647cd933bc79b8e",
-    "exact_new_bytes_in_checkpoint": 3581
-  },
-  "closed_state": [
-    "raw bank 04 alternate-parser executable core $8001-$87AD is ZP $10-clean on the resolved graph",
-    "first 23 bank-04 stream roots recursively closed with FB/FD/FE grammar and no live E7",
-    "next 11 bank-04 roots recursively closed through $A011 with no live E7",
-    "34 of 96 bank-04 roots are closed"
+  "preserved_verified_work": [
+    "04F2 IRQ ZP10 audit",
+    "04F3 fixed NMI ZP10 audit",
+    "04F4 ED46 ZP10 audit",
+    "04F5 raw bank 0C static graph",
+    "04F6 bank/parser-state correction",
+    "bank-04 alternate-parser executable core $8001-$87AD is byte-identical to the audited bank-0C core and its resolved graph is ZP $10-clean",
+    "bank-04 metadata domain is 102 references / 96 roots and all select alternate-parser mode"
   ],
-  "open_edges": [
-    "62 later bank-04 / physical PRG09 roots remain unresolved beginning at $A014",
-    "raw instrument bank 05 remains unresolved",
-    "fixed $E7FB / inline dispatch remains unresolved"
+  "provisional_work_to_revalidate_not_rebuild": [
+    "04F7 stream roots before $920A; only the root/control cycles affected by operand-boundary accounting need revalidation",
+    "04F8 eleven PRG08-rooted stream closures; preserve discovered roots, parser semantics, and pointer edges while rerunning with strict operand bounds"
   ],
-  "checkpoint_constraints": [
-    "04F9 begins at CPU $A012",
-    "carry FB loop-anchor, FD call/return, and FE counted/absolute-pointer stream state",
-    "prove pointer-target closure; raw FF is not a terminator proxy",
-    "subtract any root probe bytes already counted by 04F7 from exact new-byte coverage",
-    "do not open raw bank 05 or fixed $E7FB during 04F9"
+  "forbidden_until_repaired": [
+    "starting 04F9",
+    "opening raw bank 05",
+    "opening fixed $E7FB as a new checkpoint",
+    "advancing VPP",
+    "claiming $A012 or $A014 as a safe resume frontier"
   ]
 }
