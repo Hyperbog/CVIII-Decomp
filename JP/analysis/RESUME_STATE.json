@@ -9,56 +9,11 @@
   "last_completed_checkpoint": "04FE",
   "previous_checkpoint_audit": "tools/audit_nmi_fixed_e7fb_dispatch.py",
   "vpp": {"earned": 21, "total": 100},
-  "execution_context": {
-    "mapping": "fixed_prg",
-    "cpu_window": "E000-FFFF",
-    "physical_prg_banks": [31],
-    "frontier_physical_prg_bank": 31,
-    "cpu_base": "E000"
-  },
-  "frontier": {
-    "last_closed_cpu": "F3DC",
-    "last_closed_physical_prg_bank": 31,
-    "next_unprocessed_cpu": "F3DD",
-    "next_physical_prg_bank": 31,
-    "next_checkpoint": "04FF",
-    "domain_transition": false,
-    "initial_window_start_cpu": "F3DD",
-    "initial_window_end_cpu_inclusive": "F7FF",
-    "initial_window_contiguous_bytes": 1059
-  },
-  "verification_overlap": {
-    "physical_prg_bank": 31,
-    "cpu_base": "E000",
-    "start_cpu": "F39D",
-    "end_cpu_inclusive": "F3DC",
-    "length": 64,
-    "sha256": "81d06cd79d64c3d4cfe14bbefa851e74e748536f723636abaf82870ec065d22f",
-    "semantic_unit": "32-entry nested E7FB inline pointer table indexed from $2C",
-    "coverage_accounting": "verification-only; these 64 bytes are part of 04FE and must never be counted again"
-  },
-  "frontier_fingerprint": {
-    "physical_prg_bank": 31,
-    "cpu_base": "E000",
-    "start_cpu": "F3DD",
-    "end_cpu_inclusive": "F3FC",
-    "length": 32,
-    "sha256": "65d47f163ffad5ca20903cece8606c76416ceb5cb8edba99780be720730f08aa",
-    "purpose": "alignment/fingerprint only; does not establish semantic closure"
-  },
-  "open_edges": [
-    "$18 producer domain for the first-level NMI E7FB selector is unresolved",
-    "$2C producer domain for the nested E7FB selector is unresolved",
-    "nested target graph beginning at fixed PRG31 $F3DD remains unresolved",
-    "21 first-level mapper-dependent exits into CPU $8000-$BFFF remain unresolved until actual VRC6 mapper state is proven"
-  ],
-  "checkpoint_constraints": [
-    "04FF begins exactly at fixed PRG31 CPU $F3DD",
-    "treat $F39D-$F3DC as verification-only inline pointer data and never as executable fall-through",
-    "prove live $2C producer values from JP-ROM producer/control flow before claiming the 32-entry table is bounded",
-    "reuse all 04FE noncontiguous manifest ranges as prior coverage and subtract overlaps from new-byte accounting",
-    "resolve actual mapper state before traversing any $8000-$BFFF external edge",
-    "do not infer $18 or $2C selector clamps from encoded table lengths"
-  ],
-  "recovery_note": "A premature resume-state advancement was corrected immediately. Treat 04FF as incomplete until new analysis/audit/progress/continuity are committed and this file is advanced last."
+  "execution_context": {"mapping":"fixed_prg","cpu_window":"E000-FFFF","physical_prg_banks":[31],"frontier_physical_prg_bank":31,"cpu_base":"E000"},
+  "frontier": {"last_closed_cpu":"F3DC","last_closed_physical_prg_bank":31,"next_unprocessed_cpu":"F3DD","next_physical_prg_bank":31,"next_checkpoint":"04FF","domain_transition":false,"initial_window_start_cpu":"F3DD","initial_window_end_cpu_inclusive":"F7FF","initial_window_contiguous_bytes":1059},
+  "verification_overlap": {"physical_prg_bank":31,"cpu_base":"E000","start_cpu":"F39D","end_cpu_inclusive":"F3DC","length":64,"sha256":"81d06cd79d64c3d4cfe14bbefa851e74e748536f723636abaf82870ec065d22f","semantic_unit":"32-entry nested E7FB inline pointer table indexed from $2C","coverage_accounting":"verification-only; these 64 bytes are part of 04FE and must never be counted again"},
+  "frontier_fingerprint": {"physical_prg_bank":31,"cpu_base":"E000","start_cpu":"F3DD","end_cpu_inclusive":"F3FC","length":32,"sha256":"65d47f163ffad5ca20903cece8606c76416ceb5cb8edba99780be720730f08aa","purpose":"alignment/fingerprint only; does not establish semantic closure"},
+  "open_edges": ["$18 producer domain for the first-level NMI E7FB selector is unresolved","$2C producer domain for the nested E7FB selector is unresolved","nested target graph beginning at fixed PRG31 $F3DD remains unresolved","21 first-level mapper-dependent exits into CPU $8000-$BFFF remain unresolved until actual VRC6 mapper state is proven"],
+  "checkpoint_constraints": ["04FF begins exactly at fixed PRG31 CPU $F3DD","treat $F39D-$F3DC as verification-only inline pointer data and never as executable fall-through","prove live $2C producer values from JP-ROM producer/control flow before claiming the 32-entry table is bounded","reuse all 04FE noncontiguous manifest ranges as prior coverage and subtract overlaps from new-byte accounting","resolve actual mapper state before traversing any $8000-$BFFF external edge","do not infer $18 or $2C selector clamps from encoded table lengths"],
+  "recovery_note": "04FF is in progress. A premature state advancement was corrected before semantic closure; analysis/04FF_WORKING_NOTE.md records the hold."
 }
