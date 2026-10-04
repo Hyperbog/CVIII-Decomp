@@ -1,6 +1,6 @@
 # Checkpoint 04F7 — raw bank `$04` alternate-parser boundary
 
-This checkpoint continues the pre-render shared-ZP `$10` provenance audit after 04F6. It examines raw VRC6 bank `$04`, which maps CPU `$8000-$BFFF` to physical `PRG08/PRG09`, but deliberately limits new ROM coverage to physical `PRG08:$8000-$91FF`.
+This checkpoint continues the pre-render shared-ZP `$10` provenance audit after 04F6. Raw VRC6 bank `$04` maps CPU `$8000-$BFFF` to physical `PRG08/PRG09`.
 
 Target ROM SHA-256:
 
@@ -8,35 +8,47 @@ Target ROM SHA-256:
 958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28
 ```
 
-New ROM span:
+## Exact byte budget
+
+The planned contiguous span was `$8000-$91FF` (4608 bytes). The final root inside that window begins at `$9133` and reaches its `$FF` terminator at `$9209`, so the contiguous span was expanded by 10 bytes to close that same root:
 
 ```text
 raw bank $04 / physical PRG08
-CPU $8000-$91FF
-4608 bytes
-SHA-256 ee8b2de23022f715d3934907e7caaab91e824b4a9a31ccb75a69dae7d55c178b
+CPU $8000-$9209
+4618 bytes
+SHA-256 cfdd27fa72b9e990c31bb12e1511fa7229ffe2c898dcc361586c77b71543caa6
 ```
+
+The metadata audit also reads the first byte of the 73 distinct bank-$04 roots that begin after `$9209` in order to apply the already-proved parser-mode rule. Those are 73 one-byte probes outside the contiguous span.
+
+Therefore the exact 04F7 new-byte footprint is:
+
+```text
+4618 contiguous bytes + 73 isolated root bytes = 4691 bytes
+```
+
+This remains inside the 500-5000-byte checkpoint limit.
 
 ## Parser core identity
 
-Fixed helper `$E1AF` banks the current instrument-data bank and jumps to CPU `$8001`. For raw bank `$04`, bytes `$8001-$87AD` are byte-identical to the already-audited bank `$0C` parser core. The only earlier difference is the bank-identifying byte at `$8000` (`$04` versus `$0C`); bank-specific data begins at `$87AE`.
+Fixed helper `$E1AF` banks the current instrument-data bank and jumps to CPU `$8001`. For raw bank `$04`, bytes `$8001-$87AD` are byte-identical to the already-audited bank `$0C` alternate-parser core. The bank-identifying byte at `$8000` is `$04` rather than `$0C`; bank-specific data begins at `$87AE`.
 
-The four alternate-parser indirect dispatch sites in this common core are:
+The four alternate-parser indirect dispatch sites in the common core are:
 
 ```text
 $802E  $83E1  $842D  $8641
 ```
 
-The locally bounded tables for `$802E`, `$83E1`, and `$8641` match the bank `$0C` copies exactly. `$842D` still uses the ten-entry `$8430-$8443` table whose valid entries all target `$8444`; no new host-side bound is invented.
+The locally bounded tables for `$802E`, `$83E1`, and `$8641` match the bank `$0C` copies. `$842D` still uses the ten-entry `$8430-$8443` table whose valid entries all target `$8444`; no host-side bound is invented.
 
-A conservative graph rooted at `$8001` plus the locally demonstrated table targets accepts **786 instruction starts**. Its only external fixed-bank calls/jumps are the same helpers already covered by 04F3:
+A conservative graph rooted at `$8001` plus the locally demonstrated dispatch targets accepts **786 instruction starts**. Its external fixed-bank dependencies are exactly:
 
 ```text
 calls: $E1B8 $E1C8 $E1D6 $E1F6 $E249
 jumps: $E190 $E195 $E1E4 $E1EE
 ```
 
-Across that resolved executable graph, there is no direct, zero-page-indexed, indirect-store, absolute `$0010`, or absolute-indexed write form capable of modifying/aliasing ZP `$10`.
+These fixed helpers were already covered by 04F3. Across the resolved bank-$04 executable graph there is no direct, zero-page-indexed, indirect-store, absolute `$0010`, or absolute-indexed write form capable of modifying or aliasing ZP `$10`.
 
 ## Bank `$04` metadata domain
 
@@ -47,27 +59,27 @@ bank-$04 instrument references  102
 distinct bank-$04 roots          96
 ```
 
-Every bank-$04 reference initializes **alternate-parser mode** under the ROM's own rule: its first stream byte is `>= $10`, and none uses instrument `$05/$06`.
+Every bank-$04 reference initializes **alternate-parser mode** under the ROM's own rule: each probed first byte is `>= $10`, and none uses instrument `$05/$06`.
 
-Inside the current `$8000-$91FF` span there are **23 referenced roots**, all distinct, belonging to sound IDs:
+Exactly **23 distinct roots** begin inside the contiguous 04F7 span. They belong to sound IDs:
 
 ```text
 $5A $5D $65 $67
 ```
 
-Most importantly, the complete 4608-byte checkpoint span contains **zero raw `$E7` bytes**. Therefore `$E7` cannot be consumed as a command while the stream cursor is inside this bounded span, and the producer edge into `$840F/$842D` is absent for in-span bytes.
+All 23 reach their `$FF` terminator by `$9209`. The bank-specific stream-data region `$87AE-$9209` contains **zero raw `$E7` bytes**. Therefore `$E7` cannot be consumed from any of these bounded stream bodies, and the producer edge into `$840F/$842D` is absent for this closed data subset.
 
 ## Boundary
 
-04F7 does **not** claim that raw bank `$04` is globally closed. The metadata domain contains roots beyond `$91FF`, and the final in-span root begins at `$9133`; later stream bytes are deliberately outside this checkpoint. Those bytes must be audited before bank `$04` can be declared fully `$10`-preserving.
+04F7 does **not** claim raw bank `$04` is globally closed. Seventy-three distinct roots begin after `$9209`; only their first mode-selection byte was probed here. Their stream bodies remain unresolved and may still contain a live `$E7` producer for `$842D`.
 
-What is now established is narrower and durable:
+Established after 04F7:
 
-- the bank `$04` alternate-parser executable core `$8001-$87AD` is the proven bank `$0C` core;
+- bank `$04` parser core `$8001-$87AD` is byte-identical to the proven bank `$0C` alternate-parser core;
 - its resolved graph is `$10`-clean;
-- all 102 bank-$04 metadata references select alternate-parser mode;
-- the first bounded PRG08 data window contains no `$E7` byte at all;
-- any remaining `$842D` producer-domain question lies in later bank `$04` stream data, not in the parser core or current span.
+- all 102 bank-$04 references select alternate-parser mode;
+- the first 23 bank-$04 roots terminate by `$9209` and contain no raw `$E7` in their bounded data region;
+- remaining `$842D` producer-domain work lies in the 73 later stream bodies.
 
 **VPP remains 21/100.** No rubric point is earned by this boundary closure alone.
 
@@ -75,4 +87,4 @@ Reproducible audit: `tools/audit_nmi_bank04_alt_parser.py`.
 
 ## Next checkpoint
 
-04F8 should continue raw bank `$04` only, beginning at physical `PRG08` / CPU `$9200`, and close as much of the remaining PRG08 stream domain as fits the 500-5000-byte budget. Do not open raw bank `$05` or `$E7FB` in the same checkpoint.
+04F8 should continue raw bank `$04` from CPU `$920A` through the remaining PRG08 tail, carrying the established alternate-parser/current-bank state. Do not open raw bank `$05` or `$E7FB` in the same checkpoint.
