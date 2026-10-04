@@ -83,50 +83,48 @@ Selector `$10` points to animation table `$F272-$F37C`; animation ID `$09` is `$
 
 Evidence: `analysis/PRG06_SELECTOR10_FIXED_ANIM.md`, `tools/audit_prg06_fixed_animation.py`.
 
-**VPP remained 21/100 after 04E3.**
-
 ## Checkpoint 04E4 — PRG06 `$823E` owner and scheduler link
 
-The fixed active-object loop processes X slots `$01-$12`. Primary types below `$30` are routed through VRC6 bank `$09`'s common dispatcher. For primary type `$08`, that dispatcher resolves:
+The fixed active-object loop processes X slots `$01-$12`. Primary type `$08` routes through bank `$09` common dispatch to VRC6 bank `$03`, behavior `PRG06:$8021`.
 
-```text
-bank selector = $03
-behavior pointer = $8021
-```
+Internal state `$0606,X=$01` selects the `$81E0` path, which writes `$0470,X=$40` and can reach `$823E`. If base Y is `$A0-$A7`, `$823E` installs selector `$10` / animation `$09`. The same fixed-loop iteration can then run movement integration and `$FE60: JSR $EF93` for the same X slot.
 
-so type `$08` executes `PRG06:$8021` with the same object-slot X.
-
-Within PRG06, internal state `$0606,X=$01` selects the `$81E0` path, which writes `$0470,X=$40` and can reach `$823E`. If base Y `$041C,X` is `$A0-$A7`, `$823E` installs selector `$10` / animation ID `$09` through `$EF7F`.
-
-After object-specific behavior returns, the same fixed-loop iteration observes `$0470` bit `$40` set and can run the bank-`$0B` movement integrator; bit `$20` is clear, so it then reaches `$FE60: JSR $EF93` for the same X slot. Checkpoint 04E3 proves that animation ID `$09` under selector `$10` writes frame `$14`.
-
-The renderer mapping then resolves:
-
-```text
-selector $10 -> frame table $9E6D
-frame offset $14 -> descriptor $9FA9
-```
-
-Thus the exact machine path is now proven conditionally:
-
-```text
-fixed slot X=$01..$12
-primary type $08
-  -> bank-$09 common dispatcher
-  -> bank-$03 PRG06:$8021
-  -> internal state $01
-  -> base Y $A0-$A7
-  -> selector $10 / animation $09
-  -> same fixed-loop scheduler reaches $EF93
-  -> frame $14
-  -> PRG26 descriptor $9FA9
-```
-
-What is **not yet proved** is normal-gameplay provenance of the base-Y predicate `$A0-$A7`. Therefore `$9FA9` is machine-reachable under a fully reconciled state predicate, but normal-gameplay reachability is not yet claimed.
+Renderer mapping: selector `$10` -> table `$9E6D`; frame `$14` -> descriptor `$9FA9`.
 
 Evidence: `analysis/PRG06_TYPE08_823E_OWNER.md`, `tools/audit_prg06_type08_owner.py`.
 
-**VPP remains 21/100 after 04E4.** This resolves owner/slot/scheduler structure but does not complete another fixed gameplay/object-system rubric point.
+## Checkpoint 04E5 — type `$08` vertical path
+
+State `$00` initializes:
+
+```text
+$041C,X = $C0
+$0537,X = $00
+$0520,X = $FE
+$0606,X -> $01
+```
+
+`$FF15` clears the movement bytes before `$0520=$FE` is installed. In state `$01`, there is no direct write/inc/dec of `$0520/$0537` before `$823E`.
+
+The bank-`$0B` integrator performs low-byte addition followed by high-byte addition. With `$0537=$00` and `$0520=$FE`, scheduled movement changes base Y by exactly `-2` per tick:
+
+```text
+$C0,$BE,$BC,...,$AA,$A8,$A6,$A4,$A2,$A0,$9E,...
+```
+
+State `$01` gates this movement with target `$840F[$0633+$0645]`. State `$00` also consumes the same sum against the established 15-byte map `$81CE-$81DC`; `$81DD` is independently executable via direct jump `$8148 -> $81DD`. For currently table-valid indices `$00-$0E`, the corresponding target bytes `$840F[0..14]` are:
+
+```text
+70 90 70 98 78 98 70 90 70 60 50 60 70 60 50
+```
+
+Maximum target is `$98`. Therefore every object operating inside that established index domain necessarily continues through Y=`$A6`, which lies in `$A0-$A7` and makes `$823E` select animation `$09`.
+
+This closes the motion/threshold part of the `$9FA9` reachability chain, but **does not yet close root producer values of `$0645,X`**. Do not infer its bound solely from table shape.
+
+Evidence: `analysis/PRG06_TYPE08_VERTICAL_PATH.md`, `tools/audit_prg06_type08_vertical_path.py`.
+
+**VPP remains 21/100 after 04E5.** This is a reachability refinement, not another completed fixed-rubric milestone.
 
 ## Authoritative continuation files
 
@@ -150,13 +148,15 @@ Evidence: `analysis/PRG06_TYPE08_823E_OWNER.md`, `tools/audit_prg06_type08_owner
 - `analysis/PRG06_SELECTOR10_DIRECT_DOMAIN.md`
 - `analysis/PRG06_SELECTOR10_FIXED_ANIM.md`
 - `analysis/PRG06_TYPE08_823E_OWNER.md`
+- `analysis/PRG06_TYPE08_VERTICAL_PATH.md`
 - `src/oam_renderer.*`
 - `tests/oam_renderer_test.cpp`
 - current audit scripts under `tools/`
 
 ## Unresolved / do not assume
 
-- whether a normal primary-type `$08`, internal-state `$01` path actually attains base Y `$A0-$A7`
+- root/creation producer domain of `$0645,X` for primary type `$08`
+- unconditional normal-gameplay reachability of `$9FA9` until that producer domain is closed
 - incoming cached attribute `$10` at the first compressed sprite of reachable `$9FA9`
 - whether render ordering guarantees a prior explicit-attribute sprite before `$9FA9`
 - whole-ROM selector/frame producer closure
@@ -167,4 +167,4 @@ Evidence: `analysis/PRG06_TYPE08_823E_OWNER.md`, `tools/audit_prg06_type08_owner
 
 ## Next manageable checkpoint
 
-**04E5: base-Y `$A0-$A7` provenance only.** Trace primary type `$08`, internal state `$01` from its authoritative initialization and velocity/update path far enough to prove or disprove that normal execution reaches `$041C,X=$A0-$A7`. Do not expand into cached-attribute `$10` ordering yet. Update VPP only if the fixed rubric earns another point.
+**04E6: primary-type `$08` `$0645` producer domain only.** Trace root/creation writes that establish `$0645,X` before type `$08` state `$00`, and prove whether `$0633+$0645` stays within the established `$00-$0E` consumer domain. Do not expand into renderer cached-attribute `$10` ordering yet. Update VPP only if the fixed rubric earns another point.
