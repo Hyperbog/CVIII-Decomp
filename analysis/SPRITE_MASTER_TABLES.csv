@@ -1,0 +1,16 @@
+master,start,end_exclusive,total_entries,selector,selector_entry_index,remaining_entries,addressable_entries,max_even_frame_offset,note
+A,819D,82F5,172,00,0,172,128,FE,first 8-bit window
+A,819D,82F5,172,16,0,172,128,FE,tile+$80 alias of selector 00 when $AD != 0
+A,819D,82F5,172,02,56,116,116,E6,window starts at $820D
+A,819D,82F5,172,18,56,116,116,E6,tile+$80 alias of selector 02 when $AD != 0
+A,819D,82F5,172,04,100,72,72,8E,window starts at $8265
+A,819D,82F5,172,1A,100,72,72,8E,tile+$80 alias of selector 04 when $AD != 0
+A,819D,82F5,172,06,137,35,35,44,window starts at $82AF
+A,819D,82F5,172,1C,137,35,35,44,tile+$80 alias of selector 06 when $AD != 0
+B,8AB0,8C2E,191,08,0,191,128,FE,first 8-bit window
+B,8AB0,8C2E,191,12,128,63,63,7C,second window begins exactly +$100 bytes at $8BB0
+C,9545,9621,110,0A,0,110,110,DA,single window
+D,9E6D,9F6D,128,10,0,128,128,FE,single full 8-bit window
+E,AAA6,AC5C,219,0C,0,219,128,FE,first 8-bit window
+E,AAA6,AC5C,219,14,128,91,91,B4,second window begins exactly +$100 bytes at $ABA6
+E,AAA6,AC5C,219,0E,162,57,57,70,suffix window begins at $ABEA
