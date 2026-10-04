@@ -52,15 +52,21 @@ A future conservative ROM-byte/code-data coverage ledger must be reported separa
 
 ## Manageable checkpoint policy
 
-Each user `continue` means **one bounded checkpoint**:
+Each user `continue` means **one bounded checkpoint**.
+
+Default new ROM span is roughly **1 KiB**, with a normal allowed range of **500-5000 bytes**. Do not silently expand beyond about 5 KiB. A few isolated signatures outside the primary span are allowed only when they prove the same narrow question.
+
+Checkpoint flow:
 
 1. read current continuity/progress/metric/identity and branch head;
-2. choose only the listed next question;
+2. choose only the listed next question and byte span;
 3. regenerate the relevant ROM evidence;
-4. add/update focused analysis/audit/source artifacts;
-5. update `docs/PROGRESS.md` and VPP only if earned;
-6. commit;
-7. stop and report.
+4. provide short status updates after material findings rather than long silent analysis runs;
+5. add/update focused analysis/audit/source artifacts;
+6. update `docs/PROGRESS.md` and VPP only if earned;
+7. update this handoff when the target/methodology changes;
+8. commit;
+9. stop and report.
 
 Do not combine unrelated subsystem work. If a dependency expands scope, record it for the next checkpoint.
 
@@ -98,13 +104,13 @@ See `analysis/PRG02_IRQ_dispatch.md` and `analysis/IRQ_STATE_MACHINE.csv`.
 
 ## OAM/sprite stable facts
 
-Read `analysis/PRG26_SPRITE_FORMAT.md`, `analysis/SPRITE_SET_TABLE.csv`, `analysis/SPRITE_MASTER_TABLES.csv`, `analysis/OAM_OBJECT_FIELDS.csv`, and `analysis/ZP10_OAM_STATE.md` before changing this subsystem.
+Read `analysis/PRG26_SPRITE_FORMAT.md`, `analysis/SPRITE_SET_TABLE.csv`, `analysis/SPRITE_MASTER_TABLES.csv`, `analysis/OAM_OBJECT_FIELDS.csv`, `analysis/ZP10_OAM_STATE.md`, and `analysis/PRG26_9FA9_INCOMING_ATTR.md` before changing this subsystem.
 
 - `PRG26:$8001` iterates 28 render slots in seven parallel 28-byte arrays `$0400-$04C3`.
 - `$048C,X` is a byte offset into first-level block `$817F-$819C`.
 - `$0400,X` is a byte offset into the selected frame-pointer window.
 - 15 selectors are windows into five master pointer blocks: `$819D-$82F4`, `$8AB0-$8C2D`, `$9545-$9620`, `$9E6D-$9F6C`, `$AAA6-$AC5B`.
-- `$16/$18/$1A/$1C` alias `$00/$02/$04/$06` and can select tile `+$80` under `$AD != 0`.
+- `$16/$18/$1A/$1C` alias `$00/$02/$04/$06`; under `$AD != 0`, selector `>= $16` can add `$80` to tile bytes.
 - descriptor byte 0 is sprite count; records are variable width:
   - Y/control bit0 clear: `Y,tile,attribute,X`
   - Y/control bit0 set: `Y,tile,X`, reusing cached final attribute ZP `$10`
@@ -120,39 +126,35 @@ Read `analysis/PRG26_SPRITE_FORMAT.md`, `analysis/SPRITE_SET_TABLE.csv`, `analys
 
 `$9FA9` requires selector `$10` + frame `$14`.
 
-- 04D: PRG22 `$8745` was rejected; its owning type `$26` uses selectors `$12/$08`, not `$10`.
-- 04E1: PRG18 type `$E1` was rejected; selector `$10` frames `$E8/$EC` mutate only to `$EA/$EE`.
+- 04D: PRG22 `$8745` rejected; type `$26` uses selectors `$12/$08`.
+- 04E1: PRG18 type `$E1` rejected; selector `$10` frames `$E8/$EC` mutate only to `$EA/$EE`.
 - 04E2: direct PRG06/07 selector-`$10` setup frames are high values; direct frame `$14` is paired with selector `$0E`.
-- 04E3: fixed animation supplies the transitive mutation. PRG06 `$823E-$8251` picks animation `$09` when base Y is `$A0-$A7`; selector-`$10` animation record `$09` at `$F28D` is `14 08 02`, so `$EF93` writes frame `$14`.
-- 04E4: fixed object loop X range is `$01-$12`; primary type `$08` routes through bank `$09` common dispatch to bank `$03`, `PRG06:$8021`. Internal state `$01` reaches `$81E0`, writes `$0470=$40`, and can reach `$823E`. The same scheduler iteration can run movement integration and `$EF93`. Selector `$10` + frame `$14` resolves to descriptor `$9FA9`.
-- 04E5: state `$00` sets base Y `$C0`, calls `$FF15` to clear movement state, then sets vertical high velocity `$0520=$FE` while `$0537=$00`. State `$01` leaves those velocity bytes unchanged; bank `$0B` movement integration therefore moves Y by exactly `-2` per scheduled tick. For the currently established state-0 consumer index domain `$00-$0E`, target-Y values at `$840F[0..14]` max out at `$98`; the trajectory must therefore pass through `$A6`, which selects animation `$09`.
+- 04E3: PRG06 `$823E-$8251` selects animation `$09` for base Y `$A0-$A7`; selector-`$10` animation record `$09` is `$F28D: 14 08 02`, so `$EF93` writes frame `$14`.
+- 04E4: primary type `$08` in slots `$01-$12` routes to `PRG06:$8021`; internal state `$01` reaches `$823E`; same scheduler iteration can run movement and `$EF93`. Selector `$10` + frame `$14` resolves to `$9FA9`.
+- 04E5: state `$00` establishes Y `$C0` and exact `-2` vertical motion; state-1 target table keeps the object active through the `$A0-$A7` window.
+- 04E6: normal low-type construction clears `$0633/$0645`; state `$00` makes the first state-1 index exactly `$01`, target `$90`. The high-type PRG20 `$73->$0645` spawner path cannot create type `$08`. Therefore normal gameplay `$9FA9` reachability is proven.
+- 04F1: renderer order is ascending slots and `$10` is not initialized at frame/object entry. `$9FA9`'s first three records therefore inherit variable shared state: normally the last explicit attribute emitted by a lower-index rendered object, or the pre-render shared-RAM value if no lower object emitted one. JP PRG28 writes both `0` and `1` to slot-0 `$04A8`; mirror state can therefore legitimately alter the cached attribute by `$40`. There is no valid constant host-side initializer for `$9FA9`.
 
-Exact conditional machine path now established:
+Exact proven path:
 
 ```text
-slot X=$01..$12
-primary type $08
--> bank-$09 common dispatcher
--> bank-$03 PRG06:$8021
--> state $00: Y=$C0, vertical velocity=-2
--> state $01: target <= $98 for established index domain $00-$0E
--> Y necessarily reaches $A6
+normal root type $08
+-> $0633=$0645=0
+-> state $00 -> first state-1 index $01 / target $90
+-> Y descends by 2 and crosses $A6/$A4/$A2/$A0
 -> selector $10 / animation $09
--> fixed $EF93 tick
--> frame $14
+-> fixed $EF93 writes frame $14
 -> PRG26 descriptor $9FA9
+-> first three sprites consume inherited shared ZP $10
 ```
-
-Remaining reachability caveat: the root/creation producer domain of `$0645,X` is not yet closed. Because state `$00` and `$01` index tables using `$0633+$0645`, do **not** infer `$0645` bounds from table shape alone. Until producer values prove the index remains within `$00-$0E`, unconditional normal-gameplay `$9FA9` reachability is not claimed.
 
 See:
 
-- `analysis/PRG22_8745_OWNER.md`
-- `analysis/PRG18_E1_SELECTOR10_FRAME.md`
-- `analysis/PRG06_SELECTOR10_DIRECT_DOMAIN.md`
 - `analysis/PRG06_SELECTOR10_FIXED_ANIM.md`
 - `analysis/PRG06_TYPE08_823E_OWNER.md`
 - `analysis/PRG06_TYPE08_VERTICAL_PATH.md`
+- `analysis/PRG06_TYPE08_0645_PRODUCERS.md`
+- `analysis/PRG26_9FA9_INCOMING_ATTR.md`
 
 ## Native baseline
 
@@ -161,6 +163,8 @@ See:
 - `tests/oam_renderer_test.cpp`
 
 The structured lift keeps NES RAM explicit and preserves wrapped 8-bit pointer indexing, variable-width descriptors, persistent `$10`, full-byte `$0454` behavior, mirror/tile transforms, clipping, OAM permutation, and the non-local OAM-full effect via an explicit result.
+
+The regression suite includes both an incoming-cache test and a cross-object cache-persistence test.
 
 ## Repository workflow
 
@@ -181,12 +185,12 @@ Primary hardware reference: NESdev Wiki, especially VRC6, VRC IRQ, VRC6 audio, C
 
 ## Required behavior in future chats
 
-When the user says `continue`, perform actual ROM analysis and commit **one bounded checkpoint** before replying. Reverify ROM identity when the ROM is available. Update VPP only if its fixed rubric earns points. Never count unresolved work as translated.
+When the user says `continue`, perform actual ROM analysis and commit **one bounded checkpoint** before replying. Reverify ROM identity when the ROM is available. Keep new ROM analysis around 500-5000 bytes, defaulting near 1 KiB, and report material status frequently. Update VPP only if its fixed rubric earns points. Never count unresolved work as translated.
 
 ## Current next checkpoint
 
-**04E6 — primary-type `$08` `$0645` producer domain only.** Trace root/creation writes that establish `$0645,X` before type `$08` state `$00`, and prove whether `$0633+$0645` stays within the established `$00-$0E` consumer domain. Do not expand into renderer cached-attribute `$10` ordering yet.
+**04F2 — IRQ-side `$10` interference only.** Analyze the verified IRQ handler region `PRG02/PRG03:$9F99-$A526` (about 1.4 KiB) plus already-mapped fixed IRQ entry/exit signatures. Determine whether any reachable IRQ handler can write ZP `$10` between NMI `CLI` and `PRG26:$8001`. Do not expand into other gameplay banks or background rendering.
 
 ## User-facing handoff prompt
 
-> Continue the faithful Akumajou Densetsu decomp/recomp in `Hyperbog/CVIII-Decomp` on branch `decompilation`. Read `docs/DECOMPILATION_CONTINUITY.md`, `docs/PROGRESS.md`, `docs/PROGRESS_METRIC.md`, and `docs/ROM_IDENTITY.md`, inspect current branch state, and treat the verified Japanese Mapper-24 ROM as immutable controlling evidence. Work one bounded checkpoint only, preserve 6502/VRC6/PPU/APU/interrupt/stack/shared-zero-page semantics exactly, do not invent bounds/table boundaries, update VPP only under its fixed rubric, and commit before reporting. Current next checkpoint: 04E6, close the root primary-type `$08` `$0645` producer domain and prove or reject the `$0633+$0645 <= $0E` bound without expanding into renderer `$10` cache ordering.
+> Continue the faithful Akumajou Densetsu decomp/recomp in `Hyperbog/CVIII-Decomp` on branch `decompilation`. Read `docs/DECOMPILATION_CONTINUITY.md`, `docs/PROGRESS.md`, `docs/PROGRESS_METRIC.md`, and `docs/ROM_IDENTITY.md`, inspect current branch state, and treat the verified Japanese Mapper-24 ROM as immutable controlling evidence. Work one bounded checkpoint only, normally 500-5000 new ROM bytes and preferably about 1 KiB; provide frequent material status updates; preserve 6502/VRC6/PPU/APU/interrupt/stack/shared-zero-page semantics exactly; do not invent bounds/table boundaries; update VPP only under its fixed rubric; commit before reporting. Current next checkpoint: 04F2, determine whether any verified IRQ handler in PRG02/03 `$9F99-$A526` can write ZP `$10` during the NMI-before-renderer window.
