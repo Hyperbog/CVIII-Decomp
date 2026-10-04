@@ -83,7 +83,7 @@ Use half-open ranges internally: `[start, end_exclusive)`.
 
 For every checkpoint record:
 
-- raw VRC6 bank and CPU range;
+- execution/mapping domain and CPU range;
 - physical PRG bank(s);
 - contiguous dependency byte count;
 - isolated dependency/probe bytes outside that span;
@@ -127,24 +127,24 @@ For each completed checkpoint:
 4. commit/update the reproducible audit/tool;
 5. update `docs/PROGRESS.md` and `docs/DECOMPILATION_CONTINUITY.md`;
 6. update VPP only if the fixed rubric earns it;
-7. update `analysis/RESUME_STATE.json` last so it describes the newest reconciled frontier;
+7. update `analysis/RESUME_STATE.json` **last** so it describes the newest reconciled frontier;
 8. run `tools/check_resume_frontier.py <ROM.nes>` against that state;
 9. re-fetch branch head before reporting completion.
 
 If interrupted before all steps finish, the next session treats the checkpoint as provisional and repairs only the affected boundary/dependency.
 
-## Current integrity hold
+## Repaired historical integrity hold
 
-**Forward decompilation is currently blocked pending a narrow 04F7/04F8 boundary repair. Do not begin 04F9 yet.**
+The 04F7/04F8 operand-boundary hold is **resolved** and must not block current forward work.
 
-The restart overlap check found two dependency-accounting errors:
+The restart checker previously found two four-byte `FE FF lo hi` commands whose operands crossed their original claimed spans:
 
-1. 04F7 root `$9133` reaches command `$9208: FE FF 33 91`. The pointer operand bytes `$920A-$920B` lie beyond the old 04F7 contiguous span ending at `$9209`.
-2. 04F8 root `$9E85` reaches command `$A010: FE FF 85 9E`. The pointer operand bytes `$A012-$A013` lie beyond the recorded 04F8 span ending at `$A011`.
+```text
+04F7 root $9133: $9208 FE FF 33 91 -> operands through $920B
+04F8 root $9E85: $A010 FE FF 85 9E -> operands through $A013
+```
 
-These findings do **not** require redoing the parser core or earlier roots. Repair only the affected boundary accounting and recursively revalidate the affected root cycles with operand-in-span assertions.
-
-Known corrected 04F8 dependency candidate, to be accepted only after the hardened audit passes:
+The stream audits were hardened to require complete operand containment before reading parameters. The repaired 04F8 dependency is:
 
 ```text
 half-open span:                  [$920A,$A014)
@@ -152,11 +152,10 @@ inclusive CPU range:            $920A-$A013
 length:                          3594 bytes
 SHA-256:                         728c86cd808e178821f7f72d1f0371eb16a5bde3a1dda495543338391a5e7b3c
 04F7 mode-probe overlap:         11 bytes
-candidate genuine 04F8 bytes:   3583
-next unresolved stream root:    $A014
+genuine 04F8 bytes:             3583
 ```
 
-Until the hardened audit passes and all four records (`analysis`, `audit`, `PROGRESS`, `DECOMPILATION_CONTINUITY`) are reconciled, `RESUME_STATE.json` must remain blocked.
+The hardened audits passed, the provisional invalid 04F9 work was discarded, and forward work resumed from the repaired `$A014` frontier. Later checkpoints 04F9-04FC were regenerated/advanced from committed ready states. The **current** authoritative frontier is always the one in `analysis/RESUME_STATE.json`; this historical section is informational only.
 
 ## Recovery rule in one sentence
 
