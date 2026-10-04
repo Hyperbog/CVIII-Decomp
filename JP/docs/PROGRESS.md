@@ -95,30 +95,15 @@ physical PRG24 / CPU $9200-$9FFF
 SHA-256 d7387b04a03289ebb1a0567ef49240d90b0bb177a0c128c8b06dbccabdb0776f
 ```
 
-The missing fact was parser/bank state, not an implicit table bound.
+Fixed helper `$E1AF` loads the current instrument-data bank from `$06D3,X` and jumps to CPU `$8001`. PRG24 `$8DCD` selects main vs alternate parser from bit 0 of `$011B,X`.
 
-Fixed helper `$E1AF` loads the current instrument-data bank from `$06D3,X` and then jumps to CPU `$8001`. PRG24 `$8DCD` selects main vs alternate parser from bit 0 of `$011B,X`.
+The JP metadata/control audit proves 139 bank-$0C instrument references / 125 distinct roots. Only five initialize alternate-parser mode; all are immediate `$FF` roots. All raw `$E7` bytes in referenced PRG24 stream data belong to main-parser roots. `$011B,X` has one mode initializer and later direct writers preserve bit 0.
 
-The JP metadata/control audit proves:
+Therefore PRG24 `$842D` is not a live bank-$0C stream edge. Do not add a host-side bound to its ten-entry table.
 
-- sound metadata table: 125 sound IDs at `$8F60-$9059`;
-- bank-$0C instrument references: **139**;
-- distinct bank-$0C stream roots: **125**;
-- only **five** bank-$0C references initialize alternate-parser mode;
-- those five are instrument `$08` at `$9D8F`, `$9F73`, and `$A303` (with `$A303` reused), and every distinct root begins with `$FF`;
-- all four raw `$E7` bytes in referenced PRG24 stream data (`$9695,$97BB,$97C7,$9D73`) belong to roots initialized in **main-parser** mode;
-- `$011B,X` has one mode initializer at `$88F2`; every later direct writer preserves bit 0.
+Evidence: `analysis/NMI_BANK0C_PARSER_MODE.md`, `tools/audit_nmi_bank0c_parser_mode.py`.
 
-Therefore **PRG24 `$842D` is not a live bank-$0C stream edge**. 04F5's unresolved edge was a deliberate static over-approximation caused by omitting parser mode + current data bank.
-
-This is a correction, not a fabricated `$00-$9F` producer bound: the ten-entry table still has no host-side bounds check and must not gain one.
-
-Evidence:
-
-- `analysis/NMI_BANK0C_PARSER_MODE.md`
-- `tools/audit_nmi_bank0c_parser_mode.py`
-
-### 04F7 — raw bank `$04` parser-core boundary
+### 04F7 — raw bank `$04` parser core + first 23 roots
 
 Exact new-byte footprint:
 
@@ -130,18 +115,35 @@ plus 73 isolated one-byte root-mode probes
 TOTAL: 4691 new bytes
 ```
 
-The 10-byte extension beyond `$91FF` closes the final in-window stream rooted at `$9133`, whose `$FF` terminator is at `$9209`. The bank `$04` bytes at `$8001-$87AD` are byte-identical to the already-audited bank `$0C` alternate-parser core. A conservative graph rooted at `$8001` plus its locally bounded dispatch targets accepts **786 instruction starts** and has no write form capable of modifying or aliasing ZP `$10`. Its external fixed-bank helpers are all inside the already-audited 04F3 fixed span.
+Bytes `$8001-$87AD` are byte-identical to the bank `$0C` alternate-parser core. The resolved executable graph contains 786 accepted instruction starts and no write form capable of modifying or aliasing ZP `$10`; its fixed exits are already covered by 04F3.
 
-Reusing the established 125-sound metadata table gives **102 bank-$04 instrument references / 96 distinct roots**. Every bank-$04 reference initializes alternate-parser mode. Exactly **23 roots** begin inside the contiguous span, from sound IDs `$5A,$5D,$65,$67`; all 23 terminate by `$9209`. The bank-specific stream-data region `$87AE-$9209` contains **zero raw `$E7` bytes**.
+Metadata gives 102 bank-$04 references / 96 distinct roots, all alternate-parser mode. Twenty-three roots begin before `$920A`.
 
-Therefore the `$842D` producer edge is absent for these 23 closed stream bodies. Bank `$04` is not globally closed: **73 later stream bodies remain unresolved**; only their first mode-selection byte was probed in 04F7.
+**04F8 correction:** the original 04F7 write-up called each root's first raw `$FF` a terminator. Eleven of those 23 first-`$FF` positions are actually the marker in `FE FF lo hi` pointer commands. 04F8 recursively rechecked all 23 roots with the actual `FB`/`FD`/`FE` control grammar: no `$E7` command is reachable, every pointer target remains inside `$87AE-$9209`, and the latest reachable command is `$9208`. Thus the 04F7 safety result remains valid; only the old terminator interpretation was wrong.
 
-Evidence:
+Evidence: `analysis/NMI_BANK04_ALT_PARSER_BOUNDARY.md`, `tools/audit_nmi_bank04_alt_parser.py`, plus the corrective decoder in `tools/audit_nmi_bank04_prg08_tail.py`.
 
-- `analysis/NMI_BANK04_ALT_PARSER_BOUNDARY.md`
-- `tools/audit_nmi_bank04_alt_parser.py`
+### 04F8 — PRG08 tail + minimal PRG09 closure
 
-**VPP remains 21/100 after 04F7.**
+Dependency span:
+
+```text
+raw bank $04 / CPU $920A-$A011
+3592 bytes
+SHA-256 69e6d56aed2875f3f2840ebb4b5c52b844da4482a150a4db3647cd933bc79b8e
+```
+
+Eleven root bytes inside this span were already counted as 04F7 mode probes, so the exact 04F8 new-byte footprint is **3581 bytes**.
+
+CPU `$A000-$A011` is an 18-byte physical PRG09 extension required to close the same dependency: root `$9E85` reaches `$A010: FE FF 85 9E`, which jumps back to `$9E85`.
+
+04F8 closes exactly 11 later roots from sound IDs `$5D,$5E,$60`. The recursive stream decoder visits **3312 abstract parser states / 3025 unique command addresses**. Every `FD`/`FE` pointer target remains inside `$920A-$A011`; there are zero raw or decoded `$E7` commands in the closed domain. Since the executable parser core is already `$10`-clean, these 11 additional roots preserve ZP `$10` and cannot activate `$842D`.
+
+After 04F8, **34 of 96** bank-$04 roots are closed and **62 later PRG09 roots remain unresolved**, beginning at `$A014`.
+
+Evidence: `analysis/NMI_BANK04_PRG08_TAIL.md`, `tools/audit_nmi_bank04_prg08_tail.py`.
+
+**VPP remains 21/100 after 04F8.**
 
 ## Current provenance boundary
 
@@ -151,18 +153,17 @@ fixed NMI span $E057-$E365        -> preserves $10
 $ED46 helper graph                 -> preserves $10
 raw bank $0C / PRG24              -> preserves $10 on live bank-$0C paths
 raw bank $04 parser $8001-$87AD   -> preserves $10 on resolved graph
-raw bank $04 first 23 roots       -> closed through $9209; no raw $E7
-raw bank $04 later 73 roots       -> stream bodies unresolved
+raw bank $04 first 23 roots       -> recursively closed; no live $E7
+raw bank $04 next 11 roots        -> closed through $A011; no live $E7
+raw bank $04 later 62 roots       -> unresolved, first root $A014
 raw instrument bank $05           -> unresolved
 $E7FB / inline dispatch            -> unresolved
 PRG26 renderer                     -> consumes/persists $10 exactly
 ```
 
-The alternate-parser core is duplicated in raw banks `$04`, `$05`, and `$0C`; 04F7 proves the bank `$04` parser copy itself is not the remaining problem. Remaining bank `$04` work is the later stream-data domain.
-
 ## Unresolved / do not assume
 
-- whether later raw bank `$04` stream data can activate `$842D` or any path that writes/aliases ZP `$10`;
+- whether later raw bank `$04` / physical PRG09 stream data can activate `$842D` or any other path relevant to ZP `$10`;
 - whether raw instrument bank `$05` can write/alias ZP `$10` while servicing the pre-render sound update;
 - whether `$E7FB` or its inline-dispatch targets can write `$10` before rendering;
 - whole-ROM type-transition / selector-frame producer closure;
@@ -173,6 +174,6 @@ The alternate-parser core is duplicated in raw banks `$04`, `$05`, and `$0C`; 04
 
 ## Next manageable checkpoint
 
-**04F8 — continue raw bank `$04` through the PRG08 tail.**
+**04F9 — continue raw bank `$04` through physical PRG09.**
 
-Audit physical `PRG08` / CPU `$920A-$9FFF`, carrying the established alternate-parser mode and stream-bank state. Account separately for root bytes already probed by 04F7 when reporting new-byte coverage. Determine whether the remaining PRG08 stream domain contains a live `$E7` producer for `$842D` or any other path relevant to ZP `$10`. Do not open physical PRG09, raw bank `$05`, or `$E7FB` in the same checkpoint unless a same-question dependency requires a small within-budget extension.
+Start at CPU `$A012` (physical PRG09). A good initial bounded window is `$A012-$B1FF` (4590 contiguous bytes); subtract any root bytes already counted as 04F7 mode probes when reporting exact new-byte coverage. Carry the recursive `FB`/`FD`/`FE` stream state and prove pointer-target closure rather than using raw `$FF` as a terminator. Do not open raw bank `$05` or fixed `$E7FB` in the same checkpoint.
