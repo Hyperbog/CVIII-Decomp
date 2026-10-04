@@ -82,7 +82,7 @@ frame $14    -> descriptor $9FA9
 
 ### 04E5 — deterministic vertical path
 
-State `$00` initializes base Y `$C0` and exact vertical velocity `-2`. The bank-`$0B` movement integrator therefore steps `$C0,$BE,...,$A8,$A6,$A4,$A2,$A0,...` while state `$01` is active. For the established consumer domain, the target table max is `$98`, so the `$A0-$A7` animation-`$09` window is necessarily crossed.
+State `$00` initializes base Y `$C0` and exact vertical velocity `-2`. The bank-`$0B` movement integrator steps `$C0,$BE,...,$A8,$A6,$A4,$A2,$A0,...` while state `$01` is active. For the established consumer domain, the target table max is `$98`, so the `$A0-$A7` animation-`$09` window is necessarily crossed.
 
 ### 04E6 — root `$0645` producer closure
 
@@ -103,9 +103,9 @@ Evidence:
 
 ### 04F1 — incoming `$10` is inherited variable state
 
-Primary ROM span for this checkpoint: PRG26 `$8001-$81FF` plus isolated verification of `$9FA9` and two PRG28 slot-0 mirror-state writes.
+Primary ROM span: PRG26 `$8001-$81FF` plus isolated verification of `$9FA9` and two PRG28 slot-0 mirror-state writes.
 
-The outer renderer walks slots strictly upward from `$00` through `$1B` and does not initialize ZP `$10`. Compressed records read `$10`; full records store their final transformed attribute into `$10`.
+The renderer walks slots strictly upward and does not initialize ZP `$10`. Compressed records read `$10`; full records store their final transformed attribute into `$10`.
 
 `$9FA9` begins:
 
@@ -113,16 +113,7 @@ The outer renderer walks slots strictly upward from `$00` through `$1B` and does
 04 DF 8A F0  E1 8C F8  E5 8E 00  04 E4 90 03
 ```
 
-Its first three records are compressed. Therefore their attribute is inherited from prior shared renderer state.
-
-The value is **not a single game constant**. It is:
-
-- the final explicit attribute emitted by the highest lower-index object that rendered earlier in the frame; or
-- the pre-render shared RAM value if no lower slot emitted an explicit attribute.
-
-JP PRG28 also contains immediate writes of both `1` and `0` to slot-0 `$04A8`. Since `$04A8==0` selects the mirror path and the mirror path XORs `$40` before updating `$10`, an earlier slot can legitimately leave different cache values solely from mirror state.
-
-The native regression suite already includes `test_cache_persists_across_object_boundary()`, which verifies that a compressed record in a later object consumes the prior object's cached attribute.
+Its first three records are compressed. Their attribute is inherited variable state: normally the final explicit attribute emitted by the highest lower-index object that rendered earlier in the frame, or the pre-render shared RAM value if no lower slot emitted one.
 
 Evidence:
 
@@ -130,7 +121,32 @@ Evidence:
 - `tools/audit_prg26_9fa9_cache.py`
 - `tests/oam_renderer_test.cpp`
 
-**VPP remains 21/100 after 04F1.** This closes an exact renderer-state contract but does not complete another fixed-rubric point.
+### 04F2 — verified IRQ path preserves `$10`
+
+Primary new ROM span: `PRG02/PRG03:$9F99-$A526`, **1422 bytes**, SHA-256:
+
+```text
+fb0f709699ad64b6cb49fa4eaeb2de8e1a260e23745341fc2f48b38fedd8ded3
+```
+
+The audit seeds all **38 unique dispatch targets** in this span and follows reachable local control flow. Results:
+
+- zero direct `STA/STX/STY` or RMW writes to ZP `$10` anywhere in the full span;
+- zero reachable indexed-zero-page, indirect, or absolute-indexed writes that can alias `$10`;
+- reachable external calls are limited to local `$9F5B`, fixed delay helpers `$E001/$E005`, and the established `$E2FA/$E30B-$E351` CHR/VRC6 helper set;
+- those called helpers do not write `$10`;
+- fixed IRQ prologue/exit `$E0F5-$E130` does not write `$10`.
+
+Therefore an IRQ taken after NMI `CLI` and before `PRG26:$8001` **preserves ZP `$10`** for the proven IRQ state/handler graph.
+
+This removes IRQ handling as a possible hidden initializer/modifier for the `$9FA9` incoming attribute cache. Pre-render NMI helper work remains a separate question.
+
+Evidence:
+
+- `analysis/IRQ_ZP10_PRESERVATION.md`
+- `tools/audit_irq_zp10.py`
+
+**VPP remains 21/100 after 04F2.** This closes an exact shared-RAM/interrupt contract but does not complete another fixed-rubric point.
 
 ## Authoritative continuation files
 
@@ -142,11 +158,11 @@ Evidence:
 - `analysis/PRG31_boot_and_interrupts.asm`
 - `analysis/PRG02_IRQ_dispatch.md`
 - `analysis/IRQ_STATE_MACHINE.csv`
+- `analysis/IRQ_ZP10_PRESERVATION.md`
 - `analysis/PRG26_OAM_frame.md`
 - `analysis/PRG26_SPRITE_FORMAT.md`
 - `analysis/ZP10_OAM_STATE.md`
 - `analysis/PRG26_9FA9_INCOMING_ATTR.md`
-- `analysis/PRG06_SELECTOR10_FIXED_ANIM.md`
 - `analysis/PRG06_TYPE08_823E_OWNER.md`
 - `analysis/PRG06_TYPE08_VERTICAL_PATH.md`
 - `analysis/PRG06_TYPE08_0645_PRODUCERS.md`
@@ -156,7 +172,7 @@ Evidence:
 
 ## Unresolved / do not assume
 
-- whether any verified IRQ handler can write ZP `$10` between NMI `CLI` and the PRG26 renderer call
+- whether the fixed-bank and external NMI helpers executed before `PRG26:$8001` can write ZP `$10`
 - whole-ROM type-transition / selector-frame producer closure
 - higher-level meaning of `$AD`
 - semantic identities of individual sprite descriptors
@@ -165,4 +181,4 @@ Evidence:
 
 ## Next manageable checkpoint
 
-**04F2 — IRQ-side `$10` interference only.** Restrict new ROM analysis to the verified IRQ handler region `PRG02/PRG03:$9F99-$A526` (about 1.4 KiB) plus the fixed IRQ entry/exit signatures already mapped. Determine whether any reachable IRQ handler can write ZP `$10` during the NMI window before `PRG26:$8001`. Do not expand into other gameplay banks or background rendering.
+**04F3 — fixed-bank NMI-side `$10` interference only.** Analyze `PRG31:$E057-$E365` (about 783 bytes) as the primary new span. Determine whether the fixed-bank pre-render NMI path and fixed helpers in that window can write ZP `$10`. Record any external helper dependency such as `$ED46` for a later checkpoint instead of expanding past the byte budget.
