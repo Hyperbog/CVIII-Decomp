@@ -4,54 +4,51 @@ This file is the durable handoff for future ChatGPT conversations working on `Hy
 
 ## Primary objective
 
-Faithfully reverse engineer the Japanese NES release of **Akumajou Densetsu** into an evidence-accountable decompilation/recompilation that can execute natively on PC. Preserve original behavior first. Modern QoL features, mod APIs, widescreen/high-refresh presentation, replacement assets, scripting, etc. are later layers and must not contaminate the faithful baseline.
+Faithfully reverse engineer the Japanese NES release of **Akumajou Densetsu** into an evidence-accountable decompilation/recompilation that can execute natively on PC. Preserve original behavior first. Modern QoL/mod features are later layers and must not contaminate the faithful baseline.
 
-The original ROM bytes are controlling evidence. Documentation, emulator behavior, comments, names, NSF rips, and hypotheses are secondary. Never modify the source ROM.
+The original ROM bytes are controlling evidence. Documentation, emulator behavior, names, NSF rips, and hypotheses are secondary. Never modify or commit the source ROM.
 
 ## Immutable target identity
 
-Expected source ROM:
-
 - File: `Akumajou Densetsu (Japan).nes`
-- Size: `393232` bytes (`0x60010`)
-- Full-file SHA-256: `958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28`
-- Full-file SHA-1: `a0f3b31d4e3b0d2ca2e8a34f91f14ad99a5ad11f`
+- Size: `393232` (`0x60010`)
+- SHA-256: `958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28`
 - PRG: 256 KiB, CRC32 `BA6BDD6A`
 - CHR: 128 KiB, CRC32 `BF15255C`
 - PRG+CHR CRC32: `E349AF38`
-- iNES mapper: 24 / Konami VRC6a
+- Mapper 24 / Konami VRC6a
 
 Run `python tools/analyze_rom.py <rom>` before relying on a local ROM.
 
 ## Non-negotiable fidelity rules
 
-1. Never guess code/data boundaries or routine semantics. Uncertain material stays address-named and unresolved.
+1. Never guess code/data boundaries or routine semantics. Uncertain material stays unresolved.
 2. Every translated routine must reconcile instruction-by-instruction to authoritative ROM bytes.
-3. Track **physical PRG bank + CPU address**. Banked CPU addresses are not globally unique.
+3. Track **physical PRG bank + CPU address**; banked CPU addresses are not globally unique.
 4. Model VRC6 bank writes and interrupt-side restoration exactly.
-5. Preserve 6502 widths, flags, wrapping, zero-page aliasing, stack behavior, interrupt behavior, and unusual cross-function control flow exactly.
-6. Never extend a table merely because following bytes decode plausibly; prove boundaries from consumers/producers/control flow.
+5. Preserve 6502 widths, flags, wrapping, zero-page aliasing, stack behavior, interrupt behavior, and unusual cross-function control flow.
+6. Never extend tables merely because following bytes decode plausibly; prove boundaries from consumers/producers/control flow.
 7. Do not add defensive host checks absent from the ROM until producer domains are proved.
-8. Preserve arithmetic literally where host semantics differ. PRG26 Y/control decoding uses sign-selected carry plus `ROR`, not signed division.
+8. Preserve arithmetic literally where host semantics differ. PRG26 Y/control decoding uses sign-selected carry + `ROR`, not signed division.
 9. Preserve non-local returns. `PRG26:$8070` can execute `PLA; PLA; RTS` and return directly past `$8001`.
-10. Preserve persistent renderer state. Sprite attribute cache ZP `$10` is not initialized at object/descriptor entry; compressed records can reuse it immediately.
+10. Preserve shared zero-page state. OAM attribute cache `$10` is not initialized at object/descriptor entry and is also used as unrelated gameplay scratch.
 11. Keep uncertain names conservative; names must not create false certainty.
-12. NSF/M3U are corroborating evidence for audio only; ROM bytes remain authoritative.
+12. NSF/M3U are corroborating audio evidence only; ROM bytes remain authoritative.
 13. No original ROM bytes are committed to GitHub.
 14. Every substantive checkpoint updates `docs/PROGRESS.md`; update this file when methodology or a fidelity pitfall changes.
 
 ## Manageable checkpoint policy
 
-Each user `continue` now means **one bounded checkpoint only**:
+Each user `continue` means **one bounded checkpoint**:
 
-1. choose one narrow question already listed as next work;
+1. choose the narrow question listed as next work;
 2. regenerate only the relevant ROM evidence;
-3. add/update one focused analysis/audit artifact if useful;
+3. add/update focused analysis/audit/source artifacts;
 4. update progress/continuity;
 5. commit;
-6. stop and report the checkpoint.
+6. stop and report.
 
-Do not combine unrelated subsystem work in one continuation. If a dependency expands scope, record it for the next checkpoint instead.
+Do not combine unrelated subsystem work in one continuation. If a dependency expands scope, record it for the next checkpoint.
 
 ## Cartridge model
 
@@ -62,15 +59,13 @@ Mapper 24 / VRC6a CPU PRG map:
 - `$C000-$DFFF`: 8 KiB switchable PRG ROM
 - `$E000-$FFFF`: fixed final 8 KiB PRG bank
 
-PRG is analyzed as 32 physical 8 KiB banks `PRG00..PRG31`.
-
 Stable fixed-bank facts:
 
 - NMI `$E057`
 - RESET `$E00B`
 - IRQ `$E0F5`
 - `$E2D0` tracks 16 KiB bank in ZP `$23`; `$E2D2` writes VRC6 `$8000`
-- `$E2C4` selects physical `PRG30` at `$C000-$DFFF`
+- `$E2C4` selects `PRG30` at `$C000-$DFFF`
 - NMI bank `$0D` call `$8001` = `PRG26:$8001`
 - IRQ raw bank `$01` = `PRG02/PRG03`
 
@@ -78,41 +73,63 @@ Stable fixed-bank facts:
 
 Authoritative IRQ table: `PRG02:$9F01-$9F5A`, 45 states `$00-$2C`. `$9F5B` is code. The old `$9F60` overlap claim was false and must not be restored.
 
-Current producer audit supports normal states `$00-$2C` plus `$80` as high-bit bypass sentinel. Highest explicit chain: `29 -> 2A -> 2B -> 2C`.
+Normal states `$00-$2C`; `$80` is high-bit bypass. Highest explicit chain: `29 -> 2A -> 2B -> 2C`.
 
-IRQ exits remain distinct:
+IRQ exits differ:
 
 - `$E118`: clears VRC6 IRQ Control `$F001`, then falls through
-- `$E11D`: acknowledges via `$F002` and restores bank state
+- `$E11D`: acknowledges `$F002` and restores bank state
 
 See `analysis/PRG02_IRQ_dispatch.md` and `analysis/IRQ_STATE_MACHINE.csv`.
 
 ## OAM/sprite checkpoint
 
-Read `analysis/PRG26_SPRITE_FORMAT.md`, `analysis/SPRITE_SET_TABLE.csv`, and `analysis/OAM_OBJECT_FIELDS.csv` before changing the renderer model.
+Read `analysis/PRG26_SPRITE_FORMAT.md`, `analysis/SPRITE_SET_TABLE.csv`, `analysis/SPRITE_MASTER_TABLES.csv`, `analysis/OAM_OBJECT_FIELDS.csv`, and `analysis/ZP10_OAM_STATE.md` before changing this subsystem.
 
 Stable facts:
 
-- `PRG26:$8001` iterates 28 render-object slots.
-- Seven parallel 28-byte arrays occupy `$0400-$04C3`.
-- `$048C,X` is a byte offset into first-level pointer block `$817F-$819C`.
-- `$16/$18/$1A/$1C` alias `$00/$02/$04/$06` geometry tables and can select tile `+$80` behavior.
-- `$0400,X` is a byte offset into the selected frame-pointer table.
-- Descriptor byte 0 is sprite count.
-- **Records are variable length:** Y/control bit 0 clear = `Y,tile,attribute,X`; bit 0 set = `Y,tile,X` and reuse cached final attribute from ZP `$10`.
-- Y/control is arithmetic-right-shifted by the original sign-selected-carry `ROR` sequence.
-- Full records update `$10` after attribute override/mirror transform; compressed records reuse `$10` unchanged.
-- Descriptor `$9FA9` begins with three compressed records before its first full record; therefore resetting `$10` per descriptor/object is wrong.
-- Current audit covers five master frame-pointer blocks and 745 unique descriptors; 2310 records use cached-attribute compression, max 27 sprites/descriptor, max encoded length 96 bytes.
+- `PRG26:$8001` iterates 28 render-object slots in seven parallel 28-byte arrays `$0400-$04C3`.
+- `$048C,X` is a byte offset into first-level block `$817F-$819C`.
+- `$0400,X` is a byte offset into the selected frame-pointer window.
+- The 15 selectors are windows into five physical master pointer blocks: `$819D-$82F4`, `$8AB0-$8C2D`, `$9545-$9620`, `$9E6D-$9F6C`, `$AAA6-$AC5B`.
+- `$16/$18/$1A/$1C` alias `$00/$02/$04/$06` and can select tile `+$80` under `$AD != 0`.
+- Descriptor byte 0 is count; records are variable length:
+  - Y/control bit0 clear: `Y,tile,attribute,X`
+  - Y/control bit0 set: `Y,tile,X`, reusing cached final attribute from ZP `$10`
+- Full records update `$10`; compressed records reuse `$10` unchanged.
+- `$9FA9` begins with three compressed records before its first explicit attribute.
+- `$0454,X` operation is `(descriptor_attr & $FC) | full_object_byte` when nonzero; do not mask the object byte to two bits.
+- `$04A8,X == 0` selects mirrored rendering; mirror toggles attr `$40` and uses `$F8-X` transform.
 - OAM traversal adds `$C4` per sprite and frame seed adds `$44`.
-- OAM-full path performs `PLA; PLA; RTS`, skipping `$8001`'s remainder.
+- OAM-full path executes `PLA; PLA; RTS`, skipping `$8001` remainder.
+- Descriptor census: 745 unique referenced descriptors, max 27 sprites, max encoded length 96 bytes, 2,310 compressed attribute-reuse records.
 
-Reproducible audits:
+### ZP `$10` checkpoint 04B
+
+Proven renderer accesses in `$8001-$817E`:
+
+- reads: `$8064`, `$8166`
+- writes: `$80BF`, `$811B`
+
+The top-level fixed NMI body `$E057-$E0C6` contains no direct `$10` store. Unrelated bank-$03` gameplay code uses `$10` as scratch at `$9752/$9769`, proving it is shared machine state rather than renderer-private initialization.
+
+Therefore **do not initialize/reset `$10` in native OAM code**. The exact value observed on every reachable `$9FA9` path remains an upstream object-order/scheduling question.
+
+### Native baseline
+
+- `src/oam_renderer.hpp`
+- `src/oam_renderer.cpp`
+- `tests/oam_renderer_test.cpp`
+
+The structured lift keeps NES RAM explicit and preserves wrapped 8-bit pointer indexing, variable-width descriptors, persistent `$10`, full-byte `$0454` behavior, mirror/tile transforms, clipping, OAM permutation, and the non-local OAM-full effect via an explicit result.
+
+Current audits:
 
 - `tools/analyze_rom.py`
 - `tools/audit_irq_dispatch.py`
 - `tools/audit_oam_tables.py`
 - `tools/audit_sprite_descriptors.py`
+- `tools/audit_oam_zp10.py`
 
 ## Repository workflow
 
@@ -126,7 +143,7 @@ Primary handoff files:
 - `docs/PROGRESS.md`
 - `docs/ROM_IDENTITY.md`
 
-Always fetch current file/branch state immediately before editing. Never claim a GitHub change exists until the commit/ref is confirmed.
+Always fetch current file/branch state immediately before editing. Never claim a GitHub change exists until commit/ref is confirmed.
 
 ## Documentation policy
 
@@ -140,7 +157,7 @@ Before a continuation:
 
 1. read this file;
 2. read current `docs/PROGRESS.md` and `docs/ROM_IDENTITY.md`;
-3. inspect current branch head and relevant analysis files;
+3. inspect current branch head and relevant analysis/source;
 4. reverify target ROM identity if available;
 5. perform only the listed next checkpoint;
 6. commit and report exact findings + commit SHA.
@@ -149,8 +166,8 @@ Never count unresolved work as translated.
 
 ## Current next checkpoint
 
-**04B — zero-page `$10` renderer-state lifetime only.** Trace executable reads/writes relevant to the NMI/OAM path and determine what establishes the cached attribute before `$9FA9` can begin with compressed records. Do not expand this checkpoint into general object-array producer analysis.
+**04C — `$9FA9` reachability/object ordering only.** Trace the executable selector-`$10` / frame-`$14` producer path far enough to identify which object slot(s) can render `$9FA9` and whether a prior rendered slot or another proven path establishes `$10` first. Do not expand into the full object system.
 
 ## User-facing handoff prompt
 
-> Continue the faithful Akumajou Densetsu decomp/recomp in `Hyperbog/CVIII-Decomp` on branch `decompilation`. Read `docs/DECOMPILATION_CONTINUITY.md`, `docs/PROGRESS.md`, and `docs/ROM_IDENTITY.md`, inspect current branch state, and treat the verified Japanese Mapper-24 ROM as immutable controlling evidence. Work one bounded checkpoint only, preserve 6502/VRC6/PPU/APU/interrupt/stack semantics exactly, do not invent bounds/table boundaries, and commit before reporting. Current next checkpoint: 04B, establish the lifetime/initializer contract of the PRG26 cached OAM attribute in zero-page `$10`.
+> Continue the faithful Akumajou Densetsu decomp/recomp in `Hyperbog/CVIII-Decomp` on branch `decompilation`. Read `docs/DECOMPILATION_CONTINUITY.md`, `docs/PROGRESS.md`, and `docs/ROM_IDENTITY.md`, inspect current branch state, and treat the verified Japanese Mapper-24 ROM as immutable controlling evidence. Work one bounded checkpoint only, preserve 6502/VRC6/PPU/APU/interrupt/stack/shared-zero-page semantics exactly, do not invent bounds/table boundaries, and commit before reporting. Current next checkpoint: 04C, resolve `$9FA9` reachability/object ordering and the prior `$10` state path without expanding into the full object system.
