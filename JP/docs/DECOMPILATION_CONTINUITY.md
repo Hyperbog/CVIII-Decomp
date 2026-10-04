@@ -6,160 +6,170 @@ Durable handoff for `Hyperbog/CVIII-Decomp`, branch `decompilation`.
 
 After any interruption:
 
-1. read `docs/INTERRUPTION_RECOVERY.md`;
-2. read `docs/ACCELERATION_POLICY.md`;
-3. read `docs/WHOLE_PRG_ATLAS.md`;
-4. read `analysis/RESUME_STATE.json`;
-5. run `python tools/check_resume_frontier.py <authoritative JP ROM.nes>`;
-6. run the previous checkpoint audit against the same ROM;
-7. only then continue semantic work.
+1. read `docs/INTERRUPTION_RECOVERY.md`, `docs/ACCELERATION_POLICY.md`, and `docs/WHOLE_PRG_ATLAS.md`;
+2. read `analysis/RESUME_STATE.json` and current progress;
+3. fetch the live branch head and inspect commits newer than the state checkpoint;
+4. run `python tools/check_resume_frontier.py <JP ROM>`;
+5. run the audit named by `previous_checkpoint_audit`;
+6. resume only after both pass.
 
-Evidence order: JP ROM / observed JP execution -> reproducible ROM-backed audits -> NES/VRC6 hardware docs -> atlas/external disassemblies/CDL/Ghidra/decompilers as accelerators.
+Authority remains: JP ROM / observed JP execution -> reproducible JP-ROM audits -> NES/VRC6 hardware docs -> generated atlas and external sources as accelerators. Never commit the ROM or a lossless ROM-equivalent listing.
 
-Never commit the ROM or lossless generated PRG listings.
+JP ROM SHA-256: `958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28`.
+US comparison ROM SHA-256: `1c7b2ed2c1fb5839a6764006aa476f5c9d48f99465b6141980f3a5af1dfec0d6`.
 
-Target ROM SHA-256:
-`958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28`.
-
-VPP: **21/100**.
-
-## Stable closed provenance
+## Current dashboard
 
 ```text
-IRQ graph                              -> preserves $10
-fixed NMI $E057-$E365                 -> preserves $10
-$ED46 fixed helper graph              -> preserves $10
-raw bank $0C / PRG24                  -> preserves $10 on live paths
-raw bank $04 parser + 96/96 roots     -> preserves $10
-raw bank $05 parser + 72/72 roots     -> preserves $10
-$E7FB + first-level fixed graph        -> preserves $10
-04FF nested $2C fixed head             -> preserves $10
-0500 secondary $68 fixed graph         -> preserves $10 locally
-PRG26 renderer                         -> consumes/persists $10 exactly
+whole JP PRG scanned/indexed                 262144 / 262144 = 100%
+strict semantically verified PRG floor        48821 / 262144 = 18.6237%
+exact unique JP<->US correspondence           115865 / 262144 = 44.1990%
+exact-or-normalized structural candidates     149607 / 262144 = 57.0705%
+VPP                                             21 / 100
 ```
 
-Open transitive edges remain `$18`, full `$2C`, full `$68`, and mapper-dependent callees.
+Cross-version percentages are accelerator/classification coverage, not semantic verification.
 
-## Whole-PRG acceleration
-
-Use these before narrow ROM searching:
+## Stable chain through 0500
 
 ```text
-tools/build_whole_prg_atlas.py
-tools/query_whole_prg_atlas.py
-tools/audit_whole_prg_atlas.py
-analysis/WHOLE_PRG_ATLAS_MANIFEST.json
-analysis/WHOLE_PRG_FOCUS_SUMMARY.md
+IRQ + fixed NMI + ED46                    -> $10-clean on admitted graphs
+raw bank $0C                              -> $10-clean on live admitted graph
+raw bank $04 parser + 96/96 roots         -> $10-clean
+raw bank $05 parser + 72/72 roots         -> $10-clean
+$E7FB first-level fixed graph             -> locally $10-clean
+04FF nested $2C head                      -> locally $10-clean
+0500 secondary $68 graph                  -> locally $10-clean
+PRG26 renderer                            -> consumes/persists inherited $10
 ```
 
-Large discovery sweeps may cover the full PRG, but candidate decodes do not become verified coverage automatically.
+0500 controlling result: 414 instruction starts, 982 genuinely new bytes, manifest SHA `fdc1a53db0ee18ca5e70188d2c8b31d1b350c91d011f72fddb4b6fcb7434984e`.
 
-## Fixed dispatcher chain
+## 0501 — fixed scheduler and proven mapper-selected callees
 
-### 04FE
-
-`$E7FB-$E813` is a stack-return-address tail dispatcher. NMI `$E35E: LDA $18 / $E360: JSR $E7FB` uses inline pointer data. Nested state `$04` reaches `$F390`, loads `$2C`, and dispatches through 32 pointer pairs at `$F39D-$F3DC`.
-
-04FE: 957 new bytes, manifest SHA:
-`a672f908a238bea20902fc40c5417622bdb9af675cda3b982a6f0ce494ebad32`.
-
-### 04FF
-
-04FF admitted 26 nested `$2C` roots in `$F3DD-$F7FF`: 401 instruction starts, 931 genuinely new bytes, manifest SHA:
-`2e8b703b970ca2f1eae61f5fd1a4850da6b8e5d4af1a894fb8075657299ae0d4`.
-
-It left four gaps unclaimed and handed an explicit fallthrough boundary at `$F800` to 0500.
-
-### 0500 — corrected controlling result
-
-Deferred primary entries:
+Evidence:
 
 ```text
-$08 -> $F965
-$0B -> $F831
-$0C -> $F839
-$0D -> $F841
-$0E -> $F841
-$10 -> $F849
+analysis/NMI_FIXED_SCHEDULER_BANKED_0501.md
+tools/audit_nmi_fixed_scheduler_banked.py
 ```
 
-Required roots are:
+Exact result:
 
 ```text
-F800 F831 F839 F841 F849 F965
+fixed PRG31                    161 starts    298 new bytes
+raw bank $09                   479 starts   1050 new bytes
+raw bank $0A                    57 starts    120 new bytes
+raw bank $0B                  1338 starts   2896 new bytes
+----------------------------------------------------------
+0501                           2035 starts   4364 new bytes
 ```
 
-`$F849: LDA $68 / JSR $E7FB` uses 16 pointers at `$F84E-$F86D`; entries `$0C-$0F` target `$F706/$F724/$F782/$F7B7`, admitting all four former 04FF gaps.
+Tagged ordered-manifest SHA-256:
+`639e20f7e96e816a40ef4ef7d8585c809ce670ac5384f3c2fabc9a77d275737e`.
 
-`$F965: LDA $68 / JSR $E7FB` uses 10 pointers at `$F96A-$F97D`.
+Strict tracked PRG floor is now **48,821 bytes = 18.6237%**.
 
-No table size is a live selector bound.
-
-Correct 0500 result:
+The fixed scheduler proves these mapper contexts before traversal:
 
 ```text
-instruction starts                 414
-reachable store/RMW instructions    82
-indexed write/RMW forms              9
-ZP $10 aliases                       0
-genuinely new semantic bytes       982
+raw $0B -> $80E3
+raw $0B -> $B1F8
+raw $0B -> $BD11
+raw $09 -> $8001
+raw $0B -> $8001
+raw $0B -> $8161
+raw $0B -> $826C
+raw $0A -> $84EA
 ```
 
-Exact manifest:
+No `$8000-$BFFF` target was traversed under guessed bank state.
+
+### `$FE95` dispatch
+
+`$FE8C-$FE95` loads `$0565,X`, shifts right six times, then calls `$E7FB`. `$FE98-$FE9D` contains exactly three encoded pointer pairs:
 
 ```text
-F706-F712    13   8745c6e3d3acdd90bf3b1cafaf32f9e981a606070ba5d2b365cace8f56fa3025
-F724-F738    21   41cad7c7b722c299f4111083f871fd996a0cfa517bd990d3b37ddce6ac30072e
-F782-F791    16   17bbb4663de8e617686c27ab5ad5554a69c0062d9c8bff1d353fd6487028546b
-F7B7-F7CE    24   0d93fcf865fdae96f01a0640e3769924b558f1cb0aaa0dbe7d2fedfdf17462be
-F800-FA9F   672   6dea651f93c64d59355c4180907677d367bb705ed84cbfa6ec59da79009028a8
-FAAA-FB95   236   5d32479e3af38c5477b4a3c076b3c3d0a0bd07f4c572a35a115bd6e347720402
+00 -> $FE9E
+01 -> $FEB1
+02 -> $FEC6
 ```
 
-Ordered SHA:
-`fdc1a53db0ee18ca5e70188d2c8b31d1b350c91d011f72fddb4b6fcb7434984e`.
+`$FE9E` is executable code and is not a fourth pointer. Arithmetic selector `$03` is possible; its live producer domain is still open.
 
-The earlier 933-byte 0500 draft is invalid because it omitted the `$F800` root.
+### Critical `$10` correction
 
-`$FB31-$FB36` is a proven six-byte ROM record. `$FAA0-$FAA9` remains unclaimed until `$62/$054E` index domains are proven.
-
-Verified `$2C` mutations in 0500:
-`$F736,$F78F,$F7CC,$F962,$FB77`.
-
-Verified `$68` mutations:
-`$F706,$F72F,$F78D,$F874,$F896,$F8AE,$F8E6,$F916,$F957,$F9B4,$F9D0,$F9FC,$F9FF,$FAB7,$FAD7,$FB04`.
-
-Controlling evidence:
+Raw banks `$09` and `$0A` are locally `$10`-clean, but the scheduler-selected raw-bank `$0B` graph intentionally writes zero-page `$10` at seven verified sites:
 
 ```text
-analysis/NMI_FIXED_68_DISPATCH.md
-tools/audit_nmi_fixed_68_dispatch.py
+$B3B6  $B3D2  $B40E  $B460  $B65F  $B740  $B76C
 ```
 
-## Next checkpoint — 0501
+The surrounding JP code and reconciled US structure identify `$10/$11` as collision/distance coordinate scratch. Therefore the provenance question is no longer “does every predecessor preserve `$10`?” It is “which raw-$0B site is the final live writer, what value domain does it produce, and what value reaches the renderer?”
 
-Resume fixed PRG31 at `$FB96`.
+Current model:
 
 ```text
-$FB96-$FFFF   1130 raw bytes
-SHA-256       0cbfd0aa79f3c7d1db7a756c08c47bfe01cba321900fb8955e77ec8525d38d44
-
-overlap $FB76-$FB95
-SHA-256       e4fa5e06e439ca12a84d935eb80224f448276c722399fe76fe0ce60013cc4ee7
-
-fingerprint $FB96-$FBB5
-SHA-256       a5437f0f20034ba34d65afeec353d28846a321134061f765814d28eaa3f69157
+earlier NMI/audio predecessors     -> preserve $10
+fixed scheduler                    -> locally preserves $10
+raw bank $09                       -> locally preserves $10
+raw bank $0A                       -> locally preserves $10
+raw bank $0B object/collision      -> writes $10 at 7 verified sites
+renderer                           -> consumes/persists inherited $10
 ```
 
-Only unclaimed bytes below the raw frontier: `$FAA0-$FAA9` (10).
+## Cross-version acceleration
 
-0501 priorities:
+Exact matcher:
 
-1. whole-atlas query first;
-2. sweep `$FB96-$FFFF`;
-3. classify `$FE95: JSR $E7FB` from actual control flow and inline data;
-4. reconcile exact ROM-data dependencies;
-5. continue `$18/$2C/$68` producer/alias closure;
-6. traverse `$8000-$DFFF` callees only with proven VRC6 mapper state.
+```text
+tools/match_jp_us_exact.py
+tools/audit_jp_us_exact_match.py
+analysis/JP_US_EXACT_MATCH_SUMMARY.md
+```
 
-Checkpoint order remains: analysis -> audit -> exact-ROM run -> progress/continuity -> `RESUME_STATE.json` last -> recovery checker -> branch-head confirmation.
+32-byte unique-anchor baseline: 115,865 exact unique JP bytes (44.1990%), 821 exact runs, 73 ambiguous overlapping bytes excluded.
+
+Relocation-normalized matcher:
+
+```text
+tools/match_jp_us_normalized.py
+tools/audit_jp_us_normalized_match.py
+analysis/JP_US_NORMALIZED_MATCH_SUMMARY.md
+```
+
+16-instruction normalization preserves opcodes/immediates/RAM operands and masks branches, call/jump targets, and ROM addresses. It yields 24,014 unique candidates and 149,607 exact-or-normalized candidate bytes (57.0705%). On 13,232 starts independently supported by the exact baseline, the normalized US destination agrees 13,232/13,232 with zero disagreements.
+
+Use these as locators and naming/structure hints only; JP bytes, control flow and mapper state remain authoritative.
+
+## Open edges after 0501
+
+1. exact final-writer/value domain for the seven raw-$0B `$10` stores;
+2. raw-$09 indirect / `$E5DA` selected callees and their `$10` behavior;
+3. raw-$0B `$E7FB` dispatch sites `$A15A/$A2CC/$A3A9`;
+4. raw-$0B indirect jumps `$BD56/$BD64`;
+5. `$0565>>6` selector `$03` live-domain question;
+6. first-level `$18`, full `$2C`, and full `$68` producer closure;
+7. `$FAA0-$FAA9` indexed ROM-data domain;
+8. physically unprocessed fixed-tail bytes beginning at the raw frontier `$FB96`.
+
+## Next checkpoint — 0502
+
+Use the atlas and JP<->US correspondence before narrow searching. Primary target is raw-bank `$0B` final-writer/value closure for `$10/$11`, including control-flow ordering and return paths from the seven verified stores to fixed scheduler/render entry. Resolve the `$A15A/$A2CC/$A3A9` `$E7FB` sites and `$BD56/$BD64` indirect dispatches where they affect that domain.
+
+The raw fixed investigation frontier deliberately remains `$FB96`: 0501 advanced noncontiguous semantic coverage from verified inbound root `$FDE4` and mapper-selected callees; it did not claim `$FB96-$FFFF` by physical contiguity.
+
+Recovery bytes remain:
+
+```text
+verification overlap $FB76-$FB95
+SHA-256 e4fa5e06e439ca12a84d935eb80224f448276c722399fe76fe0ce60013cc4ee7
+
+frontier fingerprint $FB96-$FBB5
+SHA-256 a5437f0f20034ba34d65afeec353d28846a321134061f765814d28eaa3f69157
+
+raw tail $FB96-$FFFF
+SHA-256 0cbfd0aa79f3c7d1db7a756c08c47bfe01cba321900fb8955e77ec8525d38d44
+```
+
+Checkpoint transaction remains: analysis -> audit -> exact-ROM run -> progress/continuity -> `RESUME_STATE.json` last -> recovery checker -> branch-head confirmation.
