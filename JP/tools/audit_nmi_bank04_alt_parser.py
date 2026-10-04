@@ -9,8 +9,8 @@ from pathlib import Path
 
 EXPECTED_SHA256 = "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28"
 SPAN_START = 0x8000
-SPAN_END = 0x9200
-EXPECTED_SPAN_SHA256 = "ee8b2de23022f715d3934907e7caaab91e824b4a9a31ccb75a69dae7d55c178b"
+SPAN_END = 0x920A  # exclusive; 10-byte extension closes the $9133 stream at $9209
+EXPECTED_SPAN_SHA256 = "cfdd27fa72b9e990c31bb12e1511fa7229ffe2c898dcc361586c77b71543caa6"
 COMMON_CODE_END = 0x87AE
 META_TABLE = 0x8F60
 META_COUNT = 0x7D
@@ -24,7 +24,6 @@ INDIRECT_STORE = {0x81, 0x91}
 ABS_DIRECT = {0x8C, 0x8D, 0x8E, 0x0E, 0x2E, 0x4E, 0x6E, 0xCE, 0xEE}
 ABS_INDEXED = {0x99, 0x9D, 0x1E, 0x3E, 0x5E, 0x7E, 0xDE, 0xFE}
 
-# Locally bounded targets used by the alternate-parser core copied across raw banks.
 DISPATCH_TARGETS = {
     0x833D, 0x837E, 0x83B7, 0x85B3,
     0x83F8, 0x840F, 0x8456, 0x845A, 0x848C, 0x849F, 0x84ED, 0x851D, 0x852A,
@@ -35,6 +34,16 @@ EXPECTED_EXTERNAL_CALLS = {0xE1B8, 0xE1C8, 0xE1D6, 0xE1F6, 0xE249}
 EXPECTED_EXTERNAL_JUMPS = {0xE190, 0xE195, 0xE1E4, 0xE1EE}
 EXPECTED_INDIRECT_JUMPS = {0x802E, 0x83E1, 0x842D, 0x8641}
 EXPECTED_WINDOW_SOUNDS = {0x5A, 0x5D, 0x65, 0x67}
+EXPECTED_WINDOW_ROOTS = [
+    0x87AE, 0x87CD, 0x87E9, 0x87FE, 0x880C, 0x8818, 0x8865, 0x887F,
+    0x88A5, 0x88C5, 0x88DF, 0x8904, 0x8997, 0x8A60, 0x8B16, 0x8B5D,
+    0x8C8B, 0x8D53, 0x8E05, 0x8ED0, 0x8F9F, 0x9040, 0x9133,
+]
+EXPECTED_TERMINATORS = [
+    0x87CC, 0x87E8, 0x87FD, 0x880B, 0x8817, 0x8847, 0x887E, 0x88A4,
+    0x88C4, 0x88DE, 0x8903, 0x894F, 0x8A3A, 0x8AF8, 0x8B4D, 0x8C6A,
+    0x8D33, 0x8DE7, 0x8ECD, 0x8F9C, 0x903D, 0x9130, 0x9209,
+]
 
 
 def main(path: str) -> None:
@@ -45,10 +54,9 @@ def main(path: str) -> None:
     raw0c = prg[24 * 0x2000:26 * 0x2000]
 
     span = raw04[SPAN_START - 0x8000:SPAN_END - 0x8000]
-    assert len(span) == 4608
+    assert len(span) == 4618
     assert hashlib.sha256(span).hexdigest() == EXPECTED_SPAN_SHA256
 
-    # Same alternate-parser executable core as raw bank $0C; only $8000 identifies the bank.
     assert raw04[0] == 0x04 and raw0c[0] == 0x0C
     assert raw04[1:COMMON_CODE_END - 0x8000] == raw0c[1:COMMON_CODE_END - 0x8000]
     assert raw04[COMMON_CODE_END - 0x8000] != raw0c[COMMON_CODE_END - 0x8000]
@@ -57,7 +65,6 @@ def main(path: str) -> None:
         assert SPAN_START <= addr < SPAN_END
         return raw04[addr - 0x8000]
 
-    # Re-prove the finite local alternate-parser tables in this physical bank.
     assert bytes(read(a) for a in range(0x870B, 0x8713)) == bytes.fromhex("3d837e83b783b385")
     assert bytes(read(a) for a in range(0x83E4, 0x83F8)) == bytes.fromhex(
         "f8830f8456845a848c849f84ed841d852a851d85"
@@ -96,20 +103,20 @@ def main(path: str) -> None:
                 risks.append((pc, op, o16))
 
             nxt = pc + size
-            if op == 0x20:  # JSR
+            if op == 0x20:
                 if 0x8001 <= o16 < COMMON_CODE_END:
                     pending.append(o16)
                 else:
                     ext_calls.add(o16)
                 pc = nxt
                 continue
-            if op == 0x4C:  # JMP abs
+            if op == 0x4C:
                 if 0x8001 <= o16 < COMMON_CODE_END:
                     pending.append(o16)
                 else:
                     ext_jumps.add(o16)
                 break
-            if op == 0x6C:  # JMP (ind)
+            if op == 0x6C:
                 indirect_jumps.add(pc)
                 break
             if op in TERM:
@@ -131,7 +138,6 @@ def main(path: str) -> None:
     assert ext_jumps == EXPECTED_EXTERNAL_JUMPS, ext_jumps
     assert indirect_jumps == EXPECTED_INDIRECT_JUMPS, indirect_jumps
 
-    # Reuse the already-established bank-$0C metadata table to enumerate bank-$04 streams.
     def rd0c(cpu: int, n: int = 1) -> bytes:
         assert 0x8000 <= cpu < 0xC000 and cpu + n <= 0xC000
         return raw0c[cpu - 0x8000:cpu - 0x8000 + n]
@@ -154,29 +160,38 @@ def main(path: str) -> None:
             first = raw04[addr - 0x8000]
             refs.append((sid, inst, addr, first))
 
+    roots = sorted({a for _, _, a, _ in refs})
     assert len(refs) == 102
-    assert len({a for _, _, a, _ in refs}) == 96
+    assert len(roots) == 96
     assert all(first >= 0x10 and inst not in (5, 6) for _, inst, _, first in refs)
 
     window_refs = [r for r in refs if r[2] < SPAN_END]
-    assert len(window_refs) == 23
-    assert len({a for _, _, a, _ in window_refs}) == 23
+    window_roots = sorted({a for _, _, a, _ in window_refs})
+    assert window_roots == EXPECTED_WINDOW_ROOTS
     assert {sid for sid, _, _, _ in window_refs} == EXPECTED_WINDOW_SOUNDS
+    assert len(roots) - len(window_roots) == 73
 
-    # Absolute byte absence: $E7 cannot be consumed as a command while the stream cursor is in this span.
-    assert 0xE7 not in span
-    assert max(a for _, _, a, _ in window_refs) == 0x9133
+    terminators = []
+    for root in window_roots:
+        off = raw04.find(b"\xff", root - 0x8000, SPAN_END - 0x8000)
+        assert off >= 0
+        terminators.append(0x8000 + off)
+    assert terminators == EXPECTED_TERMINATORS
+
+    assert 0xE7 not in raw04[0x87AE - 0x8000:SPAN_END - 0x8000]
 
     print("ROM identity: OK")
-    print("raw bank $04 / PRG08 span: $8000-$91FF (4608 bytes)")
+    print("raw bank $04 contiguous span: $8000-$9209 (4618 bytes)")
     print("span SHA-256:", EXPECTED_SPAN_SHA256)
+    print("plus 73 one-byte root-mode probes outside the span; total new-byte footprint: 4691")
     print("alternate-parser common code: $8001-$87AD")
     print("reachable accepted instruction starts:", len(visited))
     print("reachable write forms that can alias ZP $10: 0")
-    print("bank-$04 metadata refs:", len(refs), "distinct roots:", len({a for _, _, a, _ in refs}))
-    print("refs rooted inside current span:", len(window_refs), "sounds:", [f"${x:02X}" for x in sorted(EXPECTED_WINDOW_SOUNDS)])
-    print("raw $E7 bytes anywhere in $8000-$91FF: 0")
-    print("04F7 boundary: parser core is $10-clean; later bank-$04 stream data remains unresolved")
+    print("bank-$04 metadata refs:", len(refs), "distinct roots:", len(roots), "all alternate-parser mode")
+    print("roots beginning in contiguous span:", len(window_roots), "sounds:", [f"${x:02X}" for x in sorted(EXPECTED_WINDOW_SOUNDS)])
+    print("all 23 bounded roots terminate by $9209; raw $E7 bytes in $87AE-$9209: 0")
+    print("remaining bank-$04 boundary: 73 roots begin after $9209; their stream bodies remain unresolved")
+    print("04F7 result: parser core and first 23 bank-$04 roots are $10-clean; later bank-$04 data remains open")
 
 
 if __name__ == "__main__":
