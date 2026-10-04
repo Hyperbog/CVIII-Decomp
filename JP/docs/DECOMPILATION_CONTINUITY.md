@@ -76,13 +76,14 @@ Native baseline: `src/oam_renderer.*`, `tests/oam_renderer_test.cpp`.
 
 ## Pre-render `$10` provenance
 
-- **04F2:** IRQ graph `PRG02/03:$9F99-$A526`, preserves `$10`.
-- **04F3:** fixed NMI `$E057-$E365`, preserves `$10`; external dependencies `$ED46`, raw bank `$0C:$89E2`, `$E7FB`.
+- **04F2:** IRQ graph preserves `$10`.
+- **04F3:** fixed NMI `$E057-$E365` preserves `$10`; external dependencies are `$ED46`, raw bank `$0C:$89E2`, and `$E7FB`.
 - **04F4:** `$ED46` graph preserves `$10`.
 - **04F5:** raw bank `$0C` resolved graph is `$10`-clean; `$842D` left open conservatively.
 - **04F6:** bank/parser state proves `$842D` is not live for bank `$0C`.
 - **04F7:** raw bank `$04` parser core `$8001-$87AD` is byte-identical to audited bank `$0C` core; resolved graph is `$10`-clean. Bank `$04` metadata: 102 refs / 96 roots, all alternate-parser mode.
-- **04F8:** first 34 bank-$04 roots are now fully reconciled under strict recursive stream decoding.
+- **04F8:** first 34 bank-$04 roots are fully reconciled under strict recursive stream decoding through `$A013`.
+- **04F9:** next 32 roots are closed through `$B1EF`; cumulative bank-$04 closure is now 66/96.
 
 ## Reconciled 04F7/04F8 boundary
 
@@ -93,35 +94,9 @@ The recovery checker found two four-byte commands whose operands extended beyond
 A010: FE FF 85 9E -> $9E85
 ```
 
-The hardened audit now requires every multi-byte command's entire parameter footprint to lie inside its claimed semantic span before any operand is read.
+The hardened audit requires every multi-byte command's entire parameter footprint to lie inside its claimed semantic span before any operand is read.
 
-### 04F7
-
-Byte coverage remains exactly:
-
-```text
-CPU $8000-$9209
-4618 contiguous bytes
-+ 73 isolated root probes
-= 4691 new bytes
-```
-
-Semantic closure of root `$9133` uses 04F8-owned operand overlap `$920A-$920B`.
-
-Strict recheck of the 23 roots:
-
-```text
-states:                2819
-unique commands:       2169
-latest command:        $9208
-decoded E7:            0
-operand escapes:       0
-pointer-target escapes: 0
-```
-
-### 04F8
-
-Authoritative dependency span:
+04F8 authoritative dependency:
 
 ```text
 CPU $920A-$A013
@@ -131,33 +106,59 @@ SHA-256 728c86cd808e178821f7f72d1f0371eb16a5bde3a1dda495543338391a5e7b3c
 3583 genuinely new bytes
 ```
 
-The 11 04F8 roots revalidate as:
-
-```text
-states:                3312
-unique commands:       3025
-latest command:        $A010
-decoded E7:            0
-operand escapes:       0
-pointer-target escapes: 0
-```
-
-The final command `$A010: FE FF 85 9E` is fully contained through `$A013`.
-
-Result:
-
-```text
-bank-$04 roots total       96
-closed after 04F7/04F8     34
-remaining                  62
-first unresolved root      $A014
-```
+The first 34 roots revalidate with zero decoded `$E7`, zero operand escapes, and zero pointer-target escapes.
 
 Evidence:
 
 - `analysis/NMI_BANK04_ALT_PARSER_BOUNDARY.md`
 - `analysis/NMI_BANK04_PRG08_TAIL.md`
 - `tools/audit_nmi_bank04_prg08_tail.py`
+
+## 04F9 — PRG09 middle closure
+
+Recovery started from committed frontier `$A014` after ROM identity, overlap, fingerprint, and the 04F8 audit all passed.
+
+Authoritative 04F9 span:
+
+```text
+raw bank $04 / physical PRG09
+CPU $A014-$B1EF
+4572 dependency bytes
+SHA-256 55e35f223091a0c50beaf7ba0561445cc5c07d11ae83bfe827abcc22aa2d5a5b
+32 prior root-mode probe bytes overlap
+4540 genuinely new bytes
+```
+
+32 roots from sounds `$60,$61,$62,$63,$64,$66` close under strict recursive `FB`/`FD`/`FE` decoding:
+
+```text
+states:                  5869
+unique commands:         3776
+latest command:          $B1EC
+FD call/return:           9 / 4
+FE jump/loop:             20 / 62
+decoded E7:              0
+operand/path escapes:     0
+pointer-target escapes:   0
+```
+
+There are zero raw `$E7` bytes in `$A014-$B1EF`. These roots cannot activate `$840F/$842D`, so the already-audited parser core remains ZP `$10`-clean for this producer domain.
+
+The next root `$B1F0` requires data through `$B3CB`. Pulling it into 04F9 would require 5015 genuinely new bytes, so it is deferred rather than exceeding budget.
+
+Result:
+
+```text
+bank-$04 roots total       96
+closed                     66
+remaining                  30
+first unresolved root      $B1F0
+```
+
+Evidence:
+
+- `analysis/NMI_BANK04_PRG09_MID.md`
+- `tools/audit_nmi_bank04_prg09_mid.py`
 
 Do not add a host-side bound to `$842D`.
 
@@ -170,7 +171,8 @@ $ED46 helper graph                 -> preserves $10
 live raw bank $0C / PRG24         -> preserves $10
 raw bank $04 parser $8001-$87AD   -> preserves $10 on resolved graph
 raw bank $04 first 34 roots       -> reconciled; no live $E7
-raw bank $04 remaining 62 roots   -> unresolved, first root $A014
+raw bank $04 next 32 roots        -> closed through $B1EF; no live $E7
+raw bank $04 remaining 30 roots   -> unresolved, first root $B1F0
 raw instrument bank $05           -> unresolved
 $E7FB / inline dispatch            -> unresolved
 PRG26 renderer                     -> consumes/persists $10 exactly
@@ -194,21 +196,19 @@ Mandatory restart artifacts:
 
 ## Current next checkpoint
 
-**04F9 — raw bank `$04` / physical PRG09 continuation.**
+**04FA — finish raw bank `$04` / physical PRG09 tail.**
 
-Start exactly at CPU `$A014`. Initial bounded window:
+Start exactly at CPU `$B1F0`. Initial bounded window:
 
 ```text
-$A014-$B1FF
-4588 contiguous bytes
+$B1F0-$BFFF
+3600 contiguous bytes
 ```
 
-Subtract any root-mode probe bytes already counted in 04F7 from exact new-byte coverage.
-
-Carry `FB` loop-anchor, `FD` call/return, and `FE` counted/absolute-pointer state. Every multi-byte command must pass strict operand-in-span checks before operands are read. Prove pointer-target closure. Do not treat raw `$FF` as a terminator proxy.
+The remaining 30 root-mode probe bytes were already counted by 04F7 and must not be counted again. Carry strict `FB` loop-anchor, `FD` call/return, and `FE` counted/absolute-pointer state. Every multi-byte command must pass operand-in-span checks before reading operands.
 
 Do not open raw bank `$05` or fixed `$E7FB` in the same checkpoint.
 
 ## User-facing handoff prompt
 
-> Continue the faithful Akumajou Densetsu decomp/recomp on branch `decompilation`. First read `docs/INTERRUPTION_RECOVERY.md` and `analysis/RESUME_STATE.json` and run `tools/check_resume_frontier.py` against the exact JP ROM. The 04F7/04F8 boundary repair is reconciled; resume only from the committed ready frontier. Preserve exact 6502/VRC6/shared-ZP semantics, require full operand-in-span accounting for variable-length streams, count only genuinely new bytes, update `RESUME_STATE.json` last, and commit one bounded checkpoint. Current target: 04F9, raw bank `$04` from CPU `$A014`.
+> Continue the faithful Akumajou Densetsu decomp/recomp on branch `decompilation`. First read `docs/INTERRUPTION_RECOVERY.md` and `analysis/RESUME_STATE.json` and run `tools/check_resume_frontier.py` against the exact JP ROM. Resume only from the committed ready frontier. Preserve exact 6502/VRC6/shared-ZP semantics, require full operand-in-span accounting for variable-length streams, count only genuinely new bytes, update `RESUME_STATE.json` last, and commit one bounded checkpoint. Current target: 04FA, finish raw bank `$04` from CPU `$B1F0` through physical PRG09.
