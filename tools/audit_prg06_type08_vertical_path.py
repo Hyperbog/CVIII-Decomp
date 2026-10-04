@@ -101,7 +101,7 @@ def main() -> int:
         return 1
 
     # $823E maps $A0-$A7 to animation ID $09.
-    if b3(0x823E, 0x15) != bytes.fromhex(
+    if b3(0x823E, 0x16) != bytes.fromhex(
         "a008bd1c04c9a8b008a009c9a0b002a00aa9104c7fef"
     ):
         print("ERROR: $823E Y-to-animation selector mismatch", file=sys.stderr)
