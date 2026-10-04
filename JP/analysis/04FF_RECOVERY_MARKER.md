@@ -1,0 +1,1 @@
+04FF recovery marker: repository state intentionally blocked while `$2C` producer-domain proof is rebuilt from the JP ROM. Remove or supersede this marker only when 04FF analysis, audit, progress/continuity, and final resume-state advancement are complete.
