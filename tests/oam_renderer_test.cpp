@@ -56,6 +56,33 @@ void test_attribute_override_and_compressed_reuse() {
     assert(ram[0x0203 + second] == 0x3C);
 }
 
+void test_first_compressed_record_uses_incoming_cache() {
+    Ram ram{};
+    Bank bank{};
+    put_ptr(bank, 0x817F, 0x9000);
+    put_ptr(bank, 0x9002, 0x9180);
+
+    // One compressed record: odd Y/control means no attribute byte is encoded.
+    auto* d = &bank[0x9180 - 0x8000];
+    d[0] = 1;
+    d[1] = 0x03;  // arithmetic-shifted Y = +1; bit 0 requests cached attribute
+    d[2] = 0x44;  // tile
+    d[3] = 0x05;  // X
+
+    set_object(ram, 0, 0, 2, 0x20, 0x30, 0x00, true);
+    ram[0x10] = 0xA7;  // incoming renderer state; $8001/$8070 must not reset it
+    ram[0x22] = 0xBC;
+
+    cv3::OamContext ctx{ram, bank};
+    assert(cv3::build_oam_shadow(ctx) == cv3::OamFrameResult::Completed);
+
+    assert(ram[0x0200] == 0x21);
+    assert(ram[0x0201] == 0x44);
+    assert(ram[0x0202] == 0xA7);  // exact incoming $10 survives into first sprite
+    assert(ram[0x0203] == 0x35);
+    assert(ram[0x10] == 0xA7);    // compressed record does not transform/update cache
+}
+
 void test_mirror_and_tile_plus_80() {
     Ram ram{};
     Bank bank{};
@@ -109,6 +136,7 @@ void test_oam_full_non_local_exit() {
 
 int main() {
     test_attribute_override_and_compressed_reuse();
+    test_first_compressed_record_uses_incoming_cache();
     test_mirror_and_tile_plus_80();
     test_oam_full_non_local_exit();
 }
