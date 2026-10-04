@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "project": "Akumajou Densetsu JP decomp/recomp",
+  "repository": "Hyperbog/CVIII-Decomp",
+  "branch": "decompilation",
+  "rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "last_completed_checkpoint": "04F8",
+  "last_completed_checkpoint_commit": "e5b5149b142a0d848ff4cf98a837d30522e8c37a",
+  "previous_checkpoint_audit": "tools/audit_nmi_bank04_prg08_tail.py",
+  "vpp": {
+    "earned": 21,
+    "total": 100
+  },
+  "execution_context": {
+    "raw_vrc6_bank": "04",
+    "cpu_window": "8000-BFFF",
+    "physical_prg_banks": [8, 9],
+    "frontier_physical_prg_bank": 9
+  },
+  "frontier": {
+    "last_closed_cpu": "A011",
+    "next_unprocessed_cpu": "A012",
+    "next_checkpoint": "04F9",
+    "initial_window_start_cpu": "A012",
+    "initial_window_end_cpu_inclusive": "B1FF",
+    "initial_window_contiguous_bytes": 4590
+  },
+  "verification_overlap": {
+    "start_cpu": "9FD2",
+    "end_cpu_inclusive": "A011",
+    "length": 64,
+    "sha256": "0e04ebe8c1c612ee0ced07e13be60986cd76f87c0baf0f3d190e8ada919fa933",
+    "coverage_accounting": "verification-only; never count these 64 bytes as new coverage"
+  },
+  "frontier_fingerprint": {
+    "start_cpu": "A012",
+    "end_cpu_inclusive": "A031",
+    "length": 32,
+    "sha256": "cce7701f1732e476f815a6d62a5bb47ff6b35eadac364631c23bc336cacec037",
+    "purpose": "alignment/fingerprint only; does not establish semantic closure"
+  },
+  "prior_dependency_span": {
+    "start_cpu": "920A",
+    "end_cpu_inclusive": "A011",
+    "length": 3592,
+    "sha256": "69e6d56aed2875f3f2840ebb4b5c52b844da4482a150a4db3647cd933bc79b8e",
+    "exact_new_bytes_in_checkpoint": 3581
+  },
+  "closed_state": [
+    "raw bank 04 alternate-parser executable core $8001-$87AD is ZP $10-clean on the resolved graph",
+    "first 23 bank-04 stream roots recursively closed with FB/FD/FE grammar and no live E7",
+    "next 11 bank-04 roots recursively closed through $A011 with no live E7",
+    "34 of 96 bank-04 roots are closed"
+  ],
+  "open_edges": [
+    "62 later bank-04 / physical PRG09 roots remain unresolved beginning at $A014",
+    "raw instrument bank 05 remains unresolved",
+    "fixed $E7FB / inline dispatch remains unresolved"
+  ],
+  "checkpoint_constraints": [
+    "04F9 begins at CPU $A012",
+    "carry FB loop-anchor, FD call/return, and FE counted/absolute-pointer stream state",
+    "prove pointer-target closure; raw FF is not a terminator proxy",
+    "subtract any root probe bytes already counted by 04F7 from exact new-byte coverage",
+    "do not open raw bank 05 or fixed $E7FB during 04F9"
+  ]
+}
