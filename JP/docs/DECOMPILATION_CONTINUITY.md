@@ -2,6 +2,16 @@
 
 Durable handoff for `Hyperbog/CVIII-Decomp`. Before new work read this file, `docs/PROGRESS.md`, `docs/PROGRESS_METRIC.md`, and `docs/ROM_IDENTITY.md`, then confirm the current `decompilation` branch head.
 
+## Mandatory interruption recovery
+
+After any timeout, chat/thread limit, token limit, tool interruption, crash, or uncertain partial checkpoint, **do not resume from chat memory**. Read `docs/INTERRUPTION_RECOVERY.md` and `analysis/RESUME_STATE.json`, compare the current branch history against the recorded last completed checkpoint, and run:
+
+```text
+python tools/check_resume_frontier.py <authoritative JP ROM.nes>
+```
+
+The checker verifies the full ROM, a small overlap immediately before the committed frontier, and a fingerprint beginning exactly at the next unprocessed byte. The overlap is verification-only and must never be counted again as new coverage. If an interrupted checkpoint was not completely committed, restart it from the last committed frontier. `analysis/RESUME_STATE.json` is updated last at every completed checkpoint and is the machine-readable resume source of truth.
+
 ## Objective and controlling evidence
 
 Faithfully reverse engineer the Japanese NES release of **Akumajou Densetsu** into an evidence-accountable native PC decompilation/recompilation. Preserve original behavior first; QoL/mod work comes later.
@@ -96,4 +106,4 @@ Begin at CPU `$A012`. Use an initial bounded window around `$A012-$B1FF` (4590 c
 
 ## User-facing handoff prompt
 
-> Continue the faithful Akumajou Densetsu decomp/recomp on branch `decompilation`. Read the four primary handoff docs and current branch head. Treat the exact JP Mapper-24 ROM as controlling evidence. Work one bounded 500-5000-new-byte checkpoint; preserve exact 6502/VRC6/shared-ZP semantics; carry bank/parser and stream-control state rather than seeding impossible static edges; add reproducible evidence; update VPP only under the fixed rubric; commit and stop. Current target: 04F9, continue raw bank `$04` from CPU `$A012` through physical PRG09 using the recursive `FB`/`FD`/`FE` decoder.
+> Continue the faithful Akumajou Densetsu decomp/recomp on branch `decompilation`. After any interruption, first run the mandatory recovery protocol in `docs/INTERRUPTION_RECOVERY.md` using `analysis/RESUME_STATE.json`; do not trust partial chat-only work. Then read the primary handoff docs and current branch head. Treat the exact JP Mapper-24 ROM as controlling evidence. Work one bounded 500-5000-new-byte checkpoint; preserve exact 6502/VRC6/shared-ZP semantics; carry bank/parser and stream-control state rather than seeding impossible static edges; add reproducible evidence; update VPP only under the fixed rubric; update `RESUME_STATE.json` last; commit and stop. Current target: 04F9, continue raw bank `$04` from CPU `$A012` through physical PRG09 using the recursive `FB`/`FD`/`FE` decoder.
