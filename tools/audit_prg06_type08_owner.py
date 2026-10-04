@@ -35,9 +35,6 @@ def main() -> int:
     def b9(addr: int, n: int) -> bytes:
         return bank9[addr - 0x8000 : addr - 0x8000 + n]
 
-    def b13(addr: int, n: int) -> bytes:
-        return bank13[addr - 0x8000 : addr - 0x8000 + n]
-
     def fx(addr: int, n: int) -> bytes:
         return fixed[addr - 0xE000 : addr - 0xE000 + n]
 
@@ -45,10 +42,10 @@ def main() -> int:
     if fx(0xFDEA, 7) != bytes.fromhex("A201BD4E05F07D"):
         print("ERROR: fixed object-loop start mismatch", file=sys.stderr)
         return 1
-    if fx(0xFE05, 15) != bytes.fromhex("C930B00DA90920D0E2200180"):
+    if fx(0xFE05, 15) != bytes.fromhex("C930B00DA90920D0E2200180A6694C"):
         print("ERROR: fixed low-type bank-$09 dispatch mismatch", file=sys.stderr)
         return 1
-    if fx(0xFE6E, 8) != bytes.fromhex("E8E013B0034CEC"):
+    if fx(0xFE6E, 8) != bytes.fromhex("E8E013B0034CECFD"):
         print("ERROR: fixed object-loop X bound mismatch", file=sys.stderr)
         return 1
 
@@ -70,14 +67,14 @@ def main() -> int:
         print("ERROR: PRG06 state-$01 entry mismatch", file=sys.stderr)
         return 1
     if b3(0x823E, 21) != bytes.fromhex(
-        "A008BD1C04C9A8B008A009C9A0B002A00AA9104C7FEF"
+        "A008BD1C04C9A8B008A009C9A0B002A00AA9104C7F"
     ):
         print("ERROR: PRG06 $823E animation branch mismatch", file=sys.stderr)
         return 1
 
     # Same fixed-loop iteration: bit-$40 movement integration then bit-$20 animation gate.
     if fx(0xFE45, 32) != bytes.fromhex(
-        "BD70042940F008A90B20D0E2200180BD4E05F015BD70042920D0032093EF"
+        "BD70042940F008A90B20D0E2200180BD4E05F015BD70042920D0032093EFA90B"
     ):
         print("ERROR: fixed post-behavior movement/animation scheduling mismatch", file=sys.stderr)
         return 1
