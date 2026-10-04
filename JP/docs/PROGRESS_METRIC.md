@@ -8,21 +8,21 @@ The machine-readable score is `analysis/PROGRESS_SCORE.csv`; `tools/progress_sco
 
 ## Current score
 
-**VPP: 21 / 100 (21%)**
+**VPP: 22 / 100 (22%)**
 
-Baseline established during checkpoint 04E1.
+Baseline established during checkpoint 04E1; the latest increase is the tested native Mapper 24 / VRC6 PRG+CHR mapper lift.
 
 | category | weight | earned | current basis |
 |---|---:|---:|---|
 | Foundation / cartridge model | 5 | 4 | exact ROM identity, physical PRG/CHR map, vectors, VRC6 CPU-window model; complete mapper-register use inventory still open |
-| CPU / mapper / interrupts | 10 | 6 | RESET path, PRG helpers, top-level NMI, IRQ table/state machine, control-vs-ack behavior; native mapper/IRQ and trace parity open |
+| CPU / mapper / interrupts | 10 | 7 | RESET path, PRG helpers, top-level NMI, IRQ table/state machine, control-vs-ack behavior, native VRC6 PRG/CHR mapper; IRQ scheduler/trace parity still open |
 | Rendering / PPU | 10 | 5 | OAM arrays, selector/master tables, variable descriptor encoding, exact sprite transforms/state, native OAM lift; background/CHR/PPU parity open |
 | Gameplay / object systems | 25 | 1 | only partial object dispatcher/state-machine architecture is currently proven; player/combat/enemy/boss systems remain overwhelmingly open |
 | Stage / world / progression | 20 | 0 | stage data, room/scrolling, collision maps, route/progression, menus/password/end flow not yet reconstructed |
 | Audio | 12 | 1 | NSF-to-ROM correlation is established; full driver/data/native APU+VRC6/parity work remains open |
-| Native runtime / platform | 10 | 1 | isolated faithful native OAM subsystem exists; no complete CPU/game runtime executable yet |
-| Validation / tooling | 8 | 3 | ROM identity audit, subsystem binary audits, and OAM unit tests exist; CPU traces, frame goldens, CI/end-to-end parity remain open |
-| **Total** | **100** | **21** | |
+| Native runtime / platform | 10 | 1 | isolated faithful native OAM subsystem exists; native mapper lift now exists but complete memory/PPU integration and executable are open |
+| Validation / tooling | 8 | 3 | ROM identity audit, subsystem binary audits, and native subsystem tests exist; CPU traces, frame goldens, CI/end-to-end parity remain open |
+| **Total** | **100** | **22** | |
 
 ## Fixed rubric
 
@@ -47,7 +47,7 @@ One point each:
 5. IRQ state-transition ledger closed — **earned**
 6. VRC6 IRQ control vs acknowledge behavior preserved — **earned**
 7. transitive NMI helper/bank-context closure — open
-8. native VRC6 PRG/CHR mapper implementation — open
+8. native VRC6 PRG/CHR mapper implementation — **earned** (`src/vrc6_mapper.*`, `tests/vrc6_mapper_test.cpp`)
 9. native IRQ timing/scheduler implementation — open
 10. CPU/interrupt trace parity against reference execution — open
 
@@ -106,6 +106,8 @@ Partial points in this category require a committed, reusable architectural resu
 - audio backend integration: 1 — open
 - bootable/playable native executable: 1 — open
 - reproducible cross-platform build/package: 1 — open
+
+The standalone mapper source does not itself earn native-runtime integration credit; that requires wiring mapper/memory/PPU behavior into the runtime.
 
 ### 8. Validation / tooling — 8 points
 
