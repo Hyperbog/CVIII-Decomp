@@ -6,7 +6,7 @@ Work proceeds in bounded, ROM-backed checkpoints. Normal new-ROM budget is **500
 
 Primary metric: **Verified Parity Progress (VPP) = 21 / 100 (21%)**. VPP is an evidence rubric, not raw-byte coverage or a time estimate.
 
-Checkpoint **04FC closes the next 25 raw-bank `$05` roots through CPU `$AD96`**. Cumulative bank-`$05` closure is now **44/72 roots**.
+Checkpoint **04FD closes the entire raw-bank `$05` sound-stream producer domain: 72/72 roots are now reconciled and ZP `$10`-safe.** The remaining pre-render dependency is fixed `PRG31:$E7FB` / inline dispatch.
 
 ## Stable foundation
 
@@ -16,6 +16,7 @@ Checkpoint **04FC closes the next 25 raw-bank `$05` roots through CPU `$AD96`**.
 - IRQ raw bank `$01` and its exact 45-entry state table are reconciled.
 - NMI bank `$0D` renderer call `$8001` resolves to `PRG26:$8001`.
 - Native OAM renderer baseline exists in `src/oam_renderer.*` with regression tests.
+- Recovery tooling now verifies both switchable 16 KiB VRC6-bank frontiers and explicit fixed 8 KiB PRG mappings such as `PRG31:$E000-$FFFF`.
 
 ## Pre-render shared ZP `$10` provenance
 
@@ -29,19 +30,20 @@ Checkpoint **04FC closes the next 25 raw-bank `$05` roots through CPU `$AD96`**.
 - **04F9:** next 32 bank-`$04` roots closed through `$B1EF`.
 - **04FA:** final 30 bank-`$04` roots closed through `$BE7D`; bank `$04` is **96/96 roots closed** and preserves `$10`.
 - **04FB:** first 19 bank-`$05` roots closed through `$9A6A`; live `$E7` producer domain proven safe.
-- **04FC:** next 25 bank-`$05` roots closed through `$AD96`; cumulative bank `$05` closure **44/72**.
+- **04FC:** next 25 bank-`$05` roots closed through `$AD96`; cumulative bank `$05` closure 44/72.
+- **04FD:** final 28 bank-`$05` roots closed through semantic dependency `$BF05`; bank `$05` is **72/72 roots closed** and preserves `$10`.
 
 ## Operand-boundary invariant
 
 Variable-width stream commands must have every consumed operand byte inside the claimed semantic dependency span before any operand is read. Raw `$FF` is not a generic terminator proxy. Preserve recursive `FB` loop-anchor, context-sensitive `FD` call/return, and `FE` counted/absolute-pointer state.
 
-This invariant was introduced after recovery caught two `FE FF lo hi` commands whose operand bytes crossed earlier checkpoint boundaries.
+This invariant was introduced after recovery caught two `FE FF lo hi` commands whose operand bytes crossed earlier checkpoint boundaries. The historical 04F7/04F8 hold is resolved; `docs/INTERRUPTION_RECOVERY.md` now records it as repaired rather than active.
 
 ## Raw bank `$04` complete
 
 All 96/96 raw-bank `$04` roots are closed. The final 04FA dependency was `$B1F0-$BE7D`, 3214 bytes, of which 3184 were genuinely new. Strict recursive decoding found no live `$E7` dispatch and no operand/path/pointer escapes. The complete bank-`$04` producer domain preserves shared ZP `$10`.
 
-## 04FB — bank `$05` head
+## Raw bank `$05` common parser
 
 Raw bank `$05:$8001-$87AD` is byte-identical to the audited bank-$04 common parser core:
 
@@ -52,7 +54,7 @@ SHA-256 e2c3ff3d7e9f96b598610a8028f5b92a606fac7f9acb2977811146fa145fdb67
 
 Metadata gives 84 references / 72 roots, all alternate-parser mode.
 
-04FB dependency:
+### 04FB — head
 
 ```text
 $87AE-$9A6A
@@ -61,61 +63,61 @@ SHA-256 58f4a24e41ba95766529e1eaa531c63fc666ca51abc668ec4eb3ba3f4e50eb6b
 19 roots closed
 ```
 
-Nine unique live `$E7` sites produce following-byte high nibbles exactly `$0,$5,$8`; all select valid `$8430-$8443` table pairs and dispatch to audited `$8444`. No host-side bound is added at `$842D`.
+Nine unique live `$E7` sites produce following-byte high nibbles exactly `$0,$5,$8`; all select valid `$8430-$8443` table pairs and dispatch to audited `$8444`.
 
-## 04FC — bank `$05` middle
-
-The clean bounded dependency is:
+### 04FC — middle
 
 ```text
-raw bank $05 / PRG10-PRG11
-CPU $9A6B-$AD96
+$9A6B-$AD96
 4908 genuinely new bytes
 SHA-256 3d34329fd18b7c713f1fe35206868f1b6c0bdfb6127f664410a60fd54a8c46f0
+25 roots closed
 ```
 
-It closes 31 metadata references sharing 25 distinct roots across sound IDs `$53,$54,$55,$56,$57,$5C`.
+Strict result: 7105 abstract states, 4221 unique commands, 22/22 FD calls/returns, 23 FE jumps, 56 FE loops, zero operand/path/pointer escapes. Three live `$E7` sites have producer high nibble exactly `$0` and dispatch to audited `$8444`.
 
-Strict recursive result:
+### 04FD — tail / complete bank `$05`
+
+Authoritative dependency:
 
 ```text
-abstract parser states:            7105
-unique decoded command addresses:  4221
-earliest command:                  $9A6B
-latest command:                    $AD96
-FD calls / returns:                22 / 22
-FE jumps / loops:                  23 / 56
+raw bank $05 / physical PRG11
+CPU $AD97-$BF05
+4463 genuinely new bytes
+SHA-256 30f4e1640f97c342886a4d5f1a652cbfda41102abbd4760501bcd2915b474a72
+```
+
+The final 34 metadata references share 28 distinct roots across sounds `$57,$58,$59,$5B,$69,$6B`.
+
+```text
+abstract parser states:            5346
+unique decoded command addresses:  3433
+earliest command:                  $AD97
+latest command:                    $BF05
+FD calls / returns:                28 / 28
+FE jumps / loops:                  15 / 43
 operand/path escapes:              0
 pointer-target escapes:            0
 ```
 
-Exactly three raw `$E7` bytes occur in the dependency span, and all three are decoded commands:
+There are 21 raw `$E7` bytes in the dependency, 13 of which are decoded `$E7` commands. Their following-byte values produce high nibbles exactly `$0,$2,$8`; all are within the ten-entry `$8430-$8443` producer domain and resolve to already-audited `$8444`.
 
-```text
-$9F5C -> $09
-$A950 -> $0E
-$AA13 -> $0D
-```
+No host-side bound is added at `$842D`; safety is proved from the actual JP-ROM producer values.
 
-Their producer high-nibble domain is exactly `$0`. The common `$840F/$842D` handler therefore selects the first in-range pointer pair at `$8430-$8431`, which resolves to already-audited `$8444`. These paths preserve `$10` from actual ROM producer values; no host-side bounds check is introduced.
-
-The next root `$AD97` reaches through `$AE2D`; including it would make the checkpoint **5059 new bytes**, so 04FC deliberately stops at `$AD96`.
-
-After 04FC:
+After 04FD:
 
 ```text
 bank-$05 roots total       72
-closed                     44
-remaining                  28
-next unresolved root       $AD97
+closed                     72
+remaining                   0
 ```
 
 Evidence:
 
-- `analysis/NMI_BANK05_PRG10_MID.md`
-- `tools/audit_nmi_bank05_prg10_mid.py`
+- `analysis/NMI_BANK05_PRG11_TAIL.md`
+- `tools/audit_nmi_bank05_prg11_tail.py`
 
-**VPP remains 21/100** because the remaining 28 bank-`$05` roots and fixed `$E7FB` inline dispatch are still open.
+**VPP remains 21/100** because fixed `PRG31:$E7FB` / inline-dispatch closure is still required before the transitive NMI-helper rubric item can be reconsidered.
 
 ## Acceleration policy
 
@@ -129,21 +131,20 @@ fixed NMI span $E057-$E365        -> preserves $10
 $ED46 helper graph                 -> preserves $10
 raw bank $0C / PRG24              -> preserves $10 on live paths
 raw bank $04 parser + 96/96 roots -> preserves $10
-raw bank $05 first 44/72 roots    -> preserves $10 through $AD96
-raw bank $05 remaining 28 roots   -> unresolved, first $AD97
-$E7FB / inline dispatch            -> unresolved
+raw bank $05 parser + 72/72 roots -> preserves $10
+fixed PRG31 $E7FB / inline        -> unresolved
 PRG26 renderer                     -> consumes/persists $10 exactly
 ```
 
 ## Next manageable checkpoint
 
-**04FD — continue raw bank `$05` from `$AD97`.**
+**04FE — fixed `PRG31:$E7FB` / inline dispatch.**
 
-Initial bounded window:
+The next genuinely unprocessed fixed-bank interval before already-audited 04F4 coverage is:
 
 ```text
-CPU $AD97-$BFE8
-4690 contiguous bytes
+CPU $E7FB-$EBFF
+1029 contiguous bytes
 ```
 
-The remaining metadata roots end at `$BEE8`, but semantic dependencies must still be proved rather than inferred from root addresses. Carry the strict recursive stream state and derive every later `$E7` parameter domain from actual producer bytes. Do not open fixed `$E7FB` in the same checkpoint.
+Start exactly at `$E7FB` in physical PRG31. Follow actual 6502 control/data dependencies, reuse already-audited fixed-bank spans (`$E057-$E365` and `$EC00-$EFFF`) as prior coverage when reached, and count only genuinely new bytes. The recovery checker now supports the switchable-bank → fixed-PRG31 domain transition directly.
