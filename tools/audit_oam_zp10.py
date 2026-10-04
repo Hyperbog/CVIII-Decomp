@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Audit zero-page $10 state at the PRG26 OAM renderer boundary."""
+"""Audit zero-page $10 state at the proven PRG26 OAM renderer boundary."""
 from __future__ import annotations
 import hashlib
 import sys
@@ -24,16 +24,22 @@ def main() -> int:
     prg = rom[16:16 + 0x40000]
 
     bank13 = prg[26 * 0x2000:28 * 0x2000]
-    sta10 = [0x8000 + i for i in find_all(bank13, b"\x85\x10")]
-    stx10 = [0x8000 + i for i in find_all(bank13, b"\x86\x10")]
-    sty10 = [0x8000 + i for i in find_all(bank13, b"\x84\x10")]
-    lda10 = [0x8000 + i for i in find_all(bank13, b"\xA5\x10")]
+    # Restrict opcode-pattern assertions to the already proven executable
+    # renderer region $8001-$817E. Raw matches elsewhere in the 16 KiB window
+    # are not automatically executable instructions and are intentionally not
+    # classified here.
+    renderer = bank13[0x0001:0x017F]
+    base = 0x8001
+    sta10 = [base + i for i in find_all(renderer, b"\x85\x10")]
+    stx10 = [base + i for i in find_all(renderer, b"\x86\x10")]
+    sty10 = [base + i for i in find_all(renderer, b"\x84\x10")]
+    lda10 = [base + i for i in find_all(renderer, b"\xA5\x10")]
 
     if sta10 != [0x80BF, 0x811B] or stx10 or sty10:
-        print(f"ERROR: unexpected PRG26/27 $10 stores: STA={sta10} STX={stx10} STY={sty10}", file=sys.stderr)
+        print(f"ERROR: unexpected renderer $10 stores: STA={sta10} STX={stx10} STY={sty10}", file=sys.stderr)
         return 1
     if lda10 != [0x8064, 0x8166]:
-        print(f"ERROR: unexpected PRG26/27 LDA $10 sites: {lda10}", file=sys.stderr)
+        print(f"ERROR: unexpected renderer LDA $10 sites: {lda10}", file=sys.stderr)
         return 1
 
     # Top-level fixed-bank NMI bytes from vector entry through the instruction
@@ -70,8 +76,8 @@ def main() -> int:
         return 1
 
     print("ROM identity: OK")
-    print("PRG26/27 renderer $10 stores: $80BF, $811B")
-    print("PRG26/27 renderer $10 reads:  $8064, $8166")
+    print("proven renderer $10 stores: $80BF, $811B")
+    print("proven renderer $10 reads:  $8064, $8166")
     print("top-level NMI $E057-$E0C6 direct $10 stores: none")
     print("shared gameplay scratch proof: STA $10 at bank03:$9752; LDA $10 at $9769")
     print("descriptor $9FA9 begins with compressed attribute reuse: confirmed")
