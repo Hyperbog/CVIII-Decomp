@@ -2,100 +2,94 @@
 
 ## Current status
 
-Project initialized from the verified Japanese `Akumajou Densetsu` Mapper-24 ROM. Three bank-aware analysis batches are now committed. No global translated-byte percentage is claimed yet: whole-PRG code/data/overlap accounting is intentionally deferred until the project has a conservative denominator.
+Project initialized from the verified Japanese `Akumajou Densetsu` Mapper-24 ROM. Work is proceeding in **small bounded checkpoints**: one narrow binary question, direct ROM verification, documentation/audit update, commit, then stop. No global translated-byte percentage is claimed yet; whole-PRG accounting remains intentionally deferred until the denominator is conservative and reproducible.
 
 ## Stable foundation
 
 - Verified immutable ROM identity and iNES mapper/size information.
 - PRG modeled as 32 physical 8 KiB banks (`PRG00..PRG31`).
-- Fixed vectors established: RESET `$E00B`, NMI `$E057`, IRQ `$E0F5`.
-- VRC6 PRG helpers established: tracked 16 KiB bank at `$23`, raw/tracked selectors `$E2D2/$E2D0`, `$C000` 8 KiB selector via `$E2C4`.
-- NMI bank `$0D` call to `$8001` resolves to `PRG26:$8001`.
-- IRQ raw bank `$01` resolves its table/handlers into `PRG02/PRG03`.
-- Reproducible ROM, IRQ, and OAM-table audit tools are present under `tools/`.
+- Fixed vectors: RESET `$E00B`, NMI `$E057`, IRQ `$E0F5`.
+- VRC6 PRG helpers: tracked 16 KiB bank in `$23`, raw/tracked selectors `$E2D2/$E2D0`, `$C000` 8 KiB selector via `$E2C4`.
+- NMI bank `$0D` call `$8001` resolves to `PRG26:$8001`.
+- IRQ raw bank `$01` resolves table/handlers into `PRG02/PRG03`.
 
-## Batch 02 checkpoint — IRQ state machine
+## Batch 02 — IRQ state machine
 
-Authoritative IRQ table:
+Authoritative IRQ table is `PRG02:$9F01-$9F5A`: 90 bytes / 45 entries / states `$00-$2C`. `$9F5B` is executable code. The old `$9F60` overlap hypothesis was disproved and must not be restored.
 
-- `PRG02:$9F01-$9F5A`
-- 90 bytes / 45 entries
-- states `$00-$2C`
-- `$9F5B` is executable code, not another table entry
+Normal active states are `$00-$2C`; `$80` is a high-bit bypass sentinel. Highest explicit chain: `29 -> 2A -> 2B -> 2C`, with `$2C` terminal/non-incrementing.
 
-The previous `$9F60` overlap hypothesis was disproved and removed. Normal active states are `$00-$2C`; `$80` is a high-bit bypass sentinel. The highest explicit chain closes `29 -> 2A -> 2B -> 2C` with `$2C` terminal/non-incrementing.
-
-Machine-readable state ledger: `analysis/IRQ_STATE_MACHINE.csv`.
-
-The fixed IRQ exits remain distinct:
+The fixed exits are distinct:
 
 - `$E118` clears VRC6 IRQ Control `$F001`, then falls through
 - `$E11D` acknowledges via `$F002` and restores the tracked PRG bank
 
-Do not merge those paths in native code.
+Ledger: `analysis/IRQ_STATE_MACHINE.csv`.
 
-## Batch 03 checkpoint — PRG26 sprite/OAM hierarchy
+## Batch 03 — PRG26 OAM hierarchy
 
-### Seven 28-byte renderer arrays
+`PRG26:$8001` iterates 28 render-object slots backed by seven consecutive 28-byte arrays `$0400-$04C3`:
 
-`PRG26:$8001` iterates 28 object indices (`0..$1B`). The renderer-facing state is seven consecutive parallel arrays from `$0400-$04C3`:
-
-- `$0400-$041B`: frame / second-level pointer-table byte offset; zero suppresses object
+- `$0400-$041B`: frame/second-level pointer-table byte offset; zero suppresses object
 - `$041C-$0437`: base Y
 - `$0438-$0453`: base X
 - `$0454-$046F`: attribute-low/palette override
 - `$0470-$048B`: bit-7 render suppression
 - `$048C-$04A7`: first-level sprite-set selector byte offset
-- `$04A8-$04C3`: orientation-path flag; zero selects mirrored renderer
+- `$04A8-$04C3`: orientation-path flag; zero selects mirrored path
 
-Machine-readable field ledger: `analysis/OAM_OBJECT_FIELDS.csv`.
+`$048C,X` indexes the canonical first-level pointer block `$817F-$819C` with even byte offsets `$00..$1C`. High selectors `$16/$18/$1A/$1C` alias the first four geometry tables and can select tile `+$80` behavior under the encoded `$AD` path.
 
-### First-level sprite-set table
+OAM byte offset advances by `$C4` per emitted sprite and frame seed by `$44`. When all 64 OAM slots are consumed, `$8070` executes `PLA; PLA; RTS`, discarding its own return and returning directly to `$8001`'s caller.
 
-`$8070` uses `$048C,X` directly as a byte offset into the little-endian pointer block beginning at `$817F`.
+## Checkpoint 04A — corrected variable-length sprite descriptors
 
-The canonical block is `$817F-$819C`, 30 bytes / 15 pointer entries, selectors `$00,$02,...,$1C`:
+This checkpoint corrects one Batch 03 error before native code is written.
 
-`00->819D, 02->820D, 04->8265, 06->82AF, 08->8AB0, 0A->9545, 0C->AAA6, 0E->ABEA, 10->9E6D, 12->8BB0, 14->ABA6, 16->819D, 18->820D, 1A->8265, 1C->82AF`.
+### Record encoding
 
-Selectors `$16/$18/$1A/$1C` deliberately alias the first four geometry/frame-pointer tables used by `$00/$02/$04/$06`. `PRG25:$ADA3` directly supplies those four high selector values.
+Descriptor byte 0 is the sprite count. Each sprite begins with a packed Y/control byte. The renderer sets carry from that byte's sign and performs `ROR`; this is a signed arithmetic right shift and leaves the original bit 0 in carry.
 
-The exact selector ledger is `analysis/SPRITE_SET_TABLE.csv`; `tools/audit_oam_tables.py` verifies the table, aliases, producer record, and key renderer opcode signatures against the ROM.
+Therefore bit 0 is also a record-format flag:
 
-A complete proof that every possible runtime `$048C` producer remains within the canonical selector set is still pending. Do not add a host-side bounds check yet.
+- bit 0 clear: `Y/control, tile, attribute, X` — 4 encoded bytes
+- bit 0 set: `Y/control, tile, X` — 3 encoded bytes; attribute is reused from zero-page `$10`
 
-### Two-level hierarchy
+For a full record, the renderer applies attribute override/mirroring first, then stores the **final emitted OAM attribute** to `$10`. A compressed record writes `$10` directly. `$8001/$8070` do not initialize `$10` on object/descriptor entry, so a faithful native renderer must model it as carried renderer state rather than a fresh local.
 
-The renderer then uses `$0400,X` as another byte offset into the selected table and reads a second little-endian pointer. That final pointer addresses a sprite descriptor stream:
+### Concrete proof
 
-`$048C selector -> first-level sprite-set pointer -> $0400 frame offset -> sprite descriptor`.
+Selector `$10` points to master frame table `$9E6D`. Frame offset `$14` resolves to descriptor `$9FA9`:
 
-### Sprite descriptor format
+`04 DF 8A F0 E1 8C F8 E5 8E 00 04 E4 90 03`
 
-Descriptor byte 0 is a sprite count. Each sprite consumes four bytes:
+It decodes as four sprites:
 
-1. Y delta
-2. tile index
-3. OAM attribute byte
-4. X delta
+1. `$DF,$8A,$F0` — compressed, Y=-17, reuse `$10`
+2. `$E1,$8C,$F8` — compressed, Y=-16, reuse `$10`
+3. `$E5,$8E,$00` — compressed, Y=-14, reuse `$10`
+4. `$04,$E4,$90,$03` — full, Y=+2, attribute `$90`
 
-Output is one four-byte OAM record `[Y,tile,attribute,X]` in shadow OAM page `$0200-$02FF`.
+Thus `$9FA9` begins with three compressed records before any full record in the descriptor. Initializing `$10` per descriptor/object would be wrong.
 
-Encoded details that must be preserved:
+### Master frame-table census
 
-- Y delta is sign-aware `ROR` arithmetic-right-shifted by one before addition to base Y. Do not replace with ordinary signed division because negative odd values differ.
-- If `$0454,X != 0`, attribute low two bits are replaced by that object byte after `AND #$FC`.
-- Mirrored path toggles attribute bit `$40` and transforms X with `$F8 - descriptor_x` before base-X addition.
-- X addition contains explicit carry/sign wrap checks; failed range tests hide the sprite by writing Y=`$F4`.
-- Under encoded `$AD != 0` paths, helper `$8172` adds `$80` to the tile byte for selectors `>= $16`; the high selector aliases therefore reuse geometry while selecting the alternate tile-number half.
+Direct ROM audit establishes five master frame-pointer blocks in the active PRG26/27 16 KiB window:
 
-Full reconstruction notes: `analysis/PRG26_SPRITE_FORMAT.md`.
+- `$819D-$82F4`: 172 pointers; entry 0 points to first descriptor `$82F5`
+- `$8AB0-$8C2D`: 191 pointers; entry 0 -> `$8C2E`
+- `$9545-$9620`: 110 pointers; entry 0 -> `$9621`
+- `$9E6D-$9F6C`: 128 pointers; entry 0 -> `$9F6D`
+- `$AAA6-$AC5B`: 219 pointers; entry 0 -> `$AC5C`
 
-### OAM permutation and non-local return
+Across those tables there are **745 unique descriptor pointers**. Auditing all 745 with the corrected variable-length parser finds:
 
-Each emitted descriptor advances OAM byte offset by `$C4` modulo 256 (`-15` sprite slots). Since 15 is coprime with 64, all OAM slots are visited once before repeat. Frame start advances `$22` by `$44` (`17` sprite slots), changing the initial slot.
+- maximum sprites in one descriptor: **27**
+- maximum encoded descriptor length: **96 bytes**
+- compressed attribute-reuse records: **2310**
+- the only descriptor whose **first sprite** reuses the prior cached attribute is `$9FA9`
 
-Critical control-flow fact: when the 64-slot counter reaches zero inside `$8070`, the code executes `PLA; PLA; RTS`, discarding `$8070`'s own return address and returning directly to `$8001`'s caller. Therefore `$8001`'s unused-slot fill loop is skipped when OAM is full. Any structured native lift must preserve this non-local early exit, likely via an explicit propagated result.
+These facts are reproduced by `tools/audit_sprite_descriptors.py`.
 
 ## Authoritative continuation files
 
@@ -112,22 +106,18 @@ Critical control-flow fact: when the 64-slot counter reaches zero inside `$8070`
 11. `tools/analyze_rom.py`
 12. `tools/audit_irq_dispatch.py`
 13. `tools/audit_oam_tables.py`
+14. `tools/audit_sprite_descriptors.py`
 
 ## Unresolved / do not assume
 
+- Full lifetime/ownership of zero-page `$10` outside the OAM renderer.
 - Whole-ROM proof of every `$048C` producer and invalid-selector impossibility.
 - Exact higher-level meaning of global `$AD`.
-- Complete extents and semantic identities of every second-level frame-pointer table.
+- Semantic identities of individual frame tables/descriptors.
 - Gameplay meaning/producers of every `$0400-$04C3` field beyond proven renderer behavior.
 - Exact visual/game-state meanings of IRQ states `$00-$2C`.
 - Whole-PRG code/data accounting denominator.
 
-## Next batch
+## Next manageable checkpoint
 
-1. Audit all executable writes to `$048C` and close the runtime selector domain if possible.
-2. Trace `$0400` frame-offset producers and prove stride/domain for the major sprite sets.
-3. Parse representative descriptor tables into machine-readable frame/sprite records and cross-check mirrored/non-mirrored behavior.
-4. Begin the first native faithful OAM subsystem source only after the selector/frame contracts are stable enough for regression tests.
-5. Continue connecting IRQ program states to the frame-side visual setup that seeds them.
-
-No translated-byte percentage is reported yet; that remains intentionally deferred until accounting is conservative and reproducible.
+**04B: `$10` renderer-state lifetime only.** Trace executable writes/reads of zero-page `$10` around the NMI/OAM path and determine what initializes the cached attribute before `$9FA9` can be used. Do not expand into general object-producer analysis in the same checkpoint.
