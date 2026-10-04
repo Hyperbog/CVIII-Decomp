@@ -6,7 +6,7 @@ This is the durable handoff for future conversations working on `Hyperbog/CVIII-
 
 Faithfully reverse engineer the Japanese NES release of **Akumajou Densetsu** into an evidence-accountable native PC decompilation/recompilation. Preserve original behavior first; QoL/mod features come later.
 
-The original ROM bytes are controlling evidence. Hardware documentation, emulator behavior, NSF/M3U data, names, and hypotheses are secondary. Never modify or commit the source ROM.
+The ROM bytes are controlling evidence. Hardware documentation, emulator behavior, NSF/M3U data, names, and hypotheses are secondary. Never modify or commit the source ROM.
 
 Target identity:
 
@@ -32,22 +32,25 @@ VPP is evidence-based, not a labor/time estimate or raw disassembly-byte percent
 
 Each user `continue` means one bounded checkpoint.
 
-- normal new-ROM budget: **500-5000 bytes**, default near 1 KiB
-- do not silently expand beyond the selected span
-- isolated signatures outside the primary span are allowed only to close the same narrow question
-- provide short status updates after material findings
-- commit before reporting
+- normal new-ROM budget: **500-5000 bytes**, default near 1 KiB;
+- a checkpoint may expand within that range when newly discovered local edges are necessary to close the same narrow question;
+- do not stop merely because an initial 512-byte/1 KiB sub-window ends;
+- do not silently expand beyond about 5 KiB;
+- isolated signatures outside the primary span are allowed only to prove the same question;
+- provide short status updates after material findings;
+- commit before reporting.
 
 Checkpoint flow:
 
 1. read current continuity/progress/metric/identity and branch head;
-2. select only the listed next question and byte span;
+2. choose only the listed next question and initial byte span;
 3. regenerate ROM evidence;
-4. add/update focused analysis/audit/source artifacts;
-5. update progress and VPP only if earned;
-6. update this handoff when the target/methodology changes;
-7. commit;
-8. stop and report.
+4. expand only as needed within the byte budget to close that question;
+5. add/update focused analysis/audit/source artifacts;
+6. update progress and VPP only if earned;
+7. update this handoff when the target/methodology changes;
+8. commit;
+9. stop and report.
 
 ## Fidelity rules
 
@@ -91,14 +94,14 @@ IRQ table is exactly `PRG02:$9F01-$9F5A`, 45 states `$00-$2C`; `$9F5B` is code. 
 
 IRQ exits differ:
 
-- `$E118`: clears VRC6 IRQ Control `$F001`, then acknowledges
-- `$E11D`: enters at acknowledge `$F002` without the control clear
+- `$E118`: clears VRC6 IRQ Control `$F001`, then acknowledges;
+- `$E11D`: enters at acknowledge `$F002` without the control clear.
 
 See `analysis/PRG02_IRQ_dispatch.md` and `analysis/IRQ_STATE_MACHINE.csv`.
 
 ## OAM / sprite stable facts
 
-Read these before changing renderer code:
+Read before changing renderer code:
 
 - `analysis/PRG26_SPRITE_FORMAT.md`
 - `analysis/SPRITE_SET_TABLE.csv`
@@ -112,7 +115,6 @@ Stable facts:
 - `PRG26:$8001` iterates 28 render slots in seven arrays `$0400-$04C3`.
 - `$048C,X` indexes first-level selector block `$817F-$819C`.
 - `$0400,X` is the selected frame-pointer byte offset.
-- 15 selectors are windows into five master pointer blocks.
 - descriptor byte 0 is sprite count.
 - Y/control bit0 clear: `Y,tile,attribute,X`.
 - Y/control bit0 set: `Y,tile,X`, reusing ZP `$10`.
@@ -138,10 +140,10 @@ Established chain:
 - 04D: PRG22 `$8745` rejected; its type `$26` uses selectors `$12/$08`.
 - 04E1: PRG18 type `$E1` rejected; selector `$10` frames only `$E8/$EA/$EC/$EE`.
 - 04E2: direct PRG06/07 selector-`$10` frames do not include `$14`.
-- 04E3: PRG06 `$823E-$8251` selects animation `$09` for base Y `$A0-$A7`; selector-`$10` animation record `$F28D: 14 08 02` causes `$EF93` to write frame `$14`.
+- 04E3: PRG06 `$823E-$8251` selects animation `$09` for base Y `$A0-$A7`; `$F28D: 14 08 02` causes `$EF93` to write frame `$14`.
 - 04E4: primary type `$08` in slots `$01-$12` routes to `PRG06:$8021`; state `$01` reaches `$823E` and same scheduler iteration can reach `$EF93`.
-- 04E5: state `$00` establishes Y `$C0` and exact `-2` vertical motion; the state-1 target keeps it active through `$A0-$A7`.
-- 04E6: normal low-type construction gives `$0633=$0645=0`; state `$00` makes first state-1 index `$01`, target `$90`. Normal gameplay `$9FA9` reachability is therefore proven.
+- 04E5: state `$00` establishes Y `$C0` and exact `-2` vertical motion; state `$01` remains active through `$A0-$A7`.
+- 04E6: normal low-type construction gives `$0633=$0645=0`; state `$00` makes first state-1 index `$01`, target `$90`. Normal gameplay `$9FA9` reachability is proven.
 - 04F1: renderer order is ascending and `$10` is not initialized at frame/object entry. `$9FA9` begins with three compressed records, so they consume variable inherited shared state rather than a constant default.
 
 Exact path:
@@ -157,9 +159,11 @@ normal root type $08
 -> first three sprites consume inherited ZP $10
 ```
 
-## Checkpoint 04F2 — IRQ preserves `$10`
+## Pre-render `$10` provenance checkpoints
 
-Primary span: `PRG02/PRG03:$9F99-$A526` = **1422 bytes**.
+### 04F2 — verified IRQ graph preserves `$10`
+
+Primary span `PRG02/PRG03:$9F99-$A526` = 1422 bytes.
 
 Proved:
 
@@ -168,14 +172,12 @@ Proved:
 - local `$9F5B`, fixed `$E001/$E005`, and fixed `$E2FA/$E30B-$E351` helper closure preserves `$10`;
 - IRQ prologue/exit `$E0F5-$E130` preserves `$10`.
 
-Therefore an IRQ taken after NMI `CLI` and before `PRG26:$8001` preserves `$10`.
-
 Evidence:
 
 - `analysis/IRQ_ZP10_PRESERVATION.md`
 - `tools/audit_irq_zp10.py`
 
-## Checkpoint 04F3 — fixed NMI span preserves `$10`
+### 04F3 — fixed NMI span preserves `$10`
 
 Primary span:
 
@@ -185,32 +187,48 @@ PRG31:$E057-$E365
 SHA-256 b0e367bb5971310da3bbd066f54cc3def543e82134f4df6b7b82feef06166176
 ```
 
-The renderer-reaching NMI body and all in-span helper bodies have no direct `$10` write/RMW. Indexed writes are locally bounded away from `$10`:
-
-- `$E2AF/$E2BA` touch only `$00-$03` because `$E29B` is called with X=`$00/$02`;
-- `$E287-$E28D` touch only `$28/$29`, `$2A/$2B`, `$F8/$F9`, `$FA/$FB` because `$E280` runs with X=`$00/$01`.
-
-Thus `PRG31:$E057-$E365` itself preserves ZP `$10`.
-
-Three external pre-render dependencies remain open and must not be assumed safe yet:
-
-```text
-$ED46
-raw bank $0C : CPU $89E2
-$E7FB / inline-dispatch targets
-```
+The renderer-reaching NMI body and all in-span helper bodies preserve `$10`. Three external pre-render dependencies were identified: `$ED46`, raw bank `$0C:$89E2`, and `$E7FB`/inline dispatch.
 
 Evidence:
 
 - `analysis/NMI_FIXED_ZP10_PRESERVATION.md`
 - `tools/audit_nmi_fixed_zp10.py`
 
+### 04F4 — `$ED46` helper graph preserves `$10`
+
+The initial `$ED46-$EF45` window was expanded within the allowed budget to absorb local control-flow edges `$ED17`, `$EF5C`, and `$EC85`.
+
+Final span:
+
+```text
+PRG31:$EC00-$EFFF
+1024 bytes
+SHA-256 e83c0d832fc23590c0dde2448a9943ef217ada4e4f520d0da0e3f85f863dc797
+```
+
+Starting from `$ED46`, the audit proves:
+
+- 323 reachable instruction starts;
+- no call/jump/branch leaves the 1 KiB window;
+- no reachable dynamic/indexed write exists;
+- reachable writes are limited to ZP `$00`, ZP `$1E`, `$0300`, `$2000`, `$2006`, `$2007`.
+
+Therefore the complete `$ED46` graph preserves ZP `$10`.
+
+Evidence:
+
+- `analysis/NMI_ED46_ZP10_PRESERVATION.md`
+- `tools/audit_nmi_ed46_zp10.py`
+
 Current provenance boundary:
 
 ```text
-verified IRQ graph         -> preserves $10
-fixed NMI span E057-E365  -> preserves $10
-external NMI dependencies -> open
+verified IRQ graph             -> preserves $10
+fixed NMI span $E057-$E365    -> preserves $10
+$ED46 helper graph             -> preserves $10
+raw bank $0C : CPU $89E2      -> unresolved
+$E7FB / inline dispatch        -> unresolved
+PRG26 renderer                 -> consumes/persists $10 exactly
 ```
 
 VPP remains **21/100**.
@@ -234,17 +252,19 @@ Primary hardware reference: NESdev Wiki, especially VRC6/VRC IRQ/CPU/PPU/APU pag
 
 ## Current next checkpoint
 
-**04F4 — `$ED46` pre-render helper only.**
+**04F5 — raw bank `$0C:$89E2` pre-render helper only.**
 
-Primary span:
+Initial primary span:
 
 ```text
-PRG31:$ED46-$EF45
-512 bytes
+raw VRC6 bank $0C
+CPU $8800-$8BFF
+physical PRG24
+1024 bytes
 ```
 
-Determine whether the NMI-called `$ED46` path can write ZP `$10`. If it leaves this 512-byte window, record the dependency and stop; do not expand the same checkpoint.
+Raw bank `$0C` maps CPU `$8000-$9FFF` to physical PRG24. Follow only control flow reachable from CPU `$89E2`. Expand within the 500-5000-byte checkpoint budget if local edges are required to close the same question. Determine whether this NMI-called banked path can write or alias ZP `$10`. Do not analyze `$E7FB` in the same checkpoint.
 
 ## User-facing handoff prompt
 
-> Continue the faithful Akumajou Densetsu decomp/recomp in `Hyperbog/CVIII-Decomp` on branch `decompilation`. Read the four primary handoff docs and current branch head. Treat the exact Japanese Mapper-24 ROM as immutable controlling evidence. Work one bounded checkpoint only, normally 500-5000 new ROM bytes and preferably about 1 KiB; provide frequent material status updates; preserve exact 6502/VRC6/PPU/APU/interrupt/stack/shared-zero-page semantics; do not invent bounds or initializers; update VPP only under its fixed rubric; commit before reporting. Current next checkpoint: 04F4, audit `$ED46` in PRG31 `$ED46-$EF45` (512 bytes) for ZP `$10` writes and defer any external dependency.
+> Continue the faithful Akumajou Densetsu decomp/recomp in `Hyperbog/CVIII-Decomp` on branch `decompilation`. Read the four primary handoff docs and current branch head. Treat the exact Japanese Mapper-24 ROM as immutable controlling evidence. Work one bounded checkpoint only, normally 500-5000 new ROM bytes and preferably about 1 KiB; expand within that range only to close the same local control-flow question; provide frequent material status updates; preserve exact 6502/VRC6/PPU/APU/interrupt/stack/shared-zero-page semantics; do not invent bounds or initializers; update VPP only under its fixed rubric; commit before reporting. Current next checkpoint: 04F5, audit raw bank `$0C:$89E2` using initial physical PRG24 span `$8800-$8BFF`; do not open `$E7FB` in the same checkpoint.
