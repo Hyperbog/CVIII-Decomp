@@ -120,9 +120,10 @@ Stable facts:
 ### `$9FA9` reachability work
 
 - checkpoint 04D proved `PRG22:$8745` belongs to type `$26`, whose explicit selector family is `$12/$08`, not `$10`.
-- checkpoint 04E1 proved PRG18 type `$E1` starts selector `$10` at frame `$E8/$EC` and can only mutate to `$EA/$EE` through its six-state table; it cannot reach frame `$14`.
+- checkpoint 04E1 proved PRG18 type `$E1` starts selector `$10` at frame `$E8/$EC` and can only mutate to `$EA/$EE`; it cannot reach frame `$14`.
+- checkpoint 04E2 proved the direct PRG06/07 selector-`$10` setup/helper domain is `$C0,$C2,$C4,$C6,$C8,$CA,$CC,$CE,$D0,$D2,$D4,$D6,$E0,$E4,$F0,$F4,$F6,$F8,$FA,$FC,$FE`; frame `$14` is absent. The only bank-resident literal frame `$14` setup immediately selects `$0E`.
 
-See `analysis/PRG22_8745_OWNER.md` and `analysis/PRG18_E1_SELECTOR10_FRAME.md`.
+See `analysis/PRG22_8745_OWNER.md`, `analysis/PRG18_E1_SELECTOR10_FRAME.md`, and `analysis/PRG06_SELECTOR10_DIRECT_DOMAIN.md`.
 
 ### Native baseline
 
@@ -169,8 +170,8 @@ Never count unresolved work as translated.
 
 ## Current next checkpoint
 
-**04E2 — PRG06 selector-`$10` families only.** Enumerate the direct PRG06 selector-`$10` setup/helper paths and trace their frame mutations far enough to determine whether any authoritative PRG06 path can produce frame `$14`. Do not expand into unrelated banks/object families.
+**04E3 — PRG06 transitive frame mutation through shared/fixed helpers only.** Starting from the proven PRG06 selector-`$10` setup paths, inspect only calls into fixed/shared routines that can write or derive `$0400` for the same object. Determine whether any such path can create frame `$14`. Do not expand into unrelated object families or stage logic.
 
 ## User-facing handoff prompt
 
-> Continue the faithful Akumajou Densetsu decomp/recomp in `Hyperbog/CVIII-Decomp` on branch `decompilation`. Read `docs/DECOMPILATION_CONTINUITY.md`, `docs/PROGRESS.md`, `docs/PROGRESS_METRIC.md`, and `docs/ROM_IDENTITY.md`, inspect current branch state, and treat the verified Japanese Mapper-24 ROM as immutable controlling evidence. Work one bounded checkpoint only, preserve 6502/VRC6/PPU/APU/interrupt/stack/shared-zero-page semantics exactly, do not invent bounds/table boundaries, update VPP only under its fixed rubric, and commit before reporting. Current next checkpoint: 04E2, close the PRG06 selector-`$10` frame-mutation domain without expanding into unrelated object families.
+> Continue the faithful Akumajou Densetsu decomp/recomp in `Hyperbog/CVIII-Decomp` on branch `decompilation`. Read `docs/DECOMPILATION_CONTINUITY.md`, `docs/PROGRESS.md`, `docs/PROGRESS_METRIC.md`, and `docs/ROM_IDENTITY.md`, inspect current branch state, and treat the verified Japanese Mapper-24 ROM as immutable controlling evidence. Work one bounded checkpoint only, preserve 6502/VRC6/PPU/APU/interrupt/stack/shared-zero-page semantics exactly, do not invent bounds/table boundaries, update VPP only under its fixed rubric, and commit before reporting. Current next checkpoint: 04E3, trace only transitive fixed/shared helper frame mutations reachable from PRG06 selector-`$10` setup paths and determine whether any can produce frame `$14`.
