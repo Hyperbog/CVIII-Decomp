@@ -1,9 +1,9 @@
 category,weight,earned,evidence
 Foundation / cartridge model,5,4,"ROM identity; PRG/CHR bank map; vectors; VRC6 CPU-window model"
-CPU / mapper / interrupts,10,6,"RESET; PRG helpers; top-level NMI; IRQ table; IRQ state machine; IRQ control/ack distinction"
+CPU / mapper / interrupts,10,7,"RESET; PRG helpers; top-level NMI; IRQ table; IRQ state machine; IRQ control/ack distinction; native VRC6 PRG/CHR mapper"
 Rendering / PPU,10,5,"OAM arrays/permutation; selector/master tables; variable descriptors; exact sprite semantics; native OAM renderer"
 Gameplay / object systems,25,1,"partial object dispatcher/state-table architecture"
 Stage / world / progression,20,0,"not yet reconstructed"
 Audio,12,1,"NSF-to-ROM correlation"
-Native runtime / platform,10,1,"faithful native OAM subsystem only"
-Validation / tooling,8,3,"ROM identity audit; subsystem binary audits; OAM unit tests"
+Native runtime / platform,10,1,"faithful native OAM subsystem; mapper lift exists but full memory/PPU integration remains open"
+Validation / tooling,8,3,"ROM identity audit; subsystem binary audits; native subsystem regression tests"
