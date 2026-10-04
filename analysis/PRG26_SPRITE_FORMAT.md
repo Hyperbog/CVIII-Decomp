@@ -1,6 +1,6 @@
 # PRG26 sprite selector hierarchy and OAM descriptor format
 
-This file records the Batch 03 reconstruction of the NMI-called renderer at `PRG26:$8070..$817E`. All claims below were rechecked against the verified Japanese ROM.
+This file records the current reconstruction of the NMI-called renderer at `PRG26:$8070..$817E`. All claims below were rechecked against the verified Japanese ROM.
 
 ## Seven parallel 28-byte render arrays
 
@@ -20,18 +20,7 @@ These names describe only proven renderer behavior, not higher-level gameplay se
 
 ## First-level selector table
 
-`$8070` executes:
-
-```asm
-LDY $048C,X
-STY $0F
-LDA $817F,Y
-STA $08
-LDA $8180,Y
-STA $09
-```
-
-The selector is therefore a **byte offset**, not an ordinal. The canonical pointer block at `$817F-$819C` is 30 bytes / 15 little-endian pointers:
+`$8070` uses `$048C,X` directly as a byte offset into the little-endian pointer block at `$817F-$819C`:
 
 | selector | pointer |
 |---:|---:|
@@ -51,118 +40,100 @@ The selector is therefore a **byte offset**, not an ordinal. The canonical point
 | `$1A` | `$8265` |
 | `$1C` | `$82AF` |
 
-`$819D` is also the first byte of the second-level table selected by `$00/$16`, so `$817F-$819C` is a natural table boundary. The four high selectors deliberately alias the geometry/frame tables used by `$00/$02/$04/$06`.
+The high selectors `$16/$18/$1A/$1C` alias the first four geometry/frame tables. Producer evidence at `PRG25:$ADA3` directly supplies those four values.
 
-Producer evidence directly confirms the high aliases: `PRG25:$AD7B..$ADA2` multiplies `$0633,X` by three and indexes four 3-byte records at `$ADA3`; the selector bytes at record offsets `0,3,6,9` are exactly `$16,$18,$1A,$1C`.
-
-Other directly reconciled producers use even selectors in the lower set, including `$00,$02,$04,$06,$08,$0C,$0E,$10,$12,$14`. A whole-ROM proof that no malformed/out-of-range selector can ever reach `$8070` is still pending, so the future native implementation must not add a bounds check unless the original producer domain is fully proved.
+A whole-ROM proof that every runtime producer stays within the canonical selector set is still pending. Do not add a host-side bounds check yet.
 
 ## Second-level pointer lookup
 
-After the first-level pointer is loaded into `$08/$09`, `$8070` uses the object byte at `$0400,X` as another byte offset:
+After the first-level pointer is loaded into `$08/$09`, `$8070` uses `$0400,X` as another byte offset and reads a little-endian pointer from the selected table. The resulting `$0A/$0B` pointer addresses a sprite descriptor stream:
 
-```asm
-LDY $0400,X
-LDA ($08),Y
-STA $0A
-INY
-LDA ($08),Y
-STA $0B
-```
+`$048C selector -> sprite-set pointer -> $0400 frame offset -> descriptor stream`.
 
-Thus `$0400,X` selects a little-endian pointer from the chosen sprite-set table. The resulting `$0A/$0B` pointer addresses a sprite descriptor stream.
+Example: selector `$10` points to `$9E6D`. Frame offset `$14` reads pointer bytes at `$9E81-$9E82` and resolves to descriptor `$9FA9`.
 
-Example: selector `$00` points to `$819D`, whose initial entries are:
+## Corrected descriptor format: variable-length records
+
+**Correction to Batch 03:** records are not uniformly four bytes.
+
+Descriptor byte 0 is still the sprite count. Each sprite begins with a packed **Y/control byte**. Its low bit is a record-format flag; the remaining seven signed bits encode Y delta after an arithmetic right shift by one.
+
+The 6502 implements this literally:
+
+- if the Y/control byte is nonnegative, clear carry before `ROR`
+- if it is negative, set carry before `ROR`
+- `ROR` therefore performs a signed arithmetic shift by one
+- the carry produced by `ROR` is the original bit 0
+
+Thus:
+
+- `bit0 = 0`: full record = `Y/control, tile, attribute, X` (4 bytes)
+- `bit0 = 1`: compressed record = `Y/control, tile, X` (3 bytes), and the attribute byte is **reused from zero-page `$10`**
+
+This flag is handled identically by the mirrored and non-mirrored renderer paths.
+
+### Attribute cache `$10`
+
+For a full record, the renderer obtains the descriptor attribute byte, applies any object low-two-bit override, applies horizontal-flip XOR `$40` on the mirrored path, then stores the **final emitted attribute** in zero-page `$10` before writing OAM.
+
+For a compressed record, no attribute byte is read from the descriptor. The renderer loads `$10` and writes that cached final attribute directly to OAM.
+
+`$8001` and `$8070` do not initialize `$10` on entry. Therefore `$10` is renderer input/output state, not a temporary that may be reset per object in a native translation.
+
+### Concrete proof: descriptor `$9FA9`
+
+Selector `$10`, frame offset `$14` resolves to `$9FA9`. Its bytes begin:
 
 ```text
-frame offset 00 -> $82F5
-frame offset 02 -> $8339
-frame offset 04 -> $8347
-frame offset 06 -> $8352
-frame offset 08 -> $8347
-frame offset 0A -> $8360
-...
+04 DF 8A F0  E1 8C F8  E5 8E 00  04 E4 90 03
 ```
 
-This confirms a two-level hierarchy:
+Decoded exactly:
 
-`object selector ($048C) -> sprite-set/frame-pointer table -> frame offset ($0400) -> sprite descriptor`.
+| sprite | Y/control | shifted Y delta | flag | tile | attribute source | X |
+|---:|---:|---:|---:|---:|---|---:|
+| 0 | `$DF` | `$EF` (-17) | 1 | `$8A` | cached `$10` | `$F0` |
+| 1 | `$E1` | `$F0` (-16) | 1 | `$8C` | cached `$10` | `$F8` |
+| 2 | `$E5` | `$F2` (-14) | 1 | `$8E` | cached `$10` | `$00` |
+| 3 | `$04` | `$02` (+2) | 0 | `$E4` | descriptor `$90`, then cached to `$10` | `$03` |
 
-## Sprite descriptor stream
+This descriptor begins with **three compressed sprites before any full record in that descriptor**. A native implementation that initializes the cached attribute at descriptor/object entry would therefore be observably wrong.
 
-At the resolved descriptor pointer, byte 0 is copied to `$03` and used as the sprite-count loop counter. Each sprite then consumes four descriptor bytes:
+## Tile transform for selectors `$16+`
 
-1. **Y delta byte**
-2. **tile byte**
-3. **attribute byte**
-4. **X delta byte**
+Helper `$8172` checks the first-level selector saved in `$0F`. When `$0F >= $16`, it returns the current descriptor tile plus `$80` and sets carry. Callers use carry to choose between the raw byte and the transformed byte.
 
-The output is a normal four-byte OAM record `[Y, tile, attributes, X]` in shadow OAM page `$0200-$02FF`.
+This applies on the encoded `$AD != 0` paths. Selectors `$16/$18/$1A/$1C` therefore reuse geometry/frame tables while selecting the alternate tile-number half.
 
-### Y delta transform
+## Attribute transform
 
-For the first descriptor byte, the code chooses carry from the byte's sign bit and executes `ROR A`. This is an encoded arithmetic-right-shift by one of the signed 8-bit value. The result is then added to `$041C,X`.
-
-Do not replace this casually with host signed division: negative odd values follow the 6502 shift result, not C/C++ truncation-toward-zero division.
-
-### Tile transform for selectors `$16+`
-
-Helper `$8172` is:
-
-```asm
-LDA $0F
-CMP #$16
-BCC return
-LDA ($0A),Y
-CLC
-ADC #$80
-SEC
-RTS
-return:
-RTS
-```
-
-Call sites use carry to distinguish `raw descriptor tile` from the returned transformed tile. The helper is only consulted on the encoded `$AD != 0` paths.
-
-Therefore selectors `$16/$18/$1A/$1C` reuse the same geometry/frame tables as `$00/$02/$04/$06`, but under the `$AD`-gated path their tile byte is offset by `$80` modulo 256.
-
-### Attribute transform
-
-If `$0454,X != 0`, the non-mirrored path computes:
+For full records, if `$0454,X != 0`:
 
 `(descriptor_attributes & $FC) | $0454,X`
 
-so the object value replaces the descriptor's low two attribute bits.
+replaces the descriptor low two attribute bits. The mirrored path then toggles bit `$40`.
 
-The mirrored path performs the same optional low-bit replacement and then `EOR #$40`, toggling the NES OAM horizontal-flip bit.
+The resulting byte is cached in `$10` and emitted. Compressed records reuse that already-transformed cached byte unchanged.
 
-### X transform and horizontal mirroring
+## X transform and horizontal mirroring
 
-Non-mirrored path:
+Non-mirrored path uses descriptor X delta directly before base-X addition.
 
-`output_x = base_x + signed_descriptor_delta`, with explicit carry/sign tests that hide the sprite on 8-bit wrap beyond the visible 0..255 domain.
+Mirrored path computes `$F8 - descriptor_x_delta` before adding base X. `$F8 == 256 - 8`, matching the encoded 8-pixel sprite-width reflection arithmetic.
 
-Mirrored path first computes:
-
-`$F8 - descriptor_x_delta`
-
-then performs the same base-X addition / wrap test. `$F8` is exactly `256 - 8`, matching an 8-pixel sprite-width reflection in the encoded byte arithmetic.
-
-When the X range test fails, the renderer writes `$F4` to the sprite's OAM Y byte instead of emitting a visible position.
+Both paths contain explicit carry/sign range checks. Failed X-range tests hide the sprite by writing OAM Y=`$F4`.
 
 ## OAM-slot permutation
 
-`$8001` starts with `$07=$40` available sprites. For every emitted/hidden descriptor record, `$8070` advances the OAM byte offset with:
+`$8001` starts with `$07=$40` available sprites. After each emitted/hidden sprite, `$8070` advances the OAM byte offset by `$C4` modulo 256 (`-15` four-byte OAM slots). Since 15 is coprime with 64, this visits all 64 OAM slots before repeating.
 
-`X = X + $C4 (mod 256)`.
+At frame start, `$22` advances by `$44` (`17` OAM slots) and becomes the initial byte offset.
 
-Because `$C4 == -60` bytes == `-15` four-byte OAM slots, and 15 is coprime with 64, this visits every one of the 64 OAM slots exactly once before repeating.
+The permutation is proven; its likely sprite-priority/flicker-distribution purpose remains interpretation.
 
-At frame start, `$22` is advanced by `$44` (`17` OAM slots) and copied to the initial OAM byte offset. This changes the starting slot from frame to frame. The mathematical permutation is proven; its likely sprite-priority/flicker-distribution purpose remains an interpretation rather than a source-level name.
+## Non-local OAM-full return
 
-## Important non-local control-flow behavior
-
-When `$07` reaches zero inside `$8070`, the code executes:
+When `$07` reaches zero inside `$8070`, the routine executes:
 
 ```asm
 PLA
@@ -170,9 +141,9 @@ PLA
 RTS
 ```
 
-Those two `PLA`s discard `$8070`'s return address. The following `RTS` therefore returns directly to the caller of `$8001`, skipping the rest of `$8001` entirely. This is a real cross-function early-exit/shared-stack behavior and must not be lost in decompilation.
+This discards `$8070`'s own return address and returns directly to `$8001`'s caller. Consequently `$8001`'s unused-slot fill loop is skipped when all 64 OAM slots were consumed.
 
-A native structured translation may represent this as an explicit `OamFull` result propagated from `$8070` to `$8001`, but equivalence must include the fact that no unused-slot fill loop runs once all 64 OAM slots have been consumed.
+A structured native lift may model this with an explicit propagated result, but must preserve the exact outcome.
 
 ## Current boundaries
 
@@ -181,14 +152,17 @@ Proven:
 - renderer code: `$8070-$817E`
 - canonical first-level selector block: `$817F-$819C`
 - first second-level table begins at `$819D`
-- selectors `$16/$18/$1A/$1C` alias the first four geometry tables and select the tile `+$80` behavior under the encoded `$AD` condition
 - seven 28-byte renderer arrays at `$0400-$04C3`
-- descriptor record is one count byte followed by four-byte sprite records
+- descriptor starts with sprite count
+- each sprite is either a 4-byte full record or 3-byte compressed record
+- Y/control bit 0 selects cached-attribute reuse
+- `$10` stores the final transformed OAM attribute and is state across renderer calls
+- `$9FA9` is a concrete descriptor whose first three records are compressed
 
 Still unresolved:
 
-- full producer-domain proof for every `$048C` write site
+- whole-ROM closure of every `$048C` producer
 - exact higher-level meaning of global `$AD`
-- complete extents of all second-level frame-pointer tables
-- semantic names of individual sprite sets/frames
-- producers and gameplay meanings of every object-array field
+- complete extents and semantic names of all second-level frame tables
+- producer/gameplay meaning of all object-array fields
+- full lifetime/ownership contract of zero-page `$10` outside this renderer subsystem
