@@ -118,26 +118,50 @@ Evidence:
 - `analysis/NMI_BANK0C_PARSER_MODE.md`
 - `tools/audit_nmi_bank0c_parser_mode.py`
 
-**VPP remains 21/100 after 04F6.**
+### 04F7 — raw bank `$04` parser-core boundary
+
+New ROM span:
+
+```text
+raw bank $04 / physical PRG08
+CPU $8000-$91FF
+4608 bytes
+SHA-256 ee8b2de23022f715d3934907e7caaab91e824b4a9a31ccb75a69dae7d55c178b
+```
+
+The bank `$04` bytes at `$8001-$87AD` are byte-identical to the already-audited bank `$0C` alternate-parser core. A conservative graph rooted at `$8001` plus its locally bounded dispatch targets accepts **786 instruction starts** and has no write form capable of modifying or aliasing ZP `$10`. Its external fixed-bank helpers are all inside the already-audited 04F3 fixed span.
+
+Reusing the established 125-sound metadata table gives **102 bank-$04 instrument references / 96 distinct roots**. Every bank-$04 reference initializes alternate-parser mode. This checkpoint contains **23 referenced roots** from sound IDs `$5A,$5D,$65,$67` and **zero raw `$E7` bytes anywhere in `$8000-$91FF`**.
+
+Therefore the `$842D` producer edge is absent while the bank-$04 stream cursor is inside this bounded span. Bank `$04` is not globally closed: later PRG08/PRG09 stream data remains outside 04F7.
+
+Evidence:
+
+- `analysis/NMI_BANK04_ALT_PARSER_BOUNDARY.md`
+- `tools/audit_nmi_bank04_alt_parser.py`
+
+**VPP remains 21/100 after 04F7.**
 
 ## Current provenance boundary
 
 ```text
-verified IRQ graph              -> preserves $10
-fixed NMI span $E057-$E365     -> preserves $10
-$ED46 helper graph              -> preserves $10
-raw bank $0C / PRG24 code      -> preserves $10 on live bank-$0C paths
-raw instrument bank $04        -> unresolved
-raw instrument bank $05        -> unresolved
-$E7FB / inline dispatch         -> unresolved
-PRG26 renderer                  -> consumes/persists $10 exactly
+verified IRQ graph                 -> preserves $10
+fixed NMI span $E057-$E365        -> preserves $10
+$ED46 helper graph                 -> preserves $10
+raw bank $0C / PRG24              -> preserves $10 on live bank-$0C paths
+raw bank $04 parser $8001-$87AD   -> preserves $10 on resolved graph
+raw bank $04 data $8000-$91FF     -> no raw $E7; later data unresolved
+raw instrument bank $05           -> unresolved
+$E7FB / inline dispatch            -> unresolved
+PRG26 renderer                     -> consumes/persists $10 exactly
 ```
 
-The alternate-parser core is duplicated in raw banks `$04`, `$05`, and `$0C`; direct comparison shows the parser prefix is byte-identical apart from the bank-identifying first byte. Remaining work is therefore primarily the live data/control-flow domain in banks `$04/$05`, not rediscovery of parser semantics.
+The alternate-parser core is duplicated in raw banks `$04`, `$05`, and `$0C`; 04F7 proves the bank `$04` parser copy itself is not the remaining problem. Remaining bank `$04` work is the later stream-data domain.
 
 ## Unresolved / do not assume
 
-- whether raw instrument banks `$04` and `$05` can write/alias ZP `$10` while servicing the pre-render sound update;
+- whether later raw bank `$04` stream data can activate `$842D` or any path that writes/aliases ZP `$10`;
+- whether raw instrument bank `$05` can write/alias ZP `$10` while servicing the pre-render sound update;
 - whether `$E7FB` or its inline-dispatch targets can write `$10` before rendering;
 - whole-ROM type-transition / selector-frame producer closure;
 - higher-level meaning of `$AD`;
@@ -147,14 +171,6 @@ The alternate-parser core is duplicated in raw banks `$04`, `$05`, and `$0C`; di
 
 ## Next manageable checkpoint
 
-**04F7 — raw instrument bank `$04` alternate-parser graph.**
+**04F8 — continue raw bank `$04` through the PRG08 tail.**
 
-Raw bank `$04` maps CPU `$8000-$BFFF` to physical `PRG08/PRG09`. Start with the same large bounded code window used successfully for bank `$0C`:
-
-```text
-raw bank $04 / physical PRG08
-CPU $8000-$91FF
-4608 bytes
-```
-
-Follow only the live alternate-parser/control-flow paths entered through fixed helper `$E1AF`; determine whether any reachable write can affect ZP `$10`, carrying parser state rather than seeding impossible indirect edges. Do not open raw bank `$05` or `$E7FB` in the same checkpoint.
+Audit physical `PRG08` / CPU `$9200-$9FFF` (3584 bytes), carrying the established alternate-parser mode and stream-bank state. Determine whether the remaining PRG08 stream domain contains a live `$E7` producer for `$842D` or any other path relevant to ZP `$10`. Do not open physical PRG09, raw bank `$05`, or `$E7FB` in the same checkpoint unless a same-question dependency requires a small within-budget extension.
