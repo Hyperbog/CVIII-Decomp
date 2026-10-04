@@ -1,14 +1,14 @@
 {
-  "schema_version": 3,
+  "schema_version": 4,
   "status": "ready",
   "project": "Akumajou Densetsu JP decomp/recomp",
   "repository": "Hyperbog/CVIII-Decomp",
   "branch": "decompilation",
   "rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
   "safe_forward_work": true,
-  "last_completed_checkpoint": "04F8-reconciled",
-  "last_completed_checkpoint_commit": "b95e001941bb9ed276c1101b3b953ebcf24c79a1",
-  "previous_checkpoint_audit": "tools/audit_nmi_bank04_prg08_tail.py",
+  "last_completed_checkpoint": "04F9",
+  "last_completed_checkpoint_commit": "a928d2fbf7ea771d6b52ec12d46774c108317d29",
+  "previous_checkpoint_audit": "tools/audit_nmi_bank04_prg09_mid.py",
   "vpp": {
     "earned": 21,
     "total": 100
@@ -16,62 +16,60 @@
   "execution_context": {
     "raw_vrc6_bank": "04",
     "cpu_window": "8000-BFFF",
-    "physical_prg_banks": [
-      8,
-      9
-    ],
+    "physical_prg_banks": [8, 9],
     "frontier_physical_prg_bank": 9
   },
   "frontier": {
-    "last_closed_cpu": "A013",
-    "next_unprocessed_cpu": "A014",
-    "next_checkpoint": "04F9",
-    "initial_window_start_cpu": "A014",
-    "initial_window_end_cpu_inclusive": "B1FF",
-    "initial_window_contiguous_bytes": 4588
+    "last_closed_cpu": "B1EF",
+    "next_unprocessed_cpu": "B1F0",
+    "next_checkpoint": "04FA",
+    "initial_window_start_cpu": "B1F0",
+    "initial_window_end_cpu_inclusive": "BFFF",
+    "initial_window_contiguous_bytes": 3600
   },
   "verification_overlap": {
-    "start_cpu": "9FD4",
-    "end_cpu_inclusive": "A013",
+    "start_cpu": "B1B0",
+    "end_cpu_inclusive": "B1EF",
     "length": 64,
-    "sha256": "15e1b04d8bb87298efcd19eead4914f58344dbfe7289ba46c0dd30674632f2d3",
+    "sha256": "6ebe05255647f032d5769de536495ddeeb14c3ee2597742313f7029508b09b2d",
     "coverage_accounting": "verification-only; never count these 64 bytes as new coverage"
   },
   "frontier_fingerprint": {
-    "start_cpu": "A014",
-    "end_cpu_inclusive": "A033",
+    "start_cpu": "B1F0",
+    "end_cpu_inclusive": "B20F",
     "length": 32,
-    "sha256": "6821365dbb42255fcd2697a40ab50bc9a93192dd2493c7a99e465a4c83365358",
+    "sha256": "58fa6662bd07c12a37c743cf6a9206c4f134c58b8e921b683444d29d52007f9b",
     "purpose": "alignment/fingerprint only; does not establish semantic closure"
   },
   "prior_dependency_span": {
-    "start_cpu": "920A",
-    "end_cpu_inclusive": "A013",
-    "length": 3594,
-    "sha256": "728c86cd808e178821f7f72d1f0371eb16a5bde3a1dda495543338391a5e7b3c",
-    "04F7_root_probe_overlap_bytes": 11,
-    "exact_new_bytes_in_checkpoint": 3583
+    "start_cpu": "A014",
+    "end_cpu_inclusive": "B1EF",
+    "length": 4572,
+    "sha256": "55e35f223091a0c50beaf7ba0561445cc5c07d11ae83bfe827abcc22aa2d5a5b",
+    "04F7_root_probe_overlap_bytes": 32,
+    "exact_new_bytes_in_checkpoint": 4540
   },
   "closed_state": [
     "raw bank 04 alternate-parser executable core $8001-$87AD is ZP $10-clean on the resolved graph",
     "04F7 first 23 roots are recursively revalidated with strict operand accounting; no live E7",
     "04F8 next 11 roots are recursively revalidated through $A013; no live E7",
-    "34 of 96 bank-04 roots are closed",
-    "multi-byte stream decoding now asserts every operand byte is inside the claimed semantic span"
+    "04F9 next 32 roots are recursively closed through $B1EF with strict operand accounting; no live E7",
+    "66 of 96 bank-04 roots are closed",
+    "multi-byte stream decoding asserts every operand byte is inside the claimed semantic span"
   ],
   "open_edges": [
-    "62 later bank-04 / physical PRG09 roots remain unresolved beginning at $A014",
+    "30 later bank-04 / physical PRG09 roots remain unresolved beginning at $B1F0",
     "raw instrument bank 05 remains unresolved",
     "fixed $E7FB / inline dispatch remains unresolved"
   ],
   "checkpoint_constraints": [
-    "04F9 begins exactly at CPU $A014",
-    "initial bounded window is $A014-$B1FF",
+    "04FA begins exactly at CPU $B1F0",
+    "initial bounded window is $B1F0-$BFFF",
     "carry FB loop-anchor, FD call/return, and FE counted/absolute-pointer stream state",
     "every multi-byte command must pass operand-in-span assertions before operands are read",
     "prove pointer-target closure; raw FF is not a terminator proxy",
-    "subtract root probe bytes already counted by 04F7 from exact new-byte coverage",
-    "do not open raw bank 05 or fixed $E7FB during 04F9"
+    "subtract the 30 root probe bytes already counted by 04F7 from exact new-byte coverage",
+    "do not open raw bank 05 or fixed $E7FB during 04FA"
   ],
   "repair_history": {
     "repaired_hold": "04F7/04F8 operand-boundary accounting",
@@ -79,6 +77,6 @@
       "$9208 FE FF 33 91 -> $9133; operands through $920B",
       "$A010 FE FF 85 9E -> $9E85; operands through $A013"
     ],
-    "resolution": "hardened audit passed; 04F7 byte coverage unchanged; 04F8 dependency extended to $A013; provisional 04F9 artifacts created during the hold were removed and must be regenerated from $A014"
+    "resolution": "hardened audit passed; 04F7 byte coverage unchanged; 04F8 dependency extended to $A013; 04F9 was regenerated cleanly from the repaired $A014 frontier"
   }
 }
