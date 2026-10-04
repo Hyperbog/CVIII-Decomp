@@ -120,20 +120,21 @@ Evidence:
 
 ### 04F7 — raw bank `$04` parser-core boundary
 
-New ROM span:
+Exact new-byte footprint:
 
 ```text
 raw bank $04 / physical PRG08
-CPU $8000-$91FF
-4608 bytes
-SHA-256 ee8b2de23022f715d3934907e7caaab91e824b4a9a31ccb75a69dae7d55c178b
+contiguous CPU $8000-$9209: 4618 bytes
+span SHA-256 cfdd27fa72b9e990c31bb12e1511fa7229ffe2c898dcc361586c77b71543caa6
+plus 73 isolated one-byte root-mode probes
+TOTAL: 4691 new bytes
 ```
 
-The bank `$04` bytes at `$8001-$87AD` are byte-identical to the already-audited bank `$0C` alternate-parser core. A conservative graph rooted at `$8001` plus its locally bounded dispatch targets accepts **786 instruction starts** and has no write form capable of modifying or aliasing ZP `$10`. Its external fixed-bank helpers are all inside the already-audited 04F3 fixed span.
+The 10-byte extension beyond `$91FF` closes the final in-window stream rooted at `$9133`, whose `$FF` terminator is at `$9209`. The bank `$04` bytes at `$8001-$87AD` are byte-identical to the already-audited bank `$0C` alternate-parser core. A conservative graph rooted at `$8001` plus its locally bounded dispatch targets accepts **786 instruction starts** and has no write form capable of modifying or aliasing ZP `$10`. Its external fixed-bank helpers are all inside the already-audited 04F3 fixed span.
 
-Reusing the established 125-sound metadata table gives **102 bank-$04 instrument references / 96 distinct roots**. Every bank-$04 reference initializes alternate-parser mode. This checkpoint contains **23 referenced roots** from sound IDs `$5A,$5D,$65,$67` and **zero raw `$E7` bytes anywhere in `$8000-$91FF`**.
+Reusing the established 125-sound metadata table gives **102 bank-$04 instrument references / 96 distinct roots**. Every bank-$04 reference initializes alternate-parser mode. Exactly **23 roots** begin inside the contiguous span, from sound IDs `$5A,$5D,$65,$67`; all 23 terminate by `$9209`. The bank-specific stream-data region `$87AE-$9209` contains **zero raw `$E7` bytes**.
 
-Therefore the `$842D` producer edge is absent while the bank-$04 stream cursor is inside this bounded span. Bank `$04` is not globally closed: later PRG08/PRG09 stream data remains outside 04F7.
+Therefore the `$842D` producer edge is absent for these 23 closed stream bodies. Bank `$04` is not globally closed: **73 later stream bodies remain unresolved**; only their first mode-selection byte was probed in 04F7.
 
 Evidence:
 
@@ -150,7 +151,8 @@ fixed NMI span $E057-$E365        -> preserves $10
 $ED46 helper graph                 -> preserves $10
 raw bank $0C / PRG24              -> preserves $10 on live bank-$0C paths
 raw bank $04 parser $8001-$87AD   -> preserves $10 on resolved graph
-raw bank $04 data $8000-$91FF     -> no raw $E7; later data unresolved
+raw bank $04 first 23 roots       -> closed through $9209; no raw $E7
+raw bank $04 later 73 roots       -> stream bodies unresolved
 raw instrument bank $05           -> unresolved
 $E7FB / inline dispatch            -> unresolved
 PRG26 renderer                     -> consumes/persists $10 exactly
@@ -173,4 +175,4 @@ The alternate-parser core is duplicated in raw banks `$04`, `$05`, and `$0C`; 04
 
 **04F8 — continue raw bank `$04` through the PRG08 tail.**
 
-Audit physical `PRG08` / CPU `$9200-$9FFF` (3584 bytes), carrying the established alternate-parser mode and stream-bank state. Determine whether the remaining PRG08 stream domain contains a live `$E7` producer for `$842D` or any other path relevant to ZP `$10`. Do not open physical PRG09, raw bank `$05`, or `$E7FB` in the same checkpoint unless a same-question dependency requires a small within-budget extension.
+Audit physical `PRG08` / CPU `$920A-$9FFF`, carrying the established alternate-parser mode and stream-bank state. Account separately for root bytes already probed by 04F7 when reporting new-byte coverage. Determine whether the remaining PRG08 stream domain contains a live `$E7` producer for `$842D` or any other path relevant to ZP `$10`. Do not open physical PRG09, raw bank `$05`, or `$E7FB` in the same checkpoint unless a same-question dependency requires a small within-budget extension.
