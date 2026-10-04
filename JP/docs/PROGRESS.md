@@ -6,7 +6,7 @@ Work proceeds in bounded, ROM-backed checkpoints. Normal new-ROM budget is **500
 
 Primary metric: **Verified Parity Progress (VPP) = 21 / 100 (21%)**. VPP is an evidence rubric, not raw-byte coverage or a time estimate.
 
-**04FF is still blocked/in progress.** Its first bounded subgraph is now durable: 26 nested `$2C` roots entering fixed `PRG31:$F3DD-$F7FF` consume **931 genuinely new instruction/operand bytes**, preserve shared ZP `$10` locally, and expose 16 explicit fixed-side `$2C` mutations. Full `$2C` producer closure is still open because six primary states, secondary `$68` dispatchers, and fixed/banked callees remain unresolved under their actual mapper contexts.
+**04FF is complete as a bounded fixed-bank checkpoint.** It closes the 26 nested `$2C` roots whose entrypoints lie in `PRG31:$F3DD-$F7FF`: 401 instruction starts and **931 genuinely new instruction/operand bytes**, with no direct/indexed/indirect write capable of aliasing shared ZP `$10`. Complete `$2C` producer closure is intentionally carried into 0500.
 
 ## Stable foundation
 
@@ -16,26 +16,24 @@ Primary metric: **Verified Parity Progress (VPP) = 21 / 100 (21%)**. VPP is an e
 - IRQ raw bank `$01` and its exact 45-entry state table are reconciled.
 - NMI bank `$0D` renderer call `$8001` resolves to `PRG26:$8001`.
 - Native OAM renderer baseline exists in `src/oam_renderer.*` with regression tests.
-- Recovery tooling verifies both switchable 16 KiB VRC6-bank frontiers and explicit fixed 8 KiB PRG mappings.
+- Recovery tooling verifies switchable 16 KiB VRC6-bank and fixed 8 KiB PRG frontiers.
 
 ## Pre-render shared ZP `$10` provenance
 
-- **04F2:** IRQ graph `PRG02/03:$9F99-$A526`, 1422 bytes, preserves `$10`.
-- **04F3:** fixed NMI `PRG31:$E057-$E365`, 783 bytes, preserves `$10`; external dependencies identified.
-- **04F4:** `$ED46` fixed helper graph, 1024 bytes, preserves `$10`.
-- **04F5-04F6:** raw bank `$0C` graph and parser-mode proof close its live paths as `$10`-safe.
-- **04F7-04FA:** raw bank `$04` parser plus all **96/96** roots are closed and preserve `$10` under strict operand accounting.
-- **04FB-04FD:** raw bank `$05` parser plus all **72/72** roots are closed and preserve `$10`; every live `$E7` producer domain is derived from actual JP-ROM bytes.
-- **04FE:** fixed `$E7FB` dispatcher and conservative first-level fixed target graph preserve `$10`; selector domains and banked exits remain open.
-- **04FF partial:** the admitted 26-root `$F3DD-$F7FF` fixed graph preserves `$10`; transitive callee effects remain open.
+- **04F2:** IRQ graph preserves `$10`.
+- **04F3:** fixed NMI `$E057-$E365` preserves `$10`; external dependencies identified.
+- **04F4:** `$ED46` fixed helper graph preserves `$10`.
+- **04F5-04F6:** raw bank `$0C` live graph preserves `$10`.
+- **04F7-04FA:** raw bank `$04` parser + all **96/96** roots preserve `$10`.
+- **04FB-04FD:** raw bank `$05` parser + all **72/72** roots preserve `$10`, including ROM-proven live `$E7` producer domains.
+- **04FE:** fixed `$E7FB` inline dispatcher + conservative first-level fixed graph preserve `$10`; `$18`, nested state, and banked exits remain open.
+- **04FF:** admitted 26-root nested fixed graph preserves `$10`; unresolved callees are not assumed safe.
 
 ## Critical invariants
 
-Variable-width stream commands must have every consumed operand byte inside the claimed semantic dependency span before any operand is read. Raw `$FF` is not a generic terminator proxy. Preserve `FB` loop anchors, context-sensitive `FD` call/return, and `FE` counted/absolute-pointer state.
+Variable-width commands/instructions are not closed unless every consumed operand byte is covered or explicit prior coverage. Raw `$FF` is not a generic stream terminator. For `$E7FB`, table size is **not** a producer-domain bound: do not invent host clamps for `$18`, `$2C`, or `$68`.
 
-For `$E7FB`, table size is **not** a selector-domain proof. Do not infer a host-side clamp for `$18`, `$2C`, or later `$68` selectors from encoded table size.
-
-Coverage accounting is semantic: physical bytes are counted as new only when the committed checkpoint actually consumes them as instructions/operands or explicitly justified data. A raw interval is not automatically coverage merely because admitted code lies on both sides of an unreached gap.
+Coverage is semantic. Bytes physically between reached instructions are not counted unless the checkpoint actually consumes them as code/operands or explicitly justified data.
 
 ## Raw-bank closures
 
@@ -49,17 +47,19 @@ Bank `$05`: **72/72 roots closed**:
 04FD $AD97-$BF05   4463 new   28 roots
 ```
 
-All live bank-$05 `$E7` parameter domains index legitimate `$8430-$8443` entries and dispatch to audited `$8444`; no host-side `$842D` clamp is introduced.
+No host-side `$842D` clamp is introduced; all live bank-$05 `$E7` producer values are ROM-proven.
 
 ## 04FE — fixed `$E7FB` first-level dispatch
 
-`$E7FB-$E813` is an inline tail dispatcher. It doubles A, preserves Y in `$03`, pops the caller's JSR return address into `$00/$01`, reads a little-endian pointer from the caller's inline bytes, restores Y, and executes `JMP ($0002)`. It writes only `$00-$03`.
+`$E7FB-$E813` is a stack-return-address inline tail dispatcher. It writes only `$00-$03`, and its NMI call at `$E360` indexes a 16-entry inline table from `$18`. Conservatively decoding all 16 encoded targets yields 435 fixed instruction starts, one nested `$E7FB` at `$F39A`, and 21 mapper-dependent banked exits. After indexed-write reconciliation the fixed graph is `$10`-safe.
 
-The NMI caller at `$E360` loads A from `$18`. Its 16-entry table at `$E363-$E382` reaches a conservative fixed graph of 435 official instruction starts, zero unknown opcodes, one nested `$E7FB` site at `$F39A`, and 21 mapper-dependent banked exits. After X-domain reconciliation, no reachable fixed write can alias `$10`.
+The nested call uses selector `$2C`; its 32 encoded pointer pairs occupy `$F39D-$F3DC`. 04FE contributed **957 genuinely new fixed bytes**, ordered-manifest SHA-256:
 
-The nested dispatcher uses `$2C` and its 32 pointer pairs occupy `$F39D-$F3DC`; `$F3DD` is executable code. 04FE contributed **957 genuinely new fixed PRG31 bytes**, ordered-manifest SHA-256 `a672f908a238bea20902fc40c5417622bdb9af675cda3b982a6f0ce494ebad32`.
+```text
+a672f908a238bea20902fc40c5417622bdb9af675cda3b982a6f0ce494ebad32
+```
 
-## 04FF partial — nested `$2C` fixed head
+## 04FF — bounded nested `$2C` fixed head
 
 Raw investigation window:
 
@@ -69,7 +69,7 @@ PRG31 $F3DD-$F7FF
 SHA-256 72918e40813310fe3f967790d9b77e344a0f2ede92d12942d95c23849084b1b6
 ```
 
-The nested table has 26 distinct root addresses entering this window. Six encoded entries are deferred:
+Twenty-six distinct nested-table targets enter this window. Six encoded entries are carried forward:
 
 ```text
 $08 -> $F965
@@ -80,18 +80,18 @@ $0E -> $F841
 $10 -> $F849
 ```
 
-Strict decoding of only the admitted 26 roots yields:
+Strict admitted graph:
 
 ```text
-instruction starts                     401
-unknown official opcodes                 0
-unique consumed instruction bytes      931
-indexed/indirect zero-page writes        0
-direct local $2C writers                16
-dependency/boundary exits              136
+instruction starts                    401
+unknown official opcodes                0
+unique consumed new bytes             931
+reachable store/RMW instructions       46
+indexed/indirect store/RMW forms         0
+dependency/boundary exits             136
 ```
 
-Exact genuinely-new manifest:
+Exact manifest:
 
 ```text
 F3DD-F6AD   721   371c27c08f71624463d2c63097938a30fa57253bd073d2554d454111708f6852
@@ -108,25 +108,25 @@ Ordered-manifest SHA-256:
 2e8b703b970ca2f1eae61f5fd1a4850da6b8e5d4af1a894fb8075657299ae0d4
 ```
 
-The raw bytes not claimed by this graph remain explicit:
+Unclaimed/prior bytes remain explicit:
 
 ```text
-F6AE-F6E3   54 bytes   prior 04FE coverage
-F706-F712   13 bytes   not reached by the admitted roots
-F724-F738   21 bytes   not reached
-F782-F791   16 bytes   not reached
-F7B7-F7CE   24 bytes   not reached
+F6AE-F6E3   54 bytes   prior 04FE
+F706-F712   13 bytes   unreached
+F724-F738   21 bytes   unreached
+F782-F791   16 bytes   unreached
+F7B7-F7CE   24 bytes   unreached
 ```
 
-The previous 1005-byte prefix accounting is superseded because it counted those final four unreached gaps merely from physical contiguity. `analysis/NMI_FIXED_2C_PREFIX.md` now records the correction and `tools/audit_nmi_fixed_nested_prefix.py` redirects to the stricter audit.
+The four unreached gaps total 74 bytes and are **not** 04FF coverage. Secondary `$68` dispatch evidence in 0500 may admit some or all of them.
 
-Explicit local `$2C` writers are `$F3FF,$F443,$F486,$F4BF,$F4CF,$F4DC,$F4F3,$F5CF,$F629,$F635,$F64F,$F6FB,$F716,$F775,$F7B4,$F7DB`. ROM-local constant stores remain inside the encoded state family; conservative INC-root association reaches at most entry `$1C -> $1D` locally. This is **not** a transitive producer bound because out-of-window fixed and mapper-selected callees can still mutate `$2C`.
+04FF finds 16 explicit local `$2C` mutations; its bounded local constant/INC transitions stay inside the encoded `$00-$1F` family, but that is not yet the whole-domain producer proof.
 
 Evidence:
 
-- `analysis/NMI_FIXED_2C_HEAD.md` — controlling
-- `tools/audit_nmi_fixed_2c_head.py` — controlling audit
-- `analysis/04FF_WORKING_NOTE.md` — active hold
+- `analysis/NMI_FIXED_2C_HEAD.md`
+- `tools/audit_nmi_fixed_2c_head.py`
+- `analysis/NMI_FIXED_2C_PREFIX.md` records the superseded broad accounting.
 
 ## Current provenance boundary
 
@@ -138,32 +138,29 @@ raw bank $0C / PRG24                 -> preserves $10 on live paths
 raw bank $04 parser + 96/96 roots    -> preserves $10
 raw bank $05 parser + 72/72 roots    -> preserves $10
 $E7FB + first-level fixed graph       -> preserves $10
-04FF 26-root fixed head               -> preserves $10 locally; 931 new bytes
+04FF 26-root fixed head               -> preserves $10; 931 new bytes
 $18 selector producer domain          -> unresolved
-full $2C producer/target closure       -> unresolved
+full $2C producer/target closure      -> unresolved
 secondary $68 dispatch domains        -> unresolved
-mapper-dependent fixed/banked exits   -> unresolved
+mapper-dependent exits                -> unresolved
 PRG26 renderer                        -> consumes/persists $10 exactly
 ```
 
-**VPP remains 21/100** because complete transitive pre-render NMI-helper closure is not yet proven.
+**VPP remains 21/100** because complete transitive pre-render NMI-helper closure is still open.
 
-## Active 04FF hold / next bounded investigation
+## Next checkpoint — 0500
 
-`analysis/RESUME_STATE.json` remains **blocked at `$F3DD`**. Do not promote a `$F800` linear frontier yet: 04FF is a semantic state-machine closure, not a simple contiguous byte sweep.
-
-The next useful raw window for the deferred fixed targets is:
+Continue fixed PRG31 from raw investigation frontier `$F800`.
 
 ```text
-$F800-$FBFF   1024 raw bytes
-SHA-256 f3090b53f174f15eeacad0d9e042efd95ff93ed6b4bfd706ba233ee5f588c86a
+initial raw window  $F800-$FBFF   1024 bytes
+SHA-256             f3090b53f174f15eeacad0d9e042efd95ff93ed6b4bfd706ba233ee5f588c86a
+
+verification overlap $F7E0-$F7FF  32 bytes
+SHA-256              6966c228f397fb1a390562bc871d382f624397bd65f06bb301774b085e7759d1
+
+frontier fingerprint $F800-$F81F  32 bytes
+SHA-256              322b459da91a43e13712821aba143184801a6b9e6c91e0047f9826846a957f24
 ```
 
-Useful alignment checks:
-
-```text
-$F7C0-$F7FF  SHA-256 0654eeccd284ba39d016f954cdfbe17b34b7218a1afe2bc6eca799a2713a13f7
-$F800-$F81F  SHA-256 322b459da91a43e13712821aba143184801a6b9e6c91e0047f9826846a957f24
-```
-
-Continue 04FF by reconciling the deferred primary entries at `$F831/$F839/$F841/$F849/$F965`, the `$68`-indexed dispatches they expose, and mapper-selected callees that can affect `$2C`/`$10`. Only after those dependencies produce a safe semantic frontier should `RESUME_STATE.json` return to `ready`.
+0500 should reconcile the deferred `$F831/$F839/$F841/$F849/$F965` primary targets, prove the two `$68` selector domains from JP producers, admit the four 04FF gaps only through actual control flow, and continue the whole-ROM `$2C` writer/alias audit. Mapper-dependent `$8000-$DFFF` targets remain opaque until actual VRC6 bank state is proven.
