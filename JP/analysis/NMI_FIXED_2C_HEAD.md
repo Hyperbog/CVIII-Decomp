@@ -1,6 +1,6 @@
-# Checkpoint 04FF partial — fixed PRG31 `$2C` nested-dispatch head
+# Checkpoint 04FF — fixed PRG31 `$2C` nested-dispatch head
 
-This is a **bounded partial 04FF evidence checkpoint**, not a completed 04FF closure. The repository recovery state must remain `blocked` until the full live `$2C` producer domain and all admitted nested targets are reconciled.
+04FF is a **completed bounded checkpoint**, not a claim that the entire live `$2C` producer domain is closed. It closes exactly the fixed-bank nested target graph admitted by the 26 primary `$2C` table entries whose entrypoints lie in `PRG31:$F3DD-$F7FF`. The remaining primary entries, secondary `$68` dispatchers, and mapper-dependent callees are carried forward to 0500.
 
 Authoritative JP ROM SHA-256:
 
@@ -10,24 +10,27 @@ Authoritative JP ROM SHA-256:
 
 ## Recovery boundary
 
-04FE established the nested `$E7FB` table at fixed `PRG31:$F39D-$F3DC`. The 64-byte table and next-code fingerprint reproduce exactly:
+04FE established the nested `$E7FB` pointer table at `$F39D-$F3DC`.
 
 ```text
-$F39D-$F3DC  SHA-256 81d06cd79d64c3d4cfe14bbefa851e74e748536f723636abaf82870ec065d22f
-$F3DD-$F3FC  SHA-256 65d47f163ffad5ca20903cece8606c76416ceb5cb8edba99780be720730f08aa
+$F39D-$F3DC  64-byte verification overlap
+SHA-256      81d06cd79d64c3d4cfe14bbefa851e74e748536f723636abaf82870ec065d22f
+
+$F3DD-$F3FC  32-byte alignment fingerprint
+SHA-256      65d47f163ffad5ca20903cece8606c76416ceb5cb8edba99780be720730f08aa
 ```
 
-The initial 04FF raw window is fixed `PRG31:$F3DD-$F7FF` (1059 bytes), SHA-256:
+The raw 04FF investigation window is `$F3DD-$F7FF` (1059 bytes), SHA-256:
 
 ```text
 72918e40813310fe3f967790d9b77e344a0f2ede92d12942d95c23849084b1b6
 ```
 
-Prior 04FE coverage `$F6AE-$F6E3` remains verification/prior coverage only and is never counted again.
+Prior 04FE coverage `$F6AE-$F6E3` is never counted again.
 
-## Primary nested-table roots inside this window
+## Admitted primary roots
 
-The 32-entry `$2C` table encoded by 04FE contains 26 distinct targets inside `$F3DD-$F7FF`. Six entries are deliberately deferred because they start beyond this bounded window:
+The 32-entry nested `$2C` table has 26 distinct targets inside this window. Six encoded entries are deliberately carried forward:
 
 ```text
 $08 -> $F965
@@ -38,51 +41,21 @@ $0E -> $F841
 $10 -> $F849
 ```
 
-The 26 in-window roots are decoded conservatively: both sides of conditional branches are followed; fixed calls/jumps outside the bounded window and CPU `$8000-$DFFF` exits are recorded as dependencies rather than guessed through an unknown mapper state.
+No table length is treated as a selector bound.
 
-## Strict fixed-window graph
+## Strict bounded graph
 
-Result:
-
-```text
-official instruction starts       401
-unknown opcodes                      0
-unique decoded instruction bytes   931
-04FE $F6AE-$F6E3 overlap             0
-```
-
-Exact genuinely-new byte manifest:
+Recursive official-6502 decoding follows both sides of conditional branches. Fixed targets outside the window and CPU `$8000-$DFFF` targets are recorded as semantic exits rather than traversed under guessed mapper state.
 
 ```text
-F3DD-F6AD   721   SHA-256 371c27c08f71624463d2c63097938a30fa57253bd073d2554d454111708f6852
-F6E4-F705    34   SHA-256 cd2f26e03fcfab69f12aec4fbe3ff9571f8a2633b3c84eb4365a0d8e777378c5
-F713-F723    17   SHA-256 4bc45df46fbab59efc9b70eb7d577001b8474818f921b86e618b43c4653c8300
-F739-F781    73   SHA-256 b8cc2cdf6b04eb86ff7693b53c006afb6710098252d7a921e199c22355d462ac
-F792-F7B6    37   SHA-256 b564a74ff4c6ba3a55b76472c1462ff1b915f0c333c8dc54ccae3b9a76d1e5e1
-F7CF-F7FF    49   SHA-256 13b6de6ba1671ce00afec40ee8b7886d6ed9126a6261b5a090a15f0cc73b1574
+official instruction starts        401
+unknown opcodes                       0
+unique consumed instruction bytes   931
+reachable store/RMW instructions     46
+indexed/indirect store/RMW forms      0
 ```
 
-Ordered-manifest SHA-256:
-
-```text
-2e8b703b970ca2f1eae61f5fd1a4850da6b8e5d4af1a894fb8075657299ae0d4
-```
-
-The 128 raw bytes in the bounded window not claimed by this graph are exactly:
-
-```text
-F6AE-F6E3   54 bytes   prior 04FE coverage
-F706-F712   13 bytes   not reached by these 26 roots
-F724-F738   21 bytes   not reached
-F782-F791   16 bytes   not reached
-F7B7-F7CE   24 bytes   not reached
-```
-
-The last four gaps are not silently treated as code/data coverage; later secondary-dispatch evidence may admit them.
-
-## Dependency boundary
-
-The strict bounded graph records these exits without assigning guessed bank state:
+Boundary exits:
 
 ```text
 JSR -> CPU $8000-$DFFF       64
@@ -93,21 +66,46 @@ branch -> fixed outside         2
 fallthrough -> fixed outside    1
 ```
 
-These are semantic dependencies, not coverage escapes hidden by the audit.
+## Exact genuinely-new manifest
+
+Only instruction and operand bytes actually consumed by the admitted graph are counted:
+
+```text
+F3DD-F6AD   721   SHA-256 371c27c08f71624463d2c63097938a30fa57253bd073d2554d454111708f6852
+F6E4-F705    34   SHA-256 cd2f26e03fcfab69f12aec4fbe3ff9571f8a2633b3c84eb4365a0d8e777378c5
+F713-F723    17   SHA-256 4bc45df46fbab59efc9b70eb7d577001b8474818f921b86e618b43c4653c8300
+F739-F781    73   SHA-256 b8cc2cdf6b04eb86ff7693b53c006afb6710098252d7a921e199c22355d462ac
+F792-F7B6    37   SHA-256 b564a74ff4c6ba3a55b76472c1462ff1b915f0c333c8dc54ccae3b9a76d1e5e1
+F7CF-F7FF    49   SHA-256 13b6de6ba1671ce00afec40ee8b7886d6ed9126a6261b5a090a15f0cc73b1574
+```
+
+Total genuinely new bytes: **931**.
+
+Ordered-manifest SHA-256:
+
+```text
+2e8b703b970ca2f1eae61f5fd1a4850da6b8e5d4af1a894fb8075657299ae0d4
+```
+
+Unclaimed bytes remain explicit:
+
+```text
+F6AE-F6E3   54 bytes   prior 04FE coverage
+F706-F712   13 bytes   not reached by these 26 roots
+F724-F738   21 bytes   not reached
+F782-F791   16 bytes   not reached
+F7B7-F7CE   24 bytes   not reached
+```
+
+The older 1005-byte physical-prefix claim is superseded because it counted the final 74 unreached bytes merely from contiguity.
 
 ## Shared ZP `$10`
 
-Within the decoded fixed-window graph:
+The admitted fixed graph has no direct ZP/absolute write to `$10` and no indexed/indirect store/RMW addressing form. Therefore **the bounded 04FF fixed graph preserves shared ZP `$10`**. This does not assert anything about the unresolved external callees.
 
-- 46 reachable store/RMW instructions exist;
-- there is no direct ZP/absolute write to `$10`;
-- there is no reachable indexed or indirect store/RMW addressing form at all.
+## Local `$2C` transitions
 
-Therefore the **bounded fixed `$F3DD-$F7FF` graph itself preserves shared ZP `$10`**. This does not prove that its external mapper-dependent callees preserve `$10`.
-
-## `$2C` producer information learned here
-
-Reachable fixed-side mutations of `$2C` are exactly:
+Reachable fixed-side mutations are exactly:
 
 ```text
 F3FF INC $2C
@@ -128,45 +126,22 @@ F7B4 INC $2C
 F7DB STA $2C
 ```
 
-ROM-local constant stores are bounded:
+ROM-local constant stores are bounded to the encoded state family. Conservative root association for the INC sites reaches at most primary entry `$1C -> $1D` locally. This is deliberately **not** promoted to the complete live `$2C` producer bound because external callees and six deferred primary entries remain open.
 
-```text
-$F486 <- $04 / $09 / $13, selected by local predecessors
-$F4CF <- $0F
-$F4DC <- $0A
-$F4F3 <- $10
-$F629 <- $07
-$F635 <- $01
-$F64F <- $02
-$F7DB <- $10
-```
+## 04FF result
 
-Conservative root reachability for the INC sites is:
-
-```text
-F3FF <- primary entry $00
-F443 <- $01
-F4BF <- $01,$02
-F5CF <- $04
-F6FB <- $1C
-F716 <- $13
-F775 <- $14
-F7B4 <- $15
-```
-
-Thus the highest in-window primary entry that can conservatively reach an increment is `$1C`, which would yield at most `$1D` **if no intervening external callee changes `$2C`**.
-
-That qualification is controlling. This partial checkpoint does **not** claim `$2C <= $1F` because:
-
-1. fixed callees outside `$F3DD-$F7FF` may mutate `$2C`;
-2. mapper-dependent `$8000-$DFFF` callees may mutate `$2C`;
-3. six primary table entries lie beyond `$F7FF`;
-4. those deferred states expose additional `$68`-indexed inline dispatchers.
-
-A subsequent probe already confirms why those domains must stay separate: `$F849` and `$F965` each execute `LDA $68 / JSR $E7FB` with their own inline pointer data. Their table shapes are not producer-domain bounds and are not closed here.
-
-## Result
-
-**04FF partial result:** 931 genuinely new fixed PRG31 bytes are strictly decoded and ZP `$10`-safe; the fixed-side `$2C` transitions are sharply bounded, but the live `$2C` producer domain is not yet closed. Keep `RESUME_STATE.json` blocked at `$F3DD` until the deferred states, secondary `$68` dispatches, and mapper-selected callees are reconciled.
+**04FF closes 931 genuinely new fixed PRG31 bytes and proves the admitted 26-root fixed graph is ZP `$10`-safe.** It leaves the full `$2C` producer domain unresolved without blocking recovery: that work is explicitly moved to checkpoint 0500.
 
 Reproducible audit: `tools/audit_nmi_fixed_2c_head.py`.
+
+## Next checkpoint — 0500
+
+Start the next raw investigation window at fixed `PRG31:$F800` and reconcile:
+
+1. deferred primary entries `$F831/$F839/$F841/$F849/$F965`;
+2. secondary `$68` inline dispatchers at `$F849` and `$F965` and their actual producer domains;
+3. the four 04FF gaps `$F706-$F712`, `$F724-$F738`, `$F782-$F791`, `$F7B7-$F7CE` only if secondary-dispatch evidence admits them;
+4. mapper-dependent callees only under proven VRC6 bank state;
+5. whole-domain `$2C` writers/aliases before claiming `$2C <= $1F`.
+
+VPP remains **21/100**.
