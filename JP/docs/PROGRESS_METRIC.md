@@ -8,21 +8,21 @@ The machine-readable score is `analysis/PROGRESS_SCORE.csv`; `tools/progress_sco
 
 ## Current score
 
-**VPP: 23 / 100 (23%)**
+**VPP: 24 / 100 (24%)**
 
-The two latest points are the tested native Mapper 24 / VRC6 PRG+CHR mapper and native VRC6 IRQ timing/scheduler.
+The latest point is the reusable raw-bank `$0B` collision scratch/distance architecture plus its native 8-bit collision-math lift and exhaustive regression test. The two preceding points were the tested native Mapper 24 / VRC6 PRG+CHR mapper and native VRC6 IRQ timing/scheduler.
 
 | category | weight | earned | current basis |
 |---|---:|---:|---|
 | Foundation / cartridge model | 5 | 4 | exact ROM identity, physical PRG/CHR map, vectors, VRC6 CPU-window model; complete mapper-register use inventory still open |
 | CPU / mapper / interrupts | 10 | 8 | RESET path, PRG helpers, top-level NMI, IRQ table/state machine, control-vs-ack behavior, native VRC6 PRG/CHR mapper, native VRC6 IRQ scheduler; trace parity still open |
 | Rendering / PPU | 10 | 5 | OAM arrays, selector/master tables, variable descriptor encoding, exact sprite transforms/state, native OAM lift; background/CHR/PPU parity open |
-| Gameplay / object systems | 25 | 1 | only partial object dispatcher/state-machine architecture is currently proven; player/combat/enemy/boss systems remain overwhelmingly open |
+| Gameplay / object systems | 25 | 2 | partial object dispatcher/state-machine architecture plus a ROM-backed collision scratch/distance architecture with native exact-8-bit math; player/combat/enemy/boss systems remain overwhelmingly open |
 | Stage / world / progression | 20 | 0 | stage data, room/scrolling, collision maps, route/progression, menus/password/end flow not yet reconstructed |
 | Audio | 12 | 1 | NSF-to-ROM correlation is established; full driver/data/native APU+VRC6/parity work remains open |
-| Native runtime / platform | 10 | 1 | isolated faithful native OAM subsystem exists; native mapper/IRQ lifts now exist but complete memory/PPU integration and executable are open |
+| Native runtime / platform | 10 | 1 | isolated faithful native OAM subsystem exists; native mapper/IRQ/collision primitives now exist but complete memory/PPU integration and executable are open |
 | Validation / tooling | 8 | 3 | ROM identity audit, subsystem binary audits, and native subsystem tests exist; CPU traces, frame goldens, CI/end-to-end parity remain open |
-| **Total** | **100** | **23** | |
+| **Total** | **100** | **24** | |
 
 ## Fixed rubric
 
@@ -72,7 +72,7 @@ Subweights:
 
 - object dispatcher/state-table architecture: 5 points — **1 earned / 5**
 - player control/state machine: 4 — open
-- movement/physics/collision behavior: 4 — open
+- movement/physics/collision behavior: 4 — **1 earned / 4** (`analysis/NMI_BANK0B_COLLISION_ZP10_0502.md`, `src/collision_math.*`, `tests/collision_math_test.cpp`)
 - combat/weapons/damage: 4 — open
 - common enemy/actor AI: 4 — open
 - bosses/special actors: 4 — open
@@ -107,7 +107,7 @@ Partial points in this category require a committed, reusable architectural resu
 - bootable/playable native executable: 1 — open
 - reproducible cross-platform build/package: 1 — open
 
-The standalone mapper and IRQ source do not themselves earn native-runtime integration credit; that requires wiring them into the CPU/memory/PPU frame runtime.
+The standalone mapper, IRQ and collision-math source do not themselves earn additional native-runtime integration credit; that requires wiring them into the CPU/memory/PPU frame runtime.
 
 ### 8. Validation / tooling — 8 points
 
