@@ -79,13 +79,9 @@ The first faithful native subsystem now exists:
 
 The lift keeps NES RAM explicit and preserves 8-bit pointer-index wrap, variable descriptor width, persistent `$10`, full-byte `$0454` OR semantics, mirror/tile transforms, signed X clipping, OAM permutation, and the `$8070` non-local OAM-full exit via an explicit propagated result.
 
-The test suite now includes a first-record compression regression: it seeds incoming `$10=$A7`, starts the object's descriptor with a compressed record, and verifies that exact cached byte is emitted unchanged. This locks the machine-state contract required by `$9FA9`-style descriptors.
+The test suite includes a first-record compression regression: it seeds incoming `$10=$A7`, starts the object's descriptor with a compressed record, and verifies that exact cached byte is emitted unchanged.
 
 ## Checkpoint 04B — zero-page `$10` lifetime at renderer entry
-
-This checkpoint was intentionally limited to `$10` state ownership.
-
-### Proven renderer accesses
 
 Inside the proven `$8001-$817E` renderer region:
 
@@ -94,57 +90,46 @@ Inside the proven `$8001-$817E` renderer region:
 - `$811B`: `STA $10` — cache final mirrored explicit attribute
 - `$8166`: `LDA $10` — compressed mirrored record
 
-There is no renderer-side initialization before object processing.
+There is no renderer-side initialization before object processing. Direct gameplay code in VRC6 bank `$03` also uses `$10` as unrelated scratch, proving it is shared zero-page machine state rather than renderer-private storage.
 
-### NMI boundary
-
-The top-level fixed-bank NMI instruction stream from `$E057` through the bank-$0D call at `$E0C7` contains no direct `STA/STX/STY $10`. This is deliberately **not** a transitive claim about every helper called by NMI.
-
-### Shared scratch proof
-
-Direct gameplay code in VRC6 bank `$03` uses the same byte for unrelated temporary state:
-
-- bank03 `$9752`: `STA $10`
-- bank03 `$9769`: `LDA $10`, then stores the value into object base-X state
-
-Thus `$10` is not renderer-private storage or a descriptor-local cache initializer. It is shared zero-page machine state that the renderer consumes and conditionally overwrites.
-
-### Consequence for `$9FA9`
-
-No dedicated initializer has been proved before `$9FA9`; the bytes prove the opposite architectural requirement: the descriptor consumes the **pre-existing shared RAM value** until a full record updates it. A faithful native baseline must therefore expose `$10` through shared NES RAM and must not invent a renderer/object/descriptor default.
-
-Evidence: `analysis/ZP10_OAM_STATE.md`; reproducible audit: `tools/audit_oam_zp10.py`.
+Evidence: `analysis/ZP10_OAM_STATE.md`; audit: `tools/audit_oam_zp10.py`.
 
 ## Checkpoint 04C — `$9FA9` reachability boundary
 
-This checkpoint asks only how selector `$10` and frame `$14` can coexist.
+`$9FA9` requires selector `$048C[slot]=$10` plus frame `$0400[slot]=$14`.
 
-`$9FA9` requires:
+Checked direct selector-`$10` setup paths use high frame values (`$F0`, `$F4-$FE`, `$D2/$C0/$C6/$CC/$E4/$E0`, `$E8/$EC`), not `$14`.
 
-- `$048C[slot] = $10`
-- `$0400[slot] = $14`
+PRG22 `$8745` writes frame `$14` without locally writing the selector, making it the first candidate for a persistent-selector transition. Full notes: `analysis/PRG26_9FA9_REACHABILITY.md`.
 
-The checked direct selector-`$10` setup paths do **not** initialize frame `$14`:
+## Checkpoint 04D — owner of PRG22 `$8745`
 
-- PRG06 `$8EB7` spawn loop uses frames `$F4,$F6,$F8,$FA,$FC,$FE`
-- PRG06 `$8EF4/$8EF7` pairs frame `$F0` with selector `$10`
-- PRG06 helper `$9474/$947D` pairs selector `$10` with caller-supplied frames; reconciled direct callers/table returns use `$F0,$D2,$C0,$C6,$CC,$E4,$E0`, not `$14`
-- PRG18 `$9DF8/$9DFB` pairs selector `$10` with frame `$E8` or `$EC`
+Direct dispatcher/state-table reconstruction rejects `$8745` as the selector-`$10` route.
 
-Separately, physical PRG22 contains a later object-state transition at `$8745`:
+The PRG23 object dispatcher uses `$05EF,X` as object type and `$05C1,X` as a four-byte state-record index. Object type `$26` points to state table `$AE6A-$AF29` (48 states).
 
-```asm
-LDA #$14
-STA $0400,X
-```
+Action dispatch proves:
 
-The local path does not write `$048C,X`, so the sprite-set selector can persist while the frame changes to `$14`.
+- action `$5C` -> `PRG22:$871E`
+- action `$8A` -> `PRG22:$86F2`
+- both can reach the shared `$8734-$874D` tail containing `$8745: LDA #$14 / STA $0400,X`
 
-This proves the architectural point needed for decompilation: selector and frame are independently persistent object fields; frame domain cannot be inferred solely from selector initialization.
+Within type `$26`, the two normal action-`$5C` entries are immediately preceded by explicit action-`$0B` sprite setup:
 
-What remains unproved is whether the PRG22 `$8745` handler actually operates on an object previously configured with selector `$10`. That ownership/reachability link is the next small checkpoint.
+- state `$07`: `0B 12 12 00` -> selector `$12`, frame `$12`
+- state `$08`: action `$5C`
+- state `$13`: `0B 12 12 00` -> selector `$12`, frame `$12`
+- state `$14`: action `$5C`
 
-Full notes: `analysis/PRG26_9FA9_REACHABILITY.md`.
+Action `$0B` at `$8519` directly writes record byte 1 to `$048C,X` and byte 2 to `$0400,X`.
+
+Enumerating every action-`$0B` record in the complete type-`$26` table shows that its explicit selector values are only `$12` and `$08`; selector `$10` never occurs.
+
+Therefore `$8745` belongs to the type-`$26` `$12/$08` sprite-set family and does **not** establish the missing selector-`$10` + frame-`$14` path to `$9FA9`.
+
+Scope limit: this does not claim arbitrary external code could never mutate `$048C,X` for a type-`$26` object. It proves that the authoritative type-`$26` state machine itself does not provide selector `$10`, and its ordinary `$871E` entries are directly preceded by selector `$12` setup.
+
+Evidence: `analysis/PRG22_8745_OWNER.md`; audit: `tools/audit_prg22_8745_owner.py`.
 
 ## Authoritative continuation files
 
@@ -161,18 +146,20 @@ Full notes: `analysis/PRG26_9FA9_REACHABILITY.md`.
 11. `analysis/OAM_OBJECT_FIELDS.csv`
 12. `analysis/ZP10_OAM_STATE.md`
 13. `analysis/PRG26_9FA9_REACHABILITY.md`
-14. `src/oam_renderer.hpp`
-15. `src/oam_renderer.cpp`
-16. `tests/oam_renderer_test.cpp`
-17. `tools/analyze_rom.py`
-18. `tools/audit_irq_dispatch.py`
-19. `tools/audit_oam_tables.py`
-20. `tools/audit_sprite_descriptors.py`
-21. `tools/audit_oam_zp10.py`
+14. `analysis/PRG22_8745_OWNER.md`
+15. `src/oam_renderer.hpp`
+16. `src/oam_renderer.cpp`
+17. `tests/oam_renderer_test.cpp`
+18. `tools/analyze_rom.py`
+19. `tools/audit_irq_dispatch.py`
+20. `tools/audit_oam_tables.py`
+21. `tools/audit_sprite_descriptors.py`
+22. `tools/audit_oam_zp10.py`
+23. `tools/audit_prg22_8745_owner.py`
 
 ## Unresolved / do not assume
 
-- whether PRG22 `$8745` is reachable for an object whose `$048C` selector is `$10`
+- actual reachable mechanism, if any, producing selector `$10` plus frame `$14`
 - which object slots can reach `$9FA9`
 - whether object ordering guarantees a prior explicit-attribute sprite before `$9FA9`
 - exact preceding `$10` value on every reachable `$9FA9` path
@@ -186,4 +173,4 @@ Full notes: `analysis/PRG26_9FA9_REACHABILITY.md`.
 
 ## Next manageable checkpoint
 
-**04D: owner of PRG22 `$8745` only.** Trace the function/state-dispatch entry that reaches `$8745` and connect that specific handler to its object creation/setup path. The target is binary: prove it can operate on a selector-`$10` object, or prove it belongs to another selector family. Do not trace unrelated object types in the same checkpoint.
+**04E: selector-`$10` frame mutation mechanism only.** Starting from the already-proven selector-`$10` producer families, identify how their `$0400` frame field changes after setup and determine whether any reachable table/increment/copy path can produce frame `$14`. Do not broaden into unrelated object types or general animation semantics.
