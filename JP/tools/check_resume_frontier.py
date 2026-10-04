@@ -21,11 +21,26 @@ def main(rom_path: str) -> None:
     rom = Path(rom_path).read_bytes()
     rom_sha = hashlib.sha256(rom).hexdigest()
     assert rom_sha == state["rom_sha256"], (rom_sha, state["rom_sha256"])
-
     prg = rom[16 : 16 + 0x40000]
-    first_prg = state["execution_context"]["physical_prg_banks"][0]
-    raw_bank = prg[first_prg * 0x2000 : (first_prg + 2) * 0x2000]
-    assert len(raw_bank) == 0x4000
+
+    execution = state["execution_context"]
+
+    def raw_bank_for(record: dict) -> tuple[bytes, str]:
+        # Schema >=5 may identify overlap/fingerprint banks independently so a
+        # verified handoff can cross a mapper-bank boundary. Older states keep
+        # using execution_context.physical_prg_banks exactly as before.
+        raw_name = record.get("raw_vrc6_bank")
+        if raw_name is not None:
+            raw_index = int(raw_name, 16)
+            first_prg = raw_index * 2
+            label = f"raw bank ${raw_index:02X} / PRG{first_prg:02d}-PRG{first_prg+1:02d}"
+        else:
+            first_prg = execution["physical_prg_banks"][0]
+            raw_index = first_prg // 2
+            label = f"raw bank ${raw_index:02X} / PRG{first_prg:02d}-PRG{first_prg+1:02d}"
+        raw_bank = prg[first_prg * 0x2000 : (first_prg + 2) * 0x2000]
+        assert len(raw_bank) == 0x4000
+        return raw_bank, label
 
     status = state.get("status", "ready")
     if status != "ready":
@@ -36,6 +51,7 @@ def main(rom_path: str) -> None:
             print("-", reason)
         candidate = repair.get("candidate_dependency_span")
         if candidate:
+            raw_bank, label = raw_bank_for(candidate)
             start = int(candidate["start_cpu"], 16)
             end = int(candidate["end_cpu_inclusive"], 16)
             data = cpu_slice(raw_bank, start, end)
@@ -44,6 +60,7 @@ def main(rom_path: str) -> None:
             assert digest == candidate["sha256"], (digest, candidate["sha256"])
             print(
                 "repair candidate bytes: OK",
+                label,
                 f"${start:04X}-${end:04X}",
                 f"({len(data)} bytes)",
                 digest,
@@ -52,42 +69,62 @@ def main(rom_path: str) -> None:
         raise SystemExit(2)
 
     overlap = state["verification_overlap"]
+    overlap_bank, overlap_label = raw_bank_for(overlap)
     ostart = int(overlap["start_cpu"], 16)
     oend = int(overlap["end_cpu_inclusive"], 16)
-    obytes = cpu_slice(raw_bank, ostart, oend)
+    obytes = cpu_slice(overlap_bank, ostart, oend)
     assert len(obytes) == overlap["length"]
     osha = hashlib.sha256(obytes).hexdigest()
     assert osha == overlap["sha256"], (osha, overlap["sha256"])
 
     fp = state["frontier_fingerprint"]
+    fp_bank, fp_label = raw_bank_for(fp)
     fstart = int(fp["start_cpu"], 16)
     fend = int(fp["end_cpu_inclusive"], 16)
-    fbytes = cpu_slice(raw_bank, fstart, fend)
+    fbytes = cpu_slice(fp_bank, fstart, fend)
     assert len(fbytes) == fp["length"]
     fsha = hashlib.sha256(fbytes).hexdigest()
     assert fsha == fp["sha256"], (fsha, fp["sha256"])
 
     frontier = state["frontier"]
-    assert int(frontier["last_closed_cpu"], 16) + 1 == int(frontier["next_unprocessed_cpu"], 16)
-    assert int(overlap["end_cpu_inclusive"], 16) == int(frontier["last_closed_cpu"], 16)
-    assert int(fp["start_cpu"], 16) == int(frontier["next_unprocessed_cpu"], 16)
+    last_closed = int(frontier["last_closed_cpu"], 16)
+    next_cpu = int(frontier["next_unprocessed_cpu"], 16)
+    transition = bool(frontier.get("domain_transition", False))
+    if not transition:
+        assert last_closed + 1 == next_cpu
+    assert oend == last_closed
+    assert fstart == next_cpu
+
+    if transition:
+        assert overlap.get("raw_vrc6_bank") is not None
+        assert fp.get("raw_vrc6_bank") is not None
+        assert overlap["raw_vrc6_bank"].upper() != fp["raw_vrc6_bank"].upper()
 
     print("ROM identity: OK", rom_sha)
     print(
         "pre-frontier overlap: OK",
+        overlap_label,
         f"${ostart:04X}-${oend:04X}",
         f"({len(obytes)} bytes)",
         osha,
     )
     print(
         "frontier fingerprint: OK",
+        fp_label,
         f"${fstart:04X}-${fend:04X}",
         f"({len(fbytes)} bytes)",
         fsha,
     )
     print("last completed checkpoint:", state["last_completed_checkpoint"])
     print("last completed checkpoint commit:", state["last_completed_checkpoint_commit"])
-    print("safe resume CPU frontier: $" + frontier["next_unprocessed_cpu"])
+    if transition:
+        print(
+            "safe resume domain transition:",
+            f"raw bank ${overlap['raw_vrc6_bank']} ${frontier['last_closed_cpu']} ->",
+            f"raw bank ${fp['raw_vrc6_bank']} ${frontier['next_unprocessed_cpu']}",
+        )
+    else:
+        print("safe resume CPU frontier: $" + frontier["next_unprocessed_cpu"])
     print("next checkpoint:", frontier["next_checkpoint"])
     print("NOTE: verification overlap is not new coverage")
 
