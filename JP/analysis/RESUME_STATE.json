@@ -1,14 +1,14 @@
 {
-  "schema_version": 6,
+  "schema_version": 7,
   "status": "ready",
   "project": "Akumajou Densetsu JP decomp/recomp",
   "repository": "Hyperbog/CVIII-Decomp",
   "branch": "decompilation",
   "rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
   "safe_forward_work": true,
-  "last_completed_checkpoint": "04FD",
-  "last_completed_checkpoint_commit": "5e2d38b511cd4219f022d045277076aaf20c51a9",
-  "previous_checkpoint_audit": "tools/audit_nmi_bank05_prg11_tail.py",
+  "last_completed_checkpoint": "04FE",
+  "last_completed_checkpoint_commit": "34a0ce3e925aa52f4f4ab3efd1e30869a48d1118",
+  "previous_checkpoint_audit": "tools/audit_nmi_fixed_e7fb_dispatch.py",
   "vpp": {
     "earned": 21,
     "total": 100
@@ -21,47 +21,54 @@
     "cpu_base": "E000"
   },
   "frontier": {
-    "last_closed_cpu": "BF05",
-    "last_closed_raw_vrc6_bank": "05",
-    "next_unprocessed_cpu": "E7FB",
+    "last_closed_cpu": "F3DC",
+    "last_closed_physical_prg_bank": 31,
+    "next_unprocessed_cpu": "F3DD",
     "next_physical_prg_bank": 31,
-    "next_checkpoint": "04FE",
-    "domain_transition": true,
-    "initial_window_start_cpu": "E7FB",
-    "initial_window_end_cpu_inclusive": "EBFF",
-    "initial_window_contiguous_bytes": 1029
+    "next_checkpoint": "04FF",
+    "domain_transition": false,
+    "initial_window_start_cpu": "F3DD",
+    "initial_window_end_cpu_inclusive": "F7FF",
+    "initial_window_contiguous_bytes": 1059
   },
   "verification_overlap": {
-    "raw_vrc6_bank": "05",
-    "start_cpu": "BEC6",
-    "end_cpu_inclusive": "BF05",
+    "physical_prg_bank": 31,
+    "cpu_base": "E000",
+    "start_cpu": "F39D",
+    "end_cpu_inclusive": "F3DC",
     "length": 64,
-    "sha256": "147db970967ce1d07c60a098be16c2e45ab99c491a0ade38fd01b6ea8d87fbf6",
-    "coverage_accounting": "verification-only; never count these 64 bytes as new coverage"
+    "sha256": "81d06cd79d64c3d4cfe14bbefa851e74e748536f723636abaf82870ec065d22f",
+    "semantic_unit": "32-entry nested E7FB inline pointer table indexed from $2C",
+    "coverage_accounting": "verification-only; these 64 bytes are part of 04FE and must never be counted again"
   },
   "frontier_fingerprint": {
     "physical_prg_bank": 31,
     "cpu_base": "E000",
-    "start_cpu": "E7FB",
-    "end_cpu_inclusive": "E81A",
+    "start_cpu": "F3DD",
+    "end_cpu_inclusive": "F3FC",
     "length": 32,
-    "sha256": "1ca470cc478911cb3c75c9dc716b23714e2b816b674d716a2ec33e5cbedd6d58",
+    "sha256": "65d47f163ffad5ca20903cece8606c76416ceb5cb8edba99780be720730f08aa",
     "purpose": "alignment/fingerprint only; does not establish semantic closure"
   },
-  "prior_dependency_span": {
-    "raw_vrc6_bank": "05",
-    "start_cpu": "AD97",
-    "end_cpu_inclusive": "BF05",
-    "length": 4463,
-    "sha256": "30f4e1640f97c342886a4d5f1a652cbfda41102abbd4760501bcd2915b474a72",
-    "exact_new_bytes_in_checkpoint": 4463
-  },
-  "parser_core_verification": {
-    "start_cpu": "8001",
-    "end_cpu_inclusive": "87AD",
-    "length": 1965,
-    "sha256": "e2c3ff3d7e9f96b598610a8028f5b92a606fac7f9acb2977811146fa145fdb67",
-    "relation": "raw bank 05 is byte-identical to the already-audited raw bank 04 core"
+  "prior_dependency_manifest": {
+    "checkpoint": "04FE",
+    "mapping": "fixed PRG31 @ $E000-$FFFF",
+    "exact_new_bytes_in_checkpoint": 957,
+    "ordered_manifest_sha256": "a672f908a238bea20902fc40c5417622bdb9af675cda3b982a6f0ce494ebad32",
+    "ranges": [
+      {"start_cpu":"E366","end_cpu_inclusive":"E433","length":206,"sha256":"b1bb37d98f9d0c9992ec2c9bc0c8a99cb3a1a2db8eb9359ecdc686ed1a7d6f46"},
+      {"start_cpu":"E436","end_cpu_inclusive":"E576","length":321,"sha256":"faa4c0e4033694f4e0bbadc1ac18fb500d3b746c8c1c1c46bb9523124c9ba3f9"},
+      {"start_cpu":"E62D","end_cpu_inclusive":"E631","length":5,"sha256":"40038e39a56b11e71412ead62b2574002c961973fe122d0aaca3b89f0ac0d52c"},
+      {"start_cpu":"E63D","end_cpu_inclusive":"E647","length":11,"sha256":"0b6bd8d5b060c86180149316236f21750165b786917ccf3dcd636db5071a8d34"},
+      {"start_cpu":"E710","end_cpu_inclusive":"E717","length":8,"sha256":"42e14ed3d9e6686c8e5b7b2f9c4639ddeafdc43a2156d6776c3ca07754096dd5"},
+      {"start_cpu":"E7A7","end_cpu_inclusive":"E813","length":109,"sha256":"77fdf616b9dcf810b95d87fbad15f22842b277c8a28e7bc6b0911084e493bdb2"},
+      {"start_cpu":"E827","end_cpu_inclusive":"E830","length":10,"sha256":"fe9dab3a7ce1bb29399af19923cf2e12165f9d17a0ed4bd6bebce71da6410060"},
+      {"start_cpu":"EB44","end_cpu_inclusive":"EB6A","length":39,"sha256":"7a534ebcac80d8c2e919184621381e3b944ae0ee161d474705cfe5cb199760c6"},
+      {"start_cpu":"EB82","end_cpu_inclusive":"EBF6","length":117,"sha256":"e69aaaa7f343f00621a23d78aab2b018057a6ba29ac50d07aa1c34bc8ed287e8"},
+      {"start_cpu":"F390","end_cpu_inclusive":"F3DC","length":77,"sha256":"534f1b3ff2e7b25348a1a4c66479018ec9153d63b3e9f9b964f9e07483905b15"},
+      {"start_cpu":"F6AE","end_cpu_inclusive":"F6E3","length":54,"sha256":"d79b617b7e27190b6556464a37cc024a1837e949ebe9446d12815da908233dfb"}
+    ],
+    "coverage_accounting": "noncontiguous prior coverage; subtract any overlap from all later fixed-bank checkpoints"
   },
   "prior_fixed_coverage": [
     {
@@ -84,24 +91,30 @@
     }
   ],
   "closed_state": [
-    "raw bank 04 alternate-parser executable core and all 96 bank-04 roots preserve shared ZP $10",
-    "raw bank 05 parser core $8001-$87AD is byte-identical to the audited bank-04 core",
-    "all 84 bank-05 metadata references / 72 roots initialize alternate-parser mode and are recursively closed",
-    "04FB/04FC/04FD derive every live bank-05 E7 parameter domain from actual JP-ROM producer bytes",
-    "04FD live E7 high-nibble domain is exactly $0,$2,$8; all index the in-range $8430-$8443 table and dispatch to audited $8444",
-    "entire raw bank 05 producer domain preserves shared ZP $10"
+    "raw bank 04 alternate-parser core and all 96 bank-04 roots preserve shared ZP $10",
+    "raw bank 05 alternate-parser core and all 72 bank-05 roots preserve shared ZP $10",
+    "fixed PRG31 $E7FB-$E813 is a stack-return-address inline tail dispatcher writing only ZP $00-$03",
+    "NMI $E360 first-level inline table occupies $E363-$E382 and encodes 16 target pointers; table size is not treated as a producer-domain bound",
+    "conservative first-level fixed graph from all 16 encoded targets has 435 official instruction starts, zero unknown opcodes, and no direct/indexed write capable of aliasing ZP $10 after X-domain reconciliation",
+    "first-level target $F390 reaches nested $E7FB at $F39A with selector source $2C",
+    "nested inline table occupies $F39D-$F3DC and encodes 32 target pointers; $F3DD begins code"
   ],
   "open_edges": [
-    "fixed PRG31 $E7FB / inline dispatch remains unresolved"
+    "$18 producer domain for the first-level NMI E7FB selector is unresolved; do not infer $00-$0F from table size",
+    "$2C producer domain for the nested E7FB selector is unresolved; do not infer $00-$1F from table size",
+    "nested target graph beginning at fixed PRG31 $F3DD remains unresolved",
+    "21 first-level mapper-dependent exits into CPU $8000-$BFFF remain unresolved until actual VRC6 mapper state is proven"
   ],
   "checkpoint_constraints": [
-    "04FE begins exactly at fixed PRG31 CPU $E7FB",
-    "initial genuinely-unprocessed fixed interval is $E7FB-$EBFF (1029 contiguous bytes)",
-    "treat PRG31 as physical 8 KiB fixed mapping at CPU $E000-$FFFF, not a raw 16 KiB VRC6 bank",
-    "decode actual 6502 control flow and inline-dispatch data from $E7FB with complete instruction operand accounting",
-    "reuse prior fixed coverage $E057-$E365 and $EC00-$EFFF when reached; do not count those bytes again",
-    "follow genuinely new dependencies beyond $EBFF only as required within the normal checkpoint budget",
-    "preserve exact stack, flags, indirect-address behavior, VRC6 state, and shared ZP $10 semantics"
+    "04FF begins exactly at fixed PRG31 CPU $F3DD",
+    "initial bounded interval is $F3DD-$F7FF (1059 contiguous bytes)",
+    "treat $F39D-$F3DC as verification-only inline pointer data and never as executable fall-through",
+    "prove live $2C producer values from JP-ROM producer/control flow before claiming the 32-entry table is bounded",
+    "reuse all 04FE noncontiguous manifest ranges as prior coverage and subtract overlaps from new-byte accounting",
+    "treat $E7FB as a tail dispatcher that consumes the caller's return address; preserve exact stack/Y/ZP $00-$03 behavior",
+    "resolve actual mapper state before traversing any $8000-$BFFF external edge",
+    "do not infer $18 or $2C selector clamps from encoded table lengths",
+    "preserve exact 6502 flags, stack behavior, VRC6 state, and shared ZP $10 semantics"
   ],
   "acceleration_policy": [
     "Japanese ROM and reproducible parity evidence are authoritative",
@@ -114,6 +127,6 @@
       "$9208 FE FF 33 91 -> $9133; operands through $920B",
       "$A010 FE FF 85 9E -> $9E85; operands through $A013"
     ],
-    "resolution": "hardened audits passed; bank 04 and bank 05 are complete; stale recovery documentation was corrected during 04FD"
+    "resolution": "hardened audits passed; banks 04/05 are complete; 04FE added explicit noncontiguous fixed coverage and did not infer dispatcher selector bounds"
   }
 }
