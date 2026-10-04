@@ -1,16 +1,18 @@
 # Akumajou Densetsu decomp/recomp continuity playbook
 
-Durable handoff for `Hyperbog/CVIII-Decomp`. Before new work read this file, `docs/PROGRESS.md`, `docs/PROGRESS_METRIC.md`, and `docs/ROM_IDENTITY.md`, then confirm the current `decompilation` branch head.
+Durable handoff for `Hyperbog/CVIII-Decomp`.
 
 ## Mandatory interruption recovery
 
-After any timeout, chat/thread limit, token limit, tool interruption, crash, or uncertain partial checkpoint, **do not resume from chat memory**. Read `docs/INTERRUPTION_RECOVERY.md` and `analysis/RESUME_STATE.json`, compare the current branch history against the recorded last completed checkpoint, and run:
+After any timeout, chat/thread limit, token limit, tool interruption, crash, model/context switch, long pause, or uncertain partial checkpoint, **do not resume from chat memory**. Read `docs/INTERRUPTION_RECOVERY.md` and `analysis/RESUME_STATE.json` first, compare current branch history against the recorded checkpoint state, and run:
 
 ```text
 python tools/check_resume_frontier.py <authoritative JP ROM.nes>
 ```
 
-The checker verifies the full ROM, a small overlap immediately before the committed frontier, and a fingerprint beginning exactly at the next unprocessed byte. The overlap is verification-only and must never be counted again as new coverage. If an interrupted checkpoint was not completely committed, restart it from the last committed frontier. `analysis/RESUME_STATE.json` is updated last at every completed checkpoint and is the machine-readable resume source of truth.
+If `RESUME_STATE.json` is blocked/provisional, do not start the nominal next checkpoint. Repair only the recorded affected boundary/dependency, then reconcile the audit, analysis, progress, continuity, and resume state. The overlap is verification-only and must never be counted again as new coverage.
+
+After the recovery gate passes, read this file, `docs/PROGRESS.md`, `docs/PROGRESS_METRIC.md`, and `docs/ROM_IDENTITY.md`, and confirm the current `decompilation` branch head.
 
 ## Objective and controlling evidence
 
@@ -32,13 +34,17 @@ Primary metric: **VPP = 21/100**. It is evidence-based, not a labor estimate or 
 
 Each user `continue` means one bounded checkpoint:
 
-- normally **500-5000 new ROM bytes**;
+- normally **500-5000 genuinely new ROM bytes**;
 - expand only to close the same question and never silently exceed the budget;
+- account separately for already-counted overlap/probe bytes;
 - add reproducible audit/evidence artifacts;
 - update progress/handoff and VPP only if earned;
+- update `analysis/RESUME_STATE.json` last;
 - commit and confirm branch head before reporting.
 
 Never guess code/data boundaries, producer domains, or semantics. Track physical PRG bank + CPU address. Preserve 6502 widths, flags, wrapping, stack/interrupt behavior and shared zero page. Preserve VRC6 bank/IRQ semantics. Never extend a table merely because following bytes decode plausibly. Do not invent host-side bounds/defaults until producer domains are proved. Keep `$10` as shared NES RAM. No original ROM bytes in Git.
+
+For variable-length instructions/streams, a claimed dependency span must include every operand/parameter byte actually read, not just the opcode/command byte.
 
 ## Stable cartridge / interrupt facts
 
@@ -68,11 +74,42 @@ Read `analysis/PRG26_SPRITE_FORMAT.md`, `analysis/SPRITE_MASTER_TABLES.csv`, `an
 - **04F4:** `$ED46` graph in `PRG31:$EC00-$EFFF`, 1024 bytes, preserves `$10`.
 - **04F5:** raw bank `$0C` / PRG24 `$8000-$91FF`, 4608 bytes, closed a conservative graph except `$842D`; all resolved writes are `$10`-clean.
 - **04F6:** PRG24 `$9200-$9FFF`, 3584 bytes. `$842D` was proved to be a bank/parser-state over-approximation for bank `$0C`, not a missing local bounds check. Fixed `$E1AF` loads `$06D3,X`, banks it in, then jumps CPU `$8001`. Parser mode is bit 0 of `$011B,X`; initialization is from first stream byte + instrument index and later direct writers preserve bit 0. Bank `$0C`: 139 instrument refs, 125 roots, only five alternate-parser refs, all immediate `$FF` roots; all raw `$E7` bytes belong to main-parser roots. Evidence: `analysis/NMI_BANK0C_PARSER_MODE.md`, `tools/audit_nmi_bank0c_parser_mode.py`.
-- **04F7:** raw bank `$04`, exact new-byte footprint **4691 bytes**: contiguous CPU `$8000-$9209` (4618 bytes, SHA-256 `cfdd27fa72b9e990c31bb12e1511fa7229ffe2c898dcc361586c77b71543caa6`) plus 73 isolated root-mode probes. Bytes `$8001-$87AD` are byte-identical to the bank `$0C` alternate-parser core. Resolved graph: 786 accepted instruction starts, no write form capable of modifying/aliasing ZP `$10`; fixed external helpers are already inside 04F3. Metadata gives 102 bank-$04 refs / 96 roots; all initialize alternate-parser mode. Twenty-three roots begin before `$920A`.
-- **04F8 correction to 04F7:** the old 04F7 text called the first raw `$FF` after each root a terminator. Eleven of those 23 positions are actually `FE FF lo hi` pointer markers. 04F8 recursively rechecks all 23 roots with the actual `FB`/`FD`/`FE` grammar: no live `$E7`, every pointer target remains inside `$87AE-$9209`, and the latest reachable command is `$9208`. The 04F7 safety result stands; only the terminator interpretation was wrong.
-- **04F8:** raw bank `$04` dependency span CPU `$920A-$A011`, 3592 bytes, SHA-256 `69e6d56aed2875f3f2840ebb4b5c52b844da4482a150a4db3647cd933bc79b8e`. Eleven bytes overlap 04F7 root probes, so exact new-byte footprint is **3581 bytes**. The 18-byte PRG09 extension `$A000-$A011` is required because root `$9E85` reaches `$A010: FE FF 85 9E`, which loops back to `$9E85`. Eleven roots from sounds `$5D,$5E,$60` close under the recursive decoder: 3312 abstract states / 3025 unique command addresses, every `FD`/`FE` target inside `$920A-$A011`, zero raw or decoded `$E7`. Evidence: `analysis/NMI_BANK04_PRG08_TAIL.md`, `tools/audit_nmi_bank04_prg08_tail.py`.
+- **04F7:** raw bank `$04`. The parser executable core `$8001-$87AD` is byte-identical to the audited bank `$0C` alternate-parser core. Resolved graph: 786 accepted instruction starts and no write form capable of modifying/aliasing ZP `$10`. Metadata gives 102 bank-$04 refs / 96 roots; all initialize alternate-parser mode. This parser-core result remains valid.
+- **04F8 stream work:** the recursive `FB`/`FD`/`FE` decoder corrected the earlier mistaken use of first raw `$FF` as a terminator proxy and found no live `$E7` in the investigated roots. The restart overlap subsequently exposed dependency-span accounting defects at the 04F7/04F8 boundary, described below.
 
-Current provenance boundary:
+## Current integrity hold — mandatory before further decompilation
+
+`analysis/RESUME_STATE.json` is intentionally marked `BLOCKED_REPAIR_REQUIRED`. **Do not begin 04F9.**
+
+Two boundary reads must be reconciled:
+
+```text
+04F7 root $9133:
+$9208: FE FF 33 91
+       command reads operand bytes $920A-$920B beyond old 04F7 span
+
+04F8 root $9E85:
+$A010: FE FF 85 9E
+       command reads operand bytes $A012-$A013 beyond recorded 04F8 span
+```
+
+Do not redo the bank-$04 parser core or broad already-investigated root set. Harden `tools/audit_nmi_bank04_prg08_tail.py` so every multi-byte decoded command asserts all operand bytes are inside the accounted span, then recursively revalidate only the affected boundary/root cycles.
+
+Candidate corrected 04F8 dependency, not authoritative until the hardened audit passes:
+
+```text
+CPU $920A-$A013
+half-open [$920A,$A014)
+3594 bytes
+SHA-256 728c86cd808e178821f7f72d1f0371eb16a5bde3a1dda495543338391a5e7b3c
+11 bytes overlap 04F7 mode probes
+candidate 3583 genuinely new bytes
+candidate next unresolved root $A014
+```
+
+VPP remains **21/100**. No credited rubric point depends on the disputed boundary accounting.
+
+## Current provenance boundary
 
 ```text
 verified IRQ graph                 -> preserves $10
@@ -80,9 +117,7 @@ fixed NMI span $E057-$E365        -> preserves $10
 $ED46 helper graph                 -> preserves $10
 live raw bank $0C / PRG24         -> preserves $10
 raw bank $04 parser $8001-$87AD   -> preserves $10 on resolved graph
-raw bank $04 first 23 roots       -> recursively closed; no live $E7
-raw bank $04 next 11 roots        -> closed through $A011; no live $E7
-raw bank $04 later 62 roots       -> unresolved, first root $A014
+04F7/04F8 stream closures          -> PROVISIONAL only at affected boundary cycles
 raw instrument bank $05           -> unresolved
 $E7FB / inline dispatch            -> unresolved
 PRG26 renderer                     -> consumes/persists $10 exactly
@@ -98,12 +133,22 @@ Working branch: `decompilation`
 
 Primary hardware reference: NESdev Wiki. ROM bytes control game behavior.
 
-## Current next checkpoint
+Mandatory restart artifacts:
 
-**04F9 — raw bank `$04` physical PRG09 continuation.**
+- `docs/INTERRUPTION_RECOVERY.md`
+- `analysis/RESUME_STATE.json`
+- `tools/check_resume_frontier.py`
 
-Begin at CPU `$A012`. Use an initial bounded window around `$A012-$B1FF` (4590 contiguous bytes), subtracting any root bytes already counted as 04F7 mode probes from the exact new-byte total. Carry the recursive stream state (`FB` loop anchor, `FD` call/return, `FE` counted/absolute pointer) and prove pointer-target closure; do not use first raw `$FF` as a terminator proxy. Do not open raw bank `$05` or fixed `$E7FB` in the same checkpoint.
+## Current next action
+
+**RECOVERY REPAIR — do not start 04F9 yet.**
+
+1. Run `tools/check_resume_frontier.py <ROM.nes>`; it must hard-stop because the state is blocked while still verifying the candidate repair bytes.
+2. Harden/re-run `tools/audit_nmi_bank04_prg08_tail.py` with strict operand-in-span checks.
+3. Revalidate root `$9133` through `$9208: FE FF 33 91` including `$920A-$920B`, and the 04F8 roots through `$A010: FE FF 85 9E` including `$A012-$A013`.
+4. Reconcile `analysis/NMI_BANK04_PRG08_TAIL.md`, `docs/PROGRESS.md`, this file, and `analysis/RESUME_STATE.json`.
+5. Only after all checks pass, mark state `ready` at the first unresolved root (candidate `$A014`) and then begin 04F9 without redoing earlier ground.
 
 ## User-facing handoff prompt
 
-> Continue the faithful Akumajou Densetsu decomp/recomp on branch `decompilation`. After any interruption, first run the mandatory recovery protocol in `docs/INTERRUPTION_RECOVERY.md` using `analysis/RESUME_STATE.json`; do not trust partial chat-only work. Then read the primary handoff docs and current branch head. Treat the exact JP Mapper-24 ROM as controlling evidence. Work one bounded 500-5000-new-byte checkpoint; preserve exact 6502/VRC6/shared-ZP semantics; carry bank/parser and stream-control state rather than seeding impossible static edges; add reproducible evidence; update VPP only under the fixed rubric; update `RESUME_STATE.json` last; commit and stop. Current target: 04F9, continue raw bank `$04` from CPU `$A012` through physical PRG09 using the recursive `FB`/`FD`/`FE` decoder.
+> Continue the faithful Akumajou Densetsu decomp/recomp on branch `decompilation`. FIRST read `docs/INTERRUPTION_RECOVERY.md` and `analysis/RESUME_STATE.json` and run `tools/check_resume_frontier.py` against the exact JP ROM. Current state is intentionally BLOCKED: repair only the narrow 04F7/04F8 stream-boundary accounting (`$9208` operands through `$920B`, `$A010` operands through `$A013`) using strict operand-in-span assertions. Do not redo the bank-$04 parser core or earlier closed graphs. Reconcile audit/analysis/progress/continuity/state, then mark the frontier ready at the first unresolved root (candidate `$A014`) before starting 04F9. Preserve exact 6502/VRC6/shared-ZP semantics and count only genuinely new bytes.
