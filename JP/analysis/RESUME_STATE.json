@@ -1,75 +1,86 @@
 {
-  "schema_version": 4,
+  "schema_version": 5,
   "status": "ready",
   "project": "Akumajou Densetsu JP decomp/recomp",
   "repository": "Hyperbog/CVIII-Decomp",
   "branch": "decompilation",
   "rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
   "safe_forward_work": true,
-  "last_completed_checkpoint": "04F9",
-  "last_completed_checkpoint_commit": "a928d2fbf7ea771d6b52ec12d46774c108317d29",
-  "previous_checkpoint_audit": "tools/audit_nmi_bank04_prg09_mid.py",
+  "last_completed_checkpoint": "04FA",
+  "last_completed_checkpoint_commit": "9b079fe3601aa724d0acaebafd7bb19fdcfdf7b6",
+  "previous_checkpoint_audit": "tools/audit_nmi_bank04_prg09_tail.py",
   "vpp": {
     "earned": 21,
     "total": 100
   },
   "execution_context": {
-    "raw_vrc6_bank": "04",
+    "raw_vrc6_bank": "05",
     "cpu_window": "8000-BFFF",
-    "physical_prg_banks": [8, 9],
-    "frontier_physical_prg_bank": 9
+    "physical_prg_banks": [10, 11],
+    "frontier_physical_prg_bank": 10
   },
   "frontier": {
-    "last_closed_cpu": "B1EF",
-    "next_unprocessed_cpu": "B1F0",
-    "next_checkpoint": "04FA",
-    "initial_window_start_cpu": "B1F0",
-    "initial_window_end_cpu_inclusive": "BFFF",
-    "initial_window_contiguous_bytes": 3600
+    "last_closed_cpu": "BE7D",
+    "last_closed_raw_vrc6_bank": "04",
+    "next_unprocessed_cpu": "87AE",
+    "next_raw_vrc6_bank": "05",
+    "next_checkpoint": "04FB",
+    "domain_transition": true,
+    "initial_window_start_cpu": "87AE",
+    "initial_window_end_cpu_inclusive": "99FF",
+    "initial_window_contiguous_bytes": 4690
   },
   "verification_overlap": {
-    "start_cpu": "B1B0",
-    "end_cpu_inclusive": "B1EF",
+    "raw_vrc6_bank": "04",
+    "start_cpu": "BE3E",
+    "end_cpu_inclusive": "BE7D",
     "length": 64,
-    "sha256": "6ebe05255647f032d5769de536495ddeeb14c3ee2597742313f7029508b09b2d",
+    "sha256": "f40922783896195ec08cc927a4eee26bbde2a7d0aac749a198696904100eb430",
     "coverage_accounting": "verification-only; never count these 64 bytes as new coverage"
   },
   "frontier_fingerprint": {
-    "start_cpu": "B1F0",
-    "end_cpu_inclusive": "B20F",
+    "raw_vrc6_bank": "05",
+    "start_cpu": "87AE",
+    "end_cpu_inclusive": "87CD",
     "length": 32,
-    "sha256": "58fa6662bd07c12a37c743cf6a9206c4f134c58b8e921b683444d29d52007f9b",
+    "sha256": "b0b7dd5754f1c65b0926bdbbc8ccbcc8042eb26bd2e018e21ee97aef4f011e86",
     "purpose": "alignment/fingerprint only; does not establish semantic closure"
   },
   "prior_dependency_span": {
-    "start_cpu": "A014",
-    "end_cpu_inclusive": "B1EF",
-    "length": 4572,
-    "sha256": "55e35f223091a0c50beaf7ba0561445cc5c07d11ae83bfe827abcc22aa2d5a5b",
-    "04F7_root_probe_overlap_bytes": 32,
-    "exact_new_bytes_in_checkpoint": 4540
+    "raw_vrc6_bank": "04",
+    "start_cpu": "B1F0",
+    "end_cpu_inclusive": "BE7D",
+    "length": 3214,
+    "sha256": "a7f0a8308ed9335b27de8eaf3df440f0d28cd6f57fb97e4123222e3116fc5f55",
+    "04F7_root_probe_overlap_bytes": 30,
+    "exact_new_bytes_in_checkpoint": 3184
   },
   "closed_state": [
     "raw bank 04 alternate-parser executable core $8001-$87AD is ZP $10-clean on the resolved graph",
-    "04F7 first 23 roots are recursively revalidated with strict operand accounting; no live E7",
-    "04F8 next 11 roots are recursively revalidated through $A013; no live E7",
-    "04F9 next 32 roots are recursively closed through $B1EF with strict operand accounting; no live E7",
-    "66 of 96 bank-04 roots are closed",
-    "multi-byte stream decoding asserts every operand byte is inside the claimed semantic span"
+    "all 96 raw-bank 04 metadata roots are recursively closed with strict operand accounting",
+    "bank 04 decoded E7 count is zero across the full producer domain",
+    "raw $E7 at $B81A is an FE-FF pointer operand; $BFEB is outside reachable bank-04 dependency",
+    "raw bank 04 producer domain preserves shared ZP $10"
   ],
   "open_edges": [
-    "30 later bank-04 / physical PRG09 roots remain unresolved beginning at $B1F0",
-    "raw instrument bank 05 remains unresolved",
+    "raw instrument bank 05 has 84 metadata references / 72 distinct roots from $87AE-$BEE8",
     "fixed $E7FB / inline dispatch remains unresolved"
   ],
   "checkpoint_constraints": [
-    "04FA begins exactly at CPU $B1F0",
-    "initial bounded window is $B1F0-$BFFF",
+    "04FB begins in raw bank 05 exactly at CPU $87AE",
+    "initial bounded window is $87AE-$99FF (4690 contiguous bytes)",
+    "assert raw bank 05 parser core $8001-$87AD byte identity before reusing bank-04 code proof",
+    "reproduce exact 84-reference / 72-root metadata domain and parser-mode initialization",
     "carry FB loop-anchor, FD call/return, and FE counted/absolute-pointer stream state",
     "every multi-byte command must pass operand-in-span assertions before operands are read",
     "prove pointer-target closure; raw FF is not a terminator proxy",
-    "subtract the 30 root probe bytes already counted by 04F7 from exact new-byte coverage",
-    "do not open raw bank 05 or fixed $E7FB during 04FA"
+    "if decoded E7 occurs, investigate live parameter/domain; do not assume bank-04 data behavior",
+    "do not open fixed $E7FB during 04FB"
+  ],
+  "acceleration_policy": [
+    "Japanese ROM and reproducible parity evidence are authoritative",
+    "use external disassemblies, CDL/traces, Ghidra, retrodisasm, decompilers, nesrecomp and NSF metadata as secondary accelerators",
+    "US Castlevania III symbols/structures remain provisional until JP equivalence is verified"
   ],
   "repair_history": {
     "repaired_hold": "04F7/04F8 operand-boundary accounting",
@@ -77,6 +88,6 @@
       "$9208 FE FF 33 91 -> $9133; operands through $920B",
       "$A010 FE FF 85 9E -> $9E85; operands through $A013"
     ],
-    "resolution": "hardened audit passed; 04F7 byte coverage unchanged; 04F8 dependency extended to $A013; 04F9 was regenerated cleanly from the repaired $A014 frontier"
+    "resolution": "hardened audits passed; 04F7 byte coverage unchanged; 04F8 dependency extended to $A013; 04F9 regenerated from $A014; 04FA completed bank $04 through $BE7D"
   }
 }
