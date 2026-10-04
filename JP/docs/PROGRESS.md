@@ -2,11 +2,15 @@
 
 ## Current status
 
-Work proceeds in bounded, ROM-backed checkpoints. Normal new-ROM budget is **500-5000 bytes**, now generally using the upper half of that range when one coherent dependency can be closed safely. Material findings are reported during the checkpoint.
+**RECOVERY HOLD:** `analysis/RESUME_STATE.json` is currently `BLOCKED_REPAIR_REQUIRED`. Do not begin 04F9 until the narrow 04F7/04F8 stream-boundary accounting described below is repaired and the resume checker reports a ready frontier.
+
+Work otherwise proceeds in bounded, ROM-backed checkpoints. Normal new-ROM budget is **500-5000 genuinely new bytes**. Material findings are reported during the checkpoint.
 
 Primary metric: **Verified Parity Progress (VPP) = 21 / 100 (21%)**.
 
 VPP is a fixed evidence rubric, not a time estimate or raw-byte percentage. See `docs/PROGRESS_METRIC.md`, `analysis/PROGRESS_SCORE.csv`, and `tools/progress_score.py`.
+
+After any interruption read `docs/INTERRUPTION_RECOVERY.md` and `analysis/RESUME_STATE.json` and run `tools/check_resume_frontier.py` before forward work.
 
 ## Stable foundation
 
@@ -73,77 +77,63 @@ Evidence: `analysis/NMI_ED46_ZP10_PRESERVATION.md`, `tools/audit_nmi_ed46_zp10.p
 
 ### 04F5 — raw bank `$0C:$89E2` static closure
 
-The initial PRG24 window expanded within budget to:
+Physical PRG24 / CPU `$8000-$91FF`, 4608 bytes, SHA-256 `2bd1badec12d9f68bf829c272105d85097966d6fb0419c206566eb54c7011734`.
 
-```text
-physical PRG24 / CPU $8000-$91FF
-4608 bytes
-SHA-256 2bd1badec12d9f68bf829c272105d85097966d6fb0419c206566eb54c7011734
-```
-
-Starting at `$89E2`, the conservative static graph reaches 1488 accepted instruction starts and proves no direct, indirect, zero-page-indexed, or absolute-indexed write can affect `$10`. Five indirect dispatches had local finite domains. `$842D` was left open because its ten-entry table has no local bounds check.
+The conservative graph reaches 1488 accepted instruction starts and contains no resolved write form capable of affecting `$10`. `$842D` was left open because its ten-entry table has no local bounds check.
 
 Evidence: `analysis/NMI_BANK0C_ZP10_BOUNDARY.md`, `tools/audit_nmi_bank0c_zp10.py`.
 
 ### 04F6 — `$842D` corrected as a state/bank over-approximation
 
-New ROM span:
+Physical PRG24 / CPU `$9200-$9FFF`, 3584 bytes, SHA-256 `d7387b04a03289ebb1a0567ef49240d90b0bb177a0c128c8b06dbccabdb0776f`.
 
-```text
-physical PRG24 / CPU $9200-$9FFF
-3584 bytes
-SHA-256 d7387b04a03289ebb1a0567ef49240d90b0bb177a0c128c8b06dbccabdb0776f
-```
+Fixed helper `$E1AF` loads the current instrument-data bank from `$06D3,X` and jumps to CPU `$8001`. Parser mode is bit 0 of `$011B,X`; initialization comes from first stream byte + instrument index and later direct writers preserve bit 0.
 
-Fixed helper `$E1AF` loads the current instrument-data bank from `$06D3,X` and jumps to CPU `$8001`. PRG24 `$8DCD` selects main vs alternate parser from bit 0 of `$011B,X`.
-
-The JP metadata/control audit proves 139 bank-$0C instrument references / 125 distinct roots. Only five initialize alternate-parser mode; all are immediate `$FF` roots. All raw `$E7` bytes in referenced PRG24 stream data belong to main-parser roots. `$011B,X` has one mode initializer and later direct writers preserve bit 0.
-
-Therefore PRG24 `$842D` is not a live bank-$0C stream edge. Do not add a host-side bound to its ten-entry table.
+The metadata/control audit proves 139 bank-$0C references / 125 roots. Only five initialize alternate-parser mode and all are immediate `$FF` roots; all raw `$E7` bytes in referenced PRG24 stream data belong to main-parser roots. Therefore PRG24 `$842D` is not a live bank-$0C edge.
 
 Evidence: `analysis/NMI_BANK0C_PARSER_MODE.md`, `tools/audit_nmi_bank0c_parser_mode.py`.
 
-### 04F7 — raw bank `$04` parser core + first 23 roots
+### 04F7 — raw bank `$04` parser core and stream tranche
 
-Exact new-byte footprint:
+Recorded footprint was 4691 bytes: contiguous CPU `$8000-$9209` (4618 bytes, SHA-256 `cfdd27fa72b9e990c31bb12e1511fa7229ffe2c898dcc361586c77b71543caa6`) plus 73 isolated one-byte root-mode probes.
 
-```text
-raw bank $04 / physical PRG08
-contiguous CPU $8000-$9209: 4618 bytes
-span SHA-256 cfdd27fa72b9e990c31bb12e1511fa7229ffe2c898dcc361586c77b71543caa6
-plus 73 isolated one-byte root-mode probes
-TOTAL: 4691 new bytes
-```
+The stable result is the parser executable core: bytes `$8001-$87AD` are byte-identical to the bank `$0C` alternate-parser core; the resolved graph contains 786 accepted instruction starts and no write form capable of modifying/aliasing ZP `$10`. Metadata gives 102 bank-$04 references / 96 roots, all alternate-parser mode.
 
-Bytes `$8001-$87AD` are byte-identical to the bank `$0C` alternate-parser core. The resolved executable graph contains 786 accepted instruction starts and no write form capable of modifying or aliasing ZP `$10`; its fixed exits are already covered by 04F3.
+The later stream-boundary accounting is under recovery review; do not discard or broadly redo the prior root analysis.
 
-Metadata gives 102 bank-$04 references / 96 distinct roots, all alternate-parser mode. Twenty-three roots begin before `$920A`.
+### 04F8 — recursive stream work, currently provisional at the boundary
 
-**04F8 correction:** the original 04F7 write-up called each root's first raw `$FF` a terminator. Eleven of those 23 first-`$FF` positions are actually the marker in `FE FF lo hi` pointer commands. 04F8 recursively rechecked all 23 roots with the actual `FB`/`FD`/`FE` control grammar: no `$E7` command is reachable, every pointer target remains inside `$87AE-$9209`, and the latest reachable command is `$9208`. Thus the 04F7 safety result remains valid; only the old terminator interpretation was wrong.
+04F8 introduced the correct recursive stream grammar for `FB` loop anchors, `FD` call/return, counted `FE`, and `FE FF lo hi` pointer loads. This corrected the older mistake of using the first raw `$FF` as a terminator proxy.
 
-Evidence: `analysis/NMI_BANK04_ALT_PARSER_BOUNDARY.md`, `tools/audit_nmi_bank04_alt_parser.py`, plus the corrective decoder in `tools/audit_nmi_bank04_prg08_tail.py`.
-
-### 04F8 — PRG08 tail + minimal PRG09 closure
-
-Dependency span:
+The investigation found zero decoded `$E7` commands in the examined root sets and preserved the conclusion that the common executable parser core is `$10`-clean. However, the restart overlap exposed two range-accounting defects:
 
 ```text
-raw bank $04 / CPU $920A-$A011
-3592 bytes
-SHA-256 69e6d56aed2875f3f2840ebb4b5c52b844da4482a150a4db3647cd933bc79b8e
+04F7 root $9133 reaches $9208: FE FF 33 91
+                              operands $920A-$920B are beyond old 04F7 span
+
+04F8 root $9E85 reaches $A010: FE FF 85 9E
+                              operands $A012-$A013 are beyond recorded 04F8 span
 ```
 
-Eleven root bytes inside this span were already counted as 04F7 mode probes, so the exact 04F8 new-byte footprint is **3581 bytes**.
+The second defect means the old 04F8 span `$920A-$A011` / 3592 bytes cannot be treated as the final authoritative dependency span even though the decoder read the pointer bytes.
 
-CPU `$A000-$A011` is an 18-byte physical PRG09 extension required to close the same dependency: root `$9E85` reaches `$A010: FE FF 85 9E`, which jumps back to `$9E85`.
+Candidate corrected 04F8 span, pending hardened-audit confirmation:
 
-04F8 closes exactly 11 later roots from sound IDs `$5D,$5E,$60`. The recursive stream decoder visits **3312 abstract parser states / 3025 unique command addresses**. Every `FD`/`FE` pointer target remains inside `$920A-$A011`; there are zero raw or decoded `$E7` commands in the closed domain. Since the executable parser core is already `$10`-clean, these 11 additional roots preserve ZP `$10` and cannot activate `$842D`.
+```text
+CPU $920A-$A013
+half-open [$920A,$A014)
+3594 bytes
+SHA-256 728c86cd808e178821f7f72d1f0371eb16a5bde3a1dda495543338391a5e7b3c
+11 prior mode-probe bytes overlap
+candidate 3583 genuinely new bytes
+candidate next unresolved root $A014
+```
 
-After 04F8, **34 of 96** bank-$04 roots are closed and **62 later PRG09 roots remain unresolved**, beginning at `$A014`.
+**Do not count this candidate as final until the audit enforces operand-in-span bounds and passes.**
 
-Evidence: `analysis/NMI_BANK04_PRG08_TAIL.md`, `tools/audit_nmi_bank04_prg08_tail.py`.
+Evidence under repair: `analysis/NMI_BANK04_ALT_PARSER_BOUNDARY.md`, `analysis/NMI_BANK04_PRG08_TAIL.md`, `tools/audit_nmi_bank04_alt_parser.py`, `tools/audit_nmi_bank04_prg08_tail.py`.
 
-**VPP remains 21/100 after 04F8.**
+**VPP remains 21/100.** No credited rubric point depends on this boundary correction.
 
 ## Current provenance boundary
 
@@ -153,9 +143,7 @@ fixed NMI span $E057-$E365        -> preserves $10
 $ED46 helper graph                 -> preserves $10
 raw bank $0C / PRG24              -> preserves $10 on live bank-$0C paths
 raw bank $04 parser $8001-$87AD   -> preserves $10 on resolved graph
-raw bank $04 first 23 roots       -> recursively closed; no live $E7
-raw bank $04 next 11 roots        -> closed through $A011; no live $E7
-raw bank $04 later 62 roots       -> unresolved, first root $A014
+04F7/04F8 stream boundary cycles   -> recovery repair required
 raw instrument bank $05           -> unresolved
 $E7FB / inline dispatch            -> unresolved
 PRG26 renderer                     -> consumes/persists $10 exactly
@@ -163,17 +151,19 @@ PRG26 renderer                     -> consumes/persists $10 exactly
 
 ## Unresolved / do not assume
 
-- whether later raw bank `$04` / physical PRG09 stream data can activate `$842D` or any other path relevant to ZP `$10`;
-- whether raw instrument bank `$05` can write/alias ZP `$10` while servicing the pre-render sound update;
-- whether `$E7FB` or its inline-dispatch targets can write `$10` before rendering;
-- whole-ROM type-transition / selector-frame producer closure;
-- higher-level meaning of `$AD`;
-- semantic identities of individual sprite descriptors;
-- exact visual/game-state meanings of IRQ states;
-- conservative ROM-byte code/data coverage companion metric.
+- do not assume 04F8 is a safe resume frontier until the blocked state is repaired;
+- do not begin later raw bank `$04` / PRG09 stream analysis yet;
+- whether raw instrument bank `$05` can write/alias ZP `$10` remains unresolved;
+- whether `$E7FB` or its inline-dispatch targets can write `$10` before rendering remains unresolved;
+- whole-ROM type-transition / selector-frame producer closure remains open;
+- higher-level meaning of `$AD`, semantic identities of individual sprite descriptors, and exact visual meanings of IRQ states remain open.
 
-## Next manageable checkpoint
+## Next action
 
-**04F9 — continue raw bank `$04` through physical PRG09.**
+**Recovery repair, not 04F9.**
 
-Start at CPU `$A012` (physical PRG09). A good initial bounded window is `$A012-$B1FF` (4590 contiguous bytes); subtract any root bytes already counted as 04F7 mode probes when reporting exact new-byte coverage. Carry the recursive `FB`/`FD`/`FE` stream state and prove pointer-target closure rather than using raw `$FF` as a terminator. Do not open raw bank `$05` or fixed `$E7FB` in the same checkpoint.
+1. Run `tools/check_resume_frontier.py <ROM.nes>` and confirm it hard-stops on `BLOCKED_REPAIR_REQUIRED` while verifying the candidate bytes.
+2. Harden `tools/audit_nmi_bank04_prg08_tail.py` so each decoded multi-byte command asserts all operand bytes lie inside the claimed range.
+3. Revalidate only root `$9133`'s boundary cycle and the 04F8 root cycles that reach `$A010`; reuse the already-proven parser core and existing root metadata.
+4. Reconcile the audit, `analysis/NMI_BANK04_PRG08_TAIL.md`, this progress file, `docs/DECOMPILATION_CONTINUITY.md`, and finally `analysis/RESUME_STATE.json`.
+5. If the hardened audit confirms the candidate span, the first unresolved root becomes `$A014`; only then start 04F9.
