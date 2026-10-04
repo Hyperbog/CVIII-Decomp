@@ -9,13 +9,12 @@ After any interruption, do not resume from chat memory. Read:
 - `docs/INTERRUPTION_RECOVERY.md`
 - `docs/ACCELERATION_POLICY.md`
 - `analysis/RESUME_STATE.json`
-- `analysis/04FF_WORKING_NOTE.md` while 04FF is blocked
 
 Then run `python tools/check_resume_frontier.py <authoritative JP ROM.nes>`.
 
-Evidence order is JP ROM / observed JP execution, reproducible ROM-backed audits, NES hardware documentation, then external disassemblies/CDL/Ghidra/retrodisasm/decompilers/nesrecomp/NSF/JP-US matching as accelerators. Never commit the ROM.
+Evidence order is: JP ROM / observed JP execution; reproducible ROM-backed audits; NES hardware documentation; then external disassemblies/CDL/Ghidra/retrodisasm/decompilers/nesrecomp/NSF/JP-US matching as accelerators. Never commit the ROM.
 
-Target ROM SHA-256: `958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28`; PRG 256 KiB; CHR 128 KiB; mapper 24 / VRC6a. VPP remains **21/100**.
+Target ROM SHA-256: `958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28`; PRG 256 KiB; CHR 128 KiB; mapper 24 / VRC6a. VPP is **21/100**.
 
 ## Stable closed provenance
 
@@ -27,24 +26,31 @@ raw bank $0C / PRG24                 -> preserves $10 on live paths
 raw bank $04 parser + 96/96 roots    -> preserves $10
 raw bank $05 parser + 72/72 roots    -> preserves $10
 $E7FB + first-level fixed graph       -> preserves $10
+04FF admitted nested fixed head       -> preserves $10
 PRG26 renderer                        -> consumes/persists $10 exactly
 ```
 
-04FE proved `$E7FB-$E813` is a stack-return-address inline tail dispatcher writing only `$00-$03`. The NMI `$18` table is `$E363-$E382`; nested state `$04` reaches `$F390`, loads selector `$2C`, and calls `$E7FB` at `$F39A`. The 32 nested pointer pairs are `$F39D-$F3DC`; table size is **not** a `$2C` bound. 04FE contributed 957 genuinely new bytes, ordered-manifest SHA-256 `a672f908a238bea20902fc40c5417622bdb9af675cda3b982a6f0ce494ebad32`.
+## 04FE — fixed inline dispatch
 
-## 04FF is blocked / partial
+`$E7FB-$E813` is a stack-return-address tail dispatcher. It consumes the caller JSR return address, indexes inline pointer data using A, restores Y, and jumps through `$0002`; it writes only `$00-$03`.
 
-`analysis/RESUME_STATE.json` must remain `blocked` at fixed `$F3DD` until the `$2C` producer domain and admitted nested graph are closed. Do not promote a linear `$F800` frontier merely because bytes through `$F7FF` were inspected.
+NMI `$E35E: LDA $18 / $E360: JSR $E7FB` uses 16 encoded pointers at `$E363-$E382`. Conservatively decoding all encoded targets gave 435 fixed instruction starts, one nested `$E7FB` at `$F39A`, 21 mapper-dependent banked exits, and no fixed write capable of aliasing `$10` after indexed-write reconciliation.
 
-Controlling 04FF evidence:
+Nested first-level state `$04` reaches `$F390`, then loads `$2C` and dispatches through 32 encoded pointers at `$F39D-$F3DC`. Table size is **not** a producer-domain bound. 04FE contributed 957 genuinely new fixed bytes, manifest SHA `a672f908a238bea20902fc40c5417622bdb9af675cda3b982a6f0ce494ebad32`.
 
-- `analysis/NMI_FIXED_2C_HEAD.md`
-- `tools/audit_nmi_fixed_2c_head.py`
-- `analysis/04FF_WORKING_NOTE.md`
+## 04FF — bounded nested `$2C` fixed head
 
-The raw investigation window `$F3DD-$F7FF` is 1059 bytes, SHA-256 `72918e40813310fe3f967790d9b77e344a0f2ede92d12942d95c23849084b1b6`.
+04FF is complete as a bounded checkpoint. It does **not** claim full `$2C` producer closure.
 
-Twenty-six distinct nested roots enter that window. Six encoded primary entries are deferred:
+Raw investigation window:
+
+```text
+PRG31 $F3DD-$F7FF
+1059 raw bytes
+SHA-256 72918e40813310fe3f967790d9b77e344a0f2ede92d12942d95c23849084b1b6
+```
+
+Twenty-six distinct nested-table targets enter this window. The six encoded entries carried into 0500 are:
 
 ```text
 $08 -> $F965
@@ -55,9 +61,18 @@ $0E -> $F841
 $10 -> $F849
 ```
 
-Strict decode of only the admitted 26 roots gives 401 official instruction starts, zero unknown opcodes, 16 explicit local `$2C` writers, no indexed/indirect zero-page write, and **931 genuinely new consumed instruction/operand bytes**.
+Strict 26-root graph:
 
-Exact manifest:
+```text
+official instruction starts        401
+unknown opcodes                       0
+unique genuinely new bytes          931
+reachable store/RMW instructions     46
+indexed/indirect store/RMW forms      0
+boundary/dependency exits           136
+```
+
+Exact new-byte manifest:
 
 ```text
 F3DD-F6AD   721   371c27c08f71624463d2c63097938a30fa57253bd073d2554d454111708f6852
@@ -69,29 +84,66 @@ F7CF-F7FF    49   13b6de6ba1671ce00afec40ee8b7886d6ed9126a6261b5a090a15f0cc73b15
 ordered SHA-256 2e8b703b970ca2f1eae61f5fd1a4850da6b8e5d4af1a894fb8075657299ae0d4
 ```
 
-Unclaimed gaps are explicit: `$F706-$F712` (13), `$F724-$F738` (21), `$F782-$F791` (16), `$F7B7-$F7CE` (24). `$F6AE-$F6E3` is prior 04FE coverage. The former 1005-byte claim is superseded because it counted those 74 unreached bytes from physical contiguity alone; `analysis/NMI_FIXED_2C_PREFIX.md` records the correction and its old audit redirects to the strict tool.
+Prior/unreached raw bytes are explicit:
 
-The bounded fixed graph itself preserves `$10`. Its local `$2C` constant stores remain within the encoded state family and conservative local INC association reaches at most `$1C -> $1D`, but this is not a transitive producer proof because callees may mutate `$2C`.
-
-Deferred probing has exposed two secondary tail dispatchers:
-
-```asm
-F849  LDA $68
-F84B  JSR $E7FB
-
-F965  LDA $68
-F967  JSR $E7FB
+```text
+F6AE-F6E3   54 bytes   prior 04FE
+F706-F712   13 bytes   unreached
+F724-F738   21 bytes   unreached
+F782-F791   16 bytes   unreached
+F7B7-F7CE   24 bytes   unreached
 ```
 
-Their encoded table lengths are not `$68` producer bounds.
+The four unreached gaps total 74 bytes and remain unclaimed until actual secondary-dispatch control flow admits them.
 
-## Open work before releasing 04FF hold
+Local explicit `$2C` mutations in 04FF are:
 
-1. reconcile the six deferred primary `$2C` entries;
-2. prove the `$68` producer domains and admitted secondary targets at `$F849` and `$F965`;
-3. resolve fixed/banked callees under actual mapper state before assuming `$2C` or `$10` preservation;
-4. `$18` producer-domain closure remains separately open.
+```text
+F3FF INC   F443 INC   F486 STA   F4BF INC
+F4CF STA   F4DC STA   F4F3 STA   F5CF INC
+F629 STA   F635 STA   F64F STA   F6FB INC
+F716 INC   F775 INC   F7B4 INC   F7DB STA
+```
 
-The next useful raw investigation window is `$F800-$FBFF` (1024 bytes), SHA-256 `f3090b53f174f15eeacad0d9e042efd95ff93ed6b4bfd706ba233ee5f588c86a`. Alignment only: `$F7C0-$F7FF` SHA `0654eeccd284ba39d016f954cdfbe17b34b7218a1afe2bc6eca799a2713a13f7`; `$F800-$F81F` SHA `322b459da91a43e13712821aba143184801a6b9e6c91e0047f9826846a957f24`.
+The bounded graph itself preserves `$10`. External fixed/banked callees are not assumed safe, and the local state values are not promoted to a complete `$2C` bound.
 
-Checkpoint discipline remains: analysis -> audit -> run exact ROM -> progress/continuity -> `RESUME_STATE.json` last -> recovery checker/head confirmation. Raw physical contiguity is never sufficient evidence for coverage or selector bounds.
+Controlling evidence:
+
+- `analysis/NMI_FIXED_2C_HEAD.md`
+- `tools/audit_nmi_fixed_2c_head.py`
+- `analysis/NMI_FIXED_2C_PREFIX.md` documents the superseded over-broad 1005-byte accounting.
+
+## Open semantic work
+
+1. first-level `$18` selector producer domain;
+2. complete `$2C` producer/alias domain;
+3. six deferred primary `$2C` entries;
+4. `$68` secondary dispatchers at `$F849` and `$F965` and their producer domains;
+5. fixed/banked external callees under actual mapper state.
+
+No pointer-table shape is a selector bound. No CPU `$8000-$DFFF` target may be followed under guessed VRC6 state.
+
+## Next checkpoint — 0500
+
+Resume raw fixed-bank investigation at `PRG31:$F800`.
+
+```text
+initial window      $F800-$FBFF   1024 bytes
+SHA-256             f3090b53f174f15eeacad0d9e042efd95ff93ed6b4bfd706ba233ee5f588c86a
+
+verification overlap $F7E0-$F7FF  32 bytes
+SHA-256              6966c228f397fb1a390562bc871d382f624397bd65f06bb301774b085e7759d1
+
+frontier fingerprint $F800-$F81F  32 bytes
+SHA-256              322b459da91a43e13712821aba143184801a6b9e6c91e0047f9826846a957f24
+```
+
+0500 should:
+
+- reconcile primary targets `$F831/$F839/$F841/$F849/$F965`;
+- decode the `$F849` and `$F965` `$68`-indexed inline tables while proving actual `$68` producers rather than using table lengths as bounds;
+- admit the 04FF gaps `$F706-$F712`, `$F724-$F738`, `$F782-$F791`, `$F7B7-$F7CE` only when control-flow evidence reaches them;
+- continue the whole-ROM `$2C` writer/alias audit, including save/restore paths and indexed/indirect aliases;
+- resolve mapper-dependent callees only when VRC6 bank state is proven.
+
+Checkpoint transaction remains: analysis -> audit -> exact-ROM run -> progress/continuity -> `RESUME_STATE.json` last -> recovery checker -> branch-head confirmation.
