@@ -1,104 +1,163 @@
 # Interruption / restart recovery protocol
 
-This file is mandatory reading after any timeout, chat/thread limit, token limit, tool interruption, process crash, or other loss of working context.
+This file is mandatory reading after any timeout, chat/thread limit, token limit, tool interruption, process crash, model/context switch, long pause, or other loss of working context.
 
-The goal is to resume from the last **committed, ROM-verified frontier** without silently trusting partial work and without re-counting or re-disassembling already closed bytes.
+The goal is to resume from the last **committed, ROM-verified semantic frontier** without silently trusting partial work, skipping dependency bytes, or re-counting/re-disassembling already closed territory.
 
 ## Source of truth order
 
 When recovering, trust sources in this order:
 
-1. the authoritative JP ROM bytes;
+1. authoritative JP ROM bytes;
 2. committed audit tools and analysis artifacts;
 3. `analysis/RESUME_STATE.json`;
-4. `docs/DECOMPILATION_CONTINUITY.md` and `docs/PROGRESS.md`;
-5. chat history only as a hint.
+4. this file;
+5. `docs/DECOMPILATION_CONTINUITY.md` and `docs/PROGRESS.md`;
+6. chat history only as a hint.
 
-Never resume from an uncommitted conclusion merely because it appeared in chat. If an interruption occurred before a checkpoint was committed, restart that checkpoint from the last committed frontier.
+Never resume from an uncommitted conclusion merely because it appeared in chat. If these sources disagree, freeze forward work and reconcile the disagreement first.
 
 ## Mandatory recovery sequence
 
 1. Confirm repository `Hyperbog/CVIII-Decomp`, branch `decompilation`, and fetch the current branch head.
 2. Read `analysis/RESUME_STATE.json`, this file, `docs/DECOMPILATION_CONTINUITY.md`, `docs/PROGRESS.md`, `docs/PROGRESS_METRIC.md`, and `docs/ROM_IDENTITY.md`.
-3. Compare the branch history against `last_completed_checkpoint_commit` in `RESUME_STATE.json`.
-   - If the branch contains newer decomp commits, inspect them before doing new work. The resume state may be stale.
-   - Never move the frontier backward merely because an older handoff document is stale.
-4. Run `tools/check_resume_frontier.py <ROM.nes>`.
-   - It verifies the whole-ROM SHA-256.
-   - It verifies a small byte window immediately **before** the frontier against a committed SHA-256.
-   - It verifies a small fingerprint beginning **at** the frontier, solely to prove the intended start address is aligned to the expected ROM bytes.
-   - A mismatch is a hard stop. Do not continue analysis on a mismatched ROM/frontier.
-5. Re-run the audit tool named by `previous_checkpoint_audit` in `RESUME_STATE.json` when practical. A failed prior audit is a hard stop until reconciled.
-6. Resume at `next_unprocessed_cpu`. The pre-frontier overlap is verification-only and must **not** be counted as new coverage.
-7. Carry forward only explicitly recorded machine state and unresolved edges. Do not recreate already closed static graphs unless a new dependency invalidates them.
+3. Inspect recent commits newer than the checkpoint commit recorded in `RESUME_STATE.json`. Never force an older snapshot over a newer branch head.
+4. Verify the exact ROM identity before any audit or edit.
+5. Run `tools/check_resume_frontier.py <ROM.nes>`.
+   - If the state is marked blocked/provisional, the checker must hard-stop forward work and print the required repair.
+   - Otherwise it verifies whole-ROM identity, a committed pre-frontier overlap hash, and a fingerprint beginning at the intended next frontier.
+6. Re-run the audit tool named by `previous_checkpoint_audit` when the state is ready. A failed prior audit is a hard stop.
+7. Re-check a small semantic overlap immediately before the frontier as described below.
+8. Resume only at the first unresolved **semantic unit**. The overlap is verification-only and must not be counted as new coverage.
+9. Carry forward established code semantics and machine state. Do not recreate already closed graphs unless a new contradiction invalidates them.
+
+## Exact ROM identity
+
+The JP target is immutable:
+
+```text
+size       393232 bytes (0x60010)
+SHA-256    958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28
+PRG CRC32  BA6BDD6A
+CHR CRC32  BF15255C
+mapper     24 / Konami VRC6a
+```
+
+Any mismatch is a hard stop.
 
 ## Overlap rule
 
-Every checkpoint must leave a small verification overlap immediately before the next frontier, normally 32-64 bytes when addressable as one contiguous ROM span.
+Every checkpoint must leave and verify a small overlap immediately before the next frontier, normally 32-64 bytes when addressable as one contiguous ROM span.
 
-The overlap exists only to detect:
+Overlap detects off-by-one resumes, wrong bank selection, stale docs, wrong ROM revisions, accidental gaps, and corrupt byte accounting. Overlap bytes are never new coverage.
 
-- off-by-one resume errors;
-- wrong bank/window selection;
-- accidental use of a different ROM revision;
-- stale continuity documents;
-- corruption or mistaken checkpoint accounting.
+The byte overlap is necessary but not sufficient. The overlap must include a **semantic-unit check**:
 
-Overlap bytes are never new decompilation coverage. If a later checkpoint needs to semantically revisit them, state that explicitly and do not count them twice.
+- **6502 code:** decode from a known instruction start through at least the final complete basic block. Confirm the declared span contains every operand byte of every claimed instruction.
+- **Streams / bytecode:** recursively re-decode at least the final previously closed root and its reachable control cycle. For `FB`/`FD`/`FE` sound streams, include loop anchors, call/return state, pointer targets, and every parameter byte read by the parser.
+- **Pointer/table data:** re-check at least the final two proven entries, their complete encoded bytes, and their targets.
+- **Banked execution:** reassert raw VRC6 bank, CPU window, and physical PRG mapping before interpreting addresses.
+
+**Critical rule:** a command/instruction is not inside a verified span merely because its opcode byte is inside the span. Every operand/parameter byte that the claimed execution reads must also be inside the dependency accounting, or already be explicitly covered by an earlier verified dependency.
+
+If the semantic unit crosses the recorded boundary, extend/correct the dependency boundary and byte ledger before any new work.
 
 ## Mid-checkpoint interruption rule
 
-A checkpoint is not authoritative until its evidence is committed.
+A checkpoint is not authoritative until its evidence and handoff state are reconciled and committed.
 
-If interrupted after analysis has begun but before the checkpoint is completely committed:
+If interrupted after analysis begins but before that transaction is complete:
 
-- preserve any temporary notes only as clues;
-- return to the last committed `RESUME_STATE.json` frontier;
-- rerun the frontier checker;
-- rerun or reconstruct the interrupted checkpoint deterministically from ROM bytes;
-- do not advance VPP or the frontier from partially remembered results.
+- use partial artifacts only as clues;
+- return to the last committed recovery state;
+- verify the overlap/frontier;
+- reproduce only the affected incomplete semantic units from ROM bytes;
+- **do not restart broad already-closed banks or graphs**;
+- do not advance VPP or the frontier from remembered results.
 
-If some checkpoint files were committed but the progress/continuity/state files were not, inspect the intervening commits and their artifacts first. Complete/reconcile that checkpoint instead of starting a new one.
+If some checkpoint files are committed but progress/continuity/state files are not, inspect and reconcile those commits before starting another checkpoint.
 
 ## Address and coverage accounting
 
-For every new span record all of:
+Use half-open ranges internally: `[start, end_exclusive)`.
 
-- raw VRC6 bank / CPU address range;
-- physical 8 KiB PRG bank(s);
-- contiguous byte count;
-- any isolated probe bytes already counted by earlier checkpoints;
-- exact **new-byte** count after subtracting overlaps/probes;
+For every checkpoint record:
+
+- raw VRC6 bank and CPU range;
+- physical PRG bank(s);
+- contiguous dependency byte count;
+- isolated dependency/probe bytes outside that span;
+- prior bytes that overlap the new dependency;
+- exact genuinely new byte count after subtracting prior coverage;
 - SHA-256 of the dependency span;
-- last closed CPU address;
-- first unprocessed CPU address;
+- last semantically closed address/unit;
+- first unresolved address/root/unit;
 - unresolved pointer/call/bank edges.
 
-Never infer progress from a visually contiguous range if control flow escapes it. Pointer-target closure and bank/parser state remain controlling.
+Calculate:
 
-## Checkpoint commit order
+```text
+contiguous dependency bytes
++ isolated dependency bytes outside that span
+- bytes already counted by earlier checkpoints
+= genuinely new ROM bytes
+```
+
+A byte probed earlier remains previously counted even when interpreted more deeply later. Conversely, a command cannot be declared closed if required operands lie outside its accounted dependency.
+
+## Resume without treading old ground
+
+After the recovery checks pass:
+
+1. identify the first unresolved root/routine/table entry from `RESUME_STATE.json`;
+2. re-read only the small overlap needed to prove alignment and semantic continuity;
+3. reuse prior parser/code/table audits rather than rebuilding them;
+4. follow only new dependency edges from the unresolved unit;
+5. count only genuinely new ROM bytes.
+
+Backward edges into an already-audited region should be verified against the existing artifact, not decompiled a second time.
+
+## Checkpoint commit discipline
 
 For each completed checkpoint:
 
-1. commit the analysis artifact;
-2. commit the reproducible audit/tool;
-3. run the audit against the authoritative ROM;
-4. update `docs/PROGRESS.md` and `docs/DECOMPILATION_CONTINUITY.md`;
-5. update `analysis/RESUME_STATE.json` **last**, so it always describes the newest fully reconciled checkpoint;
-6. confirm the branch head and report the checkpoint only after the above are present.
+1. run the new/updated audit against the authoritative ROM;
+2. confirm the declared dependency span contains every byte actually read for the claimed closure;
+3. commit/update the analysis artifact;
+4. commit/update the reproducible audit/tool;
+5. update `docs/PROGRESS.md` and `docs/DECOMPILATION_CONTINUITY.md`;
+6. update VPP only if the fixed rubric earns it;
+7. update `analysis/RESUME_STATE.json` last so it describes the newest reconciled frontier;
+8. run `tools/check_resume_frontier.py <ROM.nes>` against that state;
+9. re-fetch branch head before reporting completion.
 
-`RESUME_STATE.json` must include the prior completed checkpoint commit, the next frontier, verification overlap, next-frontier fingerprint, previous audit path, unresolved edges, and VPP.
+If interrupted before all steps finish, the next session treats the checkpoint as provisional and repairs only the affected boundary/dependency.
 
-## Current recovery frontier
+## Current integrity hold
 
-At creation of this protocol, the last completed decomp checkpoint is **04F8**.
+**Forward decompilation is currently blocked pending a narrow 04F7/04F8 boundary repair. Do not begin 04F9 yet.**
 
-- raw bank: `$04`
-- physical bank at frontier: PRG09
-- last closed CPU byte: `$A011`
-- next unprocessed CPU byte: `$A012`
-- next checkpoint: **04F9**
-- intended initial window: `$A012-$B1FF`
-- do not open raw bank `$05` or fixed `$E7FB` during 04F9
+The restart overlap check found two dependency-accounting errors:
 
-The exact machine-readable values and hashes are in `analysis/RESUME_STATE.json`. Do not copy values from this prose if the state file has been advanced by a later committed checkpoint.
+1. 04F7 root `$9133` reaches command `$9208: FE FF 33 91`. The pointer operand bytes `$920A-$920B` lie beyond the old 04F7 contiguous span ending at `$9209`.
+2. 04F8 root `$9E85` reaches command `$A010: FE FF 85 9E`. The pointer operand bytes `$A012-$A013` lie beyond the recorded 04F8 span ending at `$A011`.
+
+These findings do **not** require redoing the parser core or earlier roots. Repair only the affected boundary accounting and recursively revalidate the affected root cycles with operand-in-span assertions.
+
+Known corrected 04F8 dependency candidate, to be accepted only after the hardened audit passes:
+
+```text
+half-open span:                  [$920A,$A014)
+inclusive CPU range:            $920A-$A013
+length:                          3594 bytes
+SHA-256:                         728c86cd808e178821f7f72d1f0371eb16a5bde3a1dda495543338391a5e7b3c
+04F7 mode-probe overlap:         11 bytes
+candidate genuine 04F8 bytes:   3583
+next unresolved stream root:    $A014
+```
+
+Until the hardened audit passes and all four records (`analysis`, `audit`, `PROGRESS`, `DECOMPILATION_CONTINUITY`) are reconciled, `RESUME_STATE.json` must remain blocked.
+
+## Recovery rule in one sentence
+
+**Verify the ROM and current branch, replay the last trusted audit, re-check a small overlapping semantic unit including all operands, repair any mismatch without redoing closed ground, and only then continue from the first genuinely unresolved unit.**
