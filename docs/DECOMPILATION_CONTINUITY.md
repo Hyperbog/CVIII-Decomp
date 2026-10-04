@@ -122,8 +122,10 @@ Stable facts:
 - checkpoint 04D proved `PRG22:$8745` belongs to type `$26`, whose explicit selector family is `$12/$08`, not `$10`.
 - checkpoint 04E1 proved PRG18 type `$E1` starts selector `$10` at frame `$E8/$EC` and can only mutate to `$EA/$EE`; it cannot reach frame `$14`.
 - checkpoint 04E2 proved the direct PRG06/07 selector-`$10` setup/helper domain is `$C0,$C2,$C4,$C6,$C8,$CA,$CC,$CE,$D0,$D2,$D4,$D6,$E0,$E4,$F0,$F4,$F6,$F8,$FA,$FC,$FE`; frame `$14` is absent. The only bank-resident literal frame `$14` setup immediately selects `$0E`.
+- checkpoint 04E3 identified the missing transitive mechanism: PRG06 `$823E-$8251` picks animation ID `$09` for base Y `$A0-$A7`, then `$EF7F` installs selector `$10`, animation ID `$09`, cursor `$00`, timer `$01`. Selector `$10` animation record `$09` is fixed `$F28D: 14 08 02`; `$EF93` therefore writes frame `$14` to `$0400,X` on its first update.
+- fixed active-object loop `$FE60` invokes `$EF93` when the object is active and `$0470` bit `$20` is clear. The local PRG06 path writes `$40` to `$0470,X`, so it does not locally suppress that tick.
 
-See `analysis/PRG22_8745_OWNER.md`, `analysis/PRG18_E1_SELECTOR10_FRAME.md`, and `analysis/PRG06_SELECTOR10_DIRECT_DOMAIN.md`.
+See `analysis/PRG22_8745_OWNER.md`, `analysis/PRG18_E1_SELECTOR10_FRAME.md`, `analysis/PRG06_SELECTOR10_DIRECT_DOMAIN.md`, and `analysis/PRG06_SELECTOR10_FIXED_ANIM.md`.
 
 ### Native baseline
 
@@ -170,8 +172,8 @@ Never count unresolved work as translated.
 
 ## Current next checkpoint
 
-**04E3 — PRG06 transitive frame mutation through shared/fixed helpers only.** Starting from the proven PRG06 selector-`$10` setup paths, inspect only calls into fixed/shared routines that can write or derive `$0400` for the same object. Determine whether any such path can create frame `$14`. Do not expand into unrelated object families or stage logic.
+**04E4 — PRG06 `$823E` owner/scheduler link only.** Identify the exact object/state path that reaches animation ID `$09`, prove the slot/range under which it runs, and connect that path to fixed `$EF93` scheduling. Stop once `$9FA9` runtime reachability is either proved or disproved for that path. Do not expand into cached-attribute ordering yet.
 
 ## User-facing handoff prompt
 
-> Continue the faithful Akumajou Densetsu decomp/recomp in `Hyperbog/CVIII-Decomp` on branch `decompilation`. Read `docs/DECOMPILATION_CONTINUITY.md`, `docs/PROGRESS.md`, `docs/PROGRESS_METRIC.md`, and `docs/ROM_IDENTITY.md`, inspect current branch state, and treat the verified Japanese Mapper-24 ROM as immutable controlling evidence. Work one bounded checkpoint only, preserve 6502/VRC6/PPU/APU/interrupt/stack/shared-zero-page semantics exactly, do not invent bounds/table boundaries, update VPP only under its fixed rubric, and commit before reporting. Current next checkpoint: 04E3, trace only transitive fixed/shared helper frame mutations reachable from PRG06 selector-`$10` setup paths and determine whether any can produce frame `$14`.
+> Continue the faithful Akumajou Densetsu decomp/recomp in `Hyperbog/CVIII-Decomp` on branch `decompilation`. Read `docs/DECOMPILATION_CONTINUITY.md`, `docs/PROGRESS.md`, `docs/PROGRESS_METRIC.md`, and `docs/ROM_IDENTITY.md`, inspect current branch state, and treat the verified Japanese Mapper-24 ROM as immutable controlling evidence. Work one bounded checkpoint only, preserve 6502/VRC6/PPU/APU/interrupt/stack/shared-zero-page semantics exactly, do not invent bounds/table boundaries, update VPP only under its fixed rubric, and commit before reporting. Current next checkpoint: 04E4, connect PRG06 `$823E` animation ID `$09` to its exact runtime object/slot and fixed `$EF93` scheduling without expanding into `$10` render-cache ordering.
