@@ -8,9 +8,9 @@ import sys
 from pathlib import Path
 
 
-def cpu_slice(raw_bank: bytes, start: int, end_inclusive: int) -> bytes:
-    assert 0x8000 <= start <= end_inclusive < 0xC000
-    return raw_bank[start - 0x8000 : end_inclusive - 0x8000 + 1]
+def mapped_slice(region: bytes, cpu_base: int, start: int, end_inclusive: int) -> bytes:
+    assert cpu_base <= start <= end_inclusive < cpu_base + len(region)
+    return region[start - cpu_base : end_inclusive - cpu_base + 1]
 
 
 def main(rom_path: str) -> None:
@@ -22,25 +22,52 @@ def main(rom_path: str) -> None:
     rom_sha = hashlib.sha256(rom).hexdigest()
     assert rom_sha == state["rom_sha256"], (rom_sha, state["rom_sha256"])
     prg = rom[16 : 16 + 0x40000]
+    assert len(prg) == 0x40000
 
     execution = state["execution_context"]
 
-    def raw_bank_for(record: dict) -> tuple[bytes, str]:
-        # Schema >=5 may identify overlap/fingerprint banks independently so a
-        # verified handoff can cross a mapper-bank boundary. Older states keep
-        # using execution_context.physical_prg_banks exactly as before.
+    def mapped_region_for(record: dict) -> tuple[bytes, int, str, tuple]:
+        # Switchable 16 KiB VRC6 bank at CPU $8000-$BFFF.
         raw_name = record.get("raw_vrc6_bank")
         if raw_name is not None:
             raw_index = int(raw_name, 16)
             first_prg = raw_index * 2
+            region = prg[first_prg * 0x2000 : (first_prg + 2) * 0x2000]
+            assert len(region) == 0x4000
             label = f"raw bank ${raw_index:02X} / PRG{first_prg:02d}-PRG{first_prg+1:02d}"
-        else:
-            first_prg = execution["physical_prg_banks"][0]
+            return region, 0x8000, label, ("raw", raw_index)
+
+        # Fixed or otherwise explicit physical 8 KiB PRG mapping.
+        physical = record.get("physical_prg_bank")
+        if physical is not None:
+            physical = int(physical)
+            cpu_base_raw = record.get("cpu_base")
+            assert cpu_base_raw is not None, "physical_prg_bank records require cpu_base"
+            cpu_base = int(cpu_base_raw, 16) if isinstance(cpu_base_raw, str) else int(cpu_base_raw)
+            region = prg[physical * 0x2000 : (physical + 1) * 0x2000]
+            assert len(region) == 0x2000
+            label = f"physical PRG{physical:02d} @ ${cpu_base:04X}-${cpu_base+0x1FFF:04X}"
+            return region, cpu_base, label, ("physical", physical, cpu_base)
+
+        # Backward-compatible fallback for older states.
+        banks = execution["physical_prg_banks"]
+        if len(banks) == 2:
+            first_prg = banks[0]
+            assert banks[1] == first_prg + 1
             raw_index = first_prg // 2
+            region = prg[first_prg * 0x2000 : (first_prg + 2) * 0x2000]
+            assert len(region) == 0x4000
             label = f"raw bank ${raw_index:02X} / PRG{first_prg:02d}-PRG{first_prg+1:02d}"
-        raw_bank = prg[first_prg * 0x2000 : (first_prg + 2) * 0x2000]
-        assert len(raw_bank) == 0x4000
-        return raw_bank, label
+            return region, 0x8000, label, ("raw", raw_index)
+
+        assert len(banks) == 1 and execution.get("cpu_base") is not None
+        physical = banks[0]
+        cpu_base_raw = execution["cpu_base"]
+        cpu_base = int(cpu_base_raw, 16) if isinstance(cpu_base_raw, str) else int(cpu_base_raw)
+        region = prg[physical * 0x2000 : (physical + 1) * 0x2000]
+        assert len(region) == 0x2000
+        label = f"physical PRG{physical:02d} @ ${cpu_base:04X}-${cpu_base+0x1FFF:04X}"
+        return region, cpu_base, label, ("physical", physical, cpu_base)
 
     status = state.get("status", "ready")
     if status != "ready":
@@ -51,10 +78,10 @@ def main(rom_path: str) -> None:
             print("-", reason)
         candidate = repair.get("candidate_dependency_span")
         if candidate:
-            raw_bank, label = raw_bank_for(candidate)
+            region, cpu_base, label, _ = mapped_region_for(candidate)
             start = int(candidate["start_cpu"], 16)
             end = int(candidate["end_cpu_inclusive"], 16)
-            data = cpu_slice(raw_bank, start, end)
+            data = mapped_slice(region, cpu_base, start, end)
             digest = hashlib.sha256(data).hexdigest()
             assert len(data) == candidate["length"]
             assert digest == candidate["sha256"], (digest, candidate["sha256"])
@@ -69,19 +96,19 @@ def main(rom_path: str) -> None:
         raise SystemExit(2)
 
     overlap = state["verification_overlap"]
-    overlap_bank, overlap_label = raw_bank_for(overlap)
+    overlap_region, overlap_base, overlap_label, overlap_key = mapped_region_for(overlap)
     ostart = int(overlap["start_cpu"], 16)
     oend = int(overlap["end_cpu_inclusive"], 16)
-    obytes = cpu_slice(overlap_bank, ostart, oend)
+    obytes = mapped_slice(overlap_region, overlap_base, ostart, oend)
     assert len(obytes) == overlap["length"]
     osha = hashlib.sha256(obytes).hexdigest()
     assert osha == overlap["sha256"], (osha, overlap["sha256"])
 
     fp = state["frontier_fingerprint"]
-    fp_bank, fp_label = raw_bank_for(fp)
+    fp_region, fp_base, fp_label, fp_key = mapped_region_for(fp)
     fstart = int(fp["start_cpu"], 16)
     fend = int(fp["end_cpu_inclusive"], 16)
-    fbytes = cpu_slice(fp_bank, fstart, fend)
+    fbytes = mapped_slice(fp_region, fp_base, fstart, fend)
     assert len(fbytes) == fp["length"]
     fsha = hashlib.sha256(fbytes).hexdigest()
     assert fsha == fp["sha256"], (fsha, fp["sha256"])
@@ -96,9 +123,7 @@ def main(rom_path: str) -> None:
     assert fstart == next_cpu
 
     if transition:
-        assert overlap.get("raw_vrc6_bank") is not None
-        assert fp.get("raw_vrc6_bank") is not None
-        assert overlap["raw_vrc6_bank"].upper() != fp["raw_vrc6_bank"].upper()
+        assert overlap_key != fp_key, (overlap_key, fp_key)
 
     print("ROM identity: OK", rom_sha)
     print(
@@ -120,8 +145,10 @@ def main(rom_path: str) -> None:
     if transition:
         print(
             "safe resume domain transition:",
-            f"raw bank ${overlap['raw_vrc6_bank']} ${frontier['last_closed_cpu']} ->",
-            f"raw bank ${fp['raw_vrc6_bank']} ${frontier['next_unprocessed_cpu']}",
+            overlap_label,
+            f"${frontier['last_closed_cpu']} ->",
+            fp_label,
+            f"${frontier['next_unprocessed_cpu']}",
         )
     else:
         print("safe resume CPU frontier: $" + frontier["next_unprocessed_cpu"])
