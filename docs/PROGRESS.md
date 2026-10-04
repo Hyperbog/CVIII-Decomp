@@ -2,118 +2,102 @@
 
 ## Current status
 
-Project initialized on 2026-10-03 from the verified Japanese `Akumajou Densetsu` Mapper-24 ROM. Two bank-aware analysis batches are committed. No source-level translated-byte percentage is claimed yet: code/data classification and a defensible coverage denominator have not been established across all 256 KiB PRG.
+Project initialized from the verified Japanese `Akumajou Densetsu` Mapper-24 ROM. Three bank-aware analysis batches are now committed. No global translated-byte percentage is claimed yet: whole-PRG code/data/overlap accounting is intentionally deferred until the project has a conservative denominator.
 
-### Completed foundation
+## Stable foundation
 
-- Verified immutable ROM identity and iNES header.
-- Split PRG conceptually into 32 physical 8 KiB banks (`PRG00..PRG31`).
-- Recorded CRC32/SHA-1 prefix for every physical PRG bank in `docs/ROM_IDENTITY.md`.
-- Established fixed-bank vectors:
-  - RESET `$E00B`
-  - NMI `$E057`
-  - IRQ `$E0F5`
-- Added first instruction-level fixed-bank disassembly in `analysis/PRG31_boot_and_interrupts.asm`.
-- Traced the first banked NMI frame routine through `PRG26:$8001..$817E` and classified `$817F+` as pointer/data space for that path.
-- Correctly bounded the IRQ dispatch table to states `$00-$2C` and mapped every table target/state transition.
-- Added machine-readable `analysis/IRQ_STATE_MACHINE.csv`.
-- Added reproducible ROM and IRQ audits in `tools/analyze_rom.py` and `tools/audit_irq_dispatch.py`.
+- Verified immutable ROM identity and iNES mapper/size information.
+- PRG modeled as 32 physical 8 KiB banks (`PRG00..PRG31`).
+- Fixed vectors established: RESET `$E00B`, NMI `$E057`, IRQ `$E0F5`.
+- VRC6 PRG helpers established: tracked 16 KiB bank at `$23`, raw/tracked selectors `$E2D2/$E2D0`, `$C000` 8 KiB selector via `$E2C4`.
+- NMI bank `$0D` call to `$8001` resolves to `PRG26:$8001`.
+- IRQ raw bank `$01` resolves its table/handlers into `PRG02/PRG03`.
+- Reproducible ROM, IRQ, and OAM-table audit tools are present under `tools/`.
 
-## Proven architecture from PRG31
+## Batch 02 checkpoint — IRQ state machine
 
-### RESET
-
-`PRG31:$E00B` waits on PPU status, initializes the stack, calls fixed-bank initialization helpers, clears CPU RAM `$0000-$07FF`, disables VRC6 frequency scaling at `$9003`, initializes additional state, configures `$B003`, selects the `$C000-$DFFF` bank, enables IRQs, and enters the fixed-bank idle loop at `$E04B`.
-
-The boot path calls `PRG31:$E2C4`, which loads `$1E` and writes it to VRC6 `$C000`. Therefore physical `PRG30` is mapped at CPU `$C000-$DFFF` after this boot step.
-
-### 16 KiB bank state
-
-`PRG31:$E2D0` stores A to zero-page `$23`, then falls into `$E2D2`, which writes A to VRC6 `$8000`.
-
-Thus `$23` is proven to be the software-tracked active 16 KiB PRG-bank value for normal bank changes. `$E2D2` is also callable directly when code intentionally changes the hardware bank without overwriting the tracked value.
-
-`$E2CA` first saves `$23` into `$24`, then selects the new bank. The surrounding callers show `$24` participates in temporary-bank restoration.
-
-### NMI and first frame/OAM path
-
-NMI at `PRG31:$E057` saves A/X/Y, performs VRC6 IRQ-register writes, restores PPU banking state, and on its primary path performs OAM DMA from CPU page `$02` via `$4014`.
-
-Later in that path it selects bank value `$0D` and calls CPU `$8001`. VRC6 bank `$0D` maps physical `PRG26/PRG27`, proving the call target is `PRG26:$8001`.
-
-`PRG26:$8001`:
-
-- iterates 28 object slots (`$00..$1B` indices into structure-of-arrays data at `$0400+`),
-- skips inactive/suppressed entries,
-- calls `$8070` to emit sprite records into `$0200-$02FF`,
-- begins with 64 available sprite slots,
-- then writes `$F4` to Y-coordinate bytes for every remaining slot so unused sprites are hidden before page-2 OAM DMA.
-
-`$22` advances by `$44` modulo 256 each invocation and seeds the OAM destination offset. This is consistent with sprite-order rotation, but the exact gameplay intent remains provisional.
-
-`$8070..$817E` performs two-level pointer lookup and emits OAM fields. `$8119` XORs the attribute byte with `$40`, proving a horizontal-flip path. `$817F+` is read as pointer-table data by this routine and must not be linearly disassembled as code without another proven entry.
-
-Full notes: `analysis/PRG26_OAM_frame.md`.
-
-## Batch 02 — IRQ state-machine closure and correction
-
-### Corrected table boundary
-
-The initial pass incorrectly extended the IRQ pointer table through candidate states `$2D-$2F` and claimed `$9F60` was an overlapping code/data byte. Fresh direct disassembly corrected this.
-
-The actual table is exactly:
+Authoritative IRQ table:
 
 - `PRG02:$9F01-$9F5A`
-- 90 bytes
-- 45 entries
+- 90 bytes / 45 entries
 - states `$00-$2C`
+- `$9F5B` is executable code, not another table entry
 
-`$9F5B` begins executable `CE 81 07` (`DEC $0781`) and is directly called by `$A090` and `$A185`. Therefore `$9F5B+` is code, not additional dispatch-table data. The old `$9F60` overlap claim is retired and must not be reintroduced.
+The previous `$9F60` overlap hypothesis was disproved and removed. Normal active states are `$00-$2C`; `$80` is a high-bit bypass sentinel. The highest explicit chain closes `29 -> 2A -> 2B -> 2C` with `$2C` terminal/non-incrementing.
 
-### State transitions
+Machine-readable state ledger: `analysis/IRQ_STATE_MACHINE.csv`.
 
-Every table target is now mapped in `analysis/IRQ_STATE_MACHINE.csv`.
+The fixed IRQ exits remain distinct:
 
-Important closure facts:
+- `$E118` clears VRC6 IRQ Control `$F001`, then falls through
+- `$E11D` acknowledges via `$F002` and restores the tracked PRG bank
 
-- normal table states are `$00-$2C`
-- the highest explicit chain is `29 -> 2A -> 2B -> 2C`
-- state `$2C` does not increment
-- states `$1A/$1B` assign from small local tables rather than simply incrementing
-- several states intentionally remain active across IRQs until a RAM countdown/condition completes
-- bit-7-set `$6A` values bypass the table entirely at the fixed IRQ dispatcher
+Do not merge those paths in native code.
 
-### `$43` seed / `$6A` active-state contract
+## Batch 03 checkpoint — PRG26 sprite/OAM hierarchy
 
-NMI copies `$43 -> $6A` at `$E073-$E075`.
+### Seven 28-byte renderer arrays
 
-`$E616` clears both `$6A` and `$43`.
+`PRG26:$8001` iterates 28 object indices (`0..$1B`). The renderer-facing state is seven consecutive parallel arrays from `$0400-$04C3`:
 
-Whole-PRG producer-pattern auditing plus direct instruction-boundary reconciliation establishes:
+- `$0400-$041B`: frame / second-level pointer-table byte offset; zero suppresses object
+- `$041C-$0437`: base Y
+- `$0438-$0453`: base X
+- `$0454-$046F`: attribute-low/palette override
+- `$0470-$048B`: bit-7 render suppression
+- `$048C-$04A7`: first-level sprite-set selector byte offset
+- `$04A8-$04C3`: orientation-path flag; zero selects mirrored renderer
 
-- accepted direct immediate `$43` seeds observed in code: `01,05,0B,10,12,13,16,17,19,1A,1E,21,23,29,80`
-- helper `$8E97` supplies additional proven seeds `02`, `09`, and `24` (plus `13` on another branch)
-- `$94D9` restores `$43` from `$A3`, while `$B55A` proves `$A3` is a snapshot of the previous `$43`
-- `$9A67` stores only `01`, because it executes after equality with `CMP #$01`
-- apparent non-STA `$43` mutations and apparent extra `$6A` stores found by raw pattern search fall inside tables/graphics/inline dispatch data and are not accepted as executable writes
+Machine-readable field ledger: `analysis/OAM_OBJECT_FIELDS.csv`.
 
-The currently proven state domain is therefore table states `$00-$2C` plus `$80` as a high-bit bypass sentinel.
+### First-level sprite-set table
 
-### VRC6 IRQ exit distinction
+`$8070` uses `$048C,X` directly as a byte offset into the little-endian pointer block beginning at `$817F`.
 
-The two fixed exits are not interchangeable:
+The canonical block is `$817F-$819C`, 30 bytes / 15 pointer entries, selectors `$00,$02,...,$1C`:
 
-- `$E118`: `LDA #0; STA $F001` then falls through `$E11D`
-- `$E11D`: writes to `$F002` and restores the tracked PRG bank
+`00->819D, 02->820D, 04->8265, 06->82AF, 08->8AB0, 0A->9545, 0C->AAA6, 0E->ABEA, 10->9E6D, 12->8BB0, 14->ABA6, 16->819D, 18->820D, 1A->8265, 1C->82AF`.
 
-NESdev documents `$F001` as IRQ Control and `$F002` as IRQ Acknowledge. A write to Acknowledge applies the stored A-bit enable-after-ack behavior; a Control write also changes/reloads IRQ state. Preserve this difference in the eventual native VRC6 implementation.
+Selectors `$16/$18/$1A/$1C` deliberately alias the first four geometry/frame-pointer tables used by `$00/$02/$04/$06`. `PRG25:$ADA3` directly supplies those four high selector values.
 
-References:
+The exact selector ledger is `analysis/SPRITE_SET_TABLE.csv`; `tools/audit_oam_tables.py` verifies the table, aliases, producer record, and key renderer opcode signatures against the ROM.
 
-- https://www.nesdev.org/wiki/VRC6
-- https://www.nesdev.org/wiki/VRC_IRQ
+A complete proof that every possible runtime `$048C` producer remains within the canonical selector set is still pending. Do not add a host-side bounds check yet.
 
-## Files authoritative for continuation
+### Two-level hierarchy
+
+The renderer then uses `$0400,X` as another byte offset into the selected table and reads a second little-endian pointer. That final pointer addresses a sprite descriptor stream:
+
+`$048C selector -> first-level sprite-set pointer -> $0400 frame offset -> sprite descriptor`.
+
+### Sprite descriptor format
+
+Descriptor byte 0 is a sprite count. Each sprite consumes four bytes:
+
+1. Y delta
+2. tile index
+3. OAM attribute byte
+4. X delta
+
+Output is one four-byte OAM record `[Y,tile,attribute,X]` in shadow OAM page `$0200-$02FF`.
+
+Encoded details that must be preserved:
+
+- Y delta is sign-aware `ROR` arithmetic-right-shifted by one before addition to base Y. Do not replace with ordinary signed division because negative odd values differ.
+- If `$0454,X != 0`, attribute low two bits are replaced by that object byte after `AND #$FC`.
+- Mirrored path toggles attribute bit `$40` and transforms X with `$F8 - descriptor_x` before base-X addition.
+- X addition contains explicit carry/sign wrap checks; failed range tests hide the sprite by writing Y=`$F4`.
+- Under encoded `$AD != 0` paths, helper `$8172` adds `$80` to the tile byte for selectors `>= $16`; the high selector aliases therefore reuse geometry while selecting the alternate tile-number half.
+
+Full reconstruction notes: `analysis/PRG26_SPRITE_FORMAT.md`.
+
+### OAM permutation and non-local return
+
+Each emitted descriptor advances OAM byte offset by `$C4` modulo 256 (`-15` sprite slots). Since 15 is coprime with 64, all OAM slots are visited once before repeat. Frame start advances `$22` by `$44` (`17` sprite slots), changing the initial slot.
+
+Critical control-flow fact: when the 64-slot counter reaches zero inside `$8070`, the code executes `PLA; PLA; RTS`, discarding `$8070`'s own return address and returning directly to `$8001`'s caller. Therefore `$8001`'s unused-slot fill loop is skipped when OAM is full. Any structured native lift must preserve this non-local early exit, likely via an explicit propagated result.
+
+## Authoritative continuation files
 
 1. `docs/DECOMPILATION_CONTINUITY.md`
 2. `docs/PROGRESS.md`
@@ -122,25 +106,28 @@ References:
 5. `analysis/PRG02_IRQ_dispatch.md`
 6. `analysis/IRQ_STATE_MACHINE.csv`
 7. `analysis/PRG26_OAM_frame.md`
-8. `tools/analyze_rom.py`
-9. `tools/audit_irq_dispatch.py`
+8. `analysis/PRG26_SPRITE_FORMAT.md`
+9. `analysis/SPRITE_SET_TABLE.csv`
+10. `analysis/OAM_OBJECT_FIELDS.csv`
+11. `tools/analyze_rom.py`
+12. `tools/audit_irq_dispatch.py`
+13. `tools/audit_oam_tables.py`
 
 ## Unresolved / do not assume
 
-- Exact gameplay/render meaning of each `$43/$6A` IRQ program state.
-- Exact producer/valid domains of `$0780/$0781/$0782/$0789-$0794` used by multi-step IRQ handlers.
-- Exact purpose of every VRC6 IRQ latch value until the visual split/scroll programs are connected to frame-side setup.
-- Complete extent and index semantics of the `PRG26:$817F` sprite pointer hierarchy.
-- Complete object-record semantics for arrays `$0400/$041C/$0438/$0454/$0470/$048C/$04A8`.
-- Full code/data classification of each physical PRG bank.
-- Native runtime architecture and translated-source coverage denominator.
+- Whole-ROM proof of every `$048C` producer and invalid-selector impossibility.
+- Exact higher-level meaning of global `$AD`.
+- Complete extents and semantic identities of every second-level frame-pointer table.
+- Gameplay meaning/producers of every `$0400-$04C3` field beyond proven renderer behavior.
+- Exact visual/game-state meanings of IRQ states `$00-$2C`.
+- Whole-PRG code/data accounting denominator.
 
 ## Next batch
 
-1. Return to `PRG26:$8070` and determine the valid `$048C` selector domain and exact first-level `$817F` pointer-table extent.
-2. Decode the second-level sprite-description pointer format and field stream consumed by `$8070..$817E`.
-3. Trace producers of the 28-entry object structure-of-arrays fields around `$0400-$04A8`.
-4. Connect the `$43` IRQ seed setters to the visual/game states that select each raster program.
-5. Once those RAM contracts are stable, begin the first native mapper/IRQ/OAM subsystem source with regression checks against ROM-derived traces.
+1. Audit all executable writes to `$048C` and close the runtime selector domain if possible.
+2. Trace `$0400` frame-offset producers and prove stride/domain for the major sprite sets.
+3. Parse representative descriptor tables into machine-readable frame/sprite records and cross-check mirrored/non-mirrored behavior.
+4. Begin the first native faithful OAM subsystem source only after the selector/frame contracts are stable enough for regression tests.
+5. Continue connecting IRQ program states to the frame-side visual setup that seeds them.
 
-No translated-byte percentage is being reported yet. That remains intentionally deferred until the project has a conservative, overlap-safe PRG accounting model rather than an invented early denominator.
+No translated-byte percentage is reported yet; that remains intentionally deferred until accounting is conservative and reproducible.
