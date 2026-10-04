@@ -49,52 +49,23 @@ Full records store the final transformed OAM attribute into `$10`; compressed re
 
 Descriptor `$9FA9` begins with three compressed records before its first explicit attribute, proving a per-descriptor reset would be wrong.
 
-### Master frame-table census
+Five physical master pointer blocks are proven; `tools/audit_sprite_descriptors.py` verifies 745 unique referenced descriptors, maximum 27 sprites, maximum encoded length 96 bytes, and 2,310 compressed attribute-reuse records.
 
-Five physical master pointer blocks are now proven:
+When `$0454,X` is nonzero, the exact machine operation is `(descriptor_attribute & $FC) | $0454,X`; the object byte is not masked to two bits.
 
-- A `$819D-$82F4`: 172 pointers
-- B `$8AB0-$8C2D`: 191 pointers
-- C `$9545-$9620`: 110 pointers
-- D `$9E6D-$9F6C`: 128 pointers
-- E `$AAA6-$AC5B`: 219 pointers
+## Native OAM baseline
 
-The 15 first-level selector targets are windows into these masters, not 15 independent tables. `analysis/SPRITE_MASTER_TABLES.csv` records the entry offsets/ranges.
-
-`tools/audit_sprite_descriptors.py` verifies all referenced descriptors:
-
-- 745 unique descriptor pointers
-- maximum 27 sprites per descriptor
-- maximum encoded length 96 bytes
-- 2,310 compressed attribute-reuse records
-- `$9FA9` is the only referenced descriptor whose first sprite is compressed
-
-### `$0454` correction
-
-When nonzero, the machine operation is `(descriptor_attribute & $FC) | $0454,X`. The object byte is not masked to two bits; direct producers can supply values above `$03`.
-
-## Native OAM baseline added
-
-The first faithful native subsystem now exists:
+The first faithful native subsystem exists in:
 
 - `src/oam_renderer.hpp`
 - `src/oam_renderer.cpp`
 - `tests/oam_renderer_test.cpp`
 
-The lift keeps NES RAM explicit and preserves 8-bit pointer-index wrap, variable descriptor width, persistent `$10`, full-byte `$0454` OR semantics, mirror/tile transforms, signed X clipping, OAM permutation, and the `$8070` non-local OAM-full exit via an explicit propagated result.
+The lift preserves 8-bit pointer-index wrap, variable descriptor width, persistent `$10`, full-byte `$0454` OR semantics, mirror/tile transforms, signed X clipping, OAM permutation, and the `$8070` non-local OAM-full exit.
 
-The test suite includes a first-record compression regression: it seeds incoming `$10=$A7`, starts the object's descriptor with a compressed record, and verifies that exact cached byte is emitted unchanged.
+## Checkpoint 04B — zero-page `$10` lifetime
 
-## Checkpoint 04B — zero-page `$10` lifetime at renderer entry
-
-Inside the proven `$8001-$817E` renderer region:
-
-- `$8064`: `LDA $10` — compressed non-mirrored record
-- `$80BF`: `STA $10` — cache final non-mirrored explicit attribute
-- `$811B`: `STA $10` — cache final mirrored explicit attribute
-- `$8166`: `LDA $10` — compressed mirrored record
-
-There is no renderer-side initialization before object processing. Direct gameplay code in VRC6 bank `$03` also uses `$10` as unrelated scratch, proving it is shared zero-page machine state rather than renderer-private storage.
+Inside `$8001-$817E`, `$10` is read at `$8064/$8166` and updated at `$80BF/$811B`. There is no renderer-side initialization before object processing. Bank-$03` gameplay code also uses `$10` as unrelated scratch, proving it is shared zero-page state rather than renderer-private storage.
 
 Evidence: `analysis/ZP10_OAM_STATE.md`; audit: `tools/audit_oam_zp10.py`.
 
@@ -102,63 +73,54 @@ Evidence: `analysis/ZP10_OAM_STATE.md`; audit: `tools/audit_oam_zp10.py`.
 
 `$9FA9` requires selector `$048C[slot]=$10` plus frame `$0400[slot]=$14`.
 
-Checked direct selector-`$10` setup paths use high frame values (`$F0`, `$F4-$FE`, `$D2/$C0/$C6/$CC/$E4/$E0`, `$E8/$EC`), not `$14`.
+Checked direct selector-`$10` setup paths use high frame values, not `$14`. PRG22 `$8745` writes frame `$14` without locally writing the selector, making it the first candidate persistent-selector transition.
 
-PRG22 `$8745` writes frame `$14` without locally writing the selector, making it the first candidate for a persistent-selector transition. Full notes: `analysis/PRG26_9FA9_REACHABILITY.md`.
+Evidence: `analysis/PRG26_9FA9_REACHABILITY.md`.
 
 ## Checkpoint 04D — owner of PRG22 `$8745`
 
-Direct dispatcher/state-table reconstruction rejects `$8745` as the selector-`$10` route.
-
-The PRG23 object dispatcher uses `$05EF,X` as object type and `$05C1,X` as a four-byte state-record index. Object type `$26` points to state table `$AE6A-$AF29` (48 states).
-
-Action dispatch proves:
-
-- action `$5C` -> `PRG22:$871E`
-- action `$8A` -> `PRG22:$86F2`
-- both can reach the shared `$8734-$874D` tail containing `$8745: LDA #$14 / STA $0400,X`
-
-Within type `$26`, the two normal action-`$5C` entries are immediately preceded by explicit action-`$0B` sprite setup:
-
-- state `$07`: `0B 12 12 00` -> selector `$12`, frame `$12`
-- state `$08`: action `$5C`
-- state `$13`: `0B 12 12 00` -> selector `$12`, frame `$12`
-- state `$14`: action `$5C`
-
-Enumerating every action-`$0B` record in the complete type-`$26` table shows that its explicit selector values are only `$12` and `$08`; selector `$10` never occurs.
-
-Therefore `$8745` belongs to the type-`$26` `$12/$08` sprite-set family and does **not** establish the missing selector-`$10` + frame-`$14` path to `$9FA9`.
+Dispatcher/state-table reconstruction rejects `$8745` as the selector-`$10` route. `$8745` belongs to object type `$26`; that state machine's explicit selectors are only `$12/$08`, and its ordinary `$871E` entries are directly preceded by selector `$12` setup.
 
 Evidence: `analysis/PRG22_8745_OWNER.md`; audit: `tools/audit_prg22_8745_owner.py`.
 
 ## Checkpoint 04E1 — PRG18 type `$E1` selector-`$10` closure
 
-This checkpoint closes one proven selector-`$10` family without expanding into the PRG06 families.
-
-PRG18 creation code at `$9DE0-$9E1B` sets:
-
-- type `$05EF = $E1`
-- selector `$048C = $10`
-- state `$05C1 = 0`
-- initial frame `$0400 = $E8` or `$EC`
-
-The PRG18/19 dispatcher maps type `$E1` to exactly six two-byte state records at `$8FC4-$8FCF`.
-
-The only frame mutation in that six-state path is state `$04`, action `$46`, parameter index `$58`. The three parameter bytes are `FF 00 FF`. Action `$46` interprets the first `$FF` as two `INC $0400,X` operations.
-
-Thus the complete proven type-`$E1` frame evolution is:
-
-```text
-$E8 -> $EA
-or
-$EC -> $EE
-```
-
-State `$05` resolves to `$8662`, which is `RTS`. Type `$E1` therefore cannot produce selector `$10` + frame `$14` through its authoritative state machine and does not establish `$9FA9` reachability.
+PRG18 type `$E1` starts selector `$10` at frame `$E8` or `$EC`. Its six-state table has only one frame mutation: two increments, producing `$EA` or `$EE`. It cannot reach frame `$14` through its authoritative state machine.
 
 Evidence: `analysis/PRG18_E1_SELECTOR10_FRAME.md`; audit: `tools/audit_prg18_e1_frame.py`.
 
-**VPP remains 21/100 after 04E1.** This closure is useful evidence but does not complete another point in the fixed gameplay/object-system rubric.
+**VPP remained 21/100 after 04E1.**
+
+## Checkpoint 04E2 — PRG06/07 direct selector-`$10` domain
+
+This checkpoint inventories direct indexed writes to renderer selector `$048C` and frame `$0400` in VRC6 bank `$03` (`PRG06/PRG07`).
+
+Direct selector stores occur only at `$8D4F,$8EB9,$8EF9,$9479,$9482`. `$8D4F` stores selector `$0E`; the other four explicitly store selector `$10`.
+
+Direct frame stores occur only at:
+
+- X: `$8E34,$8EF4,$9474,$9ADB,$9C58,$9D19`
+- Y: `$8D4A,$8DFA,$8ED5,$947D`
+
+The bank pair contains no direct indexed `INC/DEC $0400,X`.
+
+The **only literal frame `$14` setup** is `$8D4A`, and the same setup immediately writes selector `$0E` at `$8D4F`.
+
+The canonical helpers `$9474/$947D` store the supplied A value as frame and then force selector `$10`. Reconciliation of every absolute call/jump to those helpers and their local tables gives this directly proven selector-`$10` frame domain:
+
+```text
+$C0,$C2,$C4,$C6,$C8,$CA,$CC,$CE,
+$D0,$D2,$D4,$D6,$E0,$E4,$F0,
+$F4,$F6,$F8,$FA,$FC,$FE
+```
+
+Frame `$14` is absent. `$9ADB`, another apparently dynamic frame store, follows fixed helper `$FF24`; `$FF24` returns with A=`$00`, so that site stores frame zero.
+
+Therefore **no direct indexed PRG06/07 selector-`$10` setup path produces frame `$14`**. This does not yet close transitive mutation through fixed-bank/shared helpers or another PRG bank.
+
+Evidence: `analysis/PRG06_SELECTOR10_DIRECT_DOMAIN.md`; audit: `tools/audit_prg06_selector10_direct.py`.
+
+**VPP remains 21/100 after 04E2.** This is useful reachability closure but does not satisfy another full rubric point.
 
 ## Authoritative continuation files
 
@@ -179,15 +141,16 @@ Evidence: `analysis/PRG18_E1_SELECTOR10_FRAME.md`; audit: `tools/audit_prg18_e1_
 15. `analysis/PRG26_9FA9_REACHABILITY.md`
 16. `analysis/PRG22_8745_OWNER.md`
 17. `analysis/PRG18_E1_SELECTOR10_FRAME.md`
-18. `src/oam_renderer.hpp`
-19. `src/oam_renderer.cpp`
-20. `tests/oam_renderer_test.cpp`
-21. `tools/progress_score.py`
-22. current ROM/subsystem audit scripts under `tools/`
+18. `analysis/PRG06_SELECTOR10_DIRECT_DOMAIN.md`
+19. `src/oam_renderer.hpp`
+20. `src/oam_renderer.cpp`
+21. `tests/oam_renderer_test.cpp`
+22. `tools/progress_score.py`
+23. current ROM/subsystem audit scripts under `tools/`
 
 ## Unresolved / do not assume
 
-- whether any PRG06 selector-`$10` family can mutate `$0400` to `$14`
+- transitive fixed-bank/shared-helper frame mutation for PRG06 selector-`$10` objects
 - actual reachable mechanism, if any, producing selector `$10` plus frame `$14`
 - which object slots can reach `$9FA9`
 - whether object ordering guarantees a prior explicit-attribute sprite before `$9FA9`
@@ -196,10 +159,9 @@ Evidence: `analysis/PRG18_E1_SELECTOR10_FRAME.md`; audit: `tools/audit_prg18_e1_
 - producer-domain closure for `$0400` frame offsets
 - exact higher-level meaning of global `$AD`
 - semantic identities of individual frame tables/descriptors
-- gameplay meaning/producers of every `$0400-$04C3` field beyond proven renderer behavior
 - exact visual/game-state meanings of IRQ states `$00-$2C`
 - conservative ROM-byte code/data coverage metric (future companion metric, not VPP)
 
 ## Next manageable checkpoint
 
-**04E2: PRG06 selector-`$10` families only.** Enumerate the direct PRG06 selector-`$10` setup/helper paths and trace their frame mutations far enough to determine whether any authoritative PRG06 path can produce frame `$14`. Do not expand into unrelated banks/object families. Update VPP only if the fixed rubric actually earns another point.
+**04E3: PRG06 transitive frame mutation through shared/fixed helpers only.** Starting from the proven PRG06 selector-`$10` setup paths, inspect only calls into fixed/shared routines that can write or derive `$0400` for the same object. Determine whether any such path can create frame `$14`. Do not expand into unrelated object families or stage logic. Update VPP only if the fixed rubric earns another point.
