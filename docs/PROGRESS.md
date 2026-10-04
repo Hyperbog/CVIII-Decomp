@@ -13,7 +13,9 @@ Project initialized on 2026-10-03 from the verified Japanese `Akumajou Densetsu`
   - RESET `$E00B`
   - NMI `$E057`
   - IRQ `$E0F5`
-- Added first instruction-level disassembly in `analysis/PRG31_boot_and_interrupts.asm`.
+- Added first instruction-level fixed-bank disassembly in `analysis/PRG31_boot_and_interrupts.asm`.
+- Traced the first banked NMI frame routine through `PRG26:$8001..$817E` and classified `$817F+` as pointer/data space for that path.
+- Traced the IRQ dispatch table in `PRG02` and discovered a real code/data overlap at `$9F60`.
 - Added reproducible identity/bank analyzer `tools/analyze_rom.py`.
 
 ## Proven architecture from PRG31
@@ -32,27 +34,35 @@ Thus `$23` is proven to be the software-tracked active 16 KiB PRG-bank value for
 
 `$E2CA` first saves `$23` into `$24`, then selects the new bank. The surrounding callers show `$24` participates in temporary-bank restoration.
 
-### NMI
+### NMI and first frame/OAM path
 
 NMI at `PRG31:$E057` saves A/X/Y, performs VRC6 IRQ-register writes, restores PPU banking state, and on its primary path performs OAM DMA from CPU page `$02` via `$4014`.
 
-Later in that path:
+Later in that path it selects bank value `$0D` and calls CPU `$8001`. VRC6 bank `$0D` maps physical `PRG26/PRG27`, proving the call target is `PRG26:$8001`.
 
-- loads bank value `$0D`
-- calls `$E2D0`
-- calls CPU `$8001`
+`PRG26:$8001`:
 
-VRC6 16 KiB bank `$0D` maps PRG offsets `$34000-$37FFF`, i.e. physical `PRG26/PRG27`. Therefore the `$8001` call is proven to target **`PRG26:$8001`**.
+- iterates 28 object slots (`$00..$1B` indices into structure-of-arrays data at `$0400+`),
+- skips inactive/suppressed entries,
+- calls `$8070` to emit sprite records into `$0200-$02FF`,
+- begins with 64 available sprite slots,
+- then writes `$F4` to Y-coordinate bytes for every remaining slot so unused sprites are hidden before page-2 OAM DMA.
 
-Initial disassembly of `PRG26:$8001` shows it iterates object/state arrays in `$0400+`, writes sprite records into shadow OAM page `$0200-$02FF`, and fills remaining OAM Y bytes with `$F4`. Combined with the NMI `$4014 = $02` DMA, this strongly establishes `$8001` as part of the frame's OAM/sprite-shadow construction path. Semantic naming beyond that remains provisional until `$8070+` is fully reconciled.
+`$22` advances by `$44` modulo 256 each invocation and seeds the OAM destination offset. This is consistent with sprite-order rotation, but the exact gameplay intent remains provisional.
 
-### IRQ
+`$8070..$817E` performs two-level pointer lookup and emits OAM fields. `$8119` XORs the attribute byte with `$40`, proving a horizontal-flip path. `$817F+` is read as little-endian pointer-table data by this routine and must not be linearly disassembled as code without another proven entry.
 
-IRQ at `PRG31:$E0F5` saves A/X/Y plus zero-page `$00/$01`, directly selects 16 KiB bank `$01` through `$E2D2`, and indexes a pointer table beginning at CPU `$9F01`. Bank `$01` maps physical `PRG02/PRG03`; therefore this dispatch table resides in that physical 16 KiB pair.
+Full notes: `analysis/PRG26_OAM_frame.md`.
 
-The handler jumps indirectly through `$0000`, allowing banked IRQ subhandlers, and the common restoration path restores the hardware bank from tracked value `$23` before RTI.
+### IRQ dispatch and overlap
 
-This direct-vs-tracked bank-select distinction must be preserved in the native model.
+IRQ at `PRG31:$E0F5` saves A/X/Y plus zero-page `$00/$01`, directly selects 16 KiB bank `$01` through `$E2D2`, and indexes a pointer table beginning at CPU `$9F01`. Bank `$01` maps physical `PRG02/PRG03`.
+
+The table yields plausible handler pointers for indices `$00..$2F`. The next would-be entry overlaps sequential code and decodes to an implausible execution target, but the actual domain of `$6A` still needs producer-side proof.
+
+Critical fidelity fact: table entry `$2F` uses bytes `$9F5F=$26` and `$9F60=$A5` to form target `$A526`, while `$9F60` is simultaneously the first opcode of a valid routine (`LDA $7A`). Therefore this ROM contains at least one proven **code/data-overlap byte**. Coverage/accounting must allow one physical byte to participate in more than one semantic role rather than forcing a disjoint partition.
+
+Full notes: `analysis/PRG02_IRQ_dispatch.md`.
 
 ## Files that are authoritative for continuation
 
@@ -60,22 +70,26 @@ This direct-vs-tracked bank-select distinction must be preserved in the native m
 2. `docs/PROGRESS.md`
 3. `docs/ROM_IDENTITY.md`
 4. `analysis/PRG31_boot_and_interrupts.asm`
-5. `tools/analyze_rom.py`
+5. `analysis/PRG02_IRQ_dispatch.md`
+6. `analysis/PRG26_OAM_frame.md`
+7. `tools/analyze_rom.py`
 
 ## Unresolved / do not assume
 
 - Exact semantic roles of zero-page variables other than those proven by direct use.
-- Exact IRQ table length and meaning of `$6A` values.
-- Exact purpose of every VRC6 IRQ write in NMI until the IRQ mode/latch paths are traced together.
-- Full boundaries and data tables around `PRG26:$8001`.
-- Full code/data partition of each physical PRG bank.
+- Exact producer/domain of IRQ index `$6A`; do not yet hard-cap it in reconstructed logic solely from table appearance.
+- Exact purpose of every VRC6 IRQ write in NMI until IRQ mode/latch paths are traced together.
+- Complete extent and index semantics of the `$817F` pointer table.
+- Complete object-record semantics for arrays `$0400/$041C/$0438/$0454/$0470/$048C/$04A8`.
+- Full code/data/overlap classification of each physical PRG bank.
 - Native runtime architecture and translated-source coverage denominator.
 
 ## Next batch
 
-1. Fully disassemble/reconcile `PRG26:$8001` and its local helpers through at least `$817E`, classifying embedded pointer/data tables separately.
-2. Trace the `PRG02/PRG03` IRQ pointer table at CPU `$9F01`, enumerate reachable IRQ handlers, and record physical targets.
-3. Trace all callers of `$E2C0/$E2C4/$E2CA/$E2D0/$E2D2` to establish bank-state invariants.
-4. Begin a machine-readable bank-aware symbol/call ledger once those relationships are stable.
+1. Trace all writes to `$6A` and reconcile the IRQ dispatch-index domain.
+2. Disassemble/reconcile unique IRQ targets from the `$9F01` table, especially `$9F99`, `$9FA1`, `$9FD5`, `$9FE3`, `$A01C+`, and common return through fixed `$E118`.
+3. Determine the valid index/stride and full extent of the `PRG26:$817F` sprite pointer table.
+4. Trace producers of the 28-entry `$0400+` object structure-of-arrays fields.
+5. Begin a machine-readable bank-aware symbol/call ledger once these relationships are stable.
 
-The goal of the next batch is not merely more disassembly; it is the first coherent subsystem boundary: **frame OAM construction + interrupt-driven bank context**.
+The next coherent subsystem target remains **frame OAM construction + interrupt-driven bank context**, now with explicit overlapping-code/data support required by the original ROM.
