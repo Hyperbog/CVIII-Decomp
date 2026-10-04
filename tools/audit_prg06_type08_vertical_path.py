@@ -68,7 +68,7 @@ def main() -> int:
             return 1
 
     # Fixed bank-$0B vertical integration: low byte then high byte + carry.
-    if b0b(0x8024, 0x13) != bytes.fromhex(
+    if b0b(0x8023, 0x14) != bytes.fromhex(
         "18bddb047d37059ddb04bd1c047d20059d1c0460"
     ):
         print("ERROR: bank-$0B vertical integrator mismatch", file=sys.stderr)
