@@ -1,0 +1,16 @@
+selector,pointer,classification,note
+00,819D,base,primary sprite-set pointer table
+02,820D,base,primary sprite-set pointer table
+04,8265,base,primary sprite-set pointer table
+06,82AF,base,primary sprite-set pointer table
+08,8AB0,base,primary sprite-set pointer table
+0A,9545,base,primary sprite-set pointer table
+0C,AAA6,base,primary sprite-set pointer table
+0E,ABEA,base,primary sprite-set pointer table
+10,9E6D,base,primary sprite-set pointer table
+12,8BB0,base,primary sprite-set pointer table
+14,ABA6,base,primary sprite-set pointer table
+16,819D,tile_plus_80_alias,aliases selector 00 geometry; helper $8172 can add $80 to tile byte
+18,820D,tile_plus_80_alias,aliases selector 02 geometry; helper $8172 can add $80 to tile byte
+1A,8265,tile_plus_80_alias,aliases selector 04 geometry; helper $8172 can add $80 to tile byte
+1C,82AF,tile_plus_80_alias,aliases selector 06 geometry; helper $8172 can add $80 to tile byte
