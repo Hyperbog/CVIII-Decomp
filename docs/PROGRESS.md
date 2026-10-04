@@ -2,9 +2,7 @@
 
 ## Current status
 
-Work proceeds in **small bounded checkpoints**: one narrow question, direct ROM verification, focused evidence/audit, commit, then stop.
-
-Byte-budget policy: normally **500-5000 bytes of new ROM span per checkpoint**, default near 1 KiB. Expand within that range only when local control-flow edges are necessary to answer the same question. Provide short status updates after material findings.
+Work proceeds in bounded, ROM-backed checkpoints. Normal new-ROM budget is **500-5000 bytes**, now generally using the upper half of that range when one coherent dependency can be closed safely. Material findings are reported during the checkpoint.
 
 Primary metric: **Verified Parity Progress (VPP) = 21 / 100 (21%)**.
 
@@ -15,7 +13,7 @@ VPP is a fixed evidence rubric, not a time estimate or raw-byte percentage. See 
 - Exact Japanese `Akumajou Densetsu` Mapper-24/VRC6a ROM identity is locked.
 - PRG is modeled as 32 physical 8 KiB banks (`PRG00..PRG31`).
 - Fixed vectors: RESET `$E00B`, NMI `$E057`, IRQ `$E0F5`.
-- VRC6 PRG helper/bank contexts are mapped.
+- VRC6 PRG bank helpers and fixed/switchable contexts are mapped.
 - NMI bank `$0D` call `$8001` resolves to `PRG26:$8001`.
 - IRQ raw bank `$01` resolves into `PRG02/PRG03`.
 
@@ -31,10 +29,10 @@ Evidence: `analysis/PRG02_IRQ_dispatch.md`, `analysis/IRQ_STATE_MACHINE.csv`, `t
 
 `PRG26:$8001` iterates 28 render slots using seven 28-byte arrays `$0400-$04C3`.
 
-Sprite descriptor records are variable width:
+Sprite descriptors are variable width:
 
-- Y/control bit0 clear: `Y,tile,attribute,X`
-- Y/control bit0 set: `Y,tile,X`, reusing persistent ZP `$10`
+- bit0 clear: `Y,tile,attribute,X`
+- bit0 set: `Y,tile,X`, reusing persistent ZP `$10`
 
 Full records update `$10`; compressed records consume it unchanged. `$9FA9` is the only referenced descriptor whose first record is compressed and begins with three compressed records.
 
@@ -50,34 +48,32 @@ Core evidence: `analysis/PRG26_SPRITE_FORMAT.md`, `analysis/SPRITE_MASTER_TABLES
 - **04E3:** PRG06 `$823E-$8251` selects animation `$09` for base Y `$A0-$A7`; fixed record `$F28D: 14 08 02` makes `$EF93` write frame `$14`.
 - **04E4:** primary type `$08` in slots `$01-$12` reaches this path under its state machine and scheduler.
 - **04E5:** state `$00` establishes Y `$C0` and exact vertical velocity `-2`; state `$01` remains active through `$A0-$A7`.
-- **04E6:** normal low-type construction gives `$0633=$0645=0`; first state-1 target is exactly `$90`, so normal gameplay necessarily reaches selector `$10` + frame `$14` -> descriptor `$9FA9`.
-- **04F1:** renderer order is ascending; `$10` is not initialized at frame/object entry. `$9FA9` therefore consumes variable inherited shared state rather than a constant default.
-
-Evidence for this chain is under `analysis/PRG06_*`, `analysis/PRG26_9FA9_INCOMING_ATTR.md`, and matching `tools/audit_*` scripts.
+- **04E6:** normal low-type construction gives `$0633=$0645=0`; first state-1 target is exactly `$90`, so normal gameplay reaches selector `$10` + frame `$14` -> descriptor `$9FA9`.
+- **04F1:** renderer order is ascending and `$10` is not initialized at frame/object entry. `$9FA9` therefore consumes variable inherited shared state rather than a constant default.
 
 ## Pre-render `$10` provenance
 
-### 04F2 — verified IRQ graph preserves `$10`
+### 04F2 — IRQ graph preserves `$10`
 
-Primary span `PRG02/PRG03:$9F99-$A526` = 1422 bytes. No verified IRQ handler, reachable local helper, called fixed helper, or IRQ prologue/exit writes or aliases ZP `$10`.
+`PRG02/PRG03:$9F99-$A526`, 1422 bytes. No verified IRQ handler, reachable local helper, called fixed helper, or IRQ prologue/exit writes or aliases ZP `$10`.
 
 Evidence: `analysis/IRQ_ZP10_PRESERVATION.md`, `tools/audit_irq_zp10.py`.
 
-### 04F3 — fixed pre-render NMI span preserves `$10`
+### 04F3 — fixed NMI span preserves `$10`
 
-Primary span `PRG31:$E057-$E365` = 783 bytes. In-span NMI code preserves `$10` and identified three external dependencies: `$ED46`, raw bank `$0C:$89E2`, and `$E7FB`/inline dispatch.
+`PRG31:$E057-$E365`, 783 bytes. In-span NMI work preserves `$10` and identified three external dependencies: `$ED46`, raw bank `$0C:$89E2`, and `$E7FB`/inline dispatch.
 
 Evidence: `analysis/NMI_FIXED_ZP10_PRESERVATION.md`, `tools/audit_nmi_fixed_zp10.py`.
 
 ### 04F4 — `$ED46` helper graph preserves `$10`
 
-Final bounded span `PRG31:$EC00-$EFFF` = 1024 bytes. Starting at `$ED46`, 323 reachable instruction starts stay in-window and no reachable write can affect `$10`.
+`PRG31:$EC00-$EFFF`, 1024 bytes. Complete `$ED46` reachable graph preserves `$10`.
 
 Evidence: `analysis/NMI_ED46_ZP10_PRESERVATION.md`, `tools/audit_nmi_ed46_zp10.py`.
 
-### 04F5 — raw bank `$0C:$89E2` bounded graph
+### 04F5 — raw bank `$0C:$89E2` static closure
 
-Initial 1 KiB `PRG24:$8800-$8BFF` exposed same-bank helper targets, so the checkpoint expanded within the agreed budget to:
+The initial PRG24 window expanded within budget to:
 
 ```text
 physical PRG24 / CPU $8000-$91FF
@@ -85,42 +81,63 @@ physical PRG24 / CPU $8000-$91FF
 SHA-256 2bd1badec12d9f68bf829c272105d85097966d6fb0419c206566eb54c7011734
 ```
 
-Starting at `$89E2`, the audit reaches **1488 accepted instruction starts** after resolving code-bounded indirect dispatches.
+Starting at `$89E2`, the conservative static graph reaches 1488 accepted instruction starts and proves no direct, indirect, zero-page-indexed, or absolute-indexed write can affect `$10`. Five indirect dispatches had local finite domains. `$842D` was left open because its ten-entry table has no local bounds check.
 
-Proved on the closed graph:
+Evidence: `analysis/NMI_BANK0C_ZP10_BOUNDARY.md`, `tools/audit_nmi_bank0c_zp10.py`.
 
-- zero direct writes/RMW to ZP `$10` / `$0010`;
-- zero `(zp,X)` or `(zp),Y` stores;
-- zero zero-page-indexed writes that can wrap to `$10`;
-- all absolute-indexed write domains remain away from `$0010`;
-- every explicit fixed-bank exit goes only to helpers already proven `$10`-clean in 04F3.
+### 04F6 — `$842D` corrected as a state/bank over-approximation
 
-Five indirect dispatches close from local code bounds. One remains intentionally open: `$842D`, reached by stream command `$E7`, uses the **next stream byte's high nibble** to index a ten-entry pointer block at `$8430-$8443`. The code itself does not bounds-check that byte to `$00-$9F`; table shape alone is not producer-domain proof.
+New ROM span:
 
-Therefore 04F5 is a **bounded partial closure**: the statically closed bank-$0C graph preserves `$10`, but the actual `$E7` next-byte producer domain remains to be proved.
+```text
+physical PRG24 / CPU $9200-$9FFF
+3584 bytes
+SHA-256 d7387b04a03289ebb1a0567ef49240d90b0bb177a0c128c8b06dbccabdb0776f
+```
+
+The missing fact was parser/bank state, not an implicit table bound.
+
+Fixed helper `$E1AF` loads the current instrument-data bank from `$06D3,X` and then jumps to CPU `$8001`. PRG24 `$8DCD` selects main vs alternate parser from bit 0 of `$011B,X`.
+
+The JP metadata/control audit proves:
+
+- sound metadata table: 125 sound IDs at `$8F60-$9059`;
+- bank-$0C instrument references: **139**;
+- distinct bank-$0C stream roots: **125**;
+- only **five** bank-$0C references initialize alternate-parser mode;
+- those five are instrument `$08` at `$9D8F`, `$9F73`, and `$A303` (with `$A303` reused), and every distinct root begins with `$FF`;
+- all four raw `$E7` bytes in referenced PRG24 stream data (`$9695,$97BB,$97C7,$9D73`) belong to roots initialized in **main-parser** mode;
+- `$011B,X` has one mode initializer at `$88F2`; every later direct writer preserves bit 0.
+
+Therefore **PRG24 `$842D` is not a live bank-$0C stream edge**. 04F5's unresolved edge was a deliberate static over-approximation caused by omitting parser mode + current data bank.
+
+This is a correction, not a fabricated `$00-$9F` producer bound: the ten-entry table still has no host-side bounds check and must not gain one.
 
 Evidence:
 
-- `analysis/NMI_BANK0C_ZP10_BOUNDARY.md`
-- `tools/audit_nmi_bank0c_zp10.py`
+- `analysis/NMI_BANK0C_PARSER_MODE.md`
+- `tools/audit_nmi_bank0c_parser_mode.py`
 
-**VPP remains 21/100 after 04F5.**
+**VPP remains 21/100 after 04F6.**
 
 ## Current provenance boundary
 
 ```text
-verified IRQ graph             -> preserves $10
-fixed NMI span $E057-$E365    -> preserves $10
-$ED46 helper graph             -> preserves $10
-bank $0C:$89E2 closed graph   -> preserves $10
-$842D E7 parameter domain     -> unresolved
-$E7FB / inline dispatch        -> unresolved
-PRG26 renderer                 -> consumes/persists $10 exactly
+verified IRQ graph              -> preserves $10
+fixed NMI span $E057-$E365     -> preserves $10
+$ED46 helper graph              -> preserves $10
+raw bank $0C / PRG24 code      -> preserves $10 on live bank-$0C paths
+raw instrument bank $04        -> unresolved
+raw instrument bank $05        -> unresolved
+$E7FB / inline dispatch         -> unresolved
+PRG26 renderer                  -> consumes/persists $10 exactly
 ```
+
+The alternate-parser core is duplicated in raw banks `$04`, `$05`, and `$0C`; direct comparison shows the parser prefix is byte-identical apart from the bank-identifying first byte. Remaining work is therefore primarily the live data/control-flow domain in banks `$04/$05`, not rediscovery of parser semantics.
 
 ## Unresolved / do not assume
 
-- producer domain of the byte following sound-stream command `$E7` at `$842D`;
+- whether raw instrument banks `$04` and `$05` can write/alias ZP `$10` while servicing the pre-render sound update;
 - whether `$E7FB` or its inline-dispatch targets can write `$10` before rendering;
 - whole-ROM type-transition / selector-frame producer closure;
 - higher-level meaning of `$AD`;
@@ -130,13 +147,14 @@ PRG26 renderer                 -> consumes/persists $10 exactly
 
 ## Next manageable checkpoint
 
-**04F6 — `$842D` / command-`$E7` stream-parameter producer domain only.**
+**04F7 — raw instrument bank `$04` alternate-parser graph.**
 
-The already-audited `$8F60+` pointer area shows sound streams rooted in `$90xx-$93xx`. Reuse the already-audited `$9000-$91FF` bytes and add only:
+Raw bank `$04` maps CPU `$8000-$BFFF` to physical `PRG08/PRG09`. Start with the same large bounded code window used successfully for bank `$0C`:
 
 ```text
-physical PRG24 / CPU $9200-$9FFF
-3584 new bytes
+raw bank $04 / physical PRG08
+CPU $8000-$91FF
+4608 bytes
 ```
 
-Parse only stream records reachable from the sound-driver pointer roots needed to establish the byte immediately following command `$E7`. Prove whether its high nibble is always `$0-$9`, or record any counterexample. Do not open `$E7FB` in the same checkpoint.
+Follow only the live alternate-parser/control-flow paths entered through fixed helper `$E1AF`; determine whether any reachable write can affect ZP `$10`, carrying parser state rather than seeding impossible indirect edges. Do not open raw bank `$05` or `$E7FB` in the same checkpoint.
