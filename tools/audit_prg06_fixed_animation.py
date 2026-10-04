@@ -36,7 +36,7 @@ def main() -> int:
         return 1
 
     expected_init = bytes.fromhex(
-        "9d8c049884aa05a9009d9305a9019d7c0560"
+        "9d8c04989daa05a9009d9305a9019d7c0560"
     )
     if fx(0xEF7F, len(expected_init)) != expected_init:
         print("ERROR: fixed $EF7F animation initializer mismatch", file=sys.stderr)
@@ -50,7 +50,7 @@ def main() -> int:
         print(f"ERROR: selector $10 table is ${table:04X}, expected $F272", file=sys.stderr)
         return 1
 
-    # selector-$10 block ends at next selector table pointer $F37D.
+    # selector-$10 block ends at the selector-$14 pointer $F37D.
     if (0xF37D - table) != 267 or (0xF37D - table) % 3:
         print("ERROR: selector-$10 animation table extent mismatch", file=sys.stderr)
         return 1
