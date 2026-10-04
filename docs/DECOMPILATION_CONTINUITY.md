@@ -159,32 +159,61 @@ normal root type $08
 
 ## Checkpoint 04F2 — IRQ preserves `$10`
 
-Primary new span: `PRG02/PRG03:$9F99-$A526` = **1422 bytes**.
-
-SHA-256:
-
-```text
-fb0f709699ad64b6cb49fa4eaeb2de8e1a260e23745341fc2f48b38fedd8ded3
-```
-
-`tools/audit_irq_zp10.py` seeds all 38 unique dispatch targets in this span and follows reachable local control flow.
+Primary span: `PRG02/PRG03:$9F99-$A526` = **1422 bytes**.
 
 Proved:
 
-- no direct ZP/absolute `$10` write encoding occurs in the full handler span;
+- no direct ZP/absolute `$10` write encoding occurs in the handler span;
 - no reachable indexed/indirect write form can alias `$10`;
-- external calls are limited to local `$9F5B`, `$E001/$E005`, and fixed `$E2FA/$E30B-$E351` helpers;
-- those helpers do not write `$10`;
-- fixed IRQ prologue/exit `$E0F5-$E130` does not write `$10`.
+- local `$9F5B`, fixed `$E001/$E005`, and fixed `$E2FA/$E30B-$E351` helper closure preserves `$10`;
+- IRQ prologue/exit `$E0F5-$E130` preserves `$10`.
 
-Therefore an IRQ taken after NMI `CLI` and before `PRG26:$8001` **preserves ZP `$10`** for the proven IRQ graph.
+Therefore an IRQ taken after NMI `CLI` and before `PRG26:$8001` preserves `$10`.
 
 Evidence:
 
 - `analysis/IRQ_ZP10_PRESERVATION.md`
 - `tools/audit_irq_zp10.py`
 
-Do not reintroduce IRQ handling as an unknown source of `$10` mutation unless new ROM evidence invalidates this graph.
+## Checkpoint 04F3 — fixed NMI span preserves `$10`
+
+Primary span:
+
+```text
+PRG31:$E057-$E365
+783 bytes
+SHA-256 b0e367bb5971310da3bbd066f54cc3def543e82134f4df6b7b82feef06166176
+```
+
+The renderer-reaching NMI body and all in-span helper bodies have no direct `$10` write/RMW. Indexed writes are locally bounded away from `$10`:
+
+- `$E2AF/$E2BA` touch only `$00-$03` because `$E29B` is called with X=`$00/$02`;
+- `$E287-$E28D` touch only `$28/$29`, `$2A/$2B`, `$F8/$F9`, `$FA/$FB` because `$E280` runs with X=`$00/$01`.
+
+Thus `PRG31:$E057-$E365` itself preserves ZP `$10`.
+
+Three external pre-render dependencies remain open and must not be assumed safe yet:
+
+```text
+$ED46
+raw bank $0C : CPU $89E2
+$E7FB / inline-dispatch targets
+```
+
+Evidence:
+
+- `analysis/NMI_FIXED_ZP10_PRESERVATION.md`
+- `tools/audit_nmi_fixed_zp10.py`
+
+Current provenance boundary:
+
+```text
+verified IRQ graph         -> preserves $10
+fixed NMI span E057-E365  -> preserves $10
+external NMI dependencies -> open
+```
+
+VPP remains **21/100**.
 
 ## Repository workflow
 
@@ -205,19 +234,17 @@ Primary hardware reference: NESdev Wiki, especially VRC6/VRC IRQ/CPU/PPU/APU pag
 
 ## Current next checkpoint
 
-**04F3 — fixed-bank NMI-side `$10` interference only.**
+**04F4 — `$ED46` pre-render helper only.**
 
 Primary span:
 
 ```text
-PRG31:$E057-$E365
-~783 bytes
+PRG31:$ED46-$EF45
+512 bytes
 ```
 
-Determine whether the fixed-bank pre-render NMI path and fixed helpers in that span can write ZP `$10`. If the path depends on an external helper such as `$ED46`, record that dependency and stop; do not expand past the byte budget in the same checkpoint.
-
-VPP remains **21/100**.
+Determine whether the NMI-called `$ED46` path can write ZP `$10`. If it leaves this 512-byte window, record the dependency and stop; do not expand the same checkpoint.
 
 ## User-facing handoff prompt
 
-> Continue the faithful Akumajou Densetsu decomp/recomp in `Hyperbog/CVIII-Decomp` on branch `decompilation`. Read the four primary handoff docs and current branch head. Treat the exact Japanese Mapper-24 ROM as immutable controlling evidence. Work one bounded checkpoint only, normally 500-5000 new ROM bytes and preferably about 1 KiB; provide frequent material status updates; preserve exact 6502/VRC6/PPU/APU/interrupt/stack/shared-zero-page semantics; do not invent bounds or initializers; update VPP only under its fixed rubric; commit before reporting. Current next checkpoint: 04F3, audit fixed-bank NMI-side `$10` writes in PRG31 `$E057-$E365` only.
+> Continue the faithful Akumajou Densetsu decomp/recomp in `Hyperbog/CVIII-Decomp` on branch `decompilation`. Read the four primary handoff docs and current branch head. Treat the exact Japanese Mapper-24 ROM as immutable controlling evidence. Work one bounded checkpoint only, normally 500-5000 new ROM bytes and preferably about 1 KiB; provide frequent material status updates; preserve exact 6502/VRC6/PPU/APU/interrupt/stack/shared-zero-page semantics; do not invent bounds or initializers; update VPP only under its fixed rubric; commit before reporting. Current next checkpoint: 04F4, audit `$ED46` in PRG31 `$ED46-$EF45` (512 bytes) for ZP `$10` writes and defer any external dependency.
