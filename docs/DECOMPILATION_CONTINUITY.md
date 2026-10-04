@@ -32,13 +32,14 @@ Run `python tools/analyze_rom.py <rom>` before relying on a local ROM. Do not co
 4. Model VRC6 bank writes exactly. Do not flatten banked calls until the active bank is proven for that path.
 5. Preserve 6502 widths, flags, wrapping, zero-page aliasing, indirect addressing, stack behavior, interrupt behavior, and self-modifying/data-driven control flow exactly.
 6. Treat NMI and IRQ as first-class control-flow roots. Preserve interrupt-side bank changes and restoration behavior.
-7. Do not assume code and data are disjoint. `PRG02:$9F60` is already proven to be both the high byte of IRQ table entry `$2F` and the `A5` opcode of executable code beginning at `$9F60`.
-8. Classify code, tables, text, compressed assets, level/object data, graphics metadata, music/SFX data, padding, and overlaps conservatively before assigning coverage.
-9. Neutral names such as `sub_prg31_E183` are preferred until behavior is established. Names must not imply certainty.
-10. NSF/M3U files are corroborating evidence for audio only; the retail ROM remains authoritative.
-11. External docs may explain hardware, but never override observed ROM behavior.
-12. No original ROM bytes are committed to GitHub. Repository artifacts must be derived analysis/source only.
-13. Every substantive batch ends by updating `docs/PROGRESS.md` and this file when methodology or important pitfalls change.
+7. Never extend a table merely because following bytes also decode as plausible addresses. A boundary must be proved from consumers, control-flow entries, producer domains, or other direct byte-level evidence.
+8. Do not assume code/data must be disjoint, but also do not claim an overlap without direct proof. The first IRQ pass falsely inferred one by over-extending a table; this was corrected in the next direct audit.
+9. Classify code, tables, text, compressed assets, level/object data, graphics metadata, music/SFX data, padding, and any proven overlaps conservatively before assigning coverage.
+10. Neutral names such as `sub_prg31_E183` are preferred until behavior is established. Names must not imply certainty.
+11. NSF/M3U files are corroborating evidence for audio only; the retail ROM remains authoritative.
+12. External docs may explain hardware, but never override observed ROM behavior.
+13. No original ROM bytes are committed to GitHub. Repository artifacts must be derived analysis/source only.
+14. Every substantive batch ends by updating `docs/PROGRESS.md` and this file when methodology or important pitfalls change.
 
 ## Cartridge model that must be respected
 
@@ -59,18 +60,31 @@ Initial fixed-bank analysis proved:
 - `PRG31:$E2D0` stores A in zero-page `$23`; `PRG31:$E2D2` writes A to `$8000`, selecting the VRC6 16 KiB window.
 - `PRG31:$E2C4` loads `$1E` and writes it to `$C000`, selecting physical 8 KiB `PRG30` into `$C000-$DFFF` during boot.
 
-The NMI path selects 16 KiB bank `$0D` and calls `$8001`, proving that target is `PRG26:$8001`. The IRQ path raw-selects bank `$01`, proving its `$9F01` dispatch table is in physical `PRG02` and its `$A000+` targets are in physical `PRG03`.
+The NMI path selects 16 KiB bank `$0D` and calls `$8001`, proving that target is `PRG26:$8001`. The IRQ path raw-selects bank `$01`, proving its dispatch table is in physical `PRG02` and its `$A000+` targets are in physical `PRG03`.
 
 These bank-switch helpers and interrupt paths are foundational for later control-flow resolution.
 
-## Critical discovered pitfall: overlapping code/data
+## Corrected IRQ table checkpoint
 
-`analysis/PRG02_IRQ_dispatch.md` documents an exact overlap:
+`analysis/PRG02_IRQ_dispatch.md` is authoritative for the current IRQ-state model.
 
-- IRQ pointer entry `$2F` reads low byte `$26` at `$9F5F` and high byte `$A5` at `$9F60`, producing target `$A526`.
-- `$9F60` simultaneously begins executable code `A5 7A` (`LDA $7A`).
+The table at `$9F01` is now directly bounded as:
 
-Any coverage ledger, source representation, or extraction tooling must support one physical byte having multiple semantic roles. Do not force a one-byte/one-category partition and do not “fix” the overlap by moving either boundary.
+- `$9F01-$9F5A`
+- 90 bytes
+- 45 entries
+- states `$00-$2C`
+
+`$9F5B` is a referenced executable entry (`CE 81 07` / `DEC $0781`) called from `$A090` and `$A185`. The previous pass incorrectly treated `$9F5B-$9F60` as additional pointer entries `$2D-$2F` and consequently claimed a false overlap at `$9F60`. Do not restore that interpretation.
+
+Producer analysis currently proves normal active IRQ states remain within `$00-$2C`; `$80` is a high-bit bypass sentinel. The highest explicit chain is `29 -> 2A -> 2B -> 2C`, and state `2C` does not increment.
+
+The fixed exits are distinct:
+
+- `$E118`: writes zero to VRC6 IRQ Control `$F001`, then falls into acknowledge at `$E11D`.
+- `$E11D`: writes to VRC6 IRQ Acknowledge `$F002` without first clearing Control.
+
+Preserve that distinction in any native mapper/IRQ model.
 
 ## Working method
 
@@ -80,11 +94,11 @@ For each batch:
 2. Extract the physical PRG bank(s) involved.
 3. Generate fresh disassembly from the ROM for the exact region.
 4. Trace entry paths, branches, calls, indirect jumps, VRC6 bank writes, RAM/ZP dependencies, PPU/APU accesses, and interrupt context.
-5. Classify code/data/overlap conservatively.
+5. Classify code/data boundaries conservatively and record evidence for table extents.
 6. Add address-stable labels and comments to derived analysis files.
 7. Translate only behavior directly justified by bytes. Keep uncertain work in analysis/staging and uncounted.
 8. Add or update tests/tools that make findings reproducible.
-9. Update `docs/PROGRESS.md` with exact addresses/banks, what was proved, unresolved dependencies, and the next high-value target.
+9. Update `docs/PROGRESS.md` with exact addresses/banks, what was proved, unresolved dependencies, corrections, and the next high-value target.
 10. Commit substantive work before reporting completion of the batch.
 
 Do not stop at one blocker; record it and move to an independent region.
@@ -101,13 +115,17 @@ Progress ledger: `docs/PROGRESS.md`
 
 ROM identity/bank ledger: `docs/ROM_IDENTITY.md`
 
-Reproducible analysis tool: `tools/analyze_rom.py`
+Reproducible ROM analyzer: `tools/analyze_rom.py`
+
+IRQ boundary/producer audit: `tools/audit_irq_dispatch.py`
+
+Machine-readable IRQ ledger: `analysis/IRQ_STATE_MACHINE.csv`
 
 Always fetch current files/branch state before editing. Never claim a repository change exists until GitHub confirms it.
 
 ## Documentation policy
 
-Primary hardware reference: NESdev Wiki, especially VRC6, VRC6 audio, CPU, PPU, APU, and mapper documentation. Hardware documentation is explanatory evidence; ROM bytes remain controlling.
+Primary hardware reference: NESdev Wiki, especially VRC6, VRC IRQ, VRC6 audio, CPU, PPU, APU, and mapper documentation. Hardware documentation is explanatory evidence; ROM bytes remain controlling.
 
 When external documentation materially resolves an ambiguity, record the fact and source in `docs/PROGRESS.md` or adjacent source comments so the reasoning survives chat turnover.
 
@@ -128,6 +146,6 @@ Never claim a GitHub change exists until the connector confirms the commit/ref. 
 
 ## User-facing handoff prompt
 
-> Continue the faithful Akumajou Densetsu decomp/recomp in `Hyperbog/CVIII-Decomp` on branch `decompilation`. First read `docs/DECOMPILATION_CONTINUITY.md`, `docs/PROGRESS.md`, and `docs/ROM_IDENTITY.md`, then inspect the branch head and current analysis/source. Treat the verified Japanese Mapper-24 ROM as immutable controlling evidence. Track physical PRG bank plus CPU address, regenerate disassembly directly from the ROM for every region, preserve 6502/VRC6/PPU/APU/interrupt semantics exactly, support overlapping code/data such as `PRG02:$9F60`, do not guess, and keep uncertain work uncounted. Perform substantive analysis and commit it before reporting progress.
+> Continue the faithful Akumajou Densetsu decomp/recomp in `Hyperbog/CVIII-Decomp` on branch `decompilation`. First read `docs/DECOMPILATION_CONTINUITY.md`, `docs/PROGRESS.md`, and `docs/ROM_IDENTITY.md`, then inspect the branch head and current analysis/source. Treat the verified Japanese Mapper-24 ROM as immutable controlling evidence. Track physical PRG bank plus CPU address, regenerate disassembly directly from the ROM for every region, preserve 6502/VRC6/PPU/APU/interrupt semantics exactly, do not guess table boundaries, and keep uncertain work uncounted. Note the corrected IRQ table boundary `$9F01-$9F5A` (states `$00-$2C`); `$9F5B` is code. Perform substantive analysis and commit it before reporting progress.
 
-Update this continuity file whenever a methodology change, newly proven architectural fact, or discovered pitfall would materially help the next conversation preserve fidelity.
+Update this continuity file whenever a methodology change, corrected hypothesis, newly proven architectural fact, or discovered pitfall would materially help the next conversation preserve fidelity.
