@@ -20,6 +20,8 @@ python tools/check_resume_frontier.py <authoritative JP ROM.nes>
 
 If the state is blocked/provisional, repair only the recorded boundary/dependency. Forward work starts only from a committed `ready` state. Every consumed operand byte in a variable-width stream command must lie inside the claimed semantic dependency span. Verification overlaps never count as new coverage.
 
+`tools/check_resume_frontier.py` supports both switchable raw VRC6 16 KiB mappings and explicit physical 8 KiB PRG mappings, so a resume may safely cross from `$8000-$BFFF` banked data into fixed `PRG31:$E000-$FFFF` without pretending CPU addresses are contiguous.
+
 ## Objective and evidence hierarchy
 
 Faithfully reverse engineer the Japanese NES release of **Akumajou Densetsu** into an evidence-accountable native PC decompilation/recompilation. Preserve original behavior before QoL/mod changes.
@@ -83,7 +85,8 @@ Native baseline: `src/oam_renderer.*`, `tests/oam_renderer_test.cpp`.
 - **04F9:** next 32 bank-`$04` roots closed through `$B1EF`.
 - **04FA:** final 30 bank-`$04` roots closed through `$BE7D`; **96/96 bank-`$04` roots closed**.
 - **04FB:** first 19 bank-`$05` roots closed through `$9A6A`, including live `$E7` producer-domain proof.
-- **04FC:** next 25 bank-`$05` roots closed through `$AD96`; cumulative bank `$05` closure is **44/72**.
+- **04FC:** next 25 bank-`$05` roots closed through `$AD96`.
+- **04FD:** final 28 bank-`$05` roots closed through `$BF05`; **72/72 bank-`$05` roots closed**.
 
 ## Critical stream-audit invariant
 
@@ -95,6 +98,8 @@ $A010: FE FF 85 9E -> $9E85; operands through $A013
 ```
 
 All stream audits must assert operand containment before reading operands. Raw `$FF` is not a terminator proxy. Carry `FB` loop-anchor, context-sensitive `FD` call/return, and `FE` counted/absolute-pointer state.
+
+The old 04F7/04F8 recovery hold is resolved; `docs/INTERRUPTION_RECOVERY.md` was corrected in 04FD so it no longer describes that historical repair as an active block.
 
 ## Raw bank `$04` closure
 
@@ -119,7 +124,7 @@ last root        $BEE8
 parser mode      alternate for all refs
 ```
 
-## 04FB — bank `$05` head
+### 04FB — bank `$05` head
 
 ```text
 $87AE-$9A6A
@@ -128,56 +133,56 @@ SHA-256 58f4a24e41ba95766529e1eaa531c63fc666ca51abc668ec4eb3ba3f4e50eb6b
 19 roots closed
 ```
 
-Nine unique live `$E7` sites have producer high nibbles exactly `$0,$5,$8`; all index valid `$8430-$8443` pairs and resolve to audited `$8444`. No host-side `$842D` bound is introduced.
+Nine unique live `$E7` sites have producer high nibbles exactly `$0,$5,$8`; all index valid `$8430-$8443` pairs and resolve to audited `$8444`.
 
-## 04FC — bank `$05` middle
+### 04FC — bank `$05` middle
+
+```text
+$9A6B-$AD96
+4908 genuinely new bytes
+SHA-256 3d34329fd18b7c713f1fe35206868f1b6c0bdfb6127f664410a60fd54a8c46f0
+25 roots closed
+```
+
+31 metadata refs share 25 roots. Strict result: 7105 states, 4221 unique commands, 22/22 FD calls/returns, 23 FE jumps, 56 FE loops, zero operand/path/pointer escapes. Live `$E7` producer high nibble is exactly `$0`, dispatching to audited `$8444`.
+
+### 04FD — bank `$05` tail / complete
 
 Authoritative dependency:
 
 ```text
-raw bank $05 / PRG10-PRG11
-$9A6B-$AD96
-4908 genuinely new bytes
-SHA-256 3d34329fd18b7c713f1fe35206868f1b6c0bdfb6127f664410a60fd54a8c46f0
+raw bank $05 / physical PRG11
+$AD97-$BF05
+4463 genuinely new bytes
+SHA-256 30f4e1640f97c342886a4d5f1a652cbfda41102abbd4760501bcd2915b474a72
 ```
 
-31 metadata references share 25 distinct roots from sounds `$53,$54,$55,$56,$57,$5C`.
+34 metadata references share 28 roots from sounds `$57,$58,$59,$5B,$69,$6B`.
 
 ```text
-states                  7105
-unique commands         4221
-latest command          $AD96
-FD call/return          22 / 22
-FE jump/loop            23 / 56
+states                  5346
+unique commands         3433
+latest command          $BF05
+FD call/return          28 / 28
+FE jump/loop            15 / 43
 operand/path escapes    0
 pointer-target escapes  0
 ```
 
-Exactly three decoded `$E7` commands occur:
+Thirteen unique decoded `$E7` commands produce parameter high nibbles exactly `$0,$2,$8`. Each selects an in-range `$8430-$8443` pair and resolves to audited `$8444`. This is producer-domain proof from JP ROM data, not a generic host-side `$842D` bound.
 
-```text
-$9F5C -> $09
-$A950 -> $0E
-$AA13 -> $0D
-```
-
-Their high-nibble producer domain is exactly `$0`; this selects the first valid `$8430-$8431` pointer pair and dispatches to audited `$8444`. The proof comes from actual producer bytes, not a guessed table bound.
-
-The next root `$AD97` reaches through `$AE2D`. Including it would require 5059 bytes from the 04FC start, so it is deferred.
-
-After 04FC:
+After 04FD:
 
 ```text
 bank-$05 total       72
-closed               44
-remaining            28
-next root            $AD97
+closed               72
+remaining             0
 ```
 
 Evidence:
 
-- `analysis/NMI_BANK05_PRG10_MID.md`
-- `tools/audit_nmi_bank05_prg10_mid.py`
+- `analysis/NMI_BANK05_PRG11_TAIL.md`
+- `tools/audit_nmi_bank05_prg11_tail.py`
 
 ## Current provenance boundary
 
@@ -187,9 +192,8 @@ fixed NMI span $E057-$E365        -> preserves $10
 $ED46 helper graph                 -> preserves $10
 live raw bank $0C / PRG24         -> preserves $10
 raw bank $04 parser + 96/96 roots -> preserves $10
-raw bank $05 first 44/72 roots    -> preserves $10 through $AD96
-raw bank $05 remaining 28 roots   -> unresolved, first $AD97
-$E7FB / inline dispatch            -> unresolved
+raw bank $05 parser + 72/72 roots -> preserves $10
+fixed PRG31 $E7FB / inline        -> unresolved
 PRG26 renderer                     -> consumes/persists $10 exactly
 ```
 
@@ -197,24 +201,25 @@ VPP remains **21/100**.
 
 ## Next checkpoint
 
-**04FD — continue raw bank `$05` from CPU `$AD97`.**
+**04FE — fixed `PRG31:$E7FB` / inline dispatch.**
 
-Initial bounded window:
+Start exactly at fixed `PRG31:$E7FB`. The not-yet-accounted fixed-bank interval before already-audited 04F4 coverage is:
 
 ```text
-$AD97-$BFE8
-4690 contiguous bytes
+$E7FB-$EBFF
+1029 contiguous bytes
 ```
 
 Requirements:
 
-- start exactly at `$AD97` in raw bank `$05`;
-- carry strict `FB`/`FD`/`FE` state and full operand containment;
-- derive every later `$E7` parameter domain from actual producer roots;
-- prove pointer-target closure and do not invent a host-side `$842D` bound;
-- do not open fixed `$E7FB` during 04FD;
+- verify the switchable bank `$05:$BEC6-$BF05` recovery overlap and the fixed `PRG31:$E7FB-$E81A` fingerprint;
+- treat `PRG31:$E000-$FFFF` as an explicit fixed 8 KiB physical mapping, not a raw 16 KiB VRC6 bank;
+- decode actual 6502 control flow and any inline-dispatch data from `$E7FB`;
+- reuse prior fixed-bank coverage `$E057-$E365` and `$EC00-$EFFF` when reached instead of counting it again;
+- follow any genuinely new dependency beyond `$EBFF` only as needed within the normal byte budget;
+- preserve exact stack/flags/indirect-address behavior and shared ZP `$10` semantics;
 - update `RESUME_STATE.json` last.
 
 ## User-facing handoff prompt
 
-> Continue the faithful Akumajou Densetsu decomp/recomp on branch `decompilation`. First read `docs/INTERRUPTION_RECOVERY.md`, `docs/ACCELERATION_POLICY.md`, and `analysis/RESUME_STATE.json`, then run `tools/check_resume_frontier.py` against the exact JP ROM. Use external tools/disassemblies aggressively as accelerators, but JP-ROM evidence controls. Current target: 04FD, raw bank `$05` from `$AD97`; preserve strict operand accounting and derive every live `$E7` producer domain from ROM data.
+> Continue the faithful Akumajou Densetsu decomp/recomp on branch `decompilation`. First read `docs/INTERRUPTION_RECOVERY.md`, `docs/ACCELERATION_POLICY.md`, and `analysis/RESUME_STATE.json`, then run `tools/check_resume_frontier.py` against the exact JP ROM. Use external tools/disassemblies aggressively as accelerators, but JP-ROM evidence controls. Current target: 04FE, fixed `PRG31:$E7FB` / inline dispatch. Reuse already-audited fixed-bank spans and count only genuinely new bytes.
