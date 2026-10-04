@@ -1,6 +1,6 @@
-# Checkpoint 04F8 — raw bank `$04` PRG08 tail closure
+# Checkpoint 04F8 — raw bank `$04` PRG08-tail closure (reconciled)
 
-This checkpoint continues the pre-render shared-ZP `$10` provenance audit from 04F7. It closes the remaining physical PRG08 stream domain and uses a minimal PRG09 extension only where the final PRG08-rooted control-flow cycle requires it.
+This checkpoint continues the pre-render shared-ZP `$10` provenance audit from 04F7 and records the repaired dependency accounting required by the interruption/restart integrity check.
 
 Target ROM SHA-256:
 
@@ -8,50 +8,64 @@ Target ROM SHA-256:
 958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28
 ```
 
-## Exact byte accounting
+## Repaired byte accounting
 
-The dependency span needed to close the PRG08-tail roots is:
-
-```text
-raw bank $04 / CPU $920A-$A011
-3592 bytes
-SHA-256 69e6d56aed2875f3f2840ebb4b5c52b844da4482a150a4db3647cd933bc79b8e
-```
-
-CPU `$920A-$9FFF` is physical PRG08. CPU `$A000-$A011` is an 18-byte physical PRG09 extension required by the same question: the stream rooted at `$9E85` reaches `FE FF 85 9E` at `$A010`, which jumps back to `$9E85` and closes the cycle.
-
-04F7 already counted one mode-probe byte at every later bank-$04 root. Eleven of those probed root bytes lie inside the 04F8 span. Therefore:
+The original 04F8 write-up ended the dependency span at `$A011`. The hardened decoder proves that the command at `$A010` is:
 
 ```text
-3592 dependency bytes
--  11 bytes already counted by 04F7
-=3581 new ROM bytes for 04F8
+A010: FE FF 85 9E
 ```
 
-This remains inside the 500-5000-byte checkpoint budget.
+and therefore reads operand bytes through `$A013`.
 
-## 04F7 semantic correction
-
-04F7 used the first raw `$FF` after each in-window root as a stream-end marker. That wording was too strong. Eleven of the 23 recorded first-`$FF` positions are actually the `$FF` marker in the command form:
+The authoritative 04F8 dependency span is now:
 
 ```text
-FE FF <pointer-low> <pointer-high>
+raw bank $04 / CPU $920A-$A013
+half-open [$920A,$A014)
+3594 bytes
+SHA-256 728c86cd808e178821f7f72d1f0371eb16a5bde3a1dda495543338391a5e7b3c
 ```
 
-The parser at `$8543` treats that sequence as an absolute stream-pointer load, not a terminator.
+Eleven root-mode probe bytes in this span were already counted by 04F7:
 
-This correction does **not** invalidate 04F7's safety result. The 04F8 audit adds a recursive command/pointer decoder that rechecks all 23 prior roots using the actual alternate-parser command grammar. It proves:
+```text
+3594 dependency bytes
+-  11 prior probe bytes
+=3583 genuinely new bytes for 04F8
+```
 
-- no reachable `$E7` command occurs in the 04F7 root set;
-- every `FD`/`FE` pointer edge stays inside `$87AE-$9209`;
-- no counted loop lacks a preceding `FB` loop anchor;
-- the latest reachable command byte is `$9208`.
+This remains inside the checkpoint budget.
 
-So the prior 23 roots remain closed, but the correct reason is command/pointer reachability, not first-raw-`$FF` termination.
+## 04F7 boundary repair
+
+The restart audit also exposed that prior root `$9133` reaches:
+
+```text
+9208: FE FF 33 91
+```
+
+The command byte `$9208` was inside the old 04F7 contiguous span ending at `$9209`, but its low/high pointer operands at `$920A-$920B` were not.
+
+This does not require redoing the parser core or the earlier root graph. The strict decoder revalidates the 23 prior roots using semantic span `$87AE-$920B` while leaving 04F7's byte-coverage accounting unchanged. Bytes `$920A-$920B` are assigned to 04F8's new-byte coverage but are also the operand overlap needed to prove the `$9133` cycle.
+
+Strict revalidation result:
+
+```text
+prior roots:                23
+abstract parser states:     2819
+unique command addresses:   2169
+latest command address:     $9208
+decoded E7 commands:        0
+affected edge:              $9208 FE FF 33 91 -> $9133
+pointer/operand escapes:    0
+```
+
+Thus the substantive 04F7 safety result remains valid.
 
 ## 04F8 metadata domain
 
-Exactly 11 distinct bank-$04 roots begin in physical PRG08 after `$9209`:
+Exactly 11 distinct bank-$04 roots are closed by this checkpoint:
 
 ```text
 sound $5D, instrument $07 -> $920C
@@ -67,58 +81,62 @@ sound $60, instrument $07 -> $9D21
 sound $60, instrument $00 -> $9E85
 ```
 
-All were already proven by 04F7's mode probes to initialize alternate-parser mode.
+All were already proven by 04F7's root probes to initialize alternate-parser mode.
 
-## Recursive stream/control-flow result
+## Hardened recursive stream result
 
-The decoder mirrors the ROM's data-side control semantics for the common alternate parser:
+`tools/audit_nmi_bank04_prg08_tail.py` now asserts that every multi-byte decoded command has all parameter bytes inside the claimed semantic span before reading them.
 
-- ordinary/note and `C?` commands advance one byte;
-- `D?` consumes its four-byte record on instruments `$00-$04`;
-- `E?` command lengths follow the local handler table;
-- `FB` saves the loop anchor after itself;
-- first `FD` loads a two-byte target and saves a return address; the paired `FD` returns;
-- `FE nn` explores both counted-loop continuation and the saved `FB` anchor;
-- `FE FF lo hi` loads the absolute stream pointer;
-- `FF` is the actual stop command;
-- instrument `$07` uses its distinct `$8031` parser rule before the shared `F?` handlers.
+The decoder carries the established alternate-parser stream grammar:
 
-Across the 11 04F8 roots the recursive closure visits:
+- `FB`: loop-anchor establishment;
+- `FD`: call/return;
+- `FE nn`: counted loop;
+- `FE FF lo hi`: absolute stream pointer load;
+- `FF`: stop command;
+- instrument `$07`: its distinct `$8031` rule before shared `F?` handlers.
 
-```text
-3312 abstract parser states
-3025 unique command addresses
-```
-
-The earliest reachable command is `$920C`; the latest is `$A010`.
-
-Every resolved `FD`/`FE` pointer target stays inside `$920A-$A011`. The final cross-bank edge is:
+For the 11 04F8 roots:
 
 ```text
-$A010: FE FF 85 9E  ->  $9E85
+abstract parser states:      3312
+unique command addresses:    3025
+earliest command:            $920C
+latest command:              $A010
+decoded E7 commands:         0
+operand escapes:             0
+pointer-target escapes:      0
 ```
 
-which is why the 18-byte PRG09 extension is required.
+The final cross-bank cycle is:
 
-There are **zero raw `$E7` bytes** in `$920A-$A011`, and therefore zero decoded `$E7` commands. The unbounded `$842D` parameter-table edge cannot be activated by any of these 11 roots.
+```text
+A010: FE FF 85 9E -> $9E85
+```
 
-Because the executable alternate-parser core was already proven `$10`-clean in 04F7 and no new command path reaches `$842D`, these 11 additional roots preserve shared ZP `$10`.
+with all four bytes `$A010-$A013` inside the repaired dependency span.
 
-## Result
+There are zero raw `$E7` bytes in `$920A-$A013`, so none of these 11 roots can activate alternate-parser handler `$840F` or indirect dispatch `$842D`.
 
-**04F8 closes the remaining PRG08-rooted bank-$04 stream domain as ZP `$10`-safe.**
+Because the executable alternate-parser core was already proven ZP `$10`-clean, these roots preserve shared `$10`.
 
-After 04F8:
+## Reconciled result
+
+**04F8 is now fully reconciled and no longer provisional.**
+
+After the repair:
 
 ```text
 bank-$04 roots total          96
 closed in corrected 04F7      23
 closed in 04F8                11
-remaining later PRG09 roots   62
+closed cumulative             34
+remaining                     62
+first unresolved root         $A014
 ```
 
-The next unresolved bank-$04 root is `$A014`. Raw bank `$05` and fixed `$E7FB` remain untouched.
+Raw bank `$05` and fixed `$E7FB` remain untouched.
 
-VPP remains **21/100** because transitive NMI helper closure is still incomplete.
+VPP remains **21/100** because the transitive NMI-helper closure is still incomplete.
 
 Reproducible audit: `tools/audit_nmi_bank04_prg08_tail.py`.
