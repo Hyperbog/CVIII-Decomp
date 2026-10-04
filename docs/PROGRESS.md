@@ -28,68 +28,92 @@ Ledger: `analysis/IRQ_STATE_MACHINE.csv`.
 
 ## Batch 03 — PRG26 OAM hierarchy
 
-`PRG26:$8001` iterates 28 render-object slots backed by seven consecutive 28-byte arrays `$0400-$04C3`:
+`PRG26:$8001` iterates 28 render-object slots backed by seven consecutive 28-byte arrays `$0400-$04C3`.
 
-- `$0400-$041B`: frame/second-level pointer-table byte offset; zero suppresses object
-- `$041C-$0437`: base Y
-- `$0438-$0453`: base X
-- `$0454-$046F`: attribute-low/palette override
-- `$0470-$048B`: bit-7 render suppression
-- `$048C-$04A7`: first-level sprite-set selector byte offset
-- `$04A8-$04C3`: orientation-path flag; zero selects mirrored path
+`$048C,X` indexes the first-level pointer block `$817F-$819C` with even byte offsets `$00..$1C`. High selectors `$16/$18/$1A/$1C` alias the first four geometry tables and can select tile `+$80` behavior under the encoded `$AD` path.
 
-`$048C,X` indexes the canonical first-level pointer block `$817F-$819C` with even byte offsets `$00..$1C`. High selectors `$16/$18/$1A/$1C` alias the first four geometry tables and can select tile `+$80` behavior under the encoded `$AD` path.
-
-OAM byte offset advances by `$C4` per emitted sprite and frame seed by `$44`. When all 64 OAM slots are consumed, `$8070` executes `PLA; PLA; RTS`, discarding its own return and returning directly to `$8001`'s caller.
+OAM byte offset advances by `$C4` per sprite and frame seed by `$44`. When all 64 OAM slots are consumed, `$8070` executes `PLA; PLA; RTS`, discarding its own return and returning directly to `$8001`'s caller.
 
 ## Checkpoint 04A — corrected variable-length sprite descriptors
 
-This checkpoint corrects one Batch 03 error before native code is written.
+Descriptor byte 0 is sprite count. Each sprite begins with a packed Y/control byte. The renderer performs a signed arithmetic right shift via sign-selected carry + `ROR`; the outgoing carry is the original bit 0.
 
-### Record encoding
+- bit 0 clear: `Y/control, tile, attribute, X` — 4 bytes
+- bit 0 set: `Y/control, tile, X` — 3 bytes; attribute is reused from zero-page `$10`
 
-Descriptor byte 0 is the sprite count. Each sprite begins with a packed Y/control byte. The renderer sets carry from that byte's sign and performs `ROR`; this is a signed arithmetic right shift and leaves the original bit 0 in carry.
+Full records store the final transformed OAM attribute into `$10`; compressed records consume `$10` directly. `$8001/$8070` do not initialize `$10` at object/descriptor entry.
 
-Therefore bit 0 is also a record-format flag:
-
-- bit 0 clear: `Y/control, tile, attribute, X` — 4 encoded bytes
-- bit 0 set: `Y/control, tile, X` — 3 encoded bytes; attribute is reused from zero-page `$10`
-
-For a full record, the renderer applies attribute override/mirroring first, then stores the **final emitted OAM attribute** to `$10`. A compressed record writes `$10` directly. `$8001/$8070` do not initialize `$10` on object/descriptor entry, so a faithful native renderer must model it as carried renderer state rather than a fresh local.
-
-### Concrete proof
-
-Selector `$10` points to master frame table `$9E6D`. Frame offset `$14` resolves to descriptor `$9FA9`:
-
-`04 DF 8A F0 E1 8C F8 E5 8E 00 04 E4 90 03`
-
-It decodes as four sprites:
-
-1. `$DF,$8A,$F0` — compressed, Y=-17, reuse `$10`
-2. `$E1,$8C,$F8` — compressed, Y=-16, reuse `$10`
-3. `$E5,$8E,$00` — compressed, Y=-14, reuse `$10`
-4. `$04,$E4,$90,$03` — full, Y=+2, attribute `$90`
-
-Thus `$9FA9` begins with three compressed records before any full record in the descriptor. Initializing `$10` per descriptor/object would be wrong.
+Descriptor `$9FA9` begins with three compressed records before its first explicit attribute, proving a per-descriptor reset would be wrong.
 
 ### Master frame-table census
 
-Direct ROM audit establishes five master frame-pointer blocks in the active PRG26/27 16 KiB window:
+Five physical master pointer blocks are now proven:
 
-- `$819D-$82F4`: 172 pointers; entry 0 points to first descriptor `$82F5`
-- `$8AB0-$8C2D`: 191 pointers; entry 0 -> `$8C2E`
-- `$9545-$9620`: 110 pointers; entry 0 -> `$9621`
-- `$9E6D-$9F6C`: 128 pointers; entry 0 -> `$9F6D`
-- `$AAA6-$AC5B`: 219 pointers; entry 0 -> `$AC5C`
+- A `$819D-$82F4`: 172 pointers
+- B `$8AB0-$8C2D`: 191 pointers
+- C `$9545-$9620`: 110 pointers
+- D `$9E6D-$9F6C`: 128 pointers
+- E `$AAA6-$AC5B`: 219 pointers
 
-Across those tables there are **745 unique descriptor pointers**. Auditing all 745 with the corrected variable-length parser finds:
+The 15 first-level selector targets are windows into these masters, not 15 independent tables. `analysis/SPRITE_MASTER_TABLES.csv` records the entry offsets/ranges.
 
-- maximum sprites in one descriptor: **27**
-- maximum encoded descriptor length: **96 bytes**
-- compressed attribute-reuse records: **2310**
-- the only descriptor whose **first sprite** reuses the prior cached attribute is `$9FA9`
+`tools/audit_sprite_descriptors.py` verifies all referenced descriptors:
 
-These facts are reproduced by `tools/audit_sprite_descriptors.py`.
+- 745 unique descriptor pointers
+- maximum 27 sprites per descriptor
+- maximum encoded length 96 bytes
+- 2,310 compressed attribute-reuse records
+- `$9FA9` is the only referenced descriptor whose first sprite is compressed
+
+### `$0454` correction
+
+When nonzero, the machine operation is `(descriptor_attribute & $FC) | $0454,X`. The object byte is not masked to two bits; direct producers can supply values above `$03`.
+
+## Native OAM baseline added
+
+The first faithful native subsystem now exists:
+
+- `src/oam_renderer.hpp`
+- `src/oam_renderer.cpp`
+- `tests/oam_renderer_test.cpp`
+
+The lift keeps NES RAM explicit and preserves 8-bit pointer-index wrap, variable descriptor width, persistent `$10`, full-byte `$0454` OR semantics, mirror/tile transforms, signed X clipping, OAM permutation, and the `$8070` non-local OAM-full exit via an explicit propagated result. Current C++17 regression tests compile cleanly with `-Wall -Wextra -pedantic` and pass.
+
+## Checkpoint 04B — zero-page `$10` lifetime at renderer entry
+
+This checkpoint was intentionally limited to `$10` state ownership.
+
+### Proven renderer accesses
+
+Inside the proven `$8001-$817E` renderer region:
+
+- `$8064`: `LDA $10` — compressed non-mirrored record
+- `$80BF`: `STA $10` — cache final non-mirrored explicit attribute
+- `$811B`: `STA $10` — cache final mirrored explicit attribute
+- `$8166`: `LDA $10` — compressed mirrored record
+
+There is no renderer-side initialization before object processing.
+
+### NMI boundary
+
+The top-level fixed-bank NMI instruction stream from `$E057` through the bank-$0D call at `$E0C7` contains no direct `STA/STX/STY $10`. This is deliberately **not** a transitive claim about every helper called by NMI.
+
+### Shared scratch proof
+
+Direct gameplay code in VRC6 bank `$03` uses the same byte for unrelated temporary state:
+
+- bank03 `$9752`: `STA $10`
+- bank03 `$9769`: `LDA $10`, then stores the value into object base-X state
+
+Thus `$10` is not renderer-private storage or a descriptor-local cache initializer. It is shared zero-page machine state that the renderer consumes and conditionally overwrites.
+
+### Consequence for `$9FA9`
+
+No dedicated initializer has been proved before `$9FA9`; the bytes prove the opposite architectural requirement: the descriptor consumes the **pre-existing shared RAM value** until a full record updates it. A faithful native baseline must therefore expose `$10` through shared NES RAM and must not invent a renderer/object/descriptor default.
+
+What remains unresolved is which exact preceding write/value is observed on every reachable gameplay path to `$9FA9` and whether object ordering guarantees a preceding full sprite record. That is now a separate reachability/scheduling question.
+
+Evidence: `analysis/ZP10_OAM_STATE.md`; reproducible audit: `tools/audit_oam_zp10.py`.
 
 ## Authoritative continuation files
 
@@ -102,22 +126,30 @@ These facts are reproduced by `tools/audit_sprite_descriptors.py`.
 7. `analysis/PRG26_OAM_frame.md`
 8. `analysis/PRG26_SPRITE_FORMAT.md`
 9. `analysis/SPRITE_SET_TABLE.csv`
-10. `analysis/OAM_OBJECT_FIELDS.csv`
-11. `tools/analyze_rom.py`
-12. `tools/audit_irq_dispatch.py`
-13. `tools/audit_oam_tables.py`
-14. `tools/audit_sprite_descriptors.py`
+10. `analysis/SPRITE_MASTER_TABLES.csv`
+11. `analysis/OAM_OBJECT_FIELDS.csv`
+12. `analysis/ZP10_OAM_STATE.md`
+13. `src/oam_renderer.hpp`
+14. `src/oam_renderer.cpp`
+15. `tests/oam_renderer_test.cpp`
+16. `tools/analyze_rom.py`
+17. `tools/audit_irq_dispatch.py`
+18. `tools/audit_oam_tables.py`
+19. `tools/audit_sprite_descriptors.py`
+20. `tools/audit_oam_zp10.py`
 
 ## Unresolved / do not assume
 
-- Full lifetime/ownership of zero-page `$10` outside the OAM renderer.
-- Whole-ROM proof of every `$048C` producer and invalid-selector impossibility.
-- Exact higher-level meaning of global `$AD`.
-- Semantic identities of individual frame tables/descriptors.
-- Gameplay meaning/producers of every `$0400-$04C3` field beyond proven renderer behavior.
-- Exact visual/game-state meanings of IRQ states `$00-$2C`.
-- Whole-PRG code/data accounting denominator.
+- exact preceding `$10` value on every reachable `$9FA9` path
+- whether object ordering guarantees an explicit-attribute sprite before `$9FA9`
+- whole-ROM proof of every `$048C` producer and invalid-selector impossibility
+- producer-domain closure for `$0400` frame offsets
+- exact higher-level meaning of global `$AD`
+- semantic identities of individual frame tables/descriptors
+- gameplay meaning/producers of every `$0400-$04C3` field beyond proven renderer behavior
+- exact visual/game-state meanings of IRQ states `$00-$2C`
+- whole-PRG code/data accounting denominator
 
 ## Next manageable checkpoint
 
-**04B: `$10` renderer-state lifetime only.** Trace executable writes/reads of zero-page `$10` around the NMI/OAM path and determine what initializes the cached attribute before `$9FA9` can be used. Do not expand into general object-producer analysis in the same checkpoint.
+**04C: `$9FA9` reachability/object ordering only.** Trace the executable selector-`$10` / frame-`$14` producer path far enough to identify which object slot(s) can render `$9FA9` and whether a prior rendered slot or other proven path establishes `$10` first. Do not expand into the full object system in the same checkpoint.
