@@ -2,7 +2,7 @@
 
 ## Current status
 
-Project initialized from the verified Japanese `Akumajou Densetsu` Mapper-24 ROM. Work is proceeding in **small bounded checkpoints**: one narrow binary question, direct ROM verification, documentation/audit update, commit, then stop. No global translated-byte percentage is claimed yet; whole-PRG accounting remains intentionally deferred until the denominator is conservative and reproducible.
+Project initialized from the verified Japanese `Akumajou Densetsu` Mapper-24 ROM. Work is proceeding in **small bounded checkpoints**: one narrow binary question, direct ROM verification, documentation/audit/test update, commit, then stop. No global translated-byte percentage is claimed yet; whole-PRG accounting remains intentionally deferred until the denominator is conservative and reproducible.
 
 ## Stable foundation
 
@@ -77,7 +77,9 @@ The first faithful native subsystem now exists:
 - `src/oam_renderer.cpp`
 - `tests/oam_renderer_test.cpp`
 
-The lift keeps NES RAM explicit and preserves 8-bit pointer-index wrap, variable descriptor width, persistent `$10`, full-byte `$0454` OR semantics, mirror/tile transforms, signed X clipping, OAM permutation, and the `$8070` non-local OAM-full exit via an explicit propagated result. Current C++17 regression tests compile cleanly with `-Wall -Wextra -pedantic` and pass.
+The lift keeps NES RAM explicit and preserves 8-bit pointer-index wrap, variable descriptor width, persistent `$10`, full-byte `$0454` OR semantics, mirror/tile transforms, signed X clipping, OAM permutation, and the `$8070` non-local OAM-full exit via an explicit propagated result.
+
+The test suite now includes a first-record compression regression: it seeds incoming `$10=$A7`, starts the object's descriptor with a compressed record, and verifies that exact cached byte is emitted unchanged. This locks the machine-state contract required by `$9FA9`-style descriptors.
 
 ## Checkpoint 04B — zero-page `$10` lifetime at renderer entry
 
@@ -111,9 +113,38 @@ Thus `$10` is not renderer-private storage or a descriptor-local cache initializ
 
 No dedicated initializer has been proved before `$9FA9`; the bytes prove the opposite architectural requirement: the descriptor consumes the **pre-existing shared RAM value** until a full record updates it. A faithful native baseline must therefore expose `$10` through shared NES RAM and must not invent a renderer/object/descriptor default.
 
-What remains unresolved is which exact preceding write/value is observed on every reachable gameplay path to `$9FA9` and whether object ordering guarantees a preceding full sprite record. That is now a separate reachability/scheduling question.
-
 Evidence: `analysis/ZP10_OAM_STATE.md`; reproducible audit: `tools/audit_oam_zp10.py`.
+
+## Checkpoint 04C — `$9FA9` reachability boundary
+
+This checkpoint asks only how selector `$10` and frame `$14` can coexist.
+
+`$9FA9` requires:
+
+- `$048C[slot] = $10`
+- `$0400[slot] = $14`
+
+The checked direct selector-`$10` setup paths do **not** initialize frame `$14`:
+
+- PRG06 `$8EB7` spawn loop uses frames `$F4,$F6,$F8,$FA,$FC,$FE`
+- PRG06 `$8EF4/$8EF7` pairs frame `$F0` with selector `$10`
+- PRG06 helper `$9474/$947D` pairs selector `$10` with caller-supplied frames; reconciled direct callers/table returns use `$F0,$D2,$C0,$C6,$CC,$E4,$E0`, not `$14`
+- PRG18 `$9DF8/$9DFB` pairs selector `$10` with frame `$E8` or `$EC`
+
+Separately, physical PRG22 contains a later object-state transition at `$8745`:
+
+```asm
+LDA #$14
+STA $0400,X
+```
+
+The local path does not write `$048C,X`, so the sprite-set selector can persist while the frame changes to `$14`.
+
+This proves the architectural point needed for decompilation: selector and frame are independently persistent object fields; frame domain cannot be inferred solely from selector initialization.
+
+What remains unproved is whether the PRG22 `$8745` handler actually operates on an object previously configured with selector `$10`. That ownership/reachability link is the next small checkpoint.
+
+Full notes: `analysis/PRG26_9FA9_REACHABILITY.md`.
 
 ## Authoritative continuation files
 
@@ -129,19 +160,22 @@ Evidence: `analysis/ZP10_OAM_STATE.md`; reproducible audit: `tools/audit_oam_zp1
 10. `analysis/SPRITE_MASTER_TABLES.csv`
 11. `analysis/OAM_OBJECT_FIELDS.csv`
 12. `analysis/ZP10_OAM_STATE.md`
-13. `src/oam_renderer.hpp`
-14. `src/oam_renderer.cpp`
-15. `tests/oam_renderer_test.cpp`
-16. `tools/analyze_rom.py`
-17. `tools/audit_irq_dispatch.py`
-18. `tools/audit_oam_tables.py`
-19. `tools/audit_sprite_descriptors.py`
-20. `tools/audit_oam_zp10.py`
+13. `analysis/PRG26_9FA9_REACHABILITY.md`
+14. `src/oam_renderer.hpp`
+15. `src/oam_renderer.cpp`
+16. `tests/oam_renderer_test.cpp`
+17. `tools/analyze_rom.py`
+18. `tools/audit_irq_dispatch.py`
+19. `tools/audit_oam_tables.py`
+20. `tools/audit_sprite_descriptors.py`
+21. `tools/audit_oam_zp10.py`
 
 ## Unresolved / do not assume
 
+- whether PRG22 `$8745` is reachable for an object whose `$048C` selector is `$10`
+- which object slots can reach `$9FA9`
+- whether object ordering guarantees a prior explicit-attribute sprite before `$9FA9`
 - exact preceding `$10` value on every reachable `$9FA9` path
-- whether object ordering guarantees an explicit-attribute sprite before `$9FA9`
 - whole-ROM proof of every `$048C` producer and invalid-selector impossibility
 - producer-domain closure for `$0400` frame offsets
 - exact higher-level meaning of global `$AD`
@@ -152,4 +186,4 @@ Evidence: `analysis/ZP10_OAM_STATE.md`; reproducible audit: `tools/audit_oam_zp1
 
 ## Next manageable checkpoint
 
-**04C: `$9FA9` reachability/object ordering only.** Trace the executable selector-`$10` / frame-`$14` producer path far enough to identify which object slot(s) can render `$9FA9` and whether a prior rendered slot or other proven path establishes `$10` first. Do not expand into the full object system in the same checkpoint.
+**04D: owner of PRG22 `$8745` only.** Trace the function/state-dispatch entry that reaches `$8745` and connect that specific handler to its object creation/setup path. The target is binary: prove it can operate on a selector-`$10` object, or prove it belongs to another selector family. Do not trace unrelated object types in the same checkpoint.
