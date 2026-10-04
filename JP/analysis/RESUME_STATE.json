@@ -1,58 +1,60 @@
 {
-  "schema_version": 5,
+  "schema_version": 6,
   "status": "ready",
   "project": "Akumajou Densetsu JP decomp/recomp",
   "repository": "Hyperbog/CVIII-Decomp",
   "branch": "decompilation",
   "rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
   "safe_forward_work": true,
-  "last_completed_checkpoint": "04FC",
-  "last_completed_checkpoint_commit": "dcf69451d7bc15c86754ca3ab5d9384dab41e9cc",
-  "previous_checkpoint_audit": "tools/audit_nmi_bank05_prg10_mid.py",
+  "last_completed_checkpoint": "04FD",
+  "last_completed_checkpoint_commit": "5e2d38b511cd4219f022d045277076aaf20c51a9",
+  "previous_checkpoint_audit": "tools/audit_nmi_bank05_prg11_tail.py",
   "vpp": {
     "earned": 21,
     "total": 100
   },
   "execution_context": {
-    "raw_vrc6_bank": "05",
-    "cpu_window": "8000-BFFF",
-    "physical_prg_banks": [10, 11],
-    "frontier_physical_prg_bank": 11
+    "mapping": "fixed_prg",
+    "cpu_window": "E000-FFFF",
+    "physical_prg_banks": [31],
+    "frontier_physical_prg_bank": 31,
+    "cpu_base": "E000"
   },
   "frontier": {
-    "last_closed_cpu": "AD96",
+    "last_closed_cpu": "BF05",
     "last_closed_raw_vrc6_bank": "05",
-    "next_unprocessed_cpu": "AD97",
-    "next_raw_vrc6_bank": "05",
-    "next_checkpoint": "04FD",
-    "domain_transition": false,
-    "initial_window_start_cpu": "AD97",
-    "initial_window_end_cpu_inclusive": "BFE8",
-    "initial_window_contiguous_bytes": 4690
+    "next_unprocessed_cpu": "E7FB",
+    "next_physical_prg_bank": 31,
+    "next_checkpoint": "04FE",
+    "domain_transition": true,
+    "initial_window_start_cpu": "E7FB",
+    "initial_window_end_cpu_inclusive": "EBFF",
+    "initial_window_contiguous_bytes": 1029
   },
   "verification_overlap": {
     "raw_vrc6_bank": "05",
-    "start_cpu": "AD57",
-    "end_cpu_inclusive": "AD96",
+    "start_cpu": "BEC6",
+    "end_cpu_inclusive": "BF05",
     "length": 64,
-    "sha256": "1c96fb84bcf85c0aa3e2f91133f95137d48385f5112414d3da212e31422c84f8",
+    "sha256": "147db970967ce1d07c60a098be16c2e45ab99c491a0ade38fd01b6ea8d87fbf6",
     "coverage_accounting": "verification-only; never count these 64 bytes as new coverage"
   },
   "frontier_fingerprint": {
-    "raw_vrc6_bank": "05",
-    "start_cpu": "AD97",
-    "end_cpu_inclusive": "ADB6",
+    "physical_prg_bank": 31,
+    "cpu_base": "E000",
+    "start_cpu": "E7FB",
+    "end_cpu_inclusive": "E81A",
     "length": 32,
-    "sha256": "c3c21ab33765836fa62452d433f4d56192492d03c791ebf60c08e727f7a020a0",
+    "sha256": "1ca470cc478911cb3c75c9dc716b23714e2b816b674d716a2ec33e5cbedd6d58",
     "purpose": "alignment/fingerprint only; does not establish semantic closure"
   },
   "prior_dependency_span": {
     "raw_vrc6_bank": "05",
-    "start_cpu": "9A6B",
-    "end_cpu_inclusive": "AD96",
-    "length": 4908,
-    "sha256": "3d34329fd18b7c713f1fe35206868f1b6c0bdfb6127f664410a60fd54a8c46f0",
-    "exact_new_bytes_in_checkpoint": 4908
+    "start_cpu": "AD97",
+    "end_cpu_inclusive": "BF05",
+    "length": 4463,
+    "sha256": "30f4e1640f97c342886a4d5f1a652cbfda41102abbd4760501bcd2915b474a72",
+    "exact_new_bytes_in_checkpoint": 4463
   },
   "parser_core_verification": {
     "start_cpu": "8001",
@@ -61,28 +63,45 @@
     "sha256": "e2c3ff3d7e9f96b598610a8028f5b92a606fac7f9acb2977811146fa145fdb67",
     "relation": "raw bank 05 is byte-identical to the already-audited raw bank 04 core"
   },
+  "prior_fixed_coverage": [
+    {
+      "physical_prg_bank": 31,
+      "cpu_base": "E000",
+      "start_cpu": "E057",
+      "end_cpu_inclusive": "E365",
+      "length": 783,
+      "sha256": "b0e367bb5971310da3bbd066f54cc3def543e82134f4df6b7b82feef06166176",
+      "checkpoint": "04F3"
+    },
+    {
+      "physical_prg_bank": 31,
+      "cpu_base": "E000",
+      "start_cpu": "EC00",
+      "end_cpu_inclusive": "EFFF",
+      "length": 1024,
+      "sha256": "e83c0d832fc23590c0dde2448a9943ef217ada4e4f520d0da0e3f85f863dc797",
+      "checkpoint": "04F4"
+    }
+  ],
   "closed_state": [
     "raw bank 04 alternate-parser executable core and all 96 bank-04 roots preserve shared ZP $10",
     "raw bank 05 parser core $8001-$87AD is byte-identical to the audited bank-04 core",
-    "raw bank 05 metadata domain is 84 references / 72 roots and all initialize alternate-parser mode",
-    "04FB closes the first 19 bank-05 roots through $9A6A with live E7 producer-domain proof",
-    "04FC closes the next 25 bank-05 roots through $AD96 with strict operand accounting",
-    "04FC decoded E7 sites are $9F5C->$09, $A950->$0E, $AA13->$0D; high-nibble domain exactly $0 and all dispatch to audited $8444",
-    "first 44 of 72 bank-05 roots preserve shared ZP $10"
+    "all 84 bank-05 metadata references / 72 roots initialize alternate-parser mode and are recursively closed",
+    "04FB/04FC/04FD derive every live bank-05 E7 parameter domain from actual JP-ROM producer bytes",
+    "04FD live E7 high-nibble domain is exactly $0,$2,$8; all index the in-range $8430-$8443 table and dispatch to audited $8444",
+    "entire raw bank 05 producer domain preserves shared ZP $10"
   ],
   "open_edges": [
-    "28 raw-bank 05 roots remain unresolved beginning at $AD97",
-    "fixed $E7FB / inline dispatch remains unresolved"
+    "fixed PRG31 $E7FB / inline dispatch remains unresolved"
   ],
   "checkpoint_constraints": [
-    "04FD begins in raw bank 05 exactly at CPU $AD97",
-    "initial bounded window is $AD97-$BFE8 (4690 contiguous bytes)",
-    "carry FB loop-anchor, FD call/return, and FE counted/absolute-pointer stream state",
-    "every multi-byte command must pass operand-in-span assertions before operands are read",
-    "prove pointer-target closure; raw FF is not a terminator proxy",
-    "derive every later decoded E7 following-byte domain from the actual producer roots; do not assume prior domains",
-    "for live E7 prove the $842D table index/target from ROM data and do not invent a host-side bound",
-    "do not open fixed $E7FB during 04FD"
+    "04FE begins exactly at fixed PRG31 CPU $E7FB",
+    "initial genuinely-unprocessed fixed interval is $E7FB-$EBFF (1029 contiguous bytes)",
+    "treat PRG31 as physical 8 KiB fixed mapping at CPU $E000-$FFFF, not a raw 16 KiB VRC6 bank",
+    "decode actual 6502 control flow and inline-dispatch data from $E7FB with complete instruction operand accounting",
+    "reuse prior fixed coverage $E057-$E365 and $EC00-$EFFF when reached; do not count those bytes again",
+    "follow genuinely new dependencies beyond $EBFF only as required within the normal checkpoint budget",
+    "preserve exact stack, flags, indirect-address behavior, VRC6 state, and shared ZP $10 semantics"
   ],
   "acceleration_policy": [
     "Japanese ROM and reproducible parity evidence are authoritative",
@@ -95,6 +114,6 @@
       "$9208 FE FF 33 91 -> $9133; operands through $920B",
       "$A010 FE FF 85 9E -> $9E85; operands through $A013"
     ],
-    "resolution": "hardened audits passed; bank 04 completed; 04FB/04FC carry strict operand and live-E7 producer-domain proofs into bank 05"
+    "resolution": "hardened audits passed; bank 04 and bank 05 are complete; stale recovery documentation was corrected during 04FD"
   }
 }
