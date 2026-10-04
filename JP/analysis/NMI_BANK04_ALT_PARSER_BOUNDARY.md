@@ -10,7 +10,7 @@ Target ROM SHA-256:
 
 ## Exact byte budget
 
-The planned contiguous span was `$8000-$91FF` (4608 bytes). The final root inside that window begins at `$9133` and reaches its `$FF` terminator at `$9209`, so the contiguous span was expanded by 10 bytes to close that same root:
+The planned contiguous span was `$8000-$91FF` (4608 bytes). The final in-window root begins at `$9133`; 04F7 extended the contiguous span by 10 bytes through `$9209` to include its first raw `$FF` control marker:
 
 ```text
 raw bank $04 / physical PRG08
@@ -67,24 +67,33 @@ Exactly **23 distinct roots** begin inside the contiguous 04F7 span. They belong
 $5A $5D $65 $67
 ```
 
-All 23 reach their `$FF` terminator by `$9209`. The bank-specific stream-data region `$87AE-$9209` contains **zero raw `$E7` bytes**. Therefore `$E7` cannot be consumed from any of these bounded stream bodies, and the producer edge into `$840F/$842D` is absent for this closed data subset.
+The bank-specific stream-data region `$87AE-$9209` contains **zero raw `$E7` bytes**.
 
-## Boundary
+## 04F8 correction to first-`$FF` wording
 
-04F7 does **not** claim raw bank `$04` is globally closed. Seventy-three distinct roots begin after `$9209`; only their first mode-selection byte was probed here. Their stream bodies remain unresolved and may still contain a live `$E7` producer for `$842D`.
+The original 04F7 write-up called the first raw `$FF` after each of these roots a terminator. That was too strong: **11 of the 23 recorded first-`$FF` positions are the `$FF` marker inside `FE FF lo hi` absolute-pointer commands**, not stop commands.
 
-Established after 04F7:
+Checkpoint 04F8 adds a recursive command/pointer decoder that rechecks all 23 04F7 roots using the actual alternate-parser grammar (`FB` loop anchors, `FD` call/return, and `FE` counted/absolute-pointer control). That decoder proves:
 
-- bank `$04` parser core `$8001-$87AD` is byte-identical to the proven bank `$0C` alternate-parser core;
-- its resolved graph is `$10`-clean;
-- all 102 bank-$04 references select alternate-parser mode;
-- the first 23 bank-$04 roots terminate by `$9209` and contain no raw `$E7` in their bounded data region;
-- remaining `$842D` producer-domain work lies in the 73 later stream bodies.
+- no reachable `$E7` command occurs in any of the 23 roots;
+- every resolved `FD`/`FE` pointer target remains inside `$87AE-$9209`;
+- no counted `FE` loop lacks a preceding `FB` loop anchor;
+- the latest reachable command byte is `$9208`.
 
-**VPP remains 21/100.** No rubric point is earned by this boundary closure alone.
+Therefore the 04F7 safety result remains valid, but the correct basis is **recursive command/pointer closure**, not first-raw-`$FF` termination.
 
-Reproducible audit: `tools/audit_nmi_bank04_alt_parser.py`.
+Evidence for the correction: `analysis/NMI_BANK04_PRG08_TAIL.md`, `tools/audit_nmi_bank04_prg08_tail.py`.
 
-## Next checkpoint
+## Boundary at completion of 04F7
 
-04F8 should continue raw bank `$04` from CPU `$920A` through the remaining PRG08 tail, carrying the established alternate-parser/current-bank state. Do not open raw bank `$05` or `$E7FB` in the same checkpoint.
+As of the end of 04F7:
+
+- bank `$04` parser core `$8001-$87AD` was byte-identical to the proven bank `$0C` alternate-parser core;
+- its resolved graph was `$10`-clean;
+- all 102 bank-$04 references selected alternate-parser mode;
+- the first 23 bank-$04 roots were closed through `$9209` with no live `$E7` producer;
+- 73 later stream bodies remained unresolved.
+
+**VPP remained 21/100.** No rubric point was earned by this boundary closure alone.
+
+Reproducible 04F7 audit: `tools/audit_nmi_bank04_alt_parser.py`. Its first-raw-`$FF` list is retained as a byte-level checkpoint, while 04F8 supersedes the old terminator interpretation.
