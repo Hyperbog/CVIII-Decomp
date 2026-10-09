@@ -1,0 +1,29 @@
+{
+  "status": "ROM_BACKED_PARTIAL_6502_CPU_CONFORMANCE_NOT_EXTERNAL_EMULATOR_PARITY",
+  "rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "e7fb_dispatch_cases": 2048,
+  "e7fb_y_set": [
+    0,
+    1,
+    2,
+    64,
+    127,
+    128,
+    254,
+    255
+  ],
+  "binary_alu_cases": 40960,
+  "indirect_jmp_pagewrap_cases": 4,
+  "brk_software_interrupt_cases": 1,
+  "nmi_manual_entry_cases": 1,
+  "total_cpu_instructions_executed": 75781,
+  "scope": "ROM-fetched E7FB; synthetic RAM ALU cases; NES 2A03 official opcodes",
+  "limits": [
+    "does not test all 151 instructions exhaustively",
+    "no PPU/NMI/IRQ CPU-cycle scheduling or reference traces",
+    "no full-game behavior/score promotion"
+  ],
+  "strict_new_prg_bytes": 0,
+  "strict_cumulative_prg_bytes": 49404,
+  "vpp": 24
+}

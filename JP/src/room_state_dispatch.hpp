@@ -22,7 +22,7 @@ template <typename MappedRead8>
     const std::uint8_t offset = static_cast<std::uint8_t>(selector_19 << 1);
     const std::uint16_t p = static_cast<std::uint16_t>(0xB4D1u + offset);
     const auto low = static_cast<std::uint8_t>(read(p));
-    const auto high = static_cast<std::uint8_t>(read(static_cast<std::uint16_t>(p+1)));
+    // Fixed $E7FB increments 8-bit Y twice. For selectors $7F/$FF,\n    // second INY wraps to $00 and reads the original JSR return byte.\n    const std::uint16_t high_location = static_cast<std::uint16_t>(\n        0xB4D0u + static_cast<std::uint8_t>(offset + 2u));\n    const auto high = static_cast<std::uint8_t>(read(high_location));
     const auto dest = static_cast<std::uint16_t>(low | (static_cast<unsigned>(high)<<8));
     // $E7FB ends: LDA (ret),Y [high] ; LDY $03 [saved Y] ; STA $03 ; JMP ($0002).
     // The final Z/N flags come from restored Y, not the pointer high byte.

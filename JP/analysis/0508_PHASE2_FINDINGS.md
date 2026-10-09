@@ -29,3 +29,7 @@ python3 audit_0508_expanded.py 'Akumajou Densetsu (Japan).nes' 0508_expanded_rep
 ```
 
 To make the checkpoint authoritative: place the phase-2 audit and updated 0508 analysis under `JP/`, reproduce `tools/check_resume_frontier.py` and previous `audit_nmi_room_dispatch_0507.py` and `room_state_dispatch_test.cpp`; reconcile byte overlaps and mapped callees; update the affected preservation chapters and discovery log; run `audit_preservation_archive.py`; update progress and continuity; write `RESUME_STATE.json` **last**; validate and verify the branch head before reporting completion.
+
+## Corrected E7FB 8-bit second-INY wrap (0508 bulk trace erratum)
+
+The original ROM's `$E7FB` uses **8-bit Y** for both indirect pointer bytes. For selector `$7F` / `$FF`, the first fetch is at `JSR-return+$FF` and the second `INY` wraps to 0, reading the **last operand byte of `JSR $E7FB`**. The earlier partial `pointer_entry+1` model in this phase and in native `room_state_dispatch.hpp` was wrong at those two selector values. The correct raw-$0A:$B4CE dispatch target is `$E7FB`, not `$20FB`; neither selector is live-proved. The partial model and full-256 native regression are corrected separately. See [bulk trace and C-003 correction](0508_TRACE_CORE_AND_E7FB_CORRECTION.md).

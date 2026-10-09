@@ -1,0 +1,19 @@
+{
+  "status": "BOUNDED_GENERIC_6502_VRC6_REGRESSION_NOT_REFERENCE_FRAME_PARITY",
+  "rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "test_cases": 272,
+  "original_instruction_steps": 334912,
+  "ppu_cases": 16,
+  "sound_cases": 256,
+  "ppu_steps_per_case": 10532,
+  "sound_steps_per_case": 650,
+  "per_ppu_case_port_writes": 2048,
+  "per_sound_case_mapper_8000_writes": 14,
+  "strict_new_prg_bytes": 0,
+  "strict_cumulative_prg_bytes": 49404,
+  "vpp": 24,
+  "limits": [
+    "ROM-fetched instructions but synthetic entry state",
+    "no reference emulator trace, cycles, IRQ/NMI timing, PPU pixels, or audio waveforms"
+  ]
+}
