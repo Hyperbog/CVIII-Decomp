@@ -1,0 +1,11 @@
+{
+  "model": "VRC6 IRQ C++ vs Python differential (not NES reference parity)",
+  "seed": 3305645062,
+  "events": 4488,
+  "cpu_cycles_advanced": 684904,
+  "matching_state_snapshots": 4488,
+  "trace_sha256": "a4dbc1d52e7209a6b272e64333784510f120a15a5e0e8ade0d6fa7ec33822952",
+  "original_rom_required": false,
+  "strict_new_prg_bytes": 0,
+  "reference_hardware_parity": false
+}
