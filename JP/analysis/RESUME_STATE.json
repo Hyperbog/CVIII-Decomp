@@ -153,7 +153,8 @@
     "0507 fixed E526 explicitly selects raw VRC6 0A via E2D0 and jumps to bank0A B4CC, proving physical bank for this first-level NMI edge; five new entry bytes SHA 0cbfd39d...1c0c7",
     "0507 12 encoded room-state pointers produce 281 candidate instruction starts/582 candidate bytes in six noncontiguous ranges, with no unknown opcodes; candidate graph not promoted without $19 and helper proof",
     "0507 native E7FB room-state decoder exhaustively checks 256 selectors x 256 incoming Y against JP bank0A ROM, including selector high-bit carry alias and final restored-Y Z/N",
-    "0507 raw0B 24/25/26 immediates at 863B/9234/9531 and B4BC are not direct AI-selector 05EF,X stores; other indirect producer paths remain possible"
+    "0507 raw0B 24/25/26 immediates at 863B/9234/9531 and B4BC are not direct AI-selector 05EF,X stores; other indirect producer paths remain possible",
+    "preservation archive initial 13-chapter reader-facing technical documentation added and linked to existing JP ROM audits; no semantic byte or VPP movement"
   ],
   "open_edges": [
     "0508: prove actual first-level NMI selector $18=0D producer/liveness for fixed E526 to mapped bank0A B4CC",
@@ -173,6 +174,8 @@
     "CPU/interrupt trace parity; full PPU/runtime integration; VRC6 audio"
   ],
   "checkpoint_constraints": [
+    "run JP/tools/audit_preservation_archive.py for numbered chapters/relative links and preserve its status as documentation-only, not gameplay/ROM parity certification",
+    "0508 and future: update relevant JP/PreservationArchive chapters, Q/D/L/C/U registry and open research roadmap before PROGRESS/continuity/RESUME_STATE finalization; JP ROM/audits still take precedence",
     "0508 must replay tools/audit_nmi_room_dispatch_0507.py and 65536-case native room_state_dispatch_test.cpp before promotion",
     "the proven 0507 entry is ONLY raw bank0A B4CC-B4D0 (5 bytes); 582 conditional graph bytes stay structural until $18/$19 and banked helper contexts are proven",
     "never infer $19 <= 0B from 12 encoded pointers; ASL A doubles modulo 256 so selectors 80-FF alias 00-7F and reads may reach code",
@@ -363,6 +366,33 @@
       "candidate_credit": 0,
       "live_selectors": "$18/$19 unresolved",
       "vpp_credit": 0
+    },
+    "preservation_archive": {
+      "status": "active_subsystem_reference_not_certified",
+      "inspiration": "Hyperbog/RLOFT PreservationArchive (private linked repo)",
+      "index": "PreservationArchive/README.md",
+      "chapter_range": "00-12",
+      "chapter_count": 13,
+      "structural_audit": "tools/audit_preservation_archive.py",
+      "workflow": ".github/workflows/nes-preservation-archive.yml",
+      "technical_scope": [
+        "ROM and mapping",
+        "CPU IRQ/NMI",
+        "OAM",
+        "collision",
+        "AI",
+        "room/world",
+        "audio",
+        "native parity",
+        "whole-PRG atlas",
+        "Q/D/L/C/U",
+        "modder contracts",
+        "unknown/certification roadmap"
+      ],
+      "accounting_delta_bytes": 0,
+      "vpp_delta": 0,
+      "semantic_checkpoint_unmodified": "0507",
+      "require_update_each_checkpoint": true
     }
   },
   "repair_history": {
@@ -377,7 +407,8 @@
     "0505_tile_probe_transaction": "no new semantic byte coverage; native indexed tile-probe algorithm tested with JP ROM and global fixed-caller/script-store candidate scan; resume frontier unchanged and VPP 24",
     "0506_crossbank_atlas": "Native JP bus bank transaction and mechanically linked script IDs tested/ROM audited, no strict ROM byte promotion; VPP 24",
     "0506_state_protocol_supplement": "ROM-backed state1 reset-$68 and state2 dispatch linkage added as conditional protocol; byte coverage unchanged; machine state updated LAST",
-    "0507_nmi_bank0a_transaction": "5 new physical PRG21 bytes at raw0A B4CC-B4D0 strictly credited; 582-byte conditional graph explicitly excluded; native 65536-case test + ROM audit; fixed frontier unchanged"
+    "0507_nmi_bank0a_transaction": "5 new physical PRG21 bytes at raw0A B4CC-B4D0 strictly credited; 582-byte conditional graph explicitly excluded; native 65536-case test + ROM audit; fixed frontier unchanged",
+    "preservation_archive_initial_0507_baseline": "RLOFT-inspired JP/PreservationArchive 13 active partial chapters + structural auditor + GitHub workflow; mandatory checkpoint documentation; no semantic state change, strictly 49404 PRG bytes and VPP 24, 0508 still next"
   },
   "progress_metrics": {
     "whole_prg_scanned_bytes": 262144,
