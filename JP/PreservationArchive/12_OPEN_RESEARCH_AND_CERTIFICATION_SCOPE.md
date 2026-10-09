@@ -26,3 +26,23 @@ Only consider static archive certification after: all planned chapters have a de
 ## Checkpoint update contract
 
 A checkpoint producing new observations must update the owning chapter or [10](10_QUIRKS_CORRECTIONS_AND_UNKNOWNS.md) and record **what was ruled out** as carefully as what was proved. A provisional atlas hit never becomes a live code/data claim from repetition. Commit analysis/audit first, archive chapters and their link audit next, progress and continuity after, and [machine resume state](../analysis/RESUME_STATE.json) LAST. No checkpoint is credited solely for publishing prose.
+
+
+## Stable research tasks (R-IDs)
+
+The Q/D/L/C/U register in [Chapter 10](10_QUIRKS_CORRECTIONS_AND_UNKNOWNS.md) classifies facts, but this table assigns **actionable proof work**. As in RLOFT, retain these IDs permanently; append new IDs rather than renumbering. A task becomes PROVED only with a committed Japanese-ROM/trace witness, exact input/mapper state and regression.
+
+| ID | Priority | Status | Concrete evidence required |
+|---|---|---|---|
+| R-001 | P0 | OPEN | Prove NMI selector $18=0D and live room states $19/$68 across NMI/IRQ/frame boundaries |
+| R-002 | P0 | OPEN | Establish B6A4 carry-flag precondition, $07A0 pointer table bounds, and promote justified $0A room graph bytes |
+| R-003 | P0 | OPEN | Prove live producers of AI script IDs $24/$25/$26, subscript indexes and calls to fixed $FC17, or refute with source evidence |
+| R-004 | P0 | OPEN | Reconstruct actual ZP $10 final writer/value at PRG26 renderer entry for representative and edge frames |
+| R-005 | P0 | OPEN | Resolve both $54/$14 producer domains and the full $FD62,Y indexed ROM read range |
+| R-006 | P0 | OPEN | Build repeatable 2A03/mapper/PPU reset–NMI–IRQ original-vs-native trace comparisons |
+| R-007 | P1 | OPEN | Attribute every VRC6 + APU sound register event and certify a bounded audio-parity test |
+| R-008 | P1 | OPEN | Prove stage/room layouts, route progression, character movement, enemy/boss states and serialization |
+| R-009 | P1 | OPEN | Classify remaining fixed PRG31 raw gaps as actual code/data with nonoverlapping source manifests |
+| R-010 | P2 | EVIDENCE DEPENDENT | Recover authentic original author/developer identifiers or alternate-release source media if available |
+
+P0 = needed for faithful native runtime; P1 = subsystem documentation and reconstruction; P2 = historical/source archaeology. Closure must link a specific byte audit and/or reference trace; the absence of a trace is not a defect in the *static* description, but forbids native parity claims.
