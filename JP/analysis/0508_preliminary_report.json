@@ -1,0 +1,31 @@
+{
+  "status": "preliminary_0508_source_proof",
+  "jp_rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "predecessor": "fixed slot $0C -> $E51E sets bank $0A -> $AFA4",
+  "predecessor_verified_entry": "$AFA4-$AFA8, five bytes",
+  "encoded_predecessor_state_count": 20,
+  "conditional_transition": "$19=$13 -> $B36B -> $18=$0D, $19=$00",
+  "successor": "fixed slot $0D -> $E526 sets bank $0A -> $B4CC",
+  "gate": "$B873 indexes $B8A6 + ((3*$07A6)&$FF); $FF sets carry",
+  "gate_data_records": [
+    "24c040",
+    "250040",
+    "254040",
+    "258040",
+    "25c040",
+    "260040",
+    "264040",
+    "268040",
+    "26c040"
+  ],
+  "gate_sentinel_when_index_9": true,
+  "unproven": [
+    "live state selector $18=$0C and predecessor $19=$13",
+    "cross-frame mutation and true $07A6 index domain",
+    "callee mapper/state preservation across room loading",
+    "whole-program pointer-table bounds"
+  ],
+  "strict_new_bytes": 0,
+  "strict_cumulative_prg_bytes": 49404,
+  "vpp": 24
+}

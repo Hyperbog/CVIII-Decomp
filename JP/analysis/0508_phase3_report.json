@@ -1,0 +1,48 @@
+{
+  "checkpoint": "0508_phase3_provisional",
+  "jp_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "unit_scope": "ROM-backed partial 6502 execution, bank0A B873 and fixed E843/E86B/EC70",
+  "simulated_cases": 7680,
+  "instruction_sites_visited": 46,
+  "conditional_nmi_chain": "$18=0C -> fixed E51E -> raw0A AFA4; $19=13 -> B36B -> $18=0D,$19=00; next NMI fixed E526 -> raw0A B4CC -> state 00 B570, subject to cross-frame/external effects",
+  "worst_case_instruction_steps": 296,
+  "for_descriptor_00_08": {
+    "source_records": 9,
+    "third_byte": "40",
+    "queue_bytes_per_record": 68,
+    "queue_format": "01, second, first, 64x00, FF",
+    "zp10_writes_per_record": 65,
+    "zp10_final": "00",
+    "ram_07a6_increment": 1,
+    "carry_at_return": 0,
+    "ram_1e_change_mod256": 68
+  },
+  "for_descriptor_09": {
+    "first_byte": "FF",
+    "carry_at_return": 1,
+    "ram_07a6_change": 0,
+    "ram_1e_change": 0,
+    "zp10": "preserved"
+  },
+  "possible_sentinel_descriptor_values_for_all_256": [
+    9,
+    28,
+    42,
+    44,
+    45,
+    46,
+    48,
+    54,
+    128,
+    132,
+    141,
+    212,
+    214,
+    218,
+    251
+  ],
+  "proof_limit": "Not a full emulator, frame trace, interrupt proof, dynamic liveness proof, or global descriptor-index bound. No new strict PRG bytes credited.",
+  "strict_verified_cumulative": 49404,
+  "strict_new": 0,
+  "vpp": 24
+}

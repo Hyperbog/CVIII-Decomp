@@ -1,0 +1,532 @@
+{
+  "status": "0508_FOUNDATION_CANDIDATE_NOT_COMMITTED",
+  "jp_rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "whole_raw_bank_0a_prg_bytes_examined": 16384,
+  "whole_raw_bank_0a_sha256": "1460df577d44e114c64fdf34a8837629765f3f6a93d45796fdf81e5ffacb5ed8",
+  "full_bank_byte_start_discovery": {
+    "physical_start_offsets_checked": 16384,
+    "legal_official_opcode_start_candidates": 12074,
+    "candidate_control_flow_starts": 1740,
+    "candidate_direct_writes_to_watched_address": {
+      "0018": [
+        "A7A4",
+        "A950",
+        "A95C",
+        "A9F8",
+        "AB10",
+        "B373",
+        "B682"
+      ],
+      "0019": [
+        "B03A",
+        "B081",
+        "B0CD",
+        "B1CB",
+        "B27D",
+        "B313",
+        "B377",
+        "B589",
+        "B594",
+        "B5A0",
+        "B5C9",
+        "B5D7",
+        "B5E2",
+        "B61F",
+        "B62B",
+        "B65F"
+      ],
+      "0068": [
+        "8792",
+        "B000",
+        "B4EB",
+        "B6E5",
+        "B6FB",
+        "B706",
+        "B738",
+        "B75A",
+        "B78A",
+        "B7AF",
+        "B7BE",
+        "B7C5",
+        "B7F3"
+      ],
+      "054E": [
+        "B67D",
+        "B83C"
+      ],
+      "07A0": [
+        "B7E3"
+      ],
+      "07A6": [
+        "B628",
+        "B7E0",
+        "B89F"
+      ]
+    },
+    "warning": "all-offset byte-pattern sweep; not proof of executed code"
+  },
+  "mapping": {
+    "raw_vrc6_bank": "0A",
+    "physical_prg_banks": [
+      20,
+      21
+    ],
+    "cpu_window": "8000-BFFF"
+  },
+  "nmi_fixed_indices": {
+    "0C": "E51E -> AFA4",
+    "0D": "E526 -> B4CC"
+  },
+  "independently_replayed_0507": {
+    "instruction_starts": 281,
+    "instruction_operand_bytes": 582,
+    "range_fingerprint": "807363d09368f7ae6ceaeae000df0fc50f56bba5bd2871ca749d7236ec9f3828"
+  },
+  "new_candidate_control_flow_atlas": {
+    "instruction_starts": 935,
+    "instruction_operand_bytes": 2042,
+    "new_candidate_vs_0507": 1460,
+    "external_edges": 82,
+    "external_destinations": {
+      "EC54": 23,
+      "FB96": 11,
+      "E55D": 6,
+      "E572": 6,
+      "E616": 4,
+      "E785": 4,
+      "EC47": 4,
+      "FBB0": 4,
+      "E249": 3,
+      "EB84": 3,
+      "E843": 2,
+      "E86B": 2,
+      "EF93": 2,
+      "E2C4": 1,
+      "E6A4": 1,
+      "E7B6": 1,
+      "EB60": 1,
+      "EB82": 1,
+      "EF7F": 1,
+      "FBA5": 1,
+      "FBBB": 1
+    },
+    "code_ranges": [
+      {
+        "start_cpu": "AFA4",
+        "end_cpu_inclusive": "AFA8",
+        "length": 5,
+        "sha256": "0cbfd39d34523da29edaa6a2dcf5cdb4b62de628d0e5568ea3879d7de5a1c0c7"
+      },
+      {
+        "start_cpu": "AFD1",
+        "end_cpu_inclusive": "B066",
+        "length": 150,
+        "sha256": "5fdab7bc175d5a02502093c107b9c0ec4b3a19a9d58024f022b3096c43b84424"
+      },
+      {
+        "start_cpu": "B06B",
+        "end_cpu_inclusive": "B11A",
+        "length": 176,
+        "sha256": "df419a261d010dbdaf810728e629f6fbfb75980caac3e92d27e5ab4de752606c"
+      },
+      {
+        "start_cpu": "B11F",
+        "end_cpu_inclusive": "B124",
+        "length": 6,
+        "sha256": "14ddd941b1cf94fdb603ce75ab03cf00e1f97ffb873793b606d7224eaa4ad0d5"
+      },
+      {
+        "start_cpu": "B151",
+        "end_cpu_inclusive": "B213",
+        "length": 195,
+        "sha256": "b69256693949f4367d93396f4d6af459c6bb0cfac1ae651a1884084e28dc74e6"
+      },
+      {
+        "start_cpu": "B218",
+        "end_cpu_inclusive": "B268",
+        "length": 81,
+        "sha256": "f1b2229d3d192ffcfa6099888505d96e42e16a202fd67ce38685b2446eecb0fc"
+      },
+      {
+        "start_cpu": "B275",
+        "end_cpu_inclusive": "B288",
+        "length": 20,
+        "sha256": "4b8a2fefa2d4786daa6beebca376f46b1a8269f2572484f5bd0b7aa775c252f1"
+      },
+      {
+        "start_cpu": "B28D",
+        "end_cpu_inclusive": "B3C9",
+        "length": 317,
+        "sha256": "8dcf584953b7090e74d710b319dd1305ff987fa4b129d2de269d7fded34f6d4c"
+      },
+      {
+        "start_cpu": "B3EB",
+        "end_cpu_inclusive": "B41D",
+        "length": 51,
+        "sha256": "a0b6b615b92a0505cc3424f633a9b50addc6f2164c615ce5608b5e3b53466f65"
+      },
+      {
+        "start_cpu": "B489",
+        "end_cpu_inclusive": "B4B0",
+        "length": 40,
+        "sha256": "4a1ac88f507640ff2ae22c4ce7704afec0b63d32ede33002a41e01839485337b"
+      },
+      {
+        "start_cpu": "B4CC",
+        "end_cpu_inclusive": "B4D0",
+        "length": 5,
+        "sha256": "0cbfd39d34523da29edaa6a2dcf5cdb4b62de628d0e5568ea3879d7de5a1c0c7"
+      },
+      {
+        "start_cpu": "B4E9",
+        "end_cpu_inclusive": "B68D",
+        "length": 421,
+        "sha256": "c9e90d2df7cfdc6b9d3df7e60ceb47d04916dade591376e3c2cfe99cdb1bf19d"
+      },
+      {
+        "start_cpu": "B6A4",
+        "end_cpu_inclusive": "B8A5",
+        "length": 514,
+        "sha256": "453c24335a8dc92fd8db396b2382245aaf07b6c6c478058ca8ad079ade7c95f4"
+      },
+      {
+        "start_cpu": "B8CC",
+        "end_cpu_inclusive": "B908",
+        "length": 61,
+        "sha256": "4322744193515949a23d4d5a40fee82c8da487cb91a15e895678503c9e3462e6"
+      }
+    ],
+    "all_4_inline_tables": {
+      "AFA6": {
+        "data_cpu_range": "AFA9-AFD0",
+        "encoded_words": 20,
+        "unique_targets": 20,
+        "sha256": "422e65c2a5a5c30ea2e6a7c77978d54c2d1cd64b99628e7f94662a29f9f7d396",
+        "targets": [
+          "AFD1",
+          "AFED",
+          "B00B",
+          "B06B",
+          "B0A2",
+          "B0D0",
+          "B11F",
+          "B37A",
+          "B384",
+          "B1CE",
+          "B218",
+          "B275",
+          "B28D",
+          "B295",
+          "B2CD",
+          "B2F8",
+          "B307",
+          "B345",
+          "B34D",
+          "B36B"
+        ]
+      },
+      "B122": {
+        "data_cpu_range": "B125-B150",
+        "encoded_words": 22,
+        "unique_targets": 13,
+        "sha256": "2c3db8027fdab36d434b87aa7b8e550617cf3e8fd2f14b59e0c7db47d0b1adba",
+        "targets": [
+          "B151",
+          "B162",
+          "B1CB",
+          "B174",
+          "B166",
+          "B180",
+          "B16B",
+          "B185",
+          "B166",
+          "B191",
+          "B16B",
+          "B196",
+          "B16B",
+          "B1A7",
+          "B16B",
+          "B1CB",
+          "B1B3",
+          "B166",
+          "B1CB",
+          "B1BF",
+          "B166",
+          "B1CB"
+        ]
+      },
+      "B4CE": {
+        "data_cpu_range": "B4D1-B4E8",
+        "encoded_words": 12,
+        "unique_targets": 10,
+        "sha256": "380ecdac9478f19215c9a5628e8395dce3a11ba951218f5f01583fa6dabdfa7c",
+        "targets": [
+          "B570",
+          "B58C",
+          "B597",
+          "B5A3",
+          "B5CC",
+          "B5DA",
+          "B614",
+          "B622",
+          "B64E",
+          "B5CC",
+          "B5DA",
+          "B662"
+        ]
+      },
+      "B68B": {
+        "data_cpu_range": "B68E-B6A3",
+        "encoded_words": 11,
+        "unique_targets": 11,
+        "sha256": "c237cfadfe6c2f0c2e1bd4c6317adf57de417096779750133694c992b14c0583",
+        "targets": [
+          "B6A4",
+          "B6E8",
+          "B6FE",
+          "B72E",
+          "B73B",
+          "B786",
+          "B7AB",
+          "B7B2",
+          "B7C1",
+          "B7DE",
+          "B7F6"
+        ]
+      }
+    },
+    "direct_instruction_writes_to_watchlist": {
+      "0018": [
+        {
+          "cpu": "B373",
+          "opcode": "STA",
+          "mode": "zp"
+        },
+        {
+          "cpu": "B682",
+          "opcode": "STA",
+          "mode": "zp"
+        }
+      ],
+      "0019": [
+        {
+          "cpu": "B03A",
+          "opcode": "INC",
+          "mode": "zp"
+        },
+        {
+          "cpu": "B081",
+          "opcode": "INC",
+          "mode": "zp"
+        },
+        {
+          "cpu": "B0CD",
+          "opcode": "INC",
+          "mode": "zp"
+        },
+        {
+          "cpu": "B1CB",
+          "opcode": "INC",
+          "mode": "zp"
+        },
+        {
+          "cpu": "B27D",
+          "opcode": "INC",
+          "mode": "zp"
+        },
+        {
+          "cpu": "B313",
+          "opcode": "INC",
+          "mode": "zp"
+        },
+        {
+          "cpu": "B377",
+          "opcode": "STA",
+          "mode": "zp"
+        },
+        {
+          "cpu": "B589",
+          "opcode": "INC",
+          "mode": "zp"
+        },
+        {
+          "cpu": "B594",
+          "opcode": "INC",
+          "mode": "zp"
+        },
+        {
+          "cpu": "B5A0",
+          "opcode": "INC",
+          "mode": "zp"
+        },
+        {
+          "cpu": "B5C9",
+          "opcode": "INC",
+          "mode": "zp"
+        },
+        {
+          "cpu": "B5D7",
+          "opcode": "INC",
+          "mode": "zp"
+        },
+        {
+          "cpu": "B5E2",
+          "opcode": "INC",
+          "mode": "zp"
+        },
+        {
+          "cpu": "B61F",
+          "opcode": "INC",
+          "mode": "zp"
+        },
+        {
+          "cpu": "B62B",
+          "opcode": "INC",
+          "mode": "zp"
+        },
+        {
+          "cpu": "B65F",
+          "opcode": "INC",
+          "mode": "zp"
+        }
+      ],
+      "0068": [
+        {
+          "cpu": "B4EB",
+          "opcode": "STA",
+          "mode": "zp"
+        },
+        {
+          "cpu": "B6E5",
+          "opcode": "INC",
+          "mode": "zp"
+        },
+        {
+          "cpu": "B6FB",
+          "opcode": "INC",
+          "mode": "zp"
+        },
+        {
+          "cpu": "B706",
+          "opcode": "INC",
+          "mode": "zp"
+        },
+        {
+          "cpu": "B738",
+          "opcode": "INC",
+          "mode": "zp"
+        },
+        {
+          "cpu": "B75A",
+          "opcode": "INC",
+          "mode": "zp"
+        },
+        {
+          "cpu": "B78A",
+          "opcode": "INC",
+          "mode": "zp"
+        },
+        {
+          "cpu": "B7AF",
+          "opcode": "INC",
+          "mode": "zp"
+        },
+        {
+          "cpu": "B7BE",
+          "opcode": "INC",
+          "mode": "zp"
+        },
+        {
+          "cpu": "B7C5",
+          "opcode": "INC",
+          "mode": "zp"
+        },
+        {
+          "cpu": "B7F3",
+          "opcode": "STA",
+          "mode": "zp"
+        }
+      ],
+      "054E": [
+        {
+          "cpu": "B56A",
+          "opcode": "STA",
+          "mode": "absx"
+        },
+        {
+          "cpu": "B67D",
+          "opcode": "STA",
+          "mode": "abs"
+        },
+        {
+          "cpu": "B83C",
+          "opcode": "STA",
+          "mode": "abs"
+        },
+        {
+          "cpu": "B86B",
+          "opcode": "STA",
+          "mode": "absx"
+        }
+      ],
+      "07A0": [
+        {
+          "cpu": "B7E3",
+          "opcode": "INC",
+          "mode": "abs"
+        }
+      ],
+      "07A6": [
+        {
+          "cpu": "B628",
+          "opcode": "STA",
+          "mode": "abs"
+        },
+        {
+          "cpu": "B7E0",
+          "opcode": "STA",
+          "mode": "abs"
+        },
+        {
+          "cpu": "B89F",
+          "opcode": "INC",
+          "mode": "abs"
+        }
+      ]
+    },
+    "semantic_status": "conditional decode only; no live selector or external bank proof"
+  },
+  "conditional_state_transition": "AFA4 $19=$13 -> B36B writes $18=$0D, $19=$00",
+  "room_loader": {
+    "descriptor_records": [
+      "24C040",
+      "250040",
+      "254040",
+      "258040",
+      "25C040",
+      "260040",
+      "264040",
+      "268040",
+      "26C040"
+    ],
+    "index_9_sentinel_byte": "B8C1:FF",
+    "effect": "B873 branches to SEC for $07A6=9; global index bound unproved"
+  },
+  "strict_0508_entry_candidate": {
+    "cpu": "AFA4-AFA8",
+    "bytes": 5,
+    "sha256": "0cbfd39d34523da29edaa6a2dcf5cdb4b62de628d0e5568ea3879d7de5a1c0c7",
+    "reason": "fixed E51E explicitly establishes raw bank 0A before jumping to AFA4",
+    "promotion_status": "NOT YET LEDGERED"
+  },
+  "strict_prg_floor_unchanged": 49404,
+  "vpp_unchanged": 24,
+  "open_edges": [
+    "live $18=$0C and $19=$13 reachability",
+    "$0783 and $19 selector domains; aliases beyond inline table widths",
+    "inter-frame mutations of $18/$19/$68 and $07A0/$07A6",
+    "callee mapper/context restoration for banked returns",
+    "fixed FB96 and indexed room pointer $B8C2 domain",
+    "full 0507 native and repository recovery suite not rerun here"
+  ]
+}

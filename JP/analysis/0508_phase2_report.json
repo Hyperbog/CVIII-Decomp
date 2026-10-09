@@ -1,0 +1,158 @@
+{
+  "status": "0508_PHASE2_LOCAL_AUDIT_PASS_NO_COMMIT",
+  "jp_rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "recovery_overlap_sha256": "e4fa5e06e439ca12a84d935eb80224f448276c722399fe76fe0ce60013cc4ee7",
+  "recovery_frontier_sha256": "a5437f0f20034ba34d65afeec353d28846a321134061f765814d28eaa3f69157",
+  "nmi_trampoline_edges": {
+    "0C": {
+      "cpu_trampoline": "E51E",
+      "raw_bank": "0A",
+      "target_cpu": "AFA4",
+      "target_physical_8k_prg": 21,
+      "target_prg_offset": "2AFA4",
+      "target_rom_file_offset": "2AFB4",
+      "entry_sha256": "0cbfd39d34523da29edaa6a2dcf5cdb4b62de628d0e5568ea3879d7de5a1c0c7",
+      "note": "mapped edge is exact; selector liveness remains unproved"
+    },
+    "0D": {
+      "cpu_trampoline": "E526",
+      "raw_bank": "0A",
+      "target_cpu": "B4CC",
+      "target_physical_8k_prg": 21,
+      "target_prg_offset": "2B4CC",
+      "target_rom_file_offset": "2B4DC",
+      "entry_sha256": "0cbfd39d34523da29edaa6a2dcf5cdb4b62de628d0e5568ea3879d7de5a1c0c7",
+      "note": "mapped edge is exact; selector liveness remains unproved"
+    }
+  },
+  "conditional_predecessor": {
+    "selector_19": "13",
+    "target": "B36B",
+    "next_selector_18": "0D",
+    "next_19": "00",
+    "current_selector_liveness": "UNPROVED"
+  },
+  "room_sentinel": {
+    "07A6_initializers": [
+      "B628",
+      "B7E0"
+    ],
+    "incrementer": "B89F",
+    "record_start": "B8A6",
+    "record_count_before_sentinel": 9,
+    "record_hex": [
+      "24C040",
+      "250040",
+      "254040",
+      "258040",
+      "25C040",
+      "260040",
+      "264040",
+      "268040",
+      "26C040"
+    ],
+    "sentinel_address": "B8C1",
+    "index9_carry_out": true,
+    "global_07A6_bound": "UNPROVED"
+  },
+  "room_zp10": {
+    "record_value_store": "B88D: STA $10",
+    "countdown_write": "B898: DEC $10",
+    "fixed_external_calls": [
+      "E843",
+      "E86B"
+    ],
+    "final_renderer_value": "UNPROVED"
+  },
+  "whole_prg_direct_encoding_candidates": {
+    "07A6": [
+      {
+        "physical_prg_bank": 21,
+        "candidate_cpu": "B628",
+        "opcode": "STA_abs"
+      },
+      {
+        "physical_prg_bank": 21,
+        "candidate_cpu": "B7E0",
+        "opcode": "STA_abs"
+      },
+      {
+        "physical_prg_bank": 21,
+        "candidate_cpu": "B89F",
+        "opcode": "INC_abs"
+      }
+    ],
+    "07A0": [
+      {
+        "physical_prg_bank": 1,
+        "candidate_cpu": "A09B",
+        "opcode": "STA_abs"
+      },
+      {
+        "physical_prg_bank": 3,
+        "candidate_cpu": "BB5E",
+        "opcode": "STA_abs"
+      },
+      {
+        "physical_prg_bank": 21,
+        "candidate_cpu": "B7E3",
+        "opcode": "INC_abs"
+      }
+    ]
+  },
+  "e7fb_partial_math": [
+    {
+      "jsr_cpu": "AFA6",
+      "table_cpu": "AFA9",
+      "encoded_word_count": 20,
+      "encoded_data_sha256": "422e65c2a5a5c30ea2e6a7c77978d54c2d1cd64b99628e7f94662a29f9f7d396",
+      "first_out_of_width_pointer_word": "1620",
+      "selector_80_aliases_00": true,
+      "cases_checked": 65536,
+      "liveness": "unknown; arithmetic can index beyond encoded words"
+    },
+    {
+      "jsr_cpu": "B122",
+      "table_cpu": "B125",
+      "encoded_word_count": 22,
+      "encoded_data_sha256": "2c3db8027fdab36d434b87aa7b8e550617cf3e8fd2f14b59e0c7db47d0b1adba",
+      "first_out_of_width_pointer_word": "00A2",
+      "selector_80_aliases_00": true,
+      "cases_checked": 65536,
+      "liveness": "unknown; arithmetic can index beyond encoded words"
+    },
+    {
+      "jsr_cpu": "B4CE",
+      "table_cpu": "B4D1",
+      "encoded_word_count": 12,
+      "encoded_data_sha256": "380ecdac9478f19215c9a5628e8395dce3a11ba951218f5f01583fa6dabdfa7c",
+      "first_out_of_width_pointer_word": "00A9",
+      "selector_80_aliases_00": true,
+      "cases_checked": 65536,
+      "liveness": "unknown; arithmetic can index beyond encoded words"
+    },
+    {
+      "jsr_cpu": "B68B",
+      "table_cpu": "B68E",
+      "encoded_word_count": 11,
+      "encoded_data_sha256": "c237cfadfe6c2f0c2e1bd4c6317adf57de417096779750133694c992b14c0583",
+      "first_out_of_width_pointer_word": "02A9",
+      "selector_80_aliases_00": true,
+      "cases_checked": 65536,
+      "liveness": "unknown; arithmetic can index beyond encoded words"
+    }
+  ],
+  "e7fb_partial_math_total_cases": 262144,
+  "physical_prg_bytes_swept": 262144,
+  "strict_0508_new_entry_eligible_bytes": 5,
+  "strict_0508_bytes_committed": 0,
+  "strict_floor_unchanged": 49404,
+  "vpp_unchanged": 24,
+  "blocking_dependencies": [
+    "full $18/$19 and $68 producer liveness",
+    "mapper/callee state and indexed-write alias closure",
+    "$07A0 / $07A6 full producer ranges",
+    "original repo 0507 native test and full recovery checker",
+    "preservation archive/progress/resume-state transaction"
+  ]
+}

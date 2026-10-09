@@ -1,0 +1,70 @@
+{
+  "status": "PROVISIONAL_LOCAL_CONDITIONAL_ONLY",
+  "jp_rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "executed_code_path": "raw0A:B7F7-B872 -> fixed FB96/FBA4, fixed E2D0/E2D5",
+  "source_data_mapping": "raw VRC6 0E physical PRG29 CPU BE8B-BF39",
+  "streams": [
+    {
+      "index": 0,
+      "start_cpu": "BEA4",
+      "end_cpu_inclusive": "BEDA",
+      "bytes": 55,
+      "objects": 10,
+      "header": "41200101",
+      "sha256": "d615e38ee43e56072ac883b1509fc9bda21061ae0bc7eafa6c77875ad2bbc905",
+      "physical_8k_prg": 29
+    },
+    {
+      "index": 1,
+      "start_cpu": "BEDB",
+      "end_cpu_inclusive": "BF02",
+      "bytes": 40,
+      "objects": 7,
+      "header": "11010002",
+      "sha256": "ab1a532f59b395dad6a69351adb0bc7700626470fc070ad4ef791c91149d0e20",
+      "physical_8k_prg": 29
+    },
+    {
+      "index": 2,
+      "start_cpu": "BF03",
+      "end_cpu_inclusive": "BF1B",
+      "bytes": 25,
+      "objects": 4,
+      "header": "81030103",
+      "sha256": "09b183d31652121dc1e5668a186aff96eb628f4bfc4c91ee96a5945845217b8a",
+      "physical_8k_prg": 29
+    },
+    {
+      "index": 3,
+      "start_cpu": "BE8B",
+      "end_cpu_inclusive": "BEA3",
+      "bytes": 25,
+      "objects": 4,
+      "header": "21020000",
+      "sha256": "2e2a12c1e26ad9fc2441246e9f5da2aabc594fc205da311c76db042fbcebe42a",
+      "physical_8k_prg": 29
+    },
+    {
+      "index": 4,
+      "start_cpu": "BF1C",
+      "end_cpu_inclusive": "BF39",
+      "bytes": 30,
+      "objects": 5,
+      "header": "B1020000",
+      "sha256": "c349435f174096b6fdeb1d4957780dabbc00d8276e5d0556de6e9db43f8571ea",
+      "physical_8k_prg": 29
+    }
+  ],
+  "distinct_stream_source_bytes": 175,
+  "contiguous_source_sha256": "977745b341cfa56056be96e454d2e49e5d91084b798e82b1a1e819dcfcdab479",
+  "unique_objects": 30,
+  "complete_loader_cases": 1280,
+  "mapped_indirect_rom_reads": 47360,
+  "mapper_register_writes": 94720,
+  "all_helper_calls_returned_to_bank_0A": true,
+  "exceptions": "Only 07A0=0..4, no IRQs, CPU/PPU side effects beyond documented mapped reads/writes unmodeled",
+  "global_07A0_reachability": "UNPROVED",
+  "strict_new_prg_bytes": 0,
+  "strict_cumulative_prg_bytes": 49404,
+  "vpp": 24
+}

@@ -1,0 +1,91 @@
+{
+  "checkpoint": "0508_phase4_provisional",
+  "jp_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "validated_short_producer_blocks": [
+    "raw00:A099-A0A8",
+    "raw01:BB57-BB61",
+    "raw0A:B622-B62D (only RAM[$32]=1)",
+    "raw0A:B7DE-B7F5"
+  ],
+  "direct_encoding_candidates": {
+    "07A0": [
+      {
+        "physical_bank": 1,
+        "prg_offset": "0209B",
+        "opcode": "8D"
+      },
+      {
+        "physical_bank": 3,
+        "prg_offset": "07B5E",
+        "opcode": "8D"
+      },
+      {
+        "physical_bank": 21,
+        "prg_offset": "2B7E3",
+        "opcode": "EE"
+      }
+    ],
+    "07A6": [
+      {
+        "physical_bank": 21,
+        "prg_offset": "2B628",
+        "opcode": "8D"
+      },
+      {
+        "physical_bank": 21,
+        "prg_offset": "2B7E0",
+        "opcode": "8D"
+      },
+      {
+        "physical_bank": 21,
+        "prg_offset": "2B89F",
+        "opcode": "EE"
+      }
+    ]
+  },
+  "bounded_cases": {
+    "A099": 256,
+    "BB57": 256,
+    "B7DE": 65536,
+    "B622_countdown_zero": 65536,
+    "B873_cross_record_calls": 480
+  },
+  "BB57_example": {
+    "incoming_ram30": "06",
+    "source_cpu": "BB65",
+    "07A0_written": "35",
+    "live_proven": false
+  },
+  "B7DE_relation": {
+    "07A6": "00",
+    "07A0": "(old+1)&FF",
+    "68": "FF iff old 07A0==04, else 00",
+    "final_C": "old+1 modulo256 >= 5",
+    "final_Z": "old != 04",
+    "final_N": "old == 04"
+  },
+  "B622_countdown_zero_relation": {
+    "07A6": "00",
+    "19": "(old+1)&FF",
+    "final_Z": "new 19==0",
+    "final_N": "new 19 bit7"
+  },
+  "B873_no_interference_sequence": {
+    "records_written": 9,
+    "sentinel_index": 9,
+    "buffer_bytes": 612,
+    "end_index_07A6": 9,
+    "end_10": 0
+  },
+  "B7F7_first_five_encoded_pointer_words": [
+    "BEA4",
+    "BEDB",
+    "BF03",
+    "BE8B",
+    "BF1C"
+  ],
+  "scope_exclusion": "The $07A0/$07A6 writer census is only direct operand encodings; RAM aliases, live selector domains, cross-frame interference, CPU/PPU/IRQ and mapper-dependent call closure remain unproved.",
+  "strict_new_bytes": 0,
+  "strict_cumulative": 49404,
+  "vpp": 24
+}
