@@ -1,0 +1,24 @@
+name: NES Preservation Archive Integrity
+
+on:
+  push:
+    branches: [decompilation]
+    paths:
+      - 'JP/PreservationArchive/**'
+      - 'JP/tools/audit_preservation_archive.py'
+      - '.github/workflows/nes-preservation-archive.yml'
+  pull_request:
+    paths:
+      - 'JP/PreservationArchive/**'
+      - 'JP/tools/audit_preservation_archive.py'
+      - '.github/workflows/nes-preservation-archive.yml'
+
+jobs:
+  archive-links-and-index:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify archive chapters, source links and evidence policy
+        run: python3 JP/tools/audit_preservation_archive.py
