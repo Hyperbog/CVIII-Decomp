@@ -1,0 +1,56 @@
+{
+  "schema": "nes-0508-cdl-census-compact/v1",
+  "jp_rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "us_rom_sha256": "1c7b2ed2c1fb5839a6764006aa476f5c9d48f99465b6141980f3a5af1dfec0d6",
+  "provenance": "PROJECT_SYNTHETIC_MANUALLY_SCHEDULED_NMI_NOT_FCEUX_MESEN_EMULATOR_LOG",
+  "manual_nmis": 420,
+  "scenarios": [
+    {
+      "policy": "start30",
+      "nmis": 300,
+      "instructions": 654965
+    },
+    {
+      "policy": "none",
+      "nmis": 120,
+      "instructions": 406419
+    }
+  ],
+  "executed_original_ROM_instruction_steps": 1061384,
+  "distinct_code_operand_bytes": 4979,
+  "additional_read_only_PRG_bytes": 2454,
+  "physical_code_byte_mask_sha256": "465c4ff5c17a90db31b1a68540defd2100e4d0f8a10a093ce6059c86248665e4",
+  "code_by_physical_bank_8k": {
+    "0": 206,
+    "3": 902,
+    "8": 1032,
+    "24": 1436,
+    "26": 196,
+    "31": 1207
+  },
+  "checkpoint0501_source_region_bytes": 4364,
+  "checkpoint0501_source_regions": 31,
+  "checkpoint0501_source_bytes_executed_in_scenarios": 0,
+  "min_code_run_length": 16,
+  "code_runs": 86,
+  "eligible_code_run_bytes": 4515,
+  "other_short_code_runs_bytes": 464,
+  "source_bytes_with_unique_exact_US_window": 909,
+  "source_bytes_with_only_ambiguous_US_window": 146,
+  "source_bytes_without_exact_US_window": 3460,
+  "strongest_candidate": {
+    "jp_fixed_cpu_address": "E7B8",
+    "us_conditional_cpu_address": "E82A",
+    "jp_physical_prg_offset": 255928,
+    "us_physical_prg_offset": 256042,
+    "bytes": 92,
+    "official_6502_instructions": 50,
+    "sha256": "46cdf98916b346b5da7217e310cbe7d17a6ecd0dec5e1a631111e9364a570094",
+    "US_witness_proven": false
+  },
+  "new_strict_prg_bytes": 0,
+  "vpp_delta": 0,
+  "checkpoint_semantic_unchanged": "0507",
+  "resume_state_unchanged": true,
+  "scope": "Hash-only summary of original-ROM-fetched synthetic CPU and exact cross-ROM windows, not independent hardware reference proof"
+}

@@ -117,3 +117,7 @@ The [SharedNES library](../SharedNES/README.md) and its [source catalog](../Shar
 ## Shared code-reuse provenance study (2026-10-09, not checkpoint completion)
 
 [Source-certified JP 0501 ↔ US cross-edition census](../SharedNES/JP_0501_CROSS_EDITION_REUSE.md) identifies 1,273 of 4,364 already verified Japanese source PRG bytes under unique 16-byte US physical-PRG signatures, with **31/31 source-range hash audits**. This is an accelerator for subsequent caller/bank/behavior proofs, not a new strict byte certificate and not cross-mapper equivalence. The ROM remains authoritative; the 0507 recovery checkpoint and 25/100 VPP are unchanged.
+
+## 2026-10-09 — external Code/Data Logger ingestion boundary
+
+The reproducible [FCEUX/Mesen CDL bridge and provisional JP/US exact-window census](../SharedNES/0508_CDL_CROSS_EDITION_EVIDENCE.md) imports genuine logs **only when separately supplied**, as metadata keyed by physical PRG offset. The measured 420 manually injected NMIs are a **synthetic CPU-instruction observer, not Mesen/FCEUX reference logging**. No original emulator-code/data log for full game parity is available from these tests. No change to R-001/R-002 live producer claims, strict 49,404 PRG bytes, or VPP 25/100.

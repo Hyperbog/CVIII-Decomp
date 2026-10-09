@@ -88,3 +88,18 @@ Details and limits: [FDS/trace evidence note](FDS_TRACE_EVIDENCE.md), [reference
 ### Whole-checkpoint strict-source reuse census (2026-10-09)
 
 [Checkpoint 0501 cross-edition census](JP_0501_CROSS_EDITION_REUSE.md) verifies **31 SHA-pinned regions / 4,364 already-certified original JP PRG code/operand bytes** and locates **1,273 distinct JP source bytes** covered by unique exact 16-byte windows in the US game (29.17%). This is *additional transfer-discovery evidence*, not newly certified ROM coverage or US mapper/execution parity. The [portable matcher](../tools/nes_certified_reuse.py) accepts any pair of supplied NES ROMs plus a strictly hash-pinned source-region manifest; 18 deterministic tests cover collision/overlap/identity handling and an optional original ROM-pair integration.
+
+## Emulator CDL import and physical-ROM overlap (2026-10-09)
+
+[CDL import/physical-bank audit](../tools/nes_cdl_bridge_0508.py) now accepts **FCEUX/legacy Mesen raw one-byte-per-PRG** masks and **Mesen2 CDLv2** files (nine-byte magic+ROM-CRC header). Supported layouts are exactly PRG or PRG+CHR flag arrays; unknown extensions/geometry are rejected. The ROM is SHA-identified; a raw FCEUX CDL does **not** itself bind to that ROM, and a Mesen2 CRC is marked unverified unless an independently known expected value is explicitly supplied. CPU-window bits record only last-access hints and do not prove mapper context. Six code/data/PCM/tag fields are counted per **physical 8-KiB bank**, with a hash-pinned source manifest for comparison.
+
+```sh
+python3 JP/tools/nes_cdl_bridge_0508.py game.nes reference.cdl --format auto \
+  --provenance "FCEUX 2.6.6, power-on through stage 1" \
+  --source-regions JP/SharedNES/JP_0501_CERTIFIED_REGIONS.json \
+  --out /tmp/physical-cdl-audit.json
+```
+
+[0508 code-fetch/US-match research](0508_CDL_CROSS_EDITION_EVIDENCE.md) adds reproducible original-JP-ROM-fingerprinted synthetic CPU crosschecks, explicit **non-reference provenance**, exact 0501 manifest overlap and a unique-code-window census against the US game. No full CDL masks or licensed ROM content are committed. ROM-free tests: **19 CDL parser cases + 10 synthetic cross-edition checks (one optional original pair integration)**, run in mandatory native CI.
+
+**Progress:** this is accelerator infrastructure and provisional structural evidence, not an independent emulator reference trace, a verified US caller, strict PRG promotion or VPP score increment.
