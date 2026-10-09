@@ -38,6 +38,12 @@ class Bus:
         self.mapper_writes=[] # [(cpu_address,value)]
         self.unknown_io_reads=[]
         self.unknown_io_writes=[]
+        # Standard NES joypad latch/shift bits: A,B,Select,Start,Up,Down,Left,Right.
+        # This is a serial input *bit model*, not a CPU-cycle or open-bus model.
+        self.controller1_bits=0
+        self.controller2_bits=0
+        self.controller_strobe=False
+        self.controller_shift=[0,0]
         self.trace_reads=False
         self.read_log=[]
     def rb(self,addr:int)->int:
@@ -51,6 +57,14 @@ class Bus:
             else:
                 out=0
                 self.unknown_io_reads.append(reg)
+        elif addr in (0x4016,0x4017):
+            idx=addr-0x4016
+            bits=(self.controller1_bits,self.controller2_bits)[idx]
+            if self.controller_strobe:out=bits&1
+            else:
+                n=self.controller_shift[idx]
+                out=((bits>>n)&1) if n<8 else 1
+                self.controller_shift[idx]=min(n+1,8)
         elif addr<0x6000:
             out=0
             self.unknown_io_reads.append(addr)
@@ -80,6 +94,11 @@ class Bus:
             elif reg==0x2007:
                 self.vram_writes.append((self.ppu_addr,val))
                 self.ppu_addr=(self.ppu_addr+(32 if self.ppu_ctrl&4 else 1))&0x3FFF
+            return
+        if addr==0x4016:
+            self.apu_writes.append((addr,val))
+            self.controller_strobe=bool(val&1)
+            self.controller_shift=[0,0]
             return
         if addr<0x6000:
             self.apu_writes.append((addr,val));return

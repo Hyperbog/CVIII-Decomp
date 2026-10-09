@@ -1,0 +1,270 @@
+{
+  "status": "SYNTHETIC_CONTROLLER_INPUT_ORIGINAL_ROM_EXECUTION_NOT_FRAME_REFERENCE",
+  "ROM_SHA256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "NMI_scenarios": [
+    {
+      "idle_instructions_between_manual_NMI": 0,
+      "original_instructions_including_RESET": 529829,
+      "manual_NMI_count": 300,
+      "RESET_to_idle_original_instructions": 6417,
+      "held_Start_1_bits": 8,
+      "first_Start_flag_F8": 16,
+      "held_repeat_Start_flag_F8": 0,
+      "changes": [
+        {
+          "NMI": 1,
+          "18": 0,
+          "19": 1,
+          "68": 0,
+          "07A0": 0,
+          "07A6": 0,
+          "F8": 0,
+          "original_instructions": 5321
+        },
+        {
+          "NMI": 2,
+          "18": 0,
+          "19": 2,
+          "68": 0,
+          "07A0": 0,
+          "07A6": 0,
+          "F8": 16,
+          "original_instructions": 16947
+        },
+        {
+          "NMI": 3,
+          "18": 0,
+          "19": 3,
+          "68": 0,
+          "07A0": 0,
+          "07A6": 0,
+          "F8": 0,
+          "original_instructions": 8206
+        },
+        {
+          "NMI": 4,
+          "18": 0,
+          "19": 4,
+          "68": 0,
+          "07A0": 0,
+          "07A6": 0,
+          "F8": 0,
+          "original_instructions": 16416
+        },
+        {
+          "NMI": 261,
+          "18": 0,
+          "19": 0,
+          "68": 0,
+          "07A0": 0,
+          "07A6": 0,
+          "F8": 0,
+          "original_instructions": 1355
+        },
+        {
+          "NMI": 262,
+          "18": 0,
+          "19": 1,
+          "68": 0,
+          "07A0": 0,
+          "07A6": 0,
+          "F8": 0,
+          "original_instructions": 5318
+        }
+      ],
+      "after_NMI_300": [
+        0,
+        1,
+        0,
+        0,
+        0
+      ],
+      "final_mapped_raw_prg_bank": 13,
+      "PPU_register_writes_during_manual_NMIs": 13008
+    },
+    {
+      "idle_instructions_between_manual_NMI": 12,
+      "original_instructions_including_RESET": 533429,
+      "manual_NMI_count": 300,
+      "RESET_to_idle_original_instructions": 6417,
+      "held_Start_1_bits": 8,
+      "first_Start_flag_F8": 16,
+      "held_repeat_Start_flag_F8": 0,
+      "changes": [
+        {
+          "NMI": 1,
+          "18": 0,
+          "19": 1,
+          "68": 0,
+          "07A0": 0,
+          "07A6": 0,
+          "F8": 0,
+          "original_instructions": 5321
+        },
+        {
+          "NMI": 2,
+          "18": 0,
+          "19": 2,
+          "68": 0,
+          "07A0": 0,
+          "07A6": 0,
+          "F8": 16,
+          "original_instructions": 16947
+        },
+        {
+          "NMI": 3,
+          "18": 0,
+          "19": 3,
+          "68": 0,
+          "07A0": 0,
+          "07A6": 0,
+          "F8": 0,
+          "original_instructions": 8206
+        },
+        {
+          "NMI": 4,
+          "18": 0,
+          "19": 4,
+          "68": 0,
+          "07A0": 0,
+          "07A6": 0,
+          "F8": 0,
+          "original_instructions": 16416
+        },
+        {
+          "NMI": 261,
+          "18": 0,
+          "19": 0,
+          "68": 0,
+          "07A0": 0,
+          "07A6": 0,
+          "F8": 0,
+          "original_instructions": 1355
+        },
+        {
+          "NMI": 262,
+          "18": 0,
+          "19": 1,
+          "68": 0,
+          "07A0": 0,
+          "07A6": 0,
+          "F8": 0,
+          "original_instructions": 5318
+        }
+      ],
+      "after_NMI_300": [
+        0,
+        1,
+        0,
+        0,
+        0
+      ],
+      "final_mapped_raw_prg_bank": 13,
+      "PPU_register_writes_during_manual_NMIs": 13008
+    },
+    {
+      "idle_instructions_between_manual_NMI": 384,
+      "original_instructions_including_RESET": 645029,
+      "manual_NMI_count": 300,
+      "RESET_to_idle_original_instructions": 6417,
+      "held_Start_1_bits": 8,
+      "first_Start_flag_F8": 16,
+      "held_repeat_Start_flag_F8": 0,
+      "changes": [
+        {
+          "NMI": 1,
+          "18": 0,
+          "19": 1,
+          "68": 0,
+          "07A0": 0,
+          "07A6": 0,
+          "F8": 0,
+          "original_instructions": 5321
+        },
+        {
+          "NMI": 2,
+          "18": 0,
+          "19": 2,
+          "68": 0,
+          "07A0": 0,
+          "07A6": 0,
+          "F8": 16,
+          "original_instructions": 16947
+        },
+        {
+          "NMI": 3,
+          "18": 0,
+          "19": 3,
+          "68": 0,
+          "07A0": 0,
+          "07A6": 0,
+          "F8": 0,
+          "original_instructions": 8206
+        },
+        {
+          "NMI": 4,
+          "18": 0,
+          "19": 4,
+          "68": 0,
+          "07A0": 0,
+          "07A6": 0,
+          "F8": 0,
+          "original_instructions": 16416
+        },
+        {
+          "NMI": 261,
+          "18": 0,
+          "19": 0,
+          "68": 0,
+          "07A0": 0,
+          "07A6": 0,
+          "F8": 0,
+          "original_instructions": 1355
+        },
+        {
+          "NMI": 262,
+          "18": 0,
+          "19": 1,
+          "68": 0,
+          "07A0": 0,
+          "07A6": 0,
+          "F8": 0,
+          "original_instructions": 5318
+        }
+      ],
+      "after_NMI_300": [
+        0,
+        1,
+        0,
+        0,
+        0
+      ],
+      "final_mapped_raw_prg_bank": 13,
+      "PPU_register_writes_during_manual_NMIs": 13008
+    }
+  ],
+  "total_manual_NMIs": 900,
+  "total_original_instruction_steps": 1708287,
+  "controller_model": "Serial $4016/$4017 latch; 8 ordered bits and post-8 constant one; synthetic Start held for NMI injections 2-4",
+  "PPU_status": "$80 during RESET waits; $00 for all manual NMIs",
+  "IRQ": "none scheduled",
+  "NMI_clock": "manually injected at original ROM idle loop after 0, 12 or 384 original main instructions, NOT frame/cycle-based",
+  "proved_under_assumptions": [
+    "RESET initializes $18=$19=$68=$07A0=$07A6=$00",
+    "first zero-input NMI advances $19 to $01",
+    "synthetic Start press sets $F8=$10 and causes $19 to advance from $01 to $02",
+    "held Start does not repeatedly set $F8 trigger; states $02, $03, $04 follow",
+    "at NMI 261 room state $19 wraps/returns from 04 to 00, next NMI becomes 01",
+    "all three declared injection schedules produce the same state-change boundaries"
+  ],
+  "limits": [
+    "This is original ROM instruction execution under stubs, NOT reference emulator or actual gameplay liveness",
+    "Mapper IRQ scheduling, frame timing, PPU rendering and open-bus controller bits are not simulated",
+    "No tested path reached room selector $18=$0C or $0D; their global live producer domains remain OPEN",
+    "No new strict PRG-byte coverage or VPP milestone is justified by these partial conditions"
+  ],
+  "new_strict_prg_bytes": 0,
+  "strict_cumulative_prg_bytes": 49404,
+  "VPP": 24,
+  "last_completed_checkpoint": "0507"
+}
