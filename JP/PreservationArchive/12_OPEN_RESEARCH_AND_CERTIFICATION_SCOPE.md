@@ -72,3 +72,8 @@ The [Phase 1–5 research commit](https://github.com/Hyperbog/CVIII-Decomp/commi
 ## Provisional research refinement: 0508 Phase 11 (no completion certificate)
 
 [Original-ROM conditional execution](../analysis/0508_PHASE11_FINDINGS.md) closes the state-one command-$6B sound metadata return: six raw-$05 instrument byte reads, 20 raw-$0C metadata bytes, 14 mapper writes and real RTS to room state two across 256 cases. **R-001 and R-002 remain OPEN** because reset-to-NMI liveness and the B6A4 carry/index path are unproved; **R-007 remains OPEN** because full audio event/waveform parity is absent. This is a provisional result committed to Git, **not** a new strict-coverage certificate; 49,404/262,144 and VPP 24/100 remain authoritative from completed 0507.
+
+
+## Large-batch completion plan — 2026-10-09 (policy, not a new byte certificate)
+
+See [subsystem progress and large-batch completion roadmap](../docs/COMPLETION_ROADMAP.md) for the fixed VPP category percentages, the eleven-phase zero-credit stall diagnosis, ≥16 KiB bank-level discovery target, the evidence-qualified 8–16 KiB new-byte ambition, M1–M8 system milestones and explicit Git/recovery discipline. The immediate blocker is an original reset/frame producer witness for $18/$19/$68 and $07A0/$07A6; R-001 and R-002 stay OPEN. This entry changes neither VPP, strict PRG coverage nor RESUME_STATE.
