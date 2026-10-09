@@ -238,3 +238,12 @@ Four superficially plausible AI ID24/25/26 **direct** producers are ruled out by
 Native E7FB partial selector/Y lift has 65536 ROM-backed test cases. The ABI's final Z/N flags reflect **restored incoming Y**, not target high byte. No stack, zero-page side effects or full CPU parity claim.
 
 Coverage: **49,404/262,144 = 18.8461%**; VPP 24/100. Fixed investigation frontier still FB96 and all six fixed physical gaps retained. Next 0508 focus: producer $18/$19/$68 and helper bank state; conditional B6A4->B7F7, $07A0 table producer; only then commit further graph bytes; AI script IDs and FD62,Y unresolved.
+
+
+## Canonical subsystem documentation / preservation archive
+
+The RLOFT-inspired, game-specific `JP/PreservationArchive/README.md` and numbered chapters `00..12` were added as a **separate preservation workstream** after semantic checkpoint 0507. Historical analysis reports in `JP/analysis/` remain byte-evidence/audit records; the archive is the continually corrected **human-readable source of subsystem behavior, technical models, quirks, restrictions and modding contracts**.
+
+On every semantic checkpoint: (1) establish JP ROM identity, physical bank and covered operands; (2) commit reproducible source/audit; (3) update relevant archive chapters with evidence class and scope, including negative findings; (4) maintain Q/D/L/C/U register in chapter 10 and open roadmap in chapter 12; (5) run `JP/tools/audit_preservation_archive.py`; (6) update `PROGRESS.md`/this continuity; and (7) write `analysis/RESUME_STATE.json` **LAST**. Both published archive chapters and native algorithm tests can change without moving strict PRG/VPP counters.
+
+The initial edition documents 0507's committed **49,404 verified PRG bytes (18.8461%)** and VPP **24/100**; this documentation update **adds zero semantic bytes and no rubric points**. Chapter publication is **not** a static-documentation completion certificate, a complete decomp, or a native playable/per-frame parity claim. Continue 0508 from actual schema-v23 ROM-verified resume state, not from archival section order.
