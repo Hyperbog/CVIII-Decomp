@@ -1,14 +1,14 @@
 {
-  "schema_version": 22,
+  "schema_version": 23,
   "status": "ready",
   "project": "Akumajou Densetsu JP decomp/recomp",
   "repository": "Hyperbog/CVIII-Decomp",
   "branch": "decompilation",
   "rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
   "safe_forward_work": true,
-  "last_completed_checkpoint": "0506",
-  "last_completed_checkpoint_commit": "ce839398405bff87289072133af00c052bc2985e",
-  "previous_checkpoint_audit": "tools/audit_crossbank_ai_atlas_0506.py",
+  "last_completed_checkpoint": "0507",
+  "last_completed_checkpoint_commit": "cb9054ab6230924af8a0ec329474075ec54f1fe6",
+  "previous_checkpoint_audit": "tools/audit_nmi_room_dispatch_0507.py",
   "vpp": {
     "earned": 24,
     "total": 100
@@ -27,13 +27,13 @@
     "last_closed_physical_prg_bank": 31,
     "next_unprocessed_cpu": "FB96",
     "next_physical_prg_bank": 31,
-    "next_checkpoint": "0507",
+    "next_checkpoint": "0508",
     "domain_transition": false,
     "initial_window_start_cpu": "FB96",
     "initial_window_end_cpu_inclusive": "FFFF",
     "initial_window_contiguous_bytes": 1130,
     "initial_window_sha256": "0cbfd0aa79f3c7d1db7a756c08c47bfe01cba321900fb8955e77ec8525d38d44",
-    "frontier_semantics": "unchanged raw fixed physical frontier PRG31 FB96; 0506 native $FB96 bus semantics and raw $0A/$0B conditional script atlas have no newly promoted physical ROM bytes"
+    "frontier_semantics": "raw fixed PRG31 physical frontier FB96 persists; 0507 proves separate raw VRC6 bank 0A B4CC-B4D0 entry, 5 bytes, without contiguous fixed-tail promotion"
   },
   "verification_overlap": {
     "physical_prg_bank": 31,
@@ -54,44 +54,39 @@
     "purpose": "alignment/fingerprint only; does not establish semantic closure"
   },
   "prior_dependency_manifest": {
-    "checkpoint": "0506",
-    "analysis": "analysis/CROSSBANK_AI_ATLAS_0506.md",
-    "audit": "tools/audit_crossbank_ai_atlas_0506.py",
-    "exact_new_bytes_in_checkpoint": 0,
-    "new_ranges": [],
-    "coverage_accounting": "FB96-FBA4 fixed-bank code is ROM-decoded but inbound raw-0A B689 selector and mapper context remain conditional; FC17 remains unclaimed",
-    "candidate_mapper_chain": "raw $0A B597 -> B689 dispatch index0 B6A4 -> B7F7 -> 11 JSR FB96 -> raw $0E read -> raw $0A restore",
-    "native_test_cases": 65537,
-    "script_id_action_candidate_links": [
+    "checkpoint": "0507",
+    "analysis": "analysis/NMI_BANK0A_ROOM_DISPATCH_0507.md",
+    "audit": "tools/audit_nmi_room_dispatch_0507.py",
+    "mapping": "raw VRC6 bank 0A; physical PRG 8KiB bank21",
+    "exact_new_bytes_in_checkpoint": 5,
+    "exact_new_ranges": [
       {
-        "script": "24",
-        "action": "5D",
-        "handler": "8DC6"
-      },
-      {
-        "script": "25",
-        "action": "5F",
-        "handler": "8E10"
-      },
-      {
-        "script": "26",
-        "action": "89",
-        "handler": "8DF9"
+        "mapping": "raw VRC6 bank 0A",
+        "physical_prg_bank": 21,
+        "start_cpu": "B4CC",
+        "end_cpu_inclusive": "B4D0",
+        "prg_offset_start": "2B4CC",
+        "rom_file_offset_start": "2B4DC",
+        "length": 5,
+        "sha256": "0cbfd39d34523da29edaa6a2dcf5cdb4b62de628d0e5568ea3879d7de5a1c0c7"
       }
     ],
-    "raw_JSR_patterns": 156,
-    "raw_immediate_script_store_patterns": 37,
-    "supplementary_audit": "tools/audit_bank0a_state_chain_0506.py",
-    "encoded_state_dispatch": {
-      "cpu": "B4CC",
-      "mapper": "raw VRC6 $0A (conditional)",
-      "selector": "$19",
-      "pointer_slots": 12,
-      "state1_target": "B58C",
-      "state2_target": "B597",
-      "state1_mutations": "JSR B4E9: STA $68=0, INC $19",
-      "state2_action": "JSR B689: conditional $68=0 -> B6A4 -> B7F7"
-    }
+    "strict_accounting": "only LDA $19 / JSR E7FB entry code bytes under prior fixed E526 mapper-selected NMI entry; precovered E526/E2D0/E7FB bytes excluded",
+    "source": "fixed NMI first-level index 0D -> E526 LDA #0A; JSR E2D0; JMP B4CC",
+    "candidate_only": {
+      "raw_bank": "0A",
+      "encoded_state_table": "B4D1-B4E8",
+      "pointer_entries": 12,
+      "decoded_instruction_starts": 281,
+      "decoded_opcode_operand_bytes": 582,
+      "unknown_opcode_count": 0,
+      "fingerprint_sha256": "807363d09368f7ae6ceaeae000df0fc50f56bba5bd2871ca749d7236ec9f3828",
+      "counted_as_strict": false,
+      "conditional_fixed_FB96_jsr_sites": 11,
+      "selector_18_live_domain": "UNPROVED",
+      "selector_19_live_domain": "UNPROVED"
+    },
+    "native_test_cases": 65536
   },
   "pending_unclaimed_gaps": [
     {
@@ -154,13 +149,17 @@
     "0506 fixed FB96 and E2D0 mapped read/write semantics ROM-locked; native helper tests 65537 cases and explicitly restores VRC6 bank $0A",
     "0506 raw0A B689 has 11 mechanical encoded E7FB entries; index0 B6A4 can reach B7F7 with 11 calls into fixed FB96 and local mask of $54 to 0..15",
     "0506 raw0B mechanical script ID 24/25/26 actions 5D/5F/89 select handlers 8DC6/8E10/8DF9, provisional until executable producer liveness",
-    "0506 supplemental JP raw0A B4CC dispatcher has 12 encoded $19 pointers; state1 B58C resets $68 then increments $19 to state2 B597; live cross-frame/mapper proof remains open"
+    "0506 supplemental JP raw0A B4CC dispatcher has 12 encoded $19 pointers; state1 B58C resets $68 then increments $19 to state2 B597; live cross-frame/mapper proof remains open",
+    "0507 fixed E526 explicitly selects raw VRC6 0A via E2D0 and jumps to bank0A B4CC, proving physical bank for this first-level NMI edge; five new entry bytes SHA 0cbfd39d...1c0c7",
+    "0507 12 encoded room-state pointers produce 281 candidate instruction starts/582 candidate bytes in six noncontiguous ranges, with no unknown opcodes; candidate graph not promoted without $19 and helper proof",
+    "0507 native E7FB room-state decoder exhaustively checks 256 selectors x 256 incoming Y against JP bank0A ROM, including selector high-bit carry alias and final restored-Y Z/N",
+    "0507 raw0B 24/25/26 immediates at 863B/9234/9531 and B4BC are not direct AI-selector 05EF,X stores; other indirect producer paths remain possible"
   ],
   "open_edges": [
-    "0507: prove active raw bank $0A at B4CC and inter-frame stability of state1 B58C -> state2 B597 ($19=2, $68=0); B6A4 carry gate must pass before B7F7",
-    "0507: trace real mapper-backed entry to raw0A B597/B689 and prove live $68 selector value 0; without it do not promote FB96 as new verified code",
-    "0507: prove producer liveness of raw0B AI script IDs $24/$25/$26 before promoting fixed FC17-$FC1E",
-    "0507: resolve global writes to $54 and $14 for FD62,Y indexed lookup",
+    "0508: prove actual first-level NMI selector $18=0D producer/liveness for fixed E526 to mapped bank0A B4CC",
+    "0508: prove bank0A room-state selector $19 domain and inter-frame $68/$19 mutations before promoting conditional 582-byte graph",
+    "0508: prove bank0A $B6A4 carry precheck, $07A0-indexed B8C2 pointer extent and mapper-state preservation across fixed helper calls before B7F7->fixed FB96 coverage",
+    "0508: resolve actual AI script ID $24/$25/$26 producers (raw0B immediate values found so far target non-script fields or helper) and FC17 liveness",
     "expand verified JP $05EF/$05C1 producer domains and live AI script records/actions without treating all 107 pointer slots or 792 lattice cells as live",
     "prove exact final writer of shared ZP $10 across seven raw-0B collision stores plus five newly decoded fixed-FC1F direct writes",
     "raw bank $0B E7FB dispatch sites $A15A/$A2CC/$A3A9",
@@ -174,8 +173,13 @@
     "CPU/interrupt trace parity; full PPU/runtime integration; VRC6 audio"
   ],
   "checkpoint_constraints": [
+    "0508 must replay tools/audit_nmi_room_dispatch_0507.py and 65536-case native room_state_dispatch_test.cpp before promotion",
+    "the proven 0507 entry is ONLY raw bank0A B4CC-B4D0 (5 bytes); 582 conditional graph bytes stay structural until $18/$19 and banked helper contexts are proven",
+    "never infer $19 <= 0B from 12 encoded pointers; ASL A doubles modulo 256 so selectors 80-FF alias 00-7F and reads may reach code",
+    "fixed PRG31 frontier remains FB96; all six fixed-bank unclaimed gaps persist",
+    "use physical PRG21 for raw0A B4CC; do not misidentify repeated CPU B4CC address in other banks",
+    "negative producer evidence: 0B:863B writes $0606,X, 0B:9234 writes $05C1,X; 0B:9531 and 0B:B4BC call E249, not direct $05EF,X",
     "run supplementary 0506 tool audit_bank0a_state_chain_0506.py as well as primary 0506 audit; do not promote state table candidates merely due pointers",
-    "0507 starts with proven raw0A B597/B689 inbound mapper state and $68=0 producer, plus AI script ID 24/25/26 liveness",
     "do not count fixed FB96-FBA4 or FC17-FC1E just because their instructions are recognizable or have raw JSR patterns; the relevant execution path and mapping remain unproven",
     "raw0A B827 establishes $54=0..15 only on loader path, not whole-program FD62,Y high index",
     "0506 native test is mapped bank bus write/read algorithm, not full CPU stack, cycle or frame parity",
@@ -342,6 +346,23 @@
         "reset_68": "B4E9",
         "runtime_liveness": "UNPROVED"
       }
+    },
+    "nmi_room_dispatch_0507": {
+      "status": "proven_fixed_nmi_bank_entry_plus_provisional_state_graph",
+      "analysis": "analysis/NMI_BANK0A_ROOM_DISPATCH_0507.md",
+      "audit": "tools/audit_nmi_room_dispatch_0507.py",
+      "native": "src/room_state_dispatch.hpp",
+      "test": "tests/room_state_dispatch_test.cpp",
+      "native_test_cases": 65536,
+      "fixed_entry": "E526 -> E2D0 selects raw 0A -> JMP B4CC",
+      "strict_new_bytes": 5,
+      "exact_entry_sha256": "0cbfd39d34523da29edaa6a2dcf5cdb4b62de628d0e5568ea3879d7de5a1c0c7",
+      "candidate_instructions": 281,
+      "candidate_code_bytes": 582,
+      "candidate_ranges_sha256": "807363d09368f7ae6ceaeae000df0fc50f56bba5bd2871ca749d7236ec9f3828",
+      "candidate_credit": 0,
+      "live_selectors": "$18/$19 unresolved",
+      "vpp_credit": 0
     }
   },
   "repair_history": {
@@ -355,12 +376,13 @@
     "0504_script_seed_transaction": "576 noncontiguous newly audited code/data bytes, 256 opcode starts and five fixed ZP10 writers; full indexed FD62,Y and runtime liveness remain open; VPP unchanged",
     "0505_tile_probe_transaction": "no new semantic byte coverage; native indexed tile-probe algorithm tested with JP ROM and global fixed-caller/script-store candidate scan; resume frontier unchanged and VPP 24",
     "0506_crossbank_atlas": "Native JP bus bank transaction and mechanically linked script IDs tested/ROM audited, no strict ROM byte promotion; VPP 24",
-    "0506_state_protocol_supplement": "ROM-backed state1 reset-$68 and state2 dispatch linkage added as conditional protocol; byte coverage unchanged; machine state updated LAST"
+    "0506_state_protocol_supplement": "ROM-backed state1 reset-$68 and state2 dispatch linkage added as conditional protocol; byte coverage unchanged; machine state updated LAST",
+    "0507_nmi_bank0a_transaction": "5 new physical PRG21 bytes at raw0A B4CC-B4D0 strictly credited; 582-byte conditional graph explicitly excluded; native 65536-case test + ROM audit; fixed frontier unchanged"
   },
   "progress_metrics": {
     "whole_prg_scanned_bytes": 262144,
-    "strict_verified_prg_floor_bytes": 49399,
-    "strict_verified_prg_floor_fraction": 0.18844223022460938,
+    "strict_verified_prg_floor_bytes": 49404,
+    "strict_verified_prg_floor_fraction": 0.1884613037109375,
     "jp_us_exact_unique_bytes": 115865,
     "jp_us_exact_unique_fraction": 0.4419898986816406,
     "jp_us_exact_or_normalized_candidate_bytes": 149607,
