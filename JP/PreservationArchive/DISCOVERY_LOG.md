@@ -42,3 +42,9 @@ For each **completed** checkpoint, append:
 The owning chapter, this log, and the relevant Q/D/L/C/U entry should be updated in the same **semantic checkpoint** before progress/continuity, with the machine resume state **last**. Editing archival prose alone earns zero ROM bytes and zero parity points.
 
 **Documentation adoption (separate zero-byte transaction):** modeled on the private [RLOFT PreservationArchive](https://github.com/Hyperbog/RLOFT/tree/code1-decompilation/PreservationArchive), while original JP bytes remain authority. No static archive completion certificate and no full native parity are claimed.
+
+## Interim 0508 research preservation — not a completed checkpoint
+
+The [Phase 1–5 research commit](https://github.com/Hyperbog/CVIII-Decomp/commit/bcf85ba64b50611a2ae7e7220cbadec8742202f3) records the bank-$0A 935-start candidate graph, predecessor $18 transition, $07A6 descriptor progressions, and five conditional bank-$0E room streams (175 bytes). Every claim is bounded and producer-domain caveats remain active.
+
+[Phase 6](../analysis/0508_PHASE6_FINDINGS.md) independently checks all previously admitted IRQ handler roots and their local/fixed helper closure: 558 handler instruction starts and 138 handler write sites, with two $0789,X writes bounded away from room indices. Fixed E2D2 maps bank $01 on IRQ entry without altering the tracker $23, and E2D0 restores the tracked PRG bank on exit. This removes the **verified IRQ handler graph** as a writer of $08/$09/$10/$18/$19/$23/$54/$68/$07A0/$07A6; NMI interleaving and non-IRQ producer liveness remain unknown. **No new strict PRG-byte count, VPP or resume-state advancement** is inferred from the intermediate research commits.

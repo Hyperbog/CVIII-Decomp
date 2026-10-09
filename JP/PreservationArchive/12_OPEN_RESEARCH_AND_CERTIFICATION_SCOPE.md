@@ -46,3 +46,7 @@ The Q/D/L/C/U register in [Chapter 10](10_QUIRKS_CORRECTIONS_AND_UNKNOWNS.md) cl
 | R-010 | P2 | EVIDENCE DEPENDENT | Recover authentic original author/developer identifiers or alternate-release source media if available |
 
 P0 = needed for faithful native runtime; P1 = subsystem documentation and reconstruction; P2 = historical/source archaeology. Closure must link a specific byte audit and/or reference trace; the absence of a trace is not a defect in the *static* description, but forbids native parity claims.
+
+## Interim checkpoint-0508 research commits (R-001/R-002/R-004; still OPEN)
+
+The [Phase 1–5 research commit](https://github.com/Hyperbog/CVIII-Decomp/commit/bcf85ba64b50611a2ae7e7220cbadec8742202f3) preserves reproducible ROM audits and local findings, **without closing checkpoint 0508**. See [Phase 5 conditional bank-$0E streams](../analysis/0508_PHASE5_FINDINGS.md) and the [Phase 6 IRQ preservation audit](../analysis/0508_PHASE6_FINDINGS.md). The latter proves that the previously admitted IRQ-handler graph does not overwrite key room-loader pointer/index/state RAM, but no original reset-to-room trace, all-writer global bound, or native full-frame parity exists. R-001, R-002, R-004 and R-006 remain OPEN. The strict coverage floor stays 49,404 bytes and VPP stays 24; consult RESUME_STATE for the last **completed** checkpoint.

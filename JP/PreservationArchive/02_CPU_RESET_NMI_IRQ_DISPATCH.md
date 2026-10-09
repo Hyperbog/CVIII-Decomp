@@ -32,3 +32,7 @@ The fixed $FDE4 object scheduler selects raw $0B, invokes $80E3/$B1F8 and visits
 ## Recompilation rules
 
 Correctly implement interrupt priority, 6502 8-bit/16-bit wrap, JSR stack semantics and tail dispatch side effects. NES 2A03 is 6502-like **without decimal arithmetic**; CPU flags, memory mirroring and PPU/mapper IRQ timing should be checked against hardware docs but validated in the game with trace tests. **No complete CPU/NMI/IRQ frame-trace parity is currently certified.**
+
+## Provisional 0508 IRQ preservation result (R-001 / R-002)
+
+The [Phase 6 JP-ROM static audit](../analysis/0508_PHASE6_FINDINGS.md) re-traverses all 38 unique 04F2 IRQ handler entrypoints (45 encoded states), covering 558 handler instruction starts, the $9F5B helper including its $9F87 cursor-wrap branch, and fixed IRQ helper bodies. It proves the admitted IRQ graph leaves ZP $08/$09/$10/$18/$19/$23/$54/$68 and RAM $07A0/$07A6 untouched. The two indexed writes at $A328 and $A4A5 have locally bounded X=0..2 and X=0..7, excluding $07A0. The IRQ maps bank $01 through E2D2 without changing $23 and restores the tracked bank using E2D0 before RTI. This supports temporary bank-$0E source reads inside fixed $FB96 against ordinary IRQ interleaving, but does not prove NMI re-entry, reset-to-room reachability, cycle timing, or complete frame parity. No newly verified PRG bytes or VPP points are credited.

@@ -1,0 +1,58 @@
+{
+  "status": "VERIFIED_STATIC_IRQ_GRAPH_CONDITIONAL_NO_NMI_REENTRY",
+  "jp_rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "mapped_irq_bank": "raw $01 (physical PRG02/03)",
+  "irq_states": 45,
+  "distinct_irq_roots": 38,
+  "irq_instruction_starts": 558,
+  "irq_handler_write_sites": 138,
+  "local_helper_starts": 23,
+  "fixed_helper_starts": 49,
+  "external_targets": [
+    "9F5B",
+    "E001",
+    "E005",
+    "E118",
+    "E11D",
+    "E2FA",
+    "E30B",
+    "E316",
+    "E32B",
+    "E331",
+    "E33C",
+    "E347",
+    "E351"
+  ],
+  "indexed_write_sites": [
+    {
+      "cpu": "A328",
+      "base": "0789",
+      "x_min": 0,
+      "x_max": 2
+    },
+    {
+      "cpu": "A4A5",
+      "base": "0789",
+      "x_min": 0,
+      "x_max": 7
+    }
+  ],
+  "watch_addresses_preserved": [
+    "0008",
+    "0009",
+    "0010",
+    "0018",
+    "0019",
+    "0023",
+    "0054",
+    "0068",
+    "07A0",
+    "07A6"
+  ],
+  "irq_track_byte_23": "unchanged; E2D2 temporarily maps 01, E2D0 restores tracked bank",
+  "irq_prologue_scratch_00_01": "pushed before dispatch, popped before RTI",
+  "limitations": "Committed 04F2 IRQ state domain only; no nested NMI, CPU cycles, full emulator, arbitrary RAM alias, or room path liveness",
+  "strict_new_prg_bytes": 0,
+  "strict_cumulative_prg_bytes": 49404,
+  "vpp": 24
+}

@@ -39,3 +39,9 @@ The candidate loader populates room/object data and includes `AND #$0F; STA $54`
 The chapter will eventually cover stage/room graph, camera bounds, level tilemaps/collision, stage transitions/branching, characters and alternate routes, doors, bosses, title/menu/password/game over/endgame persistence. Today those are **research targets**, not claimed established behavior. Preserve unknown stage data and ROM physical location in the atlas rather than labeling it executable from visual similarity.
 
 Next: close $18/$19/$68 live sources, B6A4 carry branch, $07A0-indexed pointer extents, and confirm the room/source-to-consumer bytes before native world implementation.
+
+## Provisional 0508 local room evidence (NOT live certification)
+
+The committed [0508 Phase 5 findings](../analysis/0508_PHASE5_FINDINGS.md) exercise B7F7 under explicitly assumed room indices $07A0=00..04 and map five complete bank-$0E data streams at $BE8B-$BF39 (175 physical bytes, 30 five-byte object records) through actual FB96 stack/mapper transactions. These are **conditional parser input bytes**, not additional semantic PRG coverage. Phase 4 shows a separate raw-bank-$01:$BB57 routine *can* write $07A0 values larger than $04, so the pointer-table width is not a proven global bound.
+
+The [Phase 6 IRQ audit](../analysis/0508_PHASE6_FINDINGS.md) closes a different bounded question: the verified IRQ handler graph preserves the loader pointer $08/$09, room indices $07A0/$07A6 and state selectors $18/$19/$68. This does **not** establish that the five-input loader executes from reset, or exclude NMI re-entry and other ordinary-frame writers. Research tasks R-001/R-002 remain OPEN; fixed PRG31 $FB96 remains an unclaimed semantic frontier.

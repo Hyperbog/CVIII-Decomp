@@ -37,3 +37,5 @@
 ## Future handling
 
 For every new record add reproducible ROM address, evidence grade, whether actual gameplay reachability is proved, a minimal regression, and whether a correction affected already counted bytes. Do not infer an original-game quirk from a test failure in newly written C++ alone.
+
+**U-002 supplementary 0508 evidence (not closure):** the [Phase 6 IRQ write-set audit](../analysis/0508_PHASE6_FINDINGS.md) excludes the admitted 45-state IRQ graph as a modifier of $18/$19/$68, $07A0/$07A6 or $08/$09. It does not eliminate NMI and non-IRQ game-state writers, nor prove live room dispatch. Phase 4's bank-$01:$BB57 conditional $07A0>04 values remain an unresolved producer-domain counterexample, not a verified out-of-range room load.
