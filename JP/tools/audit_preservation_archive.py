@@ -27,7 +27,7 @@ def check(root: pathlib.Path) -> None:
     assert here.is_dir(), f"Missing {here}"
     actual=sorted(x.name for x in here.glob("[0-9][0-9]_*.md"))
     assert actual==EXPECTED, (actual,EXPECTED)
-    files=[here/"README.md"] + [here/n for n in EXPECTED]
+    files=[here/"README.md"] + [here/n for n in EXPECTED] + [here/"DISCOVERY_LOG.md"]
     link_count=0
     errors=[]
     for file in files:
@@ -48,6 +48,13 @@ def check(root: pathlib.Path) -> None:
     assert ROM_SHA in (here/"00_SCOPE_EVIDENCE_AND_SOURCE_BASELINE.md").read_text()
     assert "NO STATIC OR RUNTIME COMPLETION CERTIFICATE" in (here/"12_OPEN_RESEARCH_AND_CERTIFICATION_SCOPE.md").read_text()
     assert "C-001" in (here/"10_QUIRKS_CORRECTIONS_AND_UNKNOWNS.md").read_text()
+    assert "(DISCOVERY_LOG.md)" in index, "Permanent discovery log missing from index"
+    backlog=(here/"12_OPEN_RESEARCH_AND_CERTIFICATION_SCOPE.md").read_text(encoding="utf-8")
+    for task in range(1,11):
+        assert f"R-{task:03d}" in backlog, f"Missing stable research task R-{task:03d}"
+    log=(here/"DISCOVERY_LOG.md").read_text(encoding="utf-8")
+    assert "0507" in log and "49,404" in log, "Historical baseline missing"
+
     print(f"Archive structure PASS: {len(EXPECTED)} numbered chapters + README")
     print(f"Resolved {link_count} local Markdown references")
     print("This is a structure/link/identity policy audit, NOT a JP-ROM semantic, native runtime or hardware parity certificate.")
