@@ -58,3 +58,8 @@ The [Phase 9 ROM-locked audit](../analysis/0508_PHASE9_FINDINGS.md) extends the 
 ## Provisional 0508 Phase 11 — state-one sound call returns naturally
 
 [ROM-executed local proof](../analysis/0508_PHASE11_FINDINGS.md) resumes conditional raw-$0A:$B58C with $19=1 and executes the full $E249→raw-$0C:$8850 command $6B metadata installation through its **actual** RTS, including six $E19F raw-$05 reads and matching bank restores. It returns with $23=$0A, $19=2 and $68=0 in 256 cases; no synthetic sound-parser return is needed. The initial $18/$19 seed, contiguous frame reachability and NMI/IRQ interleaving are not certified. Strict PRG accounting remains unchanged.
+
+
+## 0508 bulk trace infrastructure and reset seeding
+
+The [32-KiB source/producer sweep](../analysis/0508_BULK_0A0E_FINDINGS.md) executes fixed RESET `$E020–E034`'s indirect RAM clear across 32 incoming RAM seeds (6,174 original instructions/case), proving `$18=$19=$68=$07A0=$07A6=0` immediately after that loop while `$00/$01` end as a working pointer `$0800`. This is a bounded initial state, **not** a reset-to-NMI frame witness or proof of later `$18=$0C` liveness. The new [reusable partial 2A03/VRC6 stepper](../analysis/0508_TRACE_CORE_AND_E7FB_CORRECTION.md) replays two independent ROM path regressions and detects E7FB's native index-wrap reconstruction error. No CPU-cycle timing or reference-emulator parity certificate exists.

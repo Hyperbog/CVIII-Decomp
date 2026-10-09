@@ -77,3 +77,8 @@ The [Phase 1–5 research commit](https://github.com/Hyperbog/CVIII-Decomp/commi
 ## Large-batch completion plan — 2026-10-09 (policy, not a new byte certificate)
 
 See [subsystem progress and large-batch completion roadmap](../docs/COMPLETION_ROADMAP.md) for the fixed VPP category percentages, the eleven-phase zero-credit stall diagnosis, ≥16 KiB bank-level discovery target, the evidence-qualified 8–16 KiB new-byte ambition, M1–M8 system milestones and explicit Git/recovery discipline. The immediate blocker is an original reset/frame producer witness for $18/$19/$68 and $07A0/$07A6; R-001 and R-002 stay OPEN. This entry changes neither VPP, strict PRG coverage nor RESUME_STATE.
+
+
+## 0508 bulk methodology application (provisional research, R-001/R-002/R-006 OPEN)
+
+The initial [32-KiB bank-$0A/$0E + 256-KiB producer-encoding census](../analysis/0508_BULK_0A0E_FINDINGS.md) and [general CPU/mapper partial trace core](../analysis/0508_TRACE_CORE_AND_E7FB_CORRECTION.md) replace repeated one-handler interpreter fragments. The former proves RAM clear `$18=$19=$68=$07A0=$07A6=0` at reset-loop end and separates **2,505** tagged candidate/already-audited bytes; the latter executes **334,912** original instructions across two conditional subsystems and catches native E7FB selector `$7F/$FF` high-byte wrap error. Both are committed **without** claiming reset-to-gameplay selector liveness, full 2A03/VRC6/PPU/IRQ parity, extra PRG bytes or VPP points. Next is a real reset-to-NMI frame reference trace and fully producer-qualified state-two gate; R-001, R-002, R-006 stay OPEN. Source error C-003 is recorded in [chapter 10](10_QUIRKS_CORRECTIONS_AND_UNKNOWNS.md).

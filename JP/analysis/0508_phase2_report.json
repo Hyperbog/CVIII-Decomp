@@ -108,6 +108,8 @@
       "encoded_data_sha256": "422e65c2a5a5c30ea2e6a7c77978d54c2d1cd64b99628e7f94662a29f9f7d396",
       "first_out_of_width_pointer_word": "1620",
       "selector_80_aliases_00": true,
+      "selector_7F_8bit_INY_wrap_high_byte_cpu": "AFA8",
+      "selector_7F_correct_destination": "E7E5",
       "cases_checked": 65536,
       "liveness": "unknown; arithmetic can index beyond encoded words"
     },
@@ -118,6 +120,8 @@
       "encoded_data_sha256": "2c3db8027fdab36d434b87aa7b8e550617cf3e8fd2f14b59e0c7db47d0b1adba",
       "first_out_of_width_pointer_word": "00A2",
       "selector_80_aliases_00": true,
+      "selector_7F_8bit_INY_wrap_high_byte_cpu": "B124",
+      "selector_7F_correct_destination": "E7B9",
       "cases_checked": 65536,
       "liveness": "unknown; arithmetic can index beyond encoded words"
     },
@@ -128,6 +132,8 @@
       "encoded_data_sha256": "380ecdac9478f19215c9a5628e8395dce3a11ba951218f5f01583fa6dabdfa7c",
       "first_out_of_width_pointer_word": "00A9",
       "selector_80_aliases_00": true,
+      "selector_7F_8bit_INY_wrap_high_byte_cpu": "B4D0",
+      "selector_7F_correct_destination": "E7FB",
       "cases_checked": 65536,
       "liveness": "unknown; arithmetic can index beyond encoded words"
     },
@@ -138,6 +144,8 @@
       "encoded_data_sha256": "c237cfadfe6c2f0c2e1bd4c6317adf57de417096779750133694c992b14c0583",
       "first_out_of_width_pointer_word": "02A9",
       "selector_80_aliases_00": true,
+      "selector_7F_8bit_INY_wrap_high_byte_cpu": "B68D",
+      "selector_7F_correct_destination": "E760",
       "cases_checked": 65536,
       "liveness": "unknown; arithmetic can index beyond encoded words"
     }

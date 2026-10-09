@@ -141,8 +141,16 @@ def audit(rom_path: str) -> dict:
         assert all(0x8000<=t<0xC000 for t in arr)
         for a in range(256):
             off=(a<<1)&0xFF
-            target=word(base+off)
-            assert target==word(base+2*(a&0x7F))
+            # E7FB first INY uses Y=(2*A+1)&FF; second INY is
+            # 8-bit too. At selector 7F/FF it wraps to 00 and fetches
+            # the opcode operand at JSR+2 rather than adjacent hi data.
+            lowaddr=(jsr+2)+((off+1)&0xFF)
+            highaddr=(jsr+2)+((off+2)&0xFF)
+            target=b(lowaddr,1)[0] | (b(highaddr,1)[0]<<8)
+            assert target==(b((jsr+2)+((2*(a&0x7F)+1)&255),1)[0] |
+                           (b((jsr+2)+((2*(a&0x7F)+2)&255),1)[0]<<8))
+            if (a&0x7F)!=0x7F:assert target==word(base+off)
+            else:assert highaddr==jsr+2 and target!=word(base+off)
             carry=(a>>7)&1
             for saved_y in range(256):
                 # Final LDY $03 determines final N,Z; A retains pointer-high.
@@ -154,6 +162,8 @@ def audit(rom_path: str) -> dict:
             'encoded_data_sha256':digest(b(base,2*count)),
             'first_out_of_width_pointer_word':f'{word(base+2*count):04X}',
             'selector_80_aliases_00':True,
+            'selector_7F_8bit_INY_wrap_high_byte_cpu':f'{jsr+2:04X}',
+            'selector_7F_correct_destination':f'{b((jsr+2)+255,1)[0] | (b(jsr+2,1)[0]<<8):04X}',
             'cases_checked':65536,
             'liveness':'unknown; arithmetic can index beyond encoded words'
         })

@@ -51,3 +51,6 @@ For every new record add reproducible ROM address, evidence grade, whether actua
 
 
 **U-002 / R-002 Phase 11 refinement — sound return no longer hypothetical:** [Phase 11](../analysis/0508_PHASE11_FINDINGS.md) executes all six bank-$05 first-byte instrument reads for command $6B and a real RTS through fixed E249 into room $19=2. This replaces **only** Phase 10's explicitly synthetic RTS assumption for the bounded state-one entry. Initial live seed, adjacent NMI ordering, and subsequent state-two carry gate remain UNKNOWN; no evidence of a shipped game bug or native audio parity.
+
+
+**C-003 — Native/partial E7FB high-pointer read wrap corrected (0508 bulk)**: fixed `$E7FB` uses 8-bit `INY` twice when consuming an inline table word. For selectors `$7F/$FF`, the high read wraps to **Y=0** and fetches the JSR return-address byte, not `low-pointer-address+1`. At raw `$0A:$B4CE`, the actual conditional target is `$E7FB`; the old native address-only lift incorrectly returned `$20FB`. Corrected [C++ implementation](../src/room_state_dispatch.hpp), [65,536-case C++ test](../tests/room_state_dispatch_test.cpp), [original-instruction test and proof](../analysis/0508_TRACE_CORE_AND_E7FB_CORRECTION.md), and [Phase 2 erratum](../analysis/0508_PHASE2_FINDINGS.md). This is a **modern reconstruction correction**, not a proven live original-game glitch or extra PRG credit.

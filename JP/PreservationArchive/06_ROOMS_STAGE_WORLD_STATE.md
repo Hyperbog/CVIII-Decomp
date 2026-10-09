@@ -69,3 +69,8 @@ The [Phase 5 mapped-bus loader audit](../analysis/0508_PHASE5_FINDINGS.md) parse
 ## Provisional 0508 Phase 11 — state one reaches state two after a real sound return
 
 [Phase 11's ROM-fetched execution audit](../analysis/0508_PHASE11_FINDINGS.md) extends Phase 10 beyond raw-$0C:$8860, completes the command-$6B metadata installer and all six fixed-$E19F temporary raw-$05 reads, and observes a **real RTS** from $8850. Fixed $E249 restores bank $0A before raw-$0A:$B591 resets $68 and $B594 increments room $19=1→2. The conditional start at $B58C is not yet established from reset; the state-two $B597/B689→B6A4 carry gate and global $07A0 source domain remain OPEN. This is zero new strict byte coverage.
+
+
+## 0508 bulk two-bank dependency/accounting pass
+
+The [raw `$0A/$0E` 32-KiB bulk audit](../analysis/0508_BULK_0A0E_FINDINGS.md) incorporates 935 bank-$0A conditional instruction starts (2,042 code/operand bytes), 130 inline table bytes, 38 descriptor/pointer bytes, 175 bank-$0E stream bytes, and the 0501-already-credited 120-byte PRG20 scheduler subgraph: **2,505 distinct labeled bytes, zero new strict bytes**. It separately scans the full 256 KiB PRG for *direct non-indexed encoded* writers to `$18/$19/$68/$07A0/$07A6`; that census cannot rule out indirect or indexed aliases. Reset's bounded RAM clear proves initial indices zero, but global `$07A0≤4`, the live carry gate and continuous room progression remain unknown.

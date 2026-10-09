@@ -36,3 +36,8 @@ The NES 2A03 is NMOS 6502-like **without active decimal arithmetic**. General MO
 6. **Full playable parity:** startup to endings, save/load, UI, NPC/enemy/boss/room/route behavior. Optional fixes/QoL only after explicit separation.
 
 A native algorithm passing tests is **not** an emulator trace match. A decomp byte can be verified without native parity. The present VPP 24/100 does not claim a bootable complete executable. Archive modifications cannot raise VPP without the rubric's durable evidence.
+
+
+## 0508 general 2A03 mapped trace research harness (not an integrated native runtime)
+
+[Reusable Python CPU/mapper harness and correction](../analysis/0508_TRACE_CORE_AND_E7FB_CORRECTION.md): 151 official 6502 opcodes, binary NES 2A03 arithmetic, 2 KiB RAM mirror, PRG RAM, 16 KiB bank switching, fixed PRG31, limited PPU/APU register-event capture, real stack/flags. Regression: **272** synthetic-state ROM path tests / **334,912** instructions through PPU clear and natural sound return; **2,048** original E7FB dispatch edge cases and **40,960** 2A03 arithmetic cases; **65,536** corrected C++ address-lift cases. No external emulator trace, DMA/IRQ/PPU timing, audio synthesis, playable native CPU core, new VPP, or strict byte credit. This is tooling toward the reference-trace gate, not its completion.

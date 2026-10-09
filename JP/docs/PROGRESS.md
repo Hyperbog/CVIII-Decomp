@@ -247,3 +247,8 @@ This **documentation-only** transaction adds **0 newly verified PRG bytes** and 
 ## Forward completion plan — large verified subsystem batches (2026-10-09)
 
 The score and strict-PRG dashboard above remain unchanged at **VPP 24/100 and strict 49,404/262,144**, despite eleven committed provisional 0508 research phases. Follow the new [subsystem-by-subsystem percentage dashboard, large-batch policy and acceptance-gated completion roadmap](COMPLETION_ROADMAP.md). Effective immediately, prioritize trace-backed selector producer closure and bank-scale room/stage sweeps over further single-handler micro-phases. The plan is not itself PRG or VPP evidence.
+
+
+## 0508 bank-scale research and native E7FB fidelity repair (no new credit)
+
+After the [large-batch roadmap](COMPLETION_ROADMAP.md), a [32-KiB raw `$0A/$0E` pass](../analysis/0508_BULK_0A0E_FINDINGS.md) produced a physical candidate/previously-credited dependency manifest and 32-case RESET RAM clearing proof. A [reusable 151-official-opcode Python 2A03/VRC6 partial instruction-stepper](../analysis/0508_TRACE_CORE_AND_E7FB_CORRECTION.md) independently replays 334,912 original instruction steps across room initialization/PPU zeroing and sound command return. It revealed/corrected a native `$E7FB` high-byte read anomaly at selectors `$7F/$FF`; original sender stack/Y are now modeled and the C++ 65,536-case test was repaired. **All are provisional bounded/local proofs**: no full reset-to-NMI reference trace, no frame/native/audio parity, no new strict PRG bytes and no additional VPP points. Authoritative **49,404/262,144 (18.8461%)**, **24/100 VPP**, machine completed 0507, raw fixed frontier `$FB96`. Do not count the 2,505 classified bytes as additional coverage.
