@@ -63,3 +63,7 @@ The [Phase 1–5 research commit](https://github.com/Hyperbog/CVIII-Decomp/commi
 ### 0508 Phase 9 bounded state-one transition (R-001/R-002/R-006 still OPEN)
 
 [Phase 9](../analysis/0508_PHASE9_FINDINGS.md) runs 512 original ROM-backed conditional `$B570→EB82→B589` executions. It fully consumes fixed `$EC1D-$EC46` stream data and tests 2,048 `$2007` writes plus RAM/index/stack postconditions under increment-1 and increment-32 PPUCTRL. It demonstrates a local `$19:0→1` state handoff with `$07A0/$07A6=0`, **not** actual gameplay reachability, arbitrary PPU/NMI/IRQ timing, later `$B58C` behavior, or a global room index bound. Fixed PRG stream bytes are already counted; strict coverage remains **49,404**, VPP **24/100**, resume checkpoint **0507**, frontier **$FB96**.
+
+## 0508 Phase 10 evidence — research tasks remain open
+
+[Phase 10](../analysis/0508_PHASE10_FINDINGS.md) establishes the conditional $B58C -> $E249 -> raw-bank-$0C:$8850 -> $87AE original sound-reset path with 256 bounded tests and nine APU/VRC6 bus writes. The music interpreter after $8860, its proper return, and any $25/scratch interactions remain unexecuted. A separately injected return proves only a conditional state-one-to-two suffix; it does not close R-001, R-002 or R-007. The authoritative strict floor remains 49,404 PRG bytes, VPP 24/100, checkpoint 0507, and fixed PRG31 frontier $FB96.

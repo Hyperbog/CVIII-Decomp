@@ -1,0 +1,30 @@
+{
+  "checkpoint": "0508 phase10 provisional",
+  "jp_rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "initial_bank": "0A",
+  "sound_bank": "0C",
+  "caller": "0A:B58C",
+  "helper": "fixed:E249",
+  "sound_reset": "0C:87AE",
+  "stop_before": "0C:8860",
+  "sound_A": 107,
+  "sound_reset_register_writes": 9,
+  "bounded_initial_x_cases": 256,
+  "instructions_to_music_stream_cutpoint": 200,
+  "conditional_post_return_instructions": 13,
+  "conditional_final_state": {
+    "bank": "0A",
+    "19": 2,
+    "68": 0,
+    "26": 0
+  },
+  "not_proved": [
+    "sound music dispatcher from 0C:8860 and downstream parser returns",
+    "external callee never clobbers saved bank byte $25",
+    "live reset-to-NMI selector domain or contiguous frames",
+    "clock-correct audio, IRQ/NMI interleaving, full-frame parity"
+  ],
+  "new_strict_prg_bytes": 0,
+  "strict_cumulative_prg_bytes": 49404,
+  "vpp": 24
+}

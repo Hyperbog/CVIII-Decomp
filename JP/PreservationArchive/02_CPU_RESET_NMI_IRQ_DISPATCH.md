@@ -49,3 +49,7 @@ The [ROM-locked bounded execution audit](../analysis/0508_PHASE8_FINDINGS.md) fo
 ## Provisional 0508 Phase 9 — fixed PPU stream returns to state one
 
 The [Phase 9 ROM-locked audit](../analysis/0508_PHASE9_FINDINGS.md) extends the *conditional* raw `$0A:$B570` state-zero prefix through fixed `$EB82` (and `$E16C/$E827/$ED89`), then executes raw `$0A:$B589 INC $19; RTS`. Its 512 bounded cases preserve `$0781`, leave `$07A0/$07A6/$68=0` and advance `$19=0→1`. The fixed `$EC1D-$EC46` data stream issues 2,048 zero-valued `$2007` writes. This is **not a full NMI trace**: PPUSTATUS is held at zero; reset-to-selector liveness, interrupt timing, other writers, and native PPU parity remain unresolved. The stream is previously counted fixed PRG data; no new strict coverage or VPP.
+
+## Provisional 0508 Phase 10 — banked state-one audio call
+
+[Phase 10](../analysis/0508_PHASE10_FINDINGS.md) executes conditional raw bank $0A:$B58C through fixed PRG31 $E249 into raw bank $0C:$8850 and its $87AE sound reset. Fixed $E249 saves $0A in ZP $25 and selects $0C via tracked $23/$8000. The test stops at $8860 after the reset. A separate explicitly *injected hypothetical return* tests the fixed $E249 bank-restoring suffix. No entire music parser, continuous NMI path, or strict PRG byte promotion is claimed.

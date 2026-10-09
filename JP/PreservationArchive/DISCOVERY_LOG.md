@@ -62,3 +62,7 @@ The [Phase 1–5 research commit](https://github.com/Hyperbog/CVIII-Decomp/commi
 ### Provisional 0508 Phase 9 — state-zero PPU stream and indexed room handoff
 
 [Phase 9 ROM audit](../analysis/0508_PHASE9_FINDINGS.md): raw `$0A:$B570` conditionally calls fixed `$EB82`, which reads 42 previously counted ROM-data bytes `$EC1D-$EC46` to write 2,048 zeros to `$2007`. Return via `$B589` increments `$19=0→1`, preserving local `$07A0/$07A6/$68=0` and saved `$0781`. 512 original-instruction partial-PPU tests pass; increment-32 PPUCTRL produces VRAM-address aliases. R-001/R-002/R-006 remain OPEN because no reset-to-frame liveness or reference PPU trace exists. **Zero strict new PRG bytes, VPP remains 24/100, authoritative machine checkpoint still 0507.**
+
+## Provisional research addendum — 0508 Phase 10
+
+[ROM-locked Phase 10](../analysis/0508_PHASE10_FINDINGS.md): conditional bank-$0A:$B58C room state one passes immediate audio command $6B to fixed $E249, maps raw $0C, and runs $8850->$87AE sound reset (nine ordered APU/VRC6 writes, 256 bounded original-instruction executions). The actual sound parser is not followed past $8860. A distinctly *injected* hypothetical return checks the fixed bank-restore suffix and subsequent $68=0/$19=2 update; this is not proof of original audio-handler completion or live stage progression. R-001/R-002/R-007 remain open; register U-006. Zero newly credited strict bytes, 49,404/262,144 lower bound, VPP 24/100.

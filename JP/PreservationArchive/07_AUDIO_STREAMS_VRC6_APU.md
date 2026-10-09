@@ -27,3 +27,7 @@ The alternate parser tracks context-sensitive `FB` loop anchors, `FD` call/retur
 Port the bytecode interpreter as a state machine retaining loop/call stacks, bank-aware pointer reads, signed/unsigned integer effects and original termination rules. Reproduce actual APU/VRC6 write order at CPU-cycle granularity as needed. Hardware reference: user-provided EveryNES/NESDoc, NESdev and the MOS manual for CPU timing and register syntax, **not** evidence that the game schedules a channel in a particular way.
 
 **Open:** all live music/SFX selector domains, envelope/voice allocation, NSF↔ROM mapping completeness, exact VRC6 pulse/saw synthesis, APU frame IRQ arbitration, output traces and per-track golden audio.
+
+## Provisional 0508 Phase 10 — sound command $6B channel reset
+
+[Original-ROM bounded audit](../analysis/0508_PHASE10_FINDINGS.md) identifies the state-one sound command $6B and actual bank-$0C:$87AE reset path. The executed reset clears nine sound-channel state slots and issues nine ordered bus writes: $4000/$4004/$400C=$30, $4001/$4005=$7F, $9000/$A000/$B000=$00, $4015=$0F. The $8F55 delay contains ten NOPs and RTS, modelled as instructions, not cycles. The audit stops at $8860; downstream song-pointer parsing and proper RTS are unverified. An independently injected hypothetical return only checks the mapper-restoring suffix. No audio waveform/frame parity or VPP increase.
