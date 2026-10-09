@@ -22,7 +22,7 @@ US comparison SHA-256 `1c7b2ed2c1fb5839a6764006aa476f5c9d48f99465b6141980f3a5af1
 
 ```text
 whole JP PRG scanned/indexed                 262144 / 262144 = 100%
-strict semantically verified PRG floor        48823 / 262144 = 18.6245%
+strict semantically verified PRG floor        49399 / 262144 = 18.8442%
 exact unique JP<->US correspondence           115865 / 262144 = 44.1990%
 exact-or-normalized structural candidates     149607 / 262144 = 57.0705%
 VPP                                             24 / 100
@@ -173,3 +173,24 @@ Action $9E mechanically maps $BEA3 -> $BF79, which is script data. The 256-slot/
 **0503 adds zero newly accounted PRG bytes** (the decoder code was admitted in 0501). Floor 48,823 (18.6245%); VPP 24/100. Physical fixed frontier remains $FB96; unclaimed $FAA0-$FAA9 unchanged.
 
 Resume 0504 by running the ROM checker and `audit_raw0b_ai_dispatch_0503.py`, then prove live $05EF,X and $05C1,X producers and script record action bytes. Do not guess mapper state, full-table liveness, ROM data bounds, or CPU side effects.
+
+
+## Checkpoint 0504: AI-script seed $1B and fixed $FC1F — completed
+
+Evidence:
+- `analysis/RAW0B_AI_SCRIPT_SEED_0504.md`
+- `tools/audit_ai_script_seed_0504.py`
+
+Prior admitted raw-$0B script producer at $B503 writes ID $1B to $05EF,X and calls $B516 to reset subscript $05C1,X to zero. JP $BED9-$BEDA points to $B03A. Its first three records have actions $0B, $45, $46 and corresponding handler roots $8519, $965D, $96B4. $0B and $45 increment subscript, $46 implements countdown/movement/cleanup.
+
+The handlers use five tables at $968C-$96B3 indexed only through an AND #$07 producer. Action $46 invokes fixed PRG31:$FC1F through bank-$0B:$85F2. The fixed local graph has 185 starts and is mapper-stable, but introduces five direct shared-ZP $10 writers: $FBFC (STA), $FC1F (STA), $FC4F (STA), $FCA0 (STY), $FCF9 (STY). Renderer-facing final-$10 provenance remains open.
+
+Code: raw-$0B 71 starts/169 bytes; fixed31 185 starts/335 bytes. Bounded data: raw-$0B 60, fixed31 $FD4D-$FD58 12 (index reduced modulo $0C). **Total 576 genuinely new bytes**, manifest of 16 tagged noncontiguous ranges SHA `4416db601cba553569d4ccc4aba410a6d843a6da3504dac1d735317ca1106eb4`. Conservative strict PRG floor **49,399 = 18.8442%**, VPP **24/100**.
+
+**Do not mark $FD62,Y data as closed.** Unlike $FD4D,Y, the $FD62,Y index has no complete producer bound; the 0504 audit leaves it explicitly open. Broader script-ID pointer atlas remains structural only: 107 entries (IDs 00-6A), 72 pointer values, 71 distinct candidate starts, 792 four-byte lattice positions in $A4A6-$B105; **NOT 792 live actions/records**. Never promote all table bytes just from shape.
+
+Next checkpoint **0505**: close fixed $FD62,Y index-domain producer if feasible; expand live script-ID/subscript record proofs and connected handler graphs; track the five new fixed $10 writer sites to PRG26 renderer; continue native parity infrastructure.
+
+Physical fixed investigation frontier is **still $FB96**, with $FAA0-$FAA9 unclaimed, and 0504 fixed new intervals only $FBF6-$FC16 / $FC1F-$FD4C plus 12 bytes at $FD4D-$FD58. Keep exact noncontiguous accounting.
+
+Checkpoint transaction: analysis/audit committed, progress/continuity updated before machine resume state. Resume tool `check_resume_frontier.py` must still pass. No ROM material committed.
