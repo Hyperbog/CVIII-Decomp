@@ -160,3 +160,10 @@ The hardened audits passed, the provisional invalid 04F9 work was discarded, and
 ## Recovery rule in one sentence
 
 **Verify the ROM and current branch, replay the last trusted audit, re-check a small overlapping semantic unit including all operands, repair any mismatch without redoing closed ground, and only then continue from the first genuinely unresolved unit.**
+
+
+## Preservation-archive recovery and update obligation
+
+After the machine frontier, prior ROM audit and exact byte-overlap checks pass, read `JP/PreservationArchive/README.md` and the relevant numbered subsystem chapters for **narrative evidence, native contracts, correction records and unresolved original behaviors**. The archive is not allowed to override ROM bytes or committed audit evidence. Treat its historical dashboard figures as timestamped: authoritative live checkpoint, PRG ledger and score are always in `analysis/RESUME_STATE.json` and committed progress records.
+
+A new checkpoint is not a complete handoff until its relevant preservation chapters and chapter-10 Q/D/L/C/U or chapter-12 UNKNOWN entries are updated alongside the ROM audit. Execute `python3 JP/tools/audit_preservation_archive.py` and record/repair missing local links before the progress, continuity, and resume-state transaction. Its validation is structural only; ROM-specific decoding audits still must pass separately. Do not increase semantic ROM-byte coverage or VPP just for writing documentation. Machine resume state remains **the LAST edit**.
