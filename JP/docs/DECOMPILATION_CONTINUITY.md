@@ -207,3 +207,16 @@ The ROM-locked audit also records **156 provisional raw JSR byte-pattern candida
 0505 has **zero newly admitted ROM bytes** because all lifted $FD11-$FD2B mechanics were already audited in 0504. Strict verified PRG stays **49,399 = 18.8442%**, VPP **24/100**. Fixed raw frontier **FB96**, with six unclaimed gaps unchanged.
 
 For 0506: independently replay ROM checker and `audit_fixed_tile_probe_0505.py`. Establish live $54/$14 producer domains and mapper-backed JSR callers before claiming FD62 indexed data or $FC17 code. Expand JP-proven $05EF and $05C1 values for real script record/handler closure. Consult original MOS CPU manual, NESDoc and EveryNES for flags/memory/PPU timing; JP ROM remains authority.
+
+
+## Checkpoint 0506 completed — $FB96 mapper transaction and AI candidate atlas
+
+Evidence: `analysis/CROSSBANK_AI_ATLAS_0506.md`, `tools/audit_crossbank_ai_atlas_0506.py`, `src/temporary_prg_bank_read.hpp`, `tests/temporary_prg_bank_read_test.cpp`.
+
+The **15-byte fixed $FB96** helper itself has known JP semantics (select raw bank $0E via $E2D0, LDA ($08),Y, restore $0A); $E2D0 stores A to RAM $23 and VRC6 $8000. Do not treat the bank as permanently switched, use an array slice instead of an active mapped CPU bus, or omit $23/write-order effects. Native lift tests 65,537 combinations and preserves restored mapper; it is NOT a full 6502 stack/cycle simulation.
+
+Under **conditional** raw-$0A context: $B597 -> $B689 (LDA $68; JSR $E7FB); pointer slot 0 -> $B6A4 -> $B7F7; room loader $B7F7-$B872 has eleven JSR $FB96 calls. The local mask $B825 AND #$0F, $B827 STA $54 establishes a **local** low-nibble field bound, not global FD62,Y data coverage. Selector $68 liveness and inbound mapper context are open.
+
+Structural JP AI-script parallels: ID $24 record $A626 action $5D -> $8DC6; ID $25 record $AE1A action $5F -> $8E10; ID $26 record $AE6E action $89 -> $8DF9. Handler families contain raw JSR FC17 but **no script/handler liveness proof**. $FC17-$FC1E and fixed $FB96-$FBA4 remain unclaimed. This specifically prevents accidental code/data inflation from the 107 script pointers/792 candidate lattice cells.
+
+All new work is infrastructure/semantic mechanism, with **zero strict new bytes**, PRG floor 49,399 (18.8442%), VPP 24/100. Fixed raw frontier $FB96; preserve six unclaimed gaps. Run previous ROM audit and native regression before 0507. 0507 should resolve first concrete inbound bank0A state selector and AI ID24/25/26 producers, then promote only exact consumed ROM bytes if evidence closes.
