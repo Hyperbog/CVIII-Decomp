@@ -46,3 +46,18 @@ This checkpoint adds **zero strictly verified PRG bytes**, because no new live p
 2. Trace actual script ID $24/$25/$26 producers; promote $FC17 only when a proven inbound executable path uses it.
 3. Disambiguate other $54/$14 write paths and the shared $10 final-writer problem.
 4. Continue native execution/frame-level parity infrastructure separately from structural classification.
+
+## 0506 supplementary JP producer discovery: $19 state dispatch
+
+Raw bank-$0A:$B4CC reads $19 then calls fixed $E7FB. Twelve encoded pointer words at $B4D1-$B4E8 resolve to:
+
+```text
+00 B570  01 B58C  02 B597  03 B5A3  04 B5CC  05 B5DA
+06 B614  07 B622  08 B64E  09 B5CC  0A B5DA  0B B662
+```
+
+Encoded state **1** is $B58C: LDA #$6B; JSR $E249; JSR $B4E9; INC $19; RTS. $B4E9 is LDA #$00; STA $68; RTS. Encoded state **2** is $B597: JSR $B689; LDA $68; CMP #$FF; conditionally INC $19. $B689 is LDA $68; JSR $E7FB, with encoded slot zero $B6A4. $B6A4 has an external-check/carry gate and can call $B7F7, whose 11 calls use fixed $FB96 to sample bank $0E.
+
+This is a **conditional local state protocol**, not proof of uninterrupted runtime liveness: the $19 and $68 fields may change between state updates or across NMI/IRQ, the mapper-active entry into $B4CC remains unresolved, and $B6A4's carry branch must also be proven. Neither the 12 pointer slots nor the reachable-looking code is promoted to verified PRG solely because it is encoded. Reproduce with `tools/audit_bank0a_state_chain_0506.py`.
+
+Next 0507: prove actual mapper-selected inbound state dispatch and $19/$68 producer domains across frame boundaries; only then promote the fixed $FB96 and $FC17 gaps as appropriate.
