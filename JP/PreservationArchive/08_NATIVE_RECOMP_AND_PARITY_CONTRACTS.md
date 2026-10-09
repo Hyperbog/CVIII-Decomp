@@ -41,3 +41,8 @@ A native algorithm passing tests is **not** an emulator trace match. A decomp by
 ## 0508 general 2A03 mapped trace research harness (not an integrated native runtime)
 
 [Reusable Python CPU/mapper harness and correction](../analysis/0508_TRACE_CORE_AND_E7FB_CORRECTION.md): 151 official 6502 opcodes, binary NES 2A03 arithmetic, 2 KiB RAM mirror, PRG RAM, 16 KiB bank switching, fixed PRG31, limited PPU/APU register-event capture, real stack/flags. Regression: **272** synthetic-state ROM path tests / **334,912** instructions through PPU clear and natural sound return; **2,048** original E7FB dispatch edge cases and **40,960** 2A03 arithmetic cases; **65,536** corrected C++ address-lift cases. No external emulator trace, DMA/IRQ/PPU timing, audio synthesis, playable native CPU core, new VPP, or strict byte credit. This is tooling toward the reference-trace gate, not its completion.
+
+
+## 0508 experimental scheduler component — not integrated native parity
+
+[Conditional JP ROM CPU-cycle/NMI scheduler evidence](../analysis/0508_EXPERIMENTAL_VBLANK_CYCLE_TRACE.md) provides a reusable Python mapped 6502 timing-class and PPU vblank-edge research harness (151 official opcode classes, 27 selected timing unit checks, 960 modeled PPU frames and 8,864,752 executed JP ROM instructions). It is not the native executable/runtime, CPU/PPU/IRQ bus-cycle integration, a reference trace comparison, or a frame/video/audio golden. R-006 remains OPEN, native VPP category remains 1/10, overall VPP 24/100.

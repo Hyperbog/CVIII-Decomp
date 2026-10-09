@@ -73,3 +73,8 @@ The [generic ROM-fetched RESET→NMI experiment](../analysis/0508_RESET_NMI_SYNT
 ## 0508 bulk dynamic CPU writer coverage (synthetic evidence only)
 
 The [mapped multi-bank original-ROM instruction audit](../analysis/0508_BULK_DYNAMIC_PRODUCER_TRACE.md) records all fetched opcode/operand physical bytes and exact RAM write PCs, including fixed `$E551: INC $18` and fixed `$E558: STA $18` plus a raw-bank-$01 write at `$A627`. Across three artificial controller schedules it executes 4,669,348 instructions / 1,800 manual NMIs. A subsequent fork of artificial NMI392 (`$18=$04`) tests 19 separate controller policies for 120 injections each and executes 7,132,248 more original instructions; every branch remains `$18=$04` under these simplified PPU and no-IRQ conditions. Fixed `$F6AE` checks `$1F|$2E|$1D|$A8` before its Start `$F8 & $10` predicate. **Neither original gameplay liveness nor permanent inaccessibility of `$0C/$0D` is implied**. R-001/R-006 remain OPEN; no VPP or strict byte change.
+
+
+## 0508 experimental vblank-generated NMI execution — no reference parity
+
+[Original-ROM modeled CPU-cycle/vblank trials](../analysis/0508_EXPERIMENTAL_VBLANK_CYCLE_TRACE.md) run 960 synthetic PPU frames and 948 NMI entries across three controller policies, **8,864,752 ROM instruction executions**, from an NTSC-shaped PPU vblank edge scheduler instead of manual NMI injections. The first-level `$18` chain reaches `00→02→0A→09→03→04`, but does not establish `$0C/$0D`. A 151-official-opcode timing-class self-test and 27 representative cases pass. **PPU/IRQ/input are not hardware-accurate; no authentic playthrough, CPU trace parity, R-001/R-006 closure, PRG or VPP score change** follows.

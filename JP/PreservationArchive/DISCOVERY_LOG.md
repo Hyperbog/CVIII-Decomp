@@ -80,3 +80,6 @@ The [Phase 1–5 research commit](https://github.com/Hyperbog/CVIII-Decomp/commi
 
 
 **0508 extended synthetic dynamic-byte/RAM-producer census (research, zero strict bytes):** [reproducible multi-bank audit and controlled input fork](../analysis/0508_BULK_DYNAMIC_PRODUCER_TRACE.md) execute 4,669,348 + 7,132,248 original instructions respectively, cataloguing 11,127 distinct fetched physical instruction+operand bytes, 16,718 read PRG bytes and exact selector/room index writer sites. Nineteen cloned controller input policies remain in artificial first-level state `$04`; they are not proof real gameplay cannot reach `$0C/$0D`. Fixed `$F6AE` OR-guard and Start test are locally decoded. R-001, R-002 and R-006 stay OPEN; strict 49,404 PRG, VPP24 and 0507 machine frontier unchanged.
+
+
+**0508 modeled-vblank CPU execution extension (provisional, zero new semantic bytes):** [technical evidence](../analysis/0508_EXPERIMENTAL_VBLANK_CYCLE_TRACE.md) adds 151-opcode timing-class checks and 960 synthetic PPU frames / 948 model-generated NMI entries / 8,864,752 original instructions under three input policies. The broadest first-level sequence is `00→02→0A→09→03→04`; no `$0C/$0D`. PPU, mapper IRQ and DMA timing not reference certified; this does not advance strict PRG floor 49,404, VPP 24/100 or last completed checkpoint 0507.

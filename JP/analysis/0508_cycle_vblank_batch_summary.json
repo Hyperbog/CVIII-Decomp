@@ -1,0 +1,60 @@
+{
+  "status": "EXPERIMENTAL_VBLANK_NMI_NOT_REFERENCE_PARITY",
+  "rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "scenarios": [
+    {
+      "policy": "start30",
+      "frames": 480,
+      "instructions": 4438080,
+      "cycles": 14294722,
+      "NMIs": 475,
+      "18_values": [
+        0,
+        2,
+        3,
+        4,
+        9,
+        10
+      ],
+      "raw_JSON_sha256": "f2e9f3eabf9c0e4be43110813e2fcc4bcc48b5be7f12e5e38493ac8604d60f4b"
+    },
+    {
+      "policy": "none",
+      "frames": 240,
+      "instructions": 2209638,
+      "cycles": 7147360,
+      "NMIs": 237,
+      "18_values": [
+        0
+      ],
+      "raw_JSON_sha256": "f8f8dc56c68530f2a0b1b02a5dbe9da46d2c485e2b2f4b2f9efd7f74fe8e05e0"
+    },
+    {
+      "policy": "abstart",
+      "frames": 240,
+      "instructions": 2217034,
+      "cycles": 7147363,
+      "NMIs": 236,
+      "18_values": [
+        0,
+        2,
+        10
+      ],
+      "raw_JSON_sha256": "49e54ba9c7dd0f3374e13dbc62710b1192fbdb94191261e923ab83ec85edbb8c"
+    }
+  ],
+  "total_frames": 960,
+  "total_original_instruction_steps": 8864752,
+  "total_modeled_NMIs": 948,
+  "strict_new_prg_bytes": 0,
+  "strict_prg_floor": 49404,
+  "vpp": 24,
+  "proof_limits": [
+    "PPU/NMI instruction-boundary approximation",
+    "No VRC6 IRQ",
+    "No CHR/VRAM rendering",
+    "No odd-frame skip",
+    "No precise OAM DMA",
+    "Not original hardware emulator trace"
+  ]
+}

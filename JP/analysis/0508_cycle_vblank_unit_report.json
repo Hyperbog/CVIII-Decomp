@@ -1,0 +1,21 @@
+{
+  "status": "EXPERIMENTAL_CYCLE_CLASS_VBLANK_TEST_NOT_HARDWARE_PARITY",
+  "rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "official_opcode_classes_tested": 151,
+  "representative_cycle_classes_checked": 27,
+  "ppu_dots_per_frame": 89342,
+  "vblank_start_ppu_dot": 82182,
+  "vblank_clear_ppu_dot": 89002,
+  "ppu_cpu_cycles_to_first_vblank": 27394,
+  "ppu_status_clears_vblank": true,
+  "ppu_ctrl_mid_vblank_nmi_edge": true,
+  "dma_stall_queued_not_cpu_bus_parity": true,
+  "nmi_cpu_stack_push_sample": true,
+  "limits": [
+    "Approximate PPU/CPU instruction-boundary timing, no odd-frame skip, no mapper IRQ, no DMC/APU frame synchronization",
+    "Not a reference-emulator differential test or full system parity"
+  ],
+  "strict_PRG_new_bytes": 0,
+  "strict_PRG_verified": 49404,
+  "VPP": 24
+}
