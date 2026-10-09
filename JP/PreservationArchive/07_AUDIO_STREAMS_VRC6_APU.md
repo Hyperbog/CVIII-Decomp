@@ -36,3 +36,8 @@ Port the bytecode interpreter as a state machine retaining loop/call stacks, ban
 ## Provisional 0508 Phase 11 — command $6B installs six bank-$05 instrument roots
 
 [Executable JP-ROM audit](../analysis/0508_PHASE11_FINDINGS.md) follows sound command $6B through its natural $8850 RTS, **not** an injected return. The sound-ID pointer at raw-$0C:$9034 selects a 20-byte metadata record at $94B5. Six slot/pointer pairs 0/$BB48, 1/$BBEA, 2/$BD42, 3/$B90A, 4/$BA14 and 7/$BAC9 all select source bank $05. Fixed $E19F executes six temporary $05 reads, returning $D9 for each; the instrument mode initializer consequently sets bit 0 of $011B,X to zero in those slots. These are **installed streams**: later per-frame parsing, decoded sound contents, APU/VRC6 waveform parity and exact audio timing remain OPEN. Audit: 256 seeds × 650 instructions; strict byte increment zero.
+
+
+## Cross-title Konami music-driver comparison research (unproved hypotheses)
+
+The [SharedNES Konami-family queue](../SharedNES/KONAMI_DRIVER_HYPOTHESES.md) records a sourced community hypothesis that Castlevania III/Contra/Gradius II share a music-driver lineage, while Metal Gear and Madara fall under another; Esper Dream 2 is listed as a distinct/unknown variant. This ranking is not a ROM similarity proof and **cannot raise sound VPP**, but provides a rational selection order for a user-supplied additional commercial ROM. Original JP sound code still controls all claims. No cross-game source code was imported.

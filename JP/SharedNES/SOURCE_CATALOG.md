@@ -45,6 +45,10 @@ Research snapshot: **2026-10-09**. Sources below are discovery/reference resourc
 | Sound-driver pattern identification discussion | https://forums.nesdev.org/viewtopic.php?p=309450 | 2026 community discussion of identifying multiple vendors' audio-driver signatures; anecdotal; supports *investigating* signature libraries, not asserted cross-game match |
 | Early-era sound pipeline discussion | https://forums.nesdev.org/viewtopic.php?t=231 | Historical claims of differing publisher APU practices; treat as unverified forum recollection |
 
+## Targeted Konami genealogy lead (additional research)
+
+The [VGMPF community sound-driver inventory](https://vgmpf.com/Wiki/index.php?title=Famicom%2FNES_Sound_Driver_List#Konami) groups Castlevania III, Contra and Gradius II in a putative **Hidenori Maezawa** family; Metal Gear, Castlevania II and Madara in a putative **Atsushi Fujio** family; and Esper Dream 2 among unique/unknown variants. The page explicitly warns of customized branches and variants, and calls Akumajou Densetsu a possible VRC6 version. This is an **S0 community classification**, not authenticated staff attribution, exact game-engine identity, or permission to transplant code. See [working comparison queue](KONAMI_DRIVER_HYPOTHESES.md). For game-specific sound syntax, prioritize ROM-confirmed pointer/command grammar and sound-register events.
+
 ## Highest-value research queues
 
 1. **CPU quality gate:** feed published `nestest` logs, `cpu_interrupts_v2`, `instr_test-v5`, `cpu_dummy_reads`, `cpu_dummy_writes` and unofficial-opcode fixtures into a bounded 2A03 comparison harness. Our currently modeled 151 **official** opcodes are insufficient to assume all cartridge execution paths, as confirmed by the prior hypothetical state-04 fork encountering unsupported bytes.

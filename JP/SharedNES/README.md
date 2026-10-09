@@ -57,4 +57,4 @@ Different confidence dimensions are not interchangeable. In particular **S1+C0 i
 - Archive scans and forums can contain inaccuracies; log corrections and verify against NESdev test suites and each game's original bytes.
 - Track Nintendo FDS BIOS functionality separately from Konami game runtime. The original FDS BIOS is Nintendo code, not a universal cartridge-ROM library.
 
-See [`SOURCE_CATALOG.md`](SOURCE_CATALOG.md) for external research provenance and manual index. Completion progress remains scored by `../analysis/PROGRESS_SCORE.csv`, not this library's adoption.
+See [`SOURCE_CATALOG.md`](SOURCE_CATALOG.md) for external research provenance and manual index, and [Konami sound-driver family hypotheses](KONAMI_DRIVER_HYPOTHESES.md) for a sourced cross-title comparison queue, explicitly not a proven common engine. Completion progress remains scored by `../analysis/PROGRESS_SCORE.csv`, not this library's adoption.
