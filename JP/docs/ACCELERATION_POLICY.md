@@ -73,3 +73,14 @@ Prefer building reusable tools that reduce repeated manual work. Current priorit
 7. deterministic frame-state/image parity tests.
 
 Acceleration tooling does not earn VPP by itself. VPP increases only when the fixed rubric's behavior/structure is supported by durable JP-ROM-backed evidence.
+
+
+## Canonical preservation archive (RLOFT-inspired)
+
+The subsystem-level, reader-facing technical archive is `JP/PreservationArchive/README.md`, with 13 numbered chapters (`00`–`12`). This complements existing checkpoint analysis/audits; it never substitutes for them.
+
+For every new technical discovery (including negative producer evidence and a corrected former assumption), update the responsible archive chapter during the **same checkpoint**. Include JP physical ROM bank/CPU addresses, evidence grade A–F, actual producer→consumer semantics, native/recomp consequences, proof limits, and links to audit/source/test. Record original oddities (Q), potentially dormant code (D), aliased/residual data (L), reconstruction errors/corrections (C), and bounded UNKNOWNs (U) in archive chapter 10. Chapter 12 tracks unclosed proof chains and static-vs-runtime certification boundaries.
+
+The connected RLOFT `PreservationArchive` inspired the **organization and evidence discipline**, not JP gameplay facts. Japanese ROM bytes remain the exclusive primary game evidence. Do not infer semantic completion from chapter existence, index entries, script pointer shapes, or exhaustive unit tests for a partial native helper.
+
+Run `python3 JP/tools/audit_preservation_archive.py` at repo root (and inspect the `NES Preservation Archive Integrity` GitHub workflow) whenever changing archive prose. This checks numbering, links and source identity labels **only**, not 6502 or runtime parity. Update archive + history first, progress/continuity next, and machine `RESUME_STATE.json` **last**. Preserve all original ROM-free Git history.
