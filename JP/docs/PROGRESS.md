@@ -211,3 +211,6 @@ Candidate script IDs $24/$25/$26 contain first/second record actions $5D/$5F/$89
 **0506 adds zero newly proven ROM bytes**; strict floor **49,399/262,144 = 18.8442%**, VPP **24/100**. The source/test and ROM audit add a native mapper primitive and a much narrower producer-resolution queue without artificially advancing physical PRG coverage.
 
 Next 0507: prove mapper-selected entry to $0A:B597/B689 and live $68=0; prove live source IDs $24/$25/$26 and $FC17 inbound calls; carry $54/$14 provenance through FD62,Y. Physical frontier $FB96 and six pending gaps remain unchanged.
+
+
+**0506 follow-on producer proof:** JP raw bank $0A:$B4CC has 12 encoded $19 dispatch pointers (index 1 $B58C, index 2 $B597). $B58C calls $B4E9 to set $68=0 and increments $19, while $B597 calls the $68 dispatcher $B689. Under uninterrupted local state evolution, this is the missing conditional index-zero link to B6A4/B7F7. Still NOT global runtime proof: $19/$68 may change between frames, active VRC6 bank at B4CC unproven, and B6A4 has a carry gate. Supplement audit `tools/audit_bank0a_state_chain_0506.py`, appended analysis `analysis/CROSSBANK_AI_ATLAS_0506.md`. No additional ROM bytes promoted.
