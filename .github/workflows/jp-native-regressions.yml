@@ -1,0 +1,34 @@
+name: JP Native Regression Gate
+on:
+  push:
+    branches: [decompilation]
+    paths:
+      - 'JP/src/**'
+      - 'JP/tests/**'
+      - 'JP/tools/run_native_regressions.sh'
+      - 'JP/tools/progress_score.py'
+      - 'JP/analysis/PROGRESS_SCORE.csv'
+      - '.github/workflows/jp-native-regressions.yml'
+  pull_request:
+    paths:
+      - 'JP/src/**'
+      - 'JP/tests/**'
+      - 'JP/tools/run_native_regressions.sh'
+      - 'JP/tools/progress_score.py'
+      - 'JP/analysis/PROGRESS_SCORE.csv'
+      - '.github/workflows/jp-native-regressions.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native-regressions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate weighted evidence rubric
+        run: python3 JP/tools/progress_score.py
+      - name: Compile eight native tests and run ROM-free regressions
+        run: bash JP/tools/run_native_regressions.sh
+      - name: Audit preservation archive
+        run: python3 JP/tools/audit_preservation_archive.py

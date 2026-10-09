@@ -30,8 +30,10 @@ int main(int argc, char** argv) {
         const auto got=decode_room_state(read,std::uint8_t(selector),std::uint8_t(saved_y));
         const unsigned off=(selector*2)&0xFF;
         const unsigned location=0xB4D1+off;
-        const unsigned high_location=0xB4D0+((off+2)&0xFF);\n        const auto expected_dest=std::uint16_t(bus[location]|(unsigned(bus[high_location])<<8));
-        assert(got.pointer_entry==location && got.destination==expected_dest);\n        if(selector==0x7F || selector==0xFF)assert(got.destination==0xE7FB);
+        const unsigned high_location=0xB4D0+((off+2)&0xFF);
+        const auto expected_dest=std::uint16_t(bus[location]|(unsigned(bus[high_location])<<8));
+        assert(got.pointer_entry==location && got.destination==expected_dest);
+        if(selector==0x7F || selector==0xFF)assert(got.destination==0xE7FB);
         assert(got.final_a==(expected_dest>>8));
         assert(got.final_y==saved_y);
         assert(got.carry==(selector>=128));
