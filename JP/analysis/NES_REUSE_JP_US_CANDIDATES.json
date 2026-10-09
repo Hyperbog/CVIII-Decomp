@@ -1,0 +1,269 @@
+{
+  "ROM_byte_data_in_output": false,
+  "anchored_audits": [
+    {
+      "decode_error": null,
+      "decoded_instruction_count": null,
+      "exact_equal": true,
+      "kind": "unknown",
+      "left_offset": 1792,
+      "left_sha256": "24797a9a0182c58e17b578ab801f3d1fcbe109fa01c9b4566eb044de5c7994ef",
+      "level": "candidate equivalence; execution/mapper/memory contracts require independent audit",
+      "name": "JP_US_32byte_exact_candidate_PRG+1792_to_US+1946",
+      "opcode_aligned_normalized_match": false,
+      "promoted_semantic_bytes": 0,
+      "right_offset": 1946,
+      "right_sha256": "24797a9a0182c58e17b578ab801f3d1fcbe109fa01c9b4566eb044de5c7994ef",
+      "span_bytes": 32
+    }
+  ],
+  "exact_window_discovery": {
+    "candidate_windows_tested": 1018,
+    "candidate_windows_with_any_match": 364,
+    "candidate_windows_with_unique_target": 348,
+    "example_hashes_and_offsets": [
+      {
+        "left_prg_offset": 1792,
+        "right_candidate_offsets": [
+          1946
+        ],
+        "right_match_count_at_least": 1,
+        "window_sha256": "24797a9a0182c58e17b578ab801f3d1fcbe109fa01c9b4566eb044de5c7994ef"
+      },
+      {
+        "left_prg_offset": 2048,
+        "right_candidate_offsets": [
+          2202
+        ],
+        "right_match_count_at_least": 1,
+        "window_sha256": "95b45acab905ca92277cf8fabb3d812c72ca7a69e79cf450951cbdeec7275215"
+      },
+      {
+        "left_prg_offset": 2304,
+        "right_candidate_offsets": [
+          2469
+        ],
+        "right_match_count_at_least": 1,
+        "window_sha256": "ec752e26cdb3d7b965eb5f8a833e65830ef31f32fe3a4e50ad0d03914423c3cb"
+      },
+      {
+        "left_prg_offset": 3584,
+        "right_candidate_offsets": [
+          3795
+        ],
+        "right_match_count_at_least": 1,
+        "window_sha256": "aef74412e64a424b90cc1ef48d2e72b747b2446189a2fb1d9da28b0dfce4447e"
+      },
+      {
+        "left_prg_offset": 5120,
+        "right_candidate_offsets": [
+          5547
+        ],
+        "right_match_count_at_least": 1,
+        "window_sha256": "d199fb8dab47bd2f92b59a1540ba3826ac50be6d37bddcb9fa675530b544b17d"
+      },
+      {
+        "left_prg_offset": 6144,
+        "right_candidate_offsets": [
+          6833
+        ],
+        "right_match_count_at_least": 1,
+        "window_sha256": "3790414075c5c6d0014f1a5a53d377ad044d0ba54874339d3b96bcc0e29d5e9a"
+      },
+      {
+        "left_prg_offset": 6400,
+        "right_candidate_offsets": [
+          6581
+        ],
+        "right_match_count_at_least": 1,
+        "window_sha256": "bfd8e282f1aced35fae898124ca46298a3f08491672cbde5b3dc45e8205a7225"
+      },
+      {
+        "left_prg_offset": 6656,
+        "right_candidate_offsets": [
+          7211
+        ],
+        "right_match_count_at_least": 1,
+        "window_sha256": "e2227ad0fcde83b8bfb8d939ba0a151f97ad337aa575097bec9c2e7202992423"
+      },
+      {
+        "left_prg_offset": 7936,
+        "right_candidate_offsets": [
+          8488
+        ],
+        "right_match_count_at_least": 1,
+        "window_sha256": "ff5f7dc6ef95e7413d27fada7969b3e7dc09d27bcc1be9bb6e92a362d147f3a4"
+      },
+      {
+        "left_prg_offset": 8192,
+        "right_candidate_offsets": [
+          8746
+        ],
+        "right_match_count_at_least": 1,
+        "window_sha256": "ebc923793c0125abb18036a6c9dbf9626c241a2d4fd0d8b50a3c0e45ac7b0cdf"
+      },
+      {
+        "left_prg_offset": 8448,
+        "right_candidate_offsets": [
+          9002
+        ],
+        "right_match_count_at_least": 1,
+        "window_sha256": "bd20c2a2371f9210e87dd854d2e5999a5bd51f661013737b58fd4e0cf609b81c"
+      },
+      {
+        "left_prg_offset": 8960,
+        "right_candidate_offsets": [
+          9514
+        ],
+        "right_match_count_at_least": 1,
+        "window_sha256": "bbe79625c823129a678801c771e2bd9bc0da7de2df4ec3ba738d011bc8abb709"
+      },
+      {
+        "left_prg_offset": 9472,
+        "right_candidate_offsets": [
+          10026
+        ],
+        "right_match_count_at_least": 1,
+        "window_sha256": "4f75f66f8030ed836bbcd185edc78991281a4c468e7b8ebcbddf6deb38a4f194"
+      },
+      {
+        "left_prg_offset": 9984,
+        "right_candidate_offsets": [
+          10525
+        ],
+        "right_match_count_at_least": 1,
+        "window_sha256": "fa4d04c711e98f1f54c1bcf62687ed2fc155c94516294ec71e6d2b4af9886c37"
+      },
+      {
+        "left_prg_offset": 11520,
+        "right_candidate_offsets": [
+          12061
+        ],
+        "right_match_count_at_least": 1,
+        "window_sha256": "21eddb0d13a47f99f1870b5c6e4e7ac75141347b3ce7dbbbf5f9ca4e7c156631"
+      },
+      {
+        "left_prg_offset": 11776,
+        "right_candidate_offsets": [
+          12317
+        ],
+        "right_match_count_at_least": 1,
+        "window_sha256": "1a490aa92abb6f7140f2b089c67938088d646d7281cb13a3200e39749ded9d0f"
+      },
+      {
+        "left_prg_offset": 12032,
+        "right_candidate_offsets": [
+          12573
+        ],
+        "right_match_count_at_least": 1,
+        "window_sha256": "7d77dc7cc16b46992e79c50d14042e661b7c1d96fa063d0bd30fcaebffc0303f"
+      },
+      {
+        "left_prg_offset": 12288,
+        "right_candidate_offsets": [
+          12829
+        ],
+        "right_match_count_at_least": 1,
+        "window_sha256": "87f8aff4509b188c967bb1bb1d6557a8959360206821e29beba61485afcaf4a3"
+      },
+      {
+        "left_prg_offset": 12544,
+        "right_candidate_offsets": [
+          13085
+        ],
+        "right_match_count_at_least": 1,
+        "window_sha256": "0fb9ac96be2f14c4ef26002ce0e4b8f8f79de3649e7279806b763a141c45cbcd"
+      },
+      {
+        "left_prg_offset": 13824,
+        "right_candidate_offsets": [
+          14445
+        ],
+        "right_match_count_at_least": 1,
+        "window_sha256": "6ef55ba32a6d8e1d8e1ae5c6ebf88458ec7941401570b6bd980c664dcddf6bcb"
+      },
+      {
+        "left_prg_offset": 15616,
+        "right_candidate_offsets": [
+          96493
+        ],
+        "right_match_count_at_least": 1,
+        "window_sha256": "634a15280855e0e2a66e247af25ecb14ed0ab14d02c15df6c30c46a93713aaa6"
+      },
+      {
+        "left_prg_offset": 15872,
+        "right_candidate_offsets": [
+          96749
+        ],
+        "right_match_count_at_least": 1,
+        "window_sha256": "73be225a1214d32de6b29507b855769f073799de063e5f50babd90a885632a1c"
+      },
+      {
+        "left_prg_offset": 16128,
+        "right_candidate_offsets": [
+          97005
+        ],
+        "right_match_count_at_least": 1,
+        "window_sha256": "cefef8e30a103f995e9964325641537c1a22d3be6c81ec5f99a8297facbe341b"
+      },
+      {
+        "left_prg_offset": 18176,
+        "right_candidate_offsets": [
+          18200
+        ],
+        "right_match_count_at_least": 1,
+        "window_sha256": "74c8d6fc778f3b330b9cdea470d571474ce60670061257faf86adf996e4c8fb4"
+      }
+    ],
+    "left_stride": 256,
+    "low_information_skipped": 6,
+    "multiplicity_histogram": {
+      "1": 348,
+      "2": 15,
+      "3": 1
+    },
+    "note": "Candidates overlap and can be data. Unique target != live routine equivalence.",
+    "semantically_promoted_bytes": 0,
+    "window_bytes": 32
+  },
+  "gameplay_equivalence_proved": false,
+  "hardware_adapter_required": true,
+  "left": {
+    "battery_flag": false,
+    "chr_bytes": 131072,
+    "chr_sha256": "a29eea0ec8baaecac8a51c234a63b974ee1ee65c69985241d725f4b45116c89f",
+    "file_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+    "fixed_vectors": {
+      "irq": "0xe0f5",
+      "nmi": "0xe057",
+      "reset": "0xe00b"
+    },
+    "format": "iNES1",
+    "mapper": 24,
+    "mirroring_header": "horizontal",
+    "prg_bytes": 262144,
+    "prg_sha256": "5228c13f7f3933b45e7d143e4a5566de9cebbb7a6ce77015b993acfa4298cc70",
+    "submapper": null,
+    "trainer_bytes": 0,
+    "trust": "container bytes only; not mapper/runtime proof",
+    "warnings": []
+  },
+  "right": {
+    "battery_flag": false,
+    "chr_bytes": 131072,
+    "chr_sha256": "6645fa515b120b4d0d421b0b0c14e0d0fb78fd4ae35e7807a7b3f23f3da1e2c3",
+    "file_sha256": "1c7b2ed2c1fb5839a6764006aa476f5c9d48f99465b6141980f3a5af1dfec0d6",
+    "format": "iNES1",
+    "mapper": 5,
+    "mirroring_header": "horizontal",
+    "prg_bytes": 262144,
+    "prg_sha256": "e2851967c3dff2b2a516b86d4952d3be6f0aeb926835d189b57f7845301fce47",
+    "submapper": null,
+    "trainer_bytes": 0,
+    "trust": "container bytes only; not mapper/runtime proof",
+    "warnings": []
+  },
+  "same_mapper": false,
+  "schema": 1,
+  "strict_new_verified_bytes": 0
+}

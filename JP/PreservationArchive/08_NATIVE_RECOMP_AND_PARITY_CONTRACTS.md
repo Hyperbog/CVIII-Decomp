@@ -51,3 +51,8 @@ A native algorithm passing tests is **not** an emulator trace match. A decomp by
 ## Reproducible native CI integration (validation milestone)
 
 `JP/tools/run_native_regressions.sh` compiles all eight native C++20 suites with strict warning/error flags. GitHub Actions workflow `jp-native-regressions.yml` runs four ROM-free suites plus progress-rubric/archive checks; [run 37993214808](https://github.com/Hyperbog/CVIII-Decomp/actions/runs/37993214808) passed. An exact SHA-256-checked JP ROM supplied locally enables four additional ROM-bound suites and two extra ROM-specific mapper/IRQ checks. This earns only the **CI/reproducible test gate** in validation, taking overall VPP to **25/100**. It does not prove the native platform boots, improve strict code coverage or substitute for original emulator reference-trace parity.
+
+
+## Shared hardware and cross-ROM knowledge library (not native-port parity)
+
+[Reusable NES/FDS tooling and technical policy](../SharedNES/README.md) separates universal 2A03/PPU/APU requirements, cartridge mapper families, FDS BIOS service ABI and game-specific engine routines. The source [catalog](../SharedNES/SOURCE_CATALOG.md) includes community test-ROM collections, cc65 annotation tooling, Mesen/FCEUX debug/traces and the supplied hardware manuals. `JP/tests/test_nes_reuse.py` adds 26 ROM-optional cases to the existing GitHub native regression gate, with an optional original JP↔US fixture only when the user provides those ROMs. Such metadata matching is **not** an integrated CPU/PPU native executable, no score point is added.

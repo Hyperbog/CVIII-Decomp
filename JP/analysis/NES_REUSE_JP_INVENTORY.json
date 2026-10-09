@@ -1,0 +1,150 @@
+{
+  "battery_flag": false,
+  "chr_bytes": 131072,
+  "chr_sha256": "a29eea0ec8baaecac8a51c234a63b974ee1ee65c69985241d725f4b45116c89f",
+  "file_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "fixed_vectors": {
+    "irq": "0xe0f5",
+    "nmi": "0xe057",
+    "reset": "0xe00b"
+  },
+  "format": "iNES1",
+  "mapper": 24,
+  "mirroring_header": "horizontal",
+  "prg_8k_banks": [
+    {
+      "index": 0,
+      "sha256": "db342cd51e66d9d7b03eef51a817297a75bd4e869db42e4e10a663355db1cf6e"
+    },
+    {
+      "index": 1,
+      "sha256": "57005b8abf388bebc98982f23dc2ec422e65bc293ecc1607311c02ee702ac697"
+    },
+    {
+      "index": 2,
+      "sha256": "a76169adb5e7f387356b6d21194cb0de196695f4b5b23a9324d3418eeba43b2c"
+    },
+    {
+      "index": 3,
+      "sha256": "92fc95f9856601888b6d69d353fe59d6c4dbe0cd268a0b5d87a17b35a5ce4a59"
+    },
+    {
+      "index": 4,
+      "sha256": "1ba6d57cf2a099aa2b88c69dda5874fdb54a4c48eab04bafeeb5309f33a47220"
+    },
+    {
+      "index": 5,
+      "sha256": "e4d75d15e5b79aa053e25b0eb3c1afa91415acc4cf644b9ad31d3ced8de924b2"
+    },
+    {
+      "index": 6,
+      "sha256": "6d148de7f2d33c44ec5e0ee64c9d0184d0ade385210c2b27c29527c6d5a512cf"
+    },
+    {
+      "index": 7,
+      "sha256": "fb7bec8f3d0532d611a0a31231d256763e32ac5771b710c887726352395afd00"
+    },
+    {
+      "index": 8,
+      "sha256": "063538b7eb8c6aabb4851d25dc5c79d50f491cd0256e0c4ee9e9e29c40ceb7bb"
+    },
+    {
+      "index": 9,
+      "sha256": "e94b7dd69521afeedd6c7a41a0fb7f0515e253a03d89733e9d0fb8fa5e52fafe"
+    },
+    {
+      "index": 10,
+      "sha256": "fc4668962bbb3dc8f3dc2e3fd28f4ab2bec4a345ae358b4a69bf3197bc88851a"
+    },
+    {
+      "index": 11,
+      "sha256": "3767242f8fbaec607b37bc9e507636cd7b918bae2225fff77cf1257c4320db6f"
+    },
+    {
+      "index": 12,
+      "sha256": "581cd26cc07505609289659bf8c963d8eac88787f37c6c52161a9fc8a4c64d6f"
+    },
+    {
+      "index": 13,
+      "sha256": "993c46e6eb6e8d91e58c719803ed47f8366ffa820dea770dd2cfc3f5acc3051c"
+    },
+    {
+      "index": 14,
+      "sha256": "4ccbdf6c325ecaa9672570c4e58d90de66728314b4a23c2257915db0fae43f0b"
+    },
+    {
+      "index": 15,
+      "sha256": "98315332c906ab252c15e8b24c96408af217707428e3a04db32a15a07582e32a"
+    },
+    {
+      "index": 16,
+      "sha256": "e678d6e1e7c75710f323ebcc65ae8464cbc289513d35c200d51f38ab3e315bda"
+    },
+    {
+      "index": 17,
+      "sha256": "13e65adfd5cce7a50a3715540e7d217699df435399311be6325750c6f6efba77"
+    },
+    {
+      "index": 18,
+      "sha256": "57351bb1dc727e74779903e8e23881863685f23dd47c51087048abf7b854ed28"
+    },
+    {
+      "index": 19,
+      "sha256": "da38cd51754bad1bb2c61c9545a309ecb3e47682133a34dd36072c431b118eea"
+    },
+    {
+      "index": 20,
+      "sha256": "caead6c4a8d9927806cd2ede929a539929e0d42ceac774ea6dfc47db233c65c4"
+    },
+    {
+      "index": 21,
+      "sha256": "a241fe7945625f5cd2ad15f14c9785f7bc6f14a8abae4fb2b7794a4b07276cb0"
+    },
+    {
+      "index": 22,
+      "sha256": "d733315bb67c9dc1c1f6f4f7334e86d42410262465d974032a72a3f471554bc4"
+    },
+    {
+      "index": 23,
+      "sha256": "3757e74bc46937aa603f1361e69f417567ef99a2aed330302fb47f9feab5e6cc"
+    },
+    {
+      "index": 24,
+      "sha256": "128d55ef720e7674ad152f27aef98bbc33b1a2aef591c14da35909cea2311c45"
+    },
+    {
+      "index": 25,
+      "sha256": "f265f218dca207f2c8691bff8b7d7ba954b7c4ef60e8b7cf27f4f97226983a08"
+    },
+    {
+      "index": 26,
+      "sha256": "ec8ff2339be797538037ff5e464594a147cf7aed2973b5afa9bcd0a5e7eccd26"
+    },
+    {
+      "index": 27,
+      "sha256": "3f935296979c86abf4ae07801b7c72224e37069d0f98c8e19556d4ad1e00e1c7"
+    },
+    {
+      "index": 28,
+      "sha256": "0d16123592e494885123539d06301893c4b836c8dc2620f1d3db46454e1b9ef2"
+    },
+    {
+      "index": 29,
+      "sha256": "f902396420db09ee9ba5fbe828d0a0c8cabfe8b38e4fbed74d2ba5b7517b8e30"
+    },
+    {
+      "index": 30,
+      "sha256": "3316ab9a30ac3d125657e5cca4a308d298204323761765329cd2580784156ab9"
+    },
+    {
+      "index": 31,
+      "sha256": "963a69526dd9fe10bf57a702da1db9e4b1ac533680fa3d419605e20e3a91ee0a"
+    }
+  ],
+  "prg_bytes": 262144,
+  "prg_sha256": "5228c13f7f3933b45e7d143e4a5566de9cebbb7a6ce77015b993acfa4298cc70",
+  "submapper": null,
+  "trainer_bytes": 0,
+  "trust": "container bytes only; not mapper/runtime proof",
+  "warnings": []
+}

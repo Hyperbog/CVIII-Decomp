@@ -1,0 +1,15 @@
+{
+  "name": "JP_US_32byte_exact_candidate_PRG+1792_to_US+1946",
+  "kind": "unknown",
+  "code_boundaries_verified": false,
+  "left": {
+    "prg_offset": 1792,
+    "size": 32,
+    "sha256": "24797a9a0182c58e17b578ab801f3d1fcbe109fa01c9b4566eb044de5c7994ef"
+  },
+  "right": {
+    "prg_offset": 1946,
+    "size": 32,
+    "sha256": "24797a9a0182c58e17b578ab801f3d1fcbe109fa01c9b4566eb044de5c7994ef"
+  }
+}
