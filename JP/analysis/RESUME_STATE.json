@@ -7,7 +7,7 @@
   "rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
   "safe_forward_work": true,
   "last_completed_checkpoint": "0506",
-  "last_completed_checkpoint_commit": "4d126df4f44b82d5d0fde5d39f86d4abd2e775ab",
+  "last_completed_checkpoint_commit": "ce839398405bff87289072133af00c052bc2985e",
   "previous_checkpoint_audit": "tools/audit_crossbank_ai_atlas_0506.py",
   "vpp": {
     "earned": 24,
@@ -80,7 +80,18 @@
       }
     ],
     "raw_JSR_patterns": 156,
-    "raw_immediate_script_store_patterns": 37
+    "raw_immediate_script_store_patterns": 37,
+    "supplementary_audit": "tools/audit_bank0a_state_chain_0506.py",
+    "encoded_state_dispatch": {
+      "cpu": "B4CC",
+      "mapper": "raw VRC6 $0A (conditional)",
+      "selector": "$19",
+      "pointer_slots": 12,
+      "state1_target": "B58C",
+      "state2_target": "B597",
+      "state1_mutations": "JSR B4E9: STA $68=0, INC $19",
+      "state2_action": "JSR B689: conditional $68=0 -> B6A4 -> B7F7"
+    }
   },
   "pending_unclaimed_gaps": [
     {
@@ -142,9 +153,11 @@
     "0505 whole-PRG candidate xrefs: 156 raw JSR patterns to five fixed-tail entries and 37 raw LDA immediate/STA 05EF,X producer patterns; liveness unproven",
     "0506 fixed FB96 and E2D0 mapped read/write semantics ROM-locked; native helper tests 65537 cases and explicitly restores VRC6 bank $0A",
     "0506 raw0A B689 has 11 mechanical encoded E7FB entries; index0 B6A4 can reach B7F7 with 11 calls into fixed FB96 and local mask of $54 to 0..15",
-    "0506 raw0B mechanical script ID 24/25/26 actions 5D/5F/89 select handlers 8DC6/8E10/8DF9, provisional until executable producer liveness"
+    "0506 raw0B mechanical script ID 24/25/26 actions 5D/5F/89 select handlers 8DC6/8E10/8DF9, provisional until executable producer liveness",
+    "0506 supplemental JP raw0A B4CC dispatcher has 12 encoded $19 pointers; state1 B58C resets $68 then increments $19 to state2 B597; live cross-frame/mapper proof remains open"
   ],
   "open_edges": [
+    "0507: prove active raw bank $0A at B4CC and inter-frame stability of state1 B58C -> state2 B597 ($19=2, $68=0); B6A4 carry gate must pass before B7F7",
     "0507: trace real mapper-backed entry to raw0A B597/B689 and prove live $68 selector value 0; without it do not promote FB96 as new verified code",
     "0507: prove producer liveness of raw0B AI script IDs $24/$25/$26 before promoting fixed FC17-$FC1E",
     "0507: resolve global writes to $54 and $14 for FD62,Y indexed lookup",
@@ -161,6 +174,7 @@
     "CPU/interrupt trace parity; full PPU/runtime integration; VRC6 audio"
   ],
   "checkpoint_constraints": [
+    "run supplementary 0506 tool audit_bank0a_state_chain_0506.py as well as primary 0506 audit; do not promote state table candidates merely due pointers",
     "0507 starts with proven raw0A B597/B689 inbound mapper state and $68=0 producer, plus AI script ID 24/25/26 liveness",
     "do not count fixed FB96-FBA4 or FC17-FC1E just because their instructions are recognizable or have raw JSR patterns; the relevant execution path and mapping remain unproven",
     "raw0A B827 establishes $54=0..15 only on loader path, not whole-program FD62,Y high index",
@@ -318,7 +332,16 @@
       ],
       "strict_new_bytes": 0,
       "unresolved": "live mapper-context entry and selector $68/script ID producers",
-      "vpp_credit": 0
+      "vpp_credit": 0,
+      "supplementary_audit": "tools/audit_bank0a_state_chain_0506.py",
+      "raw0a_state_protocol": {
+        "state_dispatch": "B4CC",
+        "encoded_state_count": 12,
+        "state1": "B58C",
+        "state2": "B597",
+        "reset_68": "B4E9",
+        "runtime_liveness": "UNPROVED"
+      }
     }
   },
   "repair_history": {
@@ -331,7 +354,8 @@
     "0503_ai_script_transaction": "Native AI-script address lift and exact ROM audit over previously admitted 0501 code; strict ROM floor and VPP unchanged",
     "0504_script_seed_transaction": "576 noncontiguous newly audited code/data bytes, 256 opcode starts and five fixed ZP10 writers; full indexed FD62,Y and runtime liveness remain open; VPP unchanged",
     "0505_tile_probe_transaction": "no new semantic byte coverage; native indexed tile-probe algorithm tested with JP ROM and global fixed-caller/script-store candidate scan; resume frontier unchanged and VPP 24",
-    "0506_crossbank_atlas": "Native JP bus bank transaction and mechanically linked script IDs tested/ROM audited, no strict ROM byte promotion; VPP 24"
+    "0506_crossbank_atlas": "Native JP bus bank transaction and mechanically linked script IDs tested/ROM audited, no strict ROM byte promotion; VPP 24",
+    "0506_state_protocol_supplement": "ROM-backed state1 reset-$68 and state2 dispatch linkage added as conditional protocol; byte coverage unchanged; machine state updated LAST"
   },
   "progress_metrics": {
     "whole_prg_scanned_bytes": 262144,
