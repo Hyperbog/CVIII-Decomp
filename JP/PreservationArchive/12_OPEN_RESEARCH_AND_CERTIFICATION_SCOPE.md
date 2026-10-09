@@ -67,3 +67,8 @@ The [Phase 1–5 research commit](https://github.com/Hyperbog/CVIII-Decomp/commi
 ## 0508 Phase 10 evidence — research tasks remain open
 
 [Phase 10](../analysis/0508_PHASE10_FINDINGS.md) establishes the conditional $B58C -> $E249 -> raw-bank-$0C:$8850 -> $87AE original sound-reset path with 256 bounded tests and nine APU/VRC6 bus writes. The music interpreter after $8860, its proper return, and any $25/scratch interactions remain unexecuted. A separately injected return proves only a conditional state-one-to-two suffix; it does not close R-001, R-002 or R-007. The authoritative strict floor remains 49,404 PRG bytes, VPP 24/100, checkpoint 0507, and fixed PRG31 frontier $FB96.
+
+
+## Provisional research refinement: 0508 Phase 11 (no completion certificate)
+
+[Original-ROM conditional execution](../analysis/0508_PHASE11_FINDINGS.md) closes the state-one command-$6B sound metadata return: six raw-$05 instrument byte reads, 20 raw-$0C metadata bytes, 14 mapper writes and real RTS to room state two across 256 cases. **R-001 and R-002 remain OPEN** because reset-to-NMI liveness and the B6A4 carry/index path are unproved; **R-007 remains OPEN** because full audio event/waveform parity is absent. This is a provisional result committed to Git, **not** a new strict-coverage certificate; 49,404/262,144 and VPP 24/100 remain authoritative from completed 0507.

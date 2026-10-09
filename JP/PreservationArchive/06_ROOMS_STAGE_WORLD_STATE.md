@@ -64,3 +64,8 @@ The [Phase 5 mapped-bus loader audit](../analysis/0508_PHASE5_FINDINGS.md) parse
 ## Provisional 0508 Phase 10 — state-one sound reset and conditional state two
 
 [Phase 10](../analysis/0508_PHASE10_FINDINGS.md) runs the actual raw $0A:$B58C state-one prefix through fixed $E249 and raw $0C:$8850. Sound command $6B selects the $87AE reset path; 256 initial-X cases execute through reset and stop at $8860. **Only if the remaining unexecuted sound interpreter returns without corrupting saved $25** does fixed E249 restore $0A, B4E9 clear $68, and B594 advance $19 from 1 to 2. That suffix is tested with an injected synthetic return, not full original audio execution. R-001/R-002 stay OPEN; no strict PRG byte increase.
+
+
+## Provisional 0508 Phase 11 — state one reaches state two after a real sound return
+
+[Phase 11's ROM-fetched execution audit](../analysis/0508_PHASE11_FINDINGS.md) extends Phase 10 beyond raw-$0C:$8860, completes the command-$6B metadata installer and all six fixed-$E19F temporary raw-$05 reads, and observes a **real RTS** from $8850. Fixed $E249 restores bank $0A before raw-$0A:$B591 resets $68 and $B594 increments room $19=1→2. The conditional start at $B58C is not yet established from reset; the state-two $B597/B689→B6A4 carry gate and global $07A0 source domain remain OPEN. This is zero new strict byte coverage.

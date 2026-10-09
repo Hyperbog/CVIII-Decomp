@@ -66,3 +66,8 @@ The [Phase 1–5 research commit](https://github.com/Hyperbog/CVIII-Decomp/commi
 ## Provisional research addendum — 0508 Phase 10
 
 [ROM-locked Phase 10](../analysis/0508_PHASE10_FINDINGS.md): conditional bank-$0A:$B58C room state one passes immediate audio command $6B to fixed $E249, maps raw $0C, and runs $8850->$87AE sound reset (nine ordered APU/VRC6 writes, 256 bounded original-instruction executions). The actual sound parser is not followed past $8860. A distinctly *injected* hypothetical return checks the fixed bank-restore suffix and subsequent $68=0/$19=2 update; this is not proof of original audio-handler completion or live stage progression. R-001/R-002/R-007 remain open; register U-006. Zero newly credited strict bytes, 49,404/262,144 lower bound, VPP 24/100.
+
+
+## Provisional 0508 Phase 11 — command-$6B original sound-return witness
+
+[Audit and complete byte evidence](../analysis/0508_PHASE11_FINDINGS.md): raw VRC6 $0C:$9034 points to the 20-byte command-$6B metadata at $94B5-$94C8; six slot/pointers select raw bank $05, whose first byte is $D9 at every selected root. Original fixed $E19F maps $05 for each read then restores $0C; original $8850 RTS and fixed $E249 restore raw bank $0A and allow raw-$0A room $19=1→2, $68=0. **256 × 650 original-instruction tests passed**. This corrects the *Phase 10 research limitation* (previously injected hypothetical RTS), not original game behavior. R-001/R-002/R-007 stay OPEN. Strict new bytes 0, 0507 machine frontier unchanged. No sound waveform or reset-to-frame parity claim.

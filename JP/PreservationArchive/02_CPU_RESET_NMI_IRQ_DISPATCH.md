@@ -53,3 +53,8 @@ The [Phase 9 ROM-locked audit](../analysis/0508_PHASE9_FINDINGS.md) extends the 
 ## Provisional 0508 Phase 10 — banked state-one audio call
 
 [Phase 10](../analysis/0508_PHASE10_FINDINGS.md) executes conditional raw bank $0A:$B58C through fixed PRG31 $E249 into raw bank $0C:$8850 and its $87AE sound reset. Fixed $E249 saves $0A in ZP $25 and selects $0C via tracked $23/$8000. The test stops at $8860 after the reset. A separate explicitly *injected hypothetical return* tests the fixed $E249 bank-restoring suffix. No entire music parser, continuous NMI path, or strict PRG byte promotion is claimed.
+
+
+## Provisional 0508 Phase 11 — state-one sound call returns naturally
+
+[ROM-executed local proof](../analysis/0508_PHASE11_FINDINGS.md) resumes conditional raw-$0A:$B58C with $19=1 and executes the full $E249→raw-$0C:$8850 command $6B metadata installation through its **actual** RTS, including six $E19F raw-$05 reads and matching bank restores. It returns with $23=$0A, $19=2 and $68=0 in 256 cases; no synthetic sound-parser return is needed. The initial $18/$19 seed, contiguous frame reachability and NMI/IRQ interleaving are not certified. Strict PRG accounting remains unchanged.

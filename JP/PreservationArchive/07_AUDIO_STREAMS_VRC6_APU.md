@@ -31,3 +31,8 @@ Port the bytecode interpreter as a state machine retaining loop/call stacks, ban
 ## Provisional 0508 Phase 10 — sound command $6B channel reset
 
 [Original-ROM bounded audit](../analysis/0508_PHASE10_FINDINGS.md) identifies the state-one sound command $6B and actual bank-$0C:$87AE reset path. The executed reset clears nine sound-channel state slots and issues nine ordered bus writes: $4000/$4004/$400C=$30, $4001/$4005=$7F, $9000/$A000/$B000=$00, $4015=$0F. The $8F55 delay contains ten NOPs and RTS, modelled as instructions, not cycles. The audit stops at $8860; downstream song-pointer parsing and proper RTS are unverified. An independently injected hypothetical return only checks the mapper-restoring suffix. No audio waveform/frame parity or VPP increase.
+
+
+## Provisional 0508 Phase 11 — command $6B installs six bank-$05 instrument roots
+
+[Executable JP-ROM audit](../analysis/0508_PHASE11_FINDINGS.md) follows sound command $6B through its natural $8850 RTS, **not** an injected return. The sound-ID pointer at raw-$0C:$9034 selects a 20-byte metadata record at $94B5. Six slot/pointer pairs 0/$BB48, 1/$BBEA, 2/$BD42, 3/$B90A, 4/$BA14 and 7/$BAC9 all select source bank $05. Fixed $E19F executes six temporary $05 reads, returning $D9 for each; the instrument mode initializer consequently sets bit 0 of $011B,X to zero in those slots. These are **installed streams**: later per-frame parsing, decoded sound contents, APU/VRC6 waveform parity and exact audio timing remain OPEN. Audit: 256 seeds × 650 instructions; strict byte increment zero.

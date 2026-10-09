@@ -1,0 +1,54 @@
+{
+  "checkpoint": "0508 phase11 provisional",
+  "jp_rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "status": "conditional state-one sound command closure through natural RTS",
+  "seed_cases": 256,
+  "instruction_steps_per_case": 650,
+  "metadata_ptr": "94B5",
+  "sound_id": "6B",
+  "metadata_bytes": 20,
+  "metadata_sha256": "75cd1eb81d33ee6fb8a43eaa698720c624c16885e5fdf58b658958ba096305a4",
+  "metadata_consumed_bytes_per_case": 20,
+  "instrument_source_bank": "05",
+  "instrument_roots": [
+    {
+      "slot": 0,
+      "pointer": "BB48"
+    },
+    {
+      "slot": 1,
+      "pointer": "BBEA"
+    },
+    {
+      "slot": 2,
+      "pointer": "BD42"
+    },
+    {
+      "slot": 3,
+      "pointer": "B90A"
+    },
+    {
+      "slot": 4,
+      "pointer": "BA14"
+    },
+    {
+      "slot": 7,
+      "pointer": "BAC9"
+    }
+  ],
+  "temporary_bank_reads_per_case": 6,
+  "bank_writes_per_case": 14,
+  "sound_reset_apu_vrc6_writes_per_case": 9,
+  "room_state_19_exit": "02",
+  "room_secondary_68_exit": "00",
+  "mapper_bank_exit": "0A",
+  "helper_bank25_exit": "0A",
+  "limits": [
+    "Conditional B58C entry; does not prove live prior NMI state",
+    "No sound parser update per game frame or actual APU playback parity",
+    "No IRQ/cycle simulation or downstream state-two handler execution"
+  ],
+  "strict_new_prg_bytes": 0,
+  "strict_cumulative_prg_bytes": 49404,
+  "vpp": 24
+}
