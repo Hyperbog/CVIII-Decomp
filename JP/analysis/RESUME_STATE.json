@@ -1,14 +1,14 @@
 {
-  "schema_version": 21,
+  "schema_version": 22,
   "status": "ready",
   "project": "Akumajou Densetsu JP decomp/recomp",
   "repository": "Hyperbog/CVIII-Decomp",
   "branch": "decompilation",
   "rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
   "safe_forward_work": true,
-  "last_completed_checkpoint": "0505",
-  "last_completed_checkpoint_commit": "4adc311c14832f742d09b4fe313255b67760971f",
-  "previous_checkpoint_audit": "tools/audit_fixed_tile_probe_0505.py",
+  "last_completed_checkpoint": "0506",
+  "last_completed_checkpoint_commit": "4d126df4f44b82d5d0fde5d39f86d4abd2e775ab",
+  "previous_checkpoint_audit": "tools/audit_crossbank_ai_atlas_0506.py",
   "vpp": {
     "earned": 24,
     "total": 100
@@ -27,13 +27,13 @@
     "last_closed_physical_prg_bank": 31,
     "next_unprocessed_cpu": "FB96",
     "next_physical_prg_bank": 31,
-    "next_checkpoint": "0506",
+    "next_checkpoint": "0507",
     "domain_transition": false,
     "initial_window_start_cpu": "FB96",
     "initial_window_end_cpu_inclusive": "FFFF",
     "initial_window_contiguous_bytes": 1130,
     "initial_window_sha256": "0cbfd0aa79f3c7d1db7a756c08c47bfe01cba321900fb8955e77ec8525d38d44",
-    "frontier_semantics": "unchanged raw fixed physical frontier PRG31 FB96; 0505 is native/ROM-audited indexing and candidate caller discovery with zero newly promoted bytes"
+    "frontier_semantics": "unchanged raw fixed physical frontier PRG31 FB96; 0506 native $FB96 bus semantics and raw $0A/$0B conditional script atlas have no newly promoted physical ROM bytes"
   },
   "verification_overlap": {
     "physical_prg_bank": 31,
@@ -54,23 +54,33 @@
     "purpose": "alignment/fingerprint only; does not establish semantic closure"
   },
   "prior_dependency_manifest": {
-    "checkpoint": "0505",
-    "analysis": "analysis/FIXED_TILE_PROBE_0505.md",
-    "audit": "tools/audit_fixed_tile_probe_0505.py",
+    "checkpoint": "0506",
+    "analysis": "analysis/CROSSBANK_AI_ATLAS_0506.md",
+    "audit": "tools/audit_crossbank_ai_atlas_0506.py",
     "exact_new_bytes_in_checkpoint": 0,
     "new_ranges": [],
-    "coverage_accounting": "all FD11-FD2B code and FD4D-FD58 data were previously counted in 0504; FD62,Y indexed data not producer-bound and not counted",
-    "native_test_case_count": 524288,
-    "high_lookup": "FD62 + uint8(Y), Y producer domain OPEN",
-    "bounded_table": "FD4D-FD58",
-    "raw_static_jsr_candidate_counts": {
-      "FB96": 11,
-      "FBA5": 4,
-      "FC17": 6,
-      "FC1F": 43,
-      "FCDE": 92
-    },
-    "raw_immediate_ai_script_store_candidates": 37
+    "coverage_accounting": "FB96-FBA4 fixed-bank code is ROM-decoded but inbound raw-0A B689 selector and mapper context remain conditional; FC17 remains unclaimed",
+    "candidate_mapper_chain": "raw $0A B597 -> B689 dispatch index0 B6A4 -> B7F7 -> 11 JSR FB96 -> raw $0E read -> raw $0A restore",
+    "native_test_cases": 65537,
+    "script_id_action_candidate_links": [
+      {
+        "script": "24",
+        "action": "5D",
+        "handler": "8DC6"
+      },
+      {
+        "script": "25",
+        "action": "5F",
+        "handler": "8E10"
+      },
+      {
+        "script": "26",
+        "action": "89",
+        "handler": "8DF9"
+      }
+    ],
+    "raw_JSR_patterns": 156,
+    "raw_immediate_script_store_patterns": 37
   },
   "pending_unclaimed_gaps": [
     {
@@ -129,12 +139,15 @@
     "0504 mechanical script pointer census 107 entries/72 distinct pointer words/792 candidate lattice records stays structural only, not action liveness",
     "0505 ROM-backed fixed FD11-FD2B partial address/data lift with mapped CPU bus and 524288 input combination tests; no 0505 new ROM bytes",
     "0505 proved distinct high-index Y expressions at FD0A and FC76 but live RAM54/RAM14 bounds still open; FD62,Y cannot be inferred from FD4D modulo12 domain",
-    "0505 whole-PRG candidate xrefs: 156 raw JSR patterns to five fixed-tail entries and 37 raw LDA immediate/STA 05EF,X producer patterns; liveness unproven"
+    "0505 whole-PRG candidate xrefs: 156 raw JSR patterns to five fixed-tail entries and 37 raw LDA immediate/STA 05EF,X producer patterns; liveness unproven",
+    "0506 fixed FB96 and E2D0 mapped read/write semantics ROM-locked; native helper tests 65537 cases and explicitly restores VRC6 bank $0A",
+    "0506 raw0A B689 has 11 mechanical encoded E7FB entries; index0 B6A4 can reach B7F7 with 11 calls into fixed FB96 and local mask of $54 to 0..15",
+    "0506 raw0B mechanical script ID 24/25/26 actions 5D/5F/89 select handlers 8DC6/8E10/8DF9, provisional until executable producer liveness"
   ],
   "open_edges": [
-    "0506: prove live RAM $54 and $14 high-index source domains to bound $FD62,Y; $FD62-$FE61 is only a conservative possible read range, not automatically data",
-    "0506: prove bank-mapped callers to fixed $FB96 and $FC17 before counting their unclaimed code bytes",
-    "0506: classify raw immediate script ID store candidates (37 across six banks) as executable under proven VRC6 context before adding live script records",
+    "0507: trace real mapper-backed entry to raw0A B597/B689 and prove live $68 selector value 0; without it do not promote FB96 as new verified code",
+    "0507: prove producer liveness of raw0B AI script IDs $24/$25/$26 before promoting fixed FC17-$FC1E",
+    "0507: resolve global writes to $54 and $14 for FD62,Y indexed lookup",
     "expand verified JP $05EF/$05C1 producer domains and live AI script records/actions without treating all 107 pointer slots or 792 lattice cells as live",
     "prove exact final writer of shared ZP $10 across seven raw-0B collision stores plus five newly decoded fixed-FC1F direct writes",
     "raw bank $0B E7FB dispatch sites $A15A/$A2CC/$A3A9",
@@ -148,7 +161,11 @@
     "CPU/interrupt trace parity; full PPU/runtime integration; VRC6 audio"
   ],
   "checkpoint_constraints": [
-    "0506 begins with FD62,Y index provenance, mapper-backed fixed tail callers, and live script ID producer validation",
+    "0507 starts with proven raw0A B597/B689 inbound mapper state and $68=0 producer, plus AI script ID 24/25/26 liveness",
+    "do not count fixed FB96-FBA4 or FC17-FC1E just because their instructions are recognizable or have raw JSR patterns; the relevant execution path and mapping remain unproven",
+    "raw0A B827 establishes $54=0..15 only on loader path, not whole-program FD62,Y high index",
+    "0506 native test is mapped bank bus write/read algorithm, not full CPU stack, cycle or frame parity",
+    "preserve fixed physical raw frontier FB96 and all six unclaimed gaps",
     "do not promote 156 JSR or 37 script store patterns as code without admissible instruction starts and mapper context",
     "do not credit $FC17-$FC1E just because raw JSR candidates exist; 8 physical bytes remain unclaimed",
     "no clamp on $FD62,Y: Y is 8-bit and high producer bound is unproved",
@@ -278,6 +295,30 @@
       "high_index_status": "Y producer domain still open; do not claim FD62 indexed data",
       "strict_new_bytes": 0,
       "vpp_credit": 0
+    },
+    "crossbank_ai_atlas_0506": {
+      "status": "ROM_audited_conditional_atlas_and_native_partial_lift",
+      "analysis": "analysis/CROSSBANK_AI_ATLAS_0506.md",
+      "audit": "tools/audit_crossbank_ai_atlas_0506.py",
+      "native": "src/temporary_prg_bank_read.hpp",
+      "test": "tests/temporary_prg_bank_read_test.cpp",
+      "test_cases": 65537,
+      "mapper_transition": [
+        "raw_0A",
+        "raw_0E",
+        "raw_0A"
+      ],
+      "conditional_dispatch_entry": "B689",
+      "conditional_selected_handler": "B6A4",
+      "conditional_room_loader": "B7F7",
+      "script_candidate_links": [
+        "24:5D:8DC6",
+        "25:5F:8E10",
+        "26:89:8DF9"
+      ],
+      "strict_new_bytes": 0,
+      "unresolved": "live mapper-context entry and selector $68/script ID producers",
+      "vpp_credit": 0
     }
   },
   "repair_history": {
@@ -289,7 +330,8 @@
     "0502_collision_transaction": "2 new ROM bytes plus reusable collision architecture/native test; VPP 23->24",
     "0503_ai_script_transaction": "Native AI-script address lift and exact ROM audit over previously admitted 0501 code; strict ROM floor and VPP unchanged",
     "0504_script_seed_transaction": "576 noncontiguous newly audited code/data bytes, 256 opcode starts and five fixed ZP10 writers; full indexed FD62,Y and runtime liveness remain open; VPP unchanged",
-    "0505_tile_probe_transaction": "no new semantic byte coverage; native indexed tile-probe algorithm tested with JP ROM and global fixed-caller/script-store candidate scan; resume frontier unchanged and VPP 24"
+    "0505_tile_probe_transaction": "no new semantic byte coverage; native indexed tile-probe algorithm tested with JP ROM and global fixed-caller/script-store candidate scan; resume frontier unchanged and VPP 24",
+    "0506_crossbank_atlas": "Native JP bus bank transaction and mechanically linked script IDs tested/ROM audited, no strict ROM byte promotion; VPP 24"
   },
   "progress_metrics": {
     "whole_prg_scanned_bytes": 262144,
