@@ -112,3 +112,8 @@ The [CPU-cycle/PPU-vblank synthetic trace](../analysis/0508_EXPERIMENTAL_VBLANK_
 ## Cross-game research accelerator — reusable NES/FDS source and signature evidence
 
 The [SharedNES library](../SharedNES/README.md) and its [source catalog](../SharedNES/SOURCE_CATALOG.md) record current and historical NESdev material, older archived documentation, emulator debugger/test ROMs, cc65/da65, FDS BIOS API/revision aids, VRC6a/VRC6b and the supplied three PDF references. Its [ROM-byte-safe JP↔US initial comparison](../analysis/NES_REUSE_JP_US_CANDIDATES.json) detects 364 sampled exact 32-byte candidate windows (348 unique-target) from 1,018 sampled windows; **none is proven a live shared routine**. Per-game caller/mapper/register/data producers and RAM side effects remain mandatory. The common CPU/PPU/FDS model can be reused, but neither 2026 community forum anecdotes nor vendor name alone certifies Konami game-code sharing. The original-ROM and source-code rights remain separate. This is documented research/tooling only: **VPP 25/100; strict 49,404 PRG bytes; semantic checkpoint 0507 unchanged.**
+
+
+## Shared code-reuse provenance study (2026-10-09, not checkpoint completion)
+
+[Source-certified JP 0501 ↔ US cross-edition census](../SharedNES/JP_0501_CROSS_EDITION_REUSE.md) identifies 1,273 of 4,364 already verified Japanese source PRG bytes under unique 16-byte US physical-PRG signatures, with **31/31 source-range hash audits**. This is an accelerator for subsequent caller/bank/behavior proofs, not a new strict byte certificate and not cross-mapper equivalence. The ROM remains authoritative; the 0507 recovery checkpoint and 25/100 VPP are unchanged.

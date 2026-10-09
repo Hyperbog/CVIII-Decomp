@@ -287,3 +287,8 @@ The [experimental cycle/vblank execution report](../analysis/0508_EXPERIMENTAL_V
 ### Reusable VRC6a/VRC6b mapper adapter
 
 `tools/nes_mapper_family.py` and nine ROM-free tests provide explicit-state physical PRG offsets for three VRC6 PRG windows, plus the VRC6b A0/A1 register swap normalized to VRC6a coordinates. They refuse an assumed bank state without producer/provenance evidence and do not imply shared sound drivers or gameplay architecture. This is analysis infrastructure only: no new strict PRG bytes, no VPP increase beyond 25/100.
+
+
+## 2026-10-09 — Reuse overlay on strict 0501 source bytes (candidate-only)
+
+The reusable [certified-source cross-edition census](../SharedNES/JP_0501_CROSS_EDITION_REUSE.md) verifies 31 physically nonoverlapping SHA-256-locked ranges from already credited checkpoint 0501 (4,364 code/operand bytes). In the US Castlevania III physical PRG, unique 16-byte exact windows cover **1,273** distinct JP source bytes; **5** have only ambiguous matches and **3,086** lack a matching 16-byte window entirely inside their original certified region. These are source-original code/data **transfer candidates only**; they are not newly certified bytes, nor proof of US MMC5 mapping/callers or executable parity. Tests and the hash-only 31-region report are committed. **New strict PRG bytes 0, cumulative 49,404/262,144 = 18.8461%, VPP 25/100, last semantic checkpoint 0507, fixed PRG31 frontier FB96 unchanged.**

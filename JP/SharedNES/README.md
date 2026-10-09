@@ -84,3 +84,7 @@ Details and limits: [FDS/trace evidence note](FDS_TRACE_EVIDENCE.md), [reference
 ### First ROM-audited cross-edition code match
 
 [JP `$E7FB` ↔ US candidate `$E86D` exact 25-byte stack-dispatch routine](JP_US_DISPATCH_EXACT_MATCH.md): **15** identical original 6502 instructions, one US occurrence, plus a 134-byte physically contiguous but not entirely classified exact neighboring interval. Reproducible pinned JP+US tool: [`audit_shared_dispatch_jp_us.py`](../tools/audit_shared_dispatch_jp_us.py); hash-only [report](../analysis/shared_dispatch_jp_us_report.json) and [reusable anchor manifest](JP_US_DISPATCH_ANCHOR.json). **C1 local code equivalence only**, not US MMC5 bank mapping/caller/gameplay proof or additional strict PRG coverage.
+
+### Whole-checkpoint strict-source reuse census (2026-10-09)
+
+[Checkpoint 0501 cross-edition census](JP_0501_CROSS_EDITION_REUSE.md) verifies **31 SHA-pinned regions / 4,364 already-certified original JP PRG code/operand bytes** and locates **1,273 distinct JP source bytes** covered by unique exact 16-byte windows in the US game (29.17%). This is *additional transfer-discovery evidence*, not newly certified ROM coverage or US mapper/execution parity. The [portable matcher](../tools/nes_certified_reuse.py) accepts any pair of supplied NES ROMs plus a strictly hash-pinned source-region manifest; 18 deterministic tests cover collision/overlap/identity handling and an optional original ROM-pair integration.
