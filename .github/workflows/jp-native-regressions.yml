@@ -5,7 +5,7 @@ on:
     paths:
       - 'JP/src/**'
       - 'JP/SharedNES/**'
-      - 'JP/tools/nes_reuse.py'
+      - 'JP/tools/nes_*.py'
       - 'JP/tests/**'
       - 'JP/tools/run_native_regressions.sh'
       - 'JP/tools/progress_score.py'
@@ -15,7 +15,7 @@ on:
     paths:
       - 'JP/src/**'
       - 'JP/SharedNES/**'
-      - 'JP/tools/nes_reuse.py'
+      - 'JP/tools/nes_*.py'
       - 'JP/tests/**'
       - 'JP/tools/run_native_regressions.sh'
       - 'JP/tools/progress_score.py'

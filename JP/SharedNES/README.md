@@ -58,3 +58,25 @@ Different confidence dimensions are not interchangeable. In particular **S1+C0 i
 - Track Nintendo FDS BIOS functionality separately from Konami game runtime. The original FDS BIOS is Nintendo code, not a universal cartridge-ROM library.
 
 See [`SOURCE_CATALOG.md`](SOURCE_CATALOG.md) for external research provenance and manual index, and [Konami sound-driver family hypotheses](KONAMI_DRIVER_HYPOTHESES.md) for a sourced cross-title comparison queue, explicitly not a proven common engine. Completion progress remains scored by `../analysis/PROGRESS_SCORE.csv`, not this library's adoption.
+
+## Portable FDS and trace research (2026-10-09 expansion)
+
+### FDS/QD file-block catalog
+`../tools/nes_fds_catalog.py` is a **read-only structural index** for 65,500-byte FDS sides (optional 16-byte `FDS\x1A` header) and **65,536-byte QD** sides containing CRC words. It checks the original `*NINTENDO-HVC*` disk signature, block 1/2 metadata and declared block 3/4 file pairs; records per-file name, type, load address, size, offset and content SHA-256 only. It also marks potentially hidden block 3/4 pairs beyond the declared file count. It does not emit file data, validate CRC, mount the FDS BIOS or prove any ROM game routine.
+
+```sh
+python3 JP/tools/nes_fds_catalog.py /private/game.fds --out /tmp/fds-index.json
+python3 JP/tests/test_nes_fds_catalog.py  # 14 synthetic image/format tests
+```
+
+### Independent CPU log comparison boundary
+`../tools/nes_trace_compare.py` normalizes Nintendulator/nestest **pre-instruction** text and an explicit JSONL record schema. It compares `pc,a,x,y,p,sp`; cycle counts are opt-in, and physical PRG bank is compared **only when both logs supply it**. Flag bits 4/5 are ignored only with `--ignore-virtual-p-bits`, matching the convention documented by the NESdev trace-log discussions. A failed comparison exits nonzero and reports **only the first bounded register mismatches** plus log hashes, never disassembly bytes.
+
+```sh
+python3 JP/tools/nes_trace_compare.py /private/reference-nestest.log /private/candidate.jsonl --compare-cycles --out /tmp/trace-diff.json
+python3 JP/tests/test_nes_trace_compare.py  # 16 synthetic log tests
+```
+
+JSONL rows: `{"pc":"C000","a":"00","x":"00","y":"00","p":"24","sp":"FD","cycles":7,"prg_bank":20}`. Hexadecimal string register values or decimal integer values are accepted; `prg_bank` and `cycles` are optional unless requested. **No original reference ROM execution was run against this tool yet; no CPU/interrupt parity or strict coverage is claimed.** The two tools are reusable across game publishers and mapper families but remain discovery/test infrastructure.
+
+Details and limits: [FDS/trace evidence note](FDS_TRACE_EVIDENCE.md), [reference catalog](SOURCE_CATALOG.md).

@@ -61,3 +61,16 @@ The [VGMPF community sound-driver inventory](https://vgmpf.com/Wiki/index.php?ti
 ### Preservation record format for newly found sources
 
 Record `{URL, retrieval_date, title, creator, publication_year, revision/hash, rights, direct_source_or_secondary, hardware_or_game_claim, repro_steps, correction_links, JP_ROM_countercheck_status, anchor_sha256}`. This keeps useful old forums and Wayback/Internet Archive links reproducible without copying or silently endorsing them. No particular historical Nintendo/Konami first-party dev kit or original source has been authenticated by this snapshot.
+
+## Follow-up primary/secondary source checks (2026-10-09)
+
+| Source | URL | Implemented scope / exact caveat |
+|---|---|---|
+| NESdev FDS on-disk blocks | https://www.nesdev.org/wiki/FDS_disk_format | Disk block 1 = 56 bytes, block 2 = 2, block 3 = 16, block 4 = 1+declared size; file IDs, load address, PRG/CHR type and hidden files. Used as structural parsing contract, **not** proof of BIOS behavior for a game. |
+| NESdev fwNES FDS archive wrapper | https://www.nesdev.org/wiki/FDS_file_format | Optional 16-byte header and 65,500-byte sides; gaps and CRC absent from .fds image |
+| NESdev Nintendo QD | https://www.nesdev.org/wiki/QD | 65,536-byte sides with two CRC bytes appended after each block; our parser merely skips them and explicitly does **not** validate CRC |
+| NESdev forum Nintendulator trace conventions | https://forums.nesdev.org/viewtopic.php?p=241032 | Instruction register columns are pre-execution; `CYC:7` startup/trace orientation and PPU dot/scanline are format details, not a standalone reference test |
+| NESdev discussion of virtual status bits | https://forums.nesdev.org/viewtopic.php?t=22679 | P virtual bits 4 and 5 may be represented canonically in logs; optional masking must be deliberate |
+| Mesen2 debugger trace source | https://github.com/SourMesen/Mesen2/blob/master/Core/NES/Debugger/NesTraceLogger.cpp | Illustrates trace row tags and instruction state extraction; source is GPL; **not** copied or assumed identical to Nintendulator format |
+
+Reproducible target **not yet satisfied**: collect a legally shareable `nestest` ROM fixture and **independent reference log**, execute our original-code core with identical mapping/reset state, compare each PC/A/X/Y/P/SP/cycle row, and then add mapper/IRQ/PPU event traces and code/data logging. Generic pass/fail parsing cannot itself earn the fixed trace-parity rubric points.
