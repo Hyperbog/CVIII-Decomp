@@ -54,3 +54,7 @@ The [Phase 1–5 research commit](https://github.com/Hyperbog/CVIII-Decomp/commi
 
 - **Phase 7:** [conditional two-entry NMI witness](../analysis/0508_PHASE7_FINDINGS.md) executes fixed `E51E` → raw `0A:AFA4` → `E7FB` → `B36B`, setting `$18=$0D,$19=0`. The next dispatch under unchanged selectors selects `B570`. All 65,536 test pairs pass under synthetic-parent and precondition constraints; no reset-to-frame liveness is asserted. R-001/R-002 remain open.
 - Earlier 0508 [Phase 5](../analysis/0508_PHASE5_FINDINGS.md) records the bounded five-stream bank-`$0E` loader; [Phase 6](../analysis/0508_PHASE6_FINDINGS.md) records IRQ-side preservation of selector and pointer RAM. These are **provisional findings**, not newly credited strict ROM coverage. Current completed checkpoint remains 0507; 49,404 strict PRG bytes and 24/100 VPP.
+
+### Provisional 0508 Phase 8 (not a completed checkpoint)
+
+[ROM-backed state-zero prefix](../analysis/0508_PHASE8_FINDINGS.md): mapped raw `$0A:$B570` executes fixed `$E7B6` clear, zeroing `$07A0/$07A6/$0789/$68` while preserving `$0781` through `PHA/PLA` (stops at `$EB82`, 768 cases). This is a conditional initialization anchor for **R-001/R-002**, not a live selector-domain or five-pointer-table bound. No newly credited PRG bytes or VPP; retain completed recovery checkpoint 0507 until full reconciliation.

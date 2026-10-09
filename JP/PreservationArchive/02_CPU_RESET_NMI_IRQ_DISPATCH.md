@@ -41,3 +41,7 @@ The [Phase 6 JP-ROM static audit](../analysis/0508_PHASE6_FINDINGS.md) re-traver
 ## Provisional 0508 Phase 7 — two-entry inline-dispatch witness
 
 A ROM-backed 6502 instruction executor tests conditional `$18=$0C, $19=$13` through fixed `$E51E`, raw `$0A:$AFA4`, the exact `$E7FB` stack-consuming ABI and `$B36B`. The last routine assigns `$18=$0D` and `$19=0`. Under the explicit *no intervening selector writer* condition, a later fixed `$E526` dispatch reaches raw `$0A:$B4CC` and selects handler `$B570`. All 65,536 `$0789 × saved-Y` tests pass with byte/stack/mapper/flag assertions. This is **not** proof the initial predecessor state is reachable after RESET or a native NMI/IRQ timing trace; retain R-001 OPEN. [0508 Phase 7](../analysis/0508_PHASE7_FINDINGS.md).
+
+## Provisional 0508 Phase 8 — state-zero clear and preserved room field
+
+The [ROM-locked bounded execution audit](../analysis/0508_PHASE8_FINDINGS.md) follows raw bank `$0A:$B570` through fixed `$E2C4`, `$E616`, and `$E7B6` to the **entry** of `$EB82`. It executes 768 synthetic-entry cases, not complete NMI frames. `$E7B6` clears 1,297 distinct RAM destinations; caller `$B57B-$B583` saves/restores `$0781`. The tested entry consequently clears `$07A0/$07A6/$0789/$68`, retains `$0781`, and preserves `$18=$0D/$19=0`. State-zero entry and post-`$EB82` effects remain conditional/unclosed. No semantic PRG or VPP increment.

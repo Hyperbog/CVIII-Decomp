@@ -1,0 +1,66 @@
+{
+  "status": "0508_PHASE8_BOUNDED_INITIALIZATION_PREFIX_NOT_FULL_NMI",
+  "rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "cases": 768,
+  "entry_raw_bank": "0A",
+  "entry_cpu": "B570",
+  "stops_before_fixed_callee": "EB82",
+  "executed_instructions_per_case": 3937,
+  "unique_RAM_destinations_per_case": 1300,
+  "cleared_distinct_ram_bytes": 1297,
+  "clear_ranges_half_open": [
+    [
+      "004D",
+      "00E0"
+    ],
+    [
+      "00F0",
+      "00F8"
+    ],
+    [
+      "0300",
+      "03C0"
+    ],
+    [
+      "0400",
+      "0500"
+    ],
+    [
+      "0500",
+      "0600"
+    ],
+    [
+      "0600",
+      "06A0"
+    ],
+    [
+      "06E0",
+      "0700"
+    ],
+    [
+      "0700",
+      "07F6"
+    ]
+  ],
+  "restored_ram_0781": "incoming value",
+  "ram_0789": "00",
+  "ram_07A0": "00",
+  "ram_07A6": "00",
+  "ram_68": "00",
+  "ram_18": "0D",
+  "ram_19": "00",
+  "writes_hardware": [
+    [
+      "C000",
+      "1E"
+    ],
+    [
+      "B003",
+      "20"
+    ]
+  ],
+  "strict_new_prg_bytes": 0,
+  "strict_cumulative_prg_bytes": 49404,
+  "vpp": 24,
+  "caveat": "Conditional B570 state-zero entry; stops at EB82. No full NMI execution, no proof of external callee preservation or reset-to-frame liveness."
+}

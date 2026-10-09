@@ -55,3 +55,7 @@ The [Phase 1–5 research commit](https://github.com/Hyperbog/CVIII-Decomp/commi
 ### 0508 Phase 7 provisional evidence — R-001 remains OPEN
 
 [Phase 7](../analysis/0508_PHASE7_FINDINGS.md) reproduces the original 6502 `E7FB` stack ABI and conditional pair `$18=$0C,$19=$13` → `$B36B` → `$18=$0D,$19=0` → next dispatch `$B570` under an explicit no-intervening-writer assumption. 65,536 cases pass; this does not prove the first input pair is reached from reset or close all NMI-side writers. Phase 6 showed the already-admitted IRQ graph preserves the relevant selectors. **R-001 and R-002 remain OPEN, with no new strict PRG bytes or VPP.** The completed-checkpoint and raw-frontier values above are unchanged.
+
+### 0508 Phase 8 bounded evidence (R-001/R-002 remain OPEN)
+
+[Phase 8](../analysis/0508_PHASE8_FINDINGS.md) proves from ROM-executed instructions that the **conditional** room state-zero `$B570` prefix clears `$07A0/$07A6/$0789/$68` and restores `$0781`, stopping before fixed `$EB82`. This narrows the room-index source to a known zeroing point **for that entry only**; it does not bound later producers, prove the initial NMI selector pair is live, or close $EB82 effects. Exactly 768 local tests pass. Research evidence only; strict floor **49,404**, VPP **24/100**, machine frontier **$FB96** unchanged.
