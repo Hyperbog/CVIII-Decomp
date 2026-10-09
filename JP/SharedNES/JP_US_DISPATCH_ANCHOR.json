@@ -1,0 +1,15 @@
+{
+  "name": "JP_US_E7FB_E86D_FIXED_STACK_DISPATCH",
+  "kind": "code",
+  "code_boundaries_verified": true,
+  "left": {
+    "prg_offset": 255995,
+    "size": 25,
+    "sha256": "d2adbf45aa9746eb53ba2e8ec8513cb338f8fd30f4bc3627074f186c14439091"
+  },
+  "right": {
+    "prg_offset": 256109,
+    "size": 25,
+    "sha256": "d2adbf45aa9746eb53ba2e8ec8513cb338f8fd30f4bc3627074f186c14439091"
+  }
+}

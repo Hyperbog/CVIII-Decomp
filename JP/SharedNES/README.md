@@ -80,3 +80,7 @@ python3 JP/tests/test_nes_trace_compare.py  # 16 synthetic log tests
 JSONL rows: `{"pc":"C000","a":"00","x":"00","y":"00","p":"24","sp":"FD","cycles":7,"prg_bank":20}`. Hexadecimal string register values or decimal integer values are accepted; `prg_bank` and `cycles` are optional unless requested. **No original reference ROM execution was run against this tool yet; no CPU/interrupt parity or strict coverage is claimed.** The two tools are reusable across game publishers and mapper families but remain discovery/test infrastructure.
 
 Details and limits: [FDS/trace evidence note](FDS_TRACE_EVIDENCE.md), [reference catalog](SOURCE_CATALOG.md).
+
+### First ROM-audited cross-edition code match
+
+[JP `$E7FB` ↔ US candidate `$E86D` exact 25-byte stack-dispatch routine](JP_US_DISPATCH_EXACT_MATCH.md): **15** identical original 6502 instructions, one US occurrence, plus a 134-byte physically contiguous but not entirely classified exact neighboring interval. Reproducible pinned JP+US tool: [`audit_shared_dispatch_jp_us.py`](../tools/audit_shared_dispatch_jp_us.py); hash-only [report](../analysis/shared_dispatch_jp_us_report.json) and [reusable anchor manifest](JP_US_DISPATCH_ANCHOR.json). **C1 local code equivalence only**, not US MMC5 bank mapping/caller/gameplay proof or additional strict PRG coverage.

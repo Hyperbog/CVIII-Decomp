@@ -1,0 +1,32 @@
+{
+  "candidate_function_transfer": "only local algorithm semantics with same register/stack/memory inputs",
+  "evidence": "original-ROM-matched 15 official-opcode instruction/operand bytes; target runtime mapping/callers not proved",
+  "jp_rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "neighbor_exact_span": {
+    "code_data_semantics": "unclassified outside 25-byte anchored routine",
+    "jp_prg_offset": 255928,
+    "length": 134,
+    "sha256": "49a31b22a09167c55a54fc9697817e67adde600d1fe8051ff3c8adc594d1c481",
+    "us_prg_offset": 256042
+  },
+  "new_strict_prg_bytes": 0,
+  "remaining": [
+    "US MMC5 mapper state and whether PRG31 maps at CPU E86D",
+    "US original callers and pointer-table producer domains",
+    "gameplay liveness in either target/whole-frame parity",
+    "full code/data classification of neighboring 134-byte span"
+  ],
+  "routine": {
+    "identical_bytes": true,
+    "instructions": 15,
+    "jp_known_cpu_entry": "E7FB",
+    "jp_prg_offset": 255995,
+    "length": 25,
+    "sha256": "d2adbf45aa9746eb53ba2e8ec8513cb338f8fd30f4bc3627074f186c14439091",
+    "unique_occurrences_in_us_prg": 1,
+    "us_candidate_cpu_entry": "E86D",
+    "us_prg_offset": 256109
+  },
+  "us_rom_sha256": "1c7b2ed2c1fb5839a6764006aa476f5c9d48f99465b6141980f3a5af1dfec0d6",
+  "vpp_delta": 0
+}
