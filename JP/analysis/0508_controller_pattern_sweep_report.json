@@ -1,0 +1,618 @@
+{
+  "status": "SYNTHETIC_BUTTON_PATTERN_SWEEP_NOT_ORIGINAL_GAMEPLAY",
+  "source_ROM_SHA256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "scenarios": [
+    {
+      "name": "none",
+      "frames_completed": 300,
+      "total_steps": 1055395,
+      "seen_18": [
+        0
+      ],
+      "seen_19": [
+        1
+      ],
+      "state_changes": [
+        {
+          "frame": 1,
+          "18": 0,
+          "19": 1,
+          "68": 0,
+          "F8": 0
+        }
+      ],
+      "change_count": 1,
+      "failure": null
+    },
+    {
+      "name": "A held",
+      "frames_completed": 300,
+      "total_steps": 1055395,
+      "seen_18": [
+        0
+      ],
+      "seen_19": [
+        1
+      ],
+      "state_changes": [
+        {
+          "frame": 1,
+          "18": 0,
+          "19": 1,
+          "68": 0,
+          "F8": 128
+        }
+      ],
+      "change_count": 1,
+      "failure": null
+    },
+    {
+      "name": "B held",
+      "frames_completed": 300,
+      "total_steps": 1055395,
+      "seen_18": [
+        0
+      ],
+      "seen_19": [
+        1
+      ],
+      "state_changes": [
+        {
+          "frame": 1,
+          "18": 0,
+          "19": 1,
+          "68": 0,
+          "F8": 64
+        }
+      ],
+      "change_count": 1,
+      "failure": null
+    },
+    {
+      "name": "Select held",
+      "frames_completed": 300,
+      "total_steps": 1055395,
+      "seen_18": [
+        0
+      ],
+      "seen_19": [
+        1
+      ],
+      "state_changes": [
+        {
+          "frame": 1,
+          "18": 0,
+          "19": 1,
+          "68": 0,
+          "F8": 32
+        }
+      ],
+      "change_count": 1,
+      "failure": null
+    },
+    {
+      "name": "Start held",
+      "frames_completed": 300,
+      "total_steps": 1055395,
+      "seen_18": [
+        0
+      ],
+      "seen_19": [
+        1
+      ],
+      "state_changes": [
+        {
+          "frame": 1,
+          "18": 0,
+          "19": 1,
+          "68": 0,
+          "F8": 16
+        }
+      ],
+      "change_count": 1,
+      "failure": null
+    },
+    {
+      "name": "Up held",
+      "frames_completed": 300,
+      "total_steps": 1055395,
+      "seen_18": [
+        0
+      ],
+      "seen_19": [
+        1
+      ],
+      "state_changes": [
+        {
+          "frame": 1,
+          "18": 0,
+          "19": 1,
+          "68": 0,
+          "F8": 8
+        }
+      ],
+      "change_count": 1,
+      "failure": null
+    },
+    {
+      "name": "Down held",
+      "frames_completed": 300,
+      "total_steps": 1055395,
+      "seen_18": [
+        0
+      ],
+      "seen_19": [
+        1
+      ],
+      "state_changes": [
+        {
+          "frame": 1,
+          "18": 0,
+          "19": 1,
+          "68": 0,
+          "F8": 4
+        }
+      ],
+      "change_count": 1,
+      "failure": null
+    },
+    {
+      "name": "Left held",
+      "frames_completed": 300,
+      "total_steps": 1055395,
+      "seen_18": [
+        0
+      ],
+      "seen_19": [
+        1
+      ],
+      "state_changes": [
+        {
+          "frame": 1,
+          "18": 0,
+          "19": 1,
+          "68": 0,
+          "F8": 2
+        }
+      ],
+      "change_count": 1,
+      "failure": null
+    },
+    {
+      "name": "Right held",
+      "frames_completed": 300,
+      "total_steps": 1055395,
+      "seen_18": [
+        0
+      ],
+      "seen_19": [
+        1
+      ],
+      "state_changes": [
+        {
+          "frame": 1,
+          "18": 0,
+          "19": 1,
+          "68": 0,
+          "F8": 1
+        }
+      ],
+      "change_count": 1,
+      "failure": null
+    },
+    {
+      "name": "A+Start held",
+      "frames_completed": 300,
+      "total_steps": 1055395,
+      "seen_18": [
+        0
+      ],
+      "seen_19": [
+        1
+      ],
+      "state_changes": [
+        {
+          "frame": 1,
+          "18": 0,
+          "19": 1,
+          "68": 0,
+          "F8": 144
+        }
+      ],
+      "change_count": 1,
+      "failure": null
+    },
+    {
+      "name": "Select+Start held",
+      "frames_completed": 300,
+      "total_steps": 1055395,
+      "seen_18": [
+        0
+      ],
+      "seen_19": [
+        1
+      ],
+      "state_changes": [
+        {
+          "frame": 1,
+          "18": 0,
+          "19": 1,
+          "68": 0,
+          "F8": 48
+        }
+      ],
+      "change_count": 1,
+      "failure": null
+    },
+    {
+      "name": "Start single at frame 1",
+      "frames_completed": 300,
+      "total_steps": 1055395,
+      "seen_18": [
+        0
+      ],
+      "seen_19": [
+        1
+      ],
+      "state_changes": [
+        {
+          "frame": 1,
+          "18": 0,
+          "19": 1,
+          "68": 0,
+          "F8": 16
+        }
+      ],
+      "change_count": 1,
+      "failure": null
+    },
+    {
+      "name": "Start single at frame 20",
+      "frames_completed": 300,
+      "total_steps": 522446,
+      "seen_18": [
+        0
+      ],
+      "seen_19": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "state_changes": [
+        {
+          "frame": 1,
+          "18": 0,
+          "19": 1,
+          "68": 0,
+          "F8": 0
+        },
+        {
+          "frame": 20,
+          "18": 0,
+          "19": 2,
+          "68": 0,
+          "F8": 16
+        },
+        {
+          "frame": 21,
+          "18": 0,
+          "19": 3,
+          "68": 0,
+          "F8": 0
+        },
+        {
+          "frame": 22,
+          "18": 0,
+          "19": 4,
+          "68": 0,
+          "F8": 0
+        },
+        {
+          "frame": 279,
+          "18": 0,
+          "19": 0,
+          "68": 0,
+          "F8": 0
+        },
+        {
+          "frame": 280,
+          "18": 0,
+          "19": 1,
+          "68": 0,
+          "F8": 0
+        }
+      ],
+      "change_count": 6,
+      "failure": null
+    },
+    {
+      "name": "Start pulse every 30",
+      "frames_completed": 300,
+      "total_steps": 654965,
+      "seen_18": [
+        0,
+        2,
+        10
+      ],
+      "seen_19": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "state_changes": [
+        {
+          "frame": 1,
+          "18": 0,
+          "19": 1,
+          "68": 0,
+          "F8": 16
+        },
+        {
+          "frame": 31,
+          "18": 0,
+          "19": 2,
+          "68": 0,
+          "F8": 16
+        },
+        {
+          "frame": 32,
+          "18": 0,
+          "19": 3,
+          "68": 0,
+          "F8": 0
+        },
+        {
+          "frame": 33,
+          "18": 0,
+          "19": 4,
+          "68": 0,
+          "F8": 0
+        },
+        {
+          "frame": 61,
+          "18": 0,
+          "19": 5,
+          "68": 0,
+          "F8": 16
+        },
+        {
+          "frame": 189,
+          "18": 2,
+          "19": 0,
+          "68": 0,
+          "F8": 0
+        },
+        {
+          "frame": 190,
+          "18": 10,
+          "19": 0,
+          "68": 0,
+          "F8": 0
+        },
+        {
+          "frame": 191,
+          "18": 10,
+          "19": 1,
+          "68": 0,
+          "F8": 0
+        },
+        {
+          "frame": 192,
+          "18": 10,
+          "19": 2,
+          "68": 0,
+          "F8": 0
+        },
+        {
+          "frame": 223,
+          "18": 10,
+          "19": 3,
+          "68": 0,
+          "F8": 0
+        },
+        {
+          "frame": 241,
+          "18": 10,
+          "19": 4,
+          "68": 0,
+          "F8": 16
+        },
+        {
+          "frame": 242,
+          "18": 10,
+          "19": 5,
+          "68": 0,
+          "F8": 0
+        }
+      ],
+      "change_count": 12,
+      "failure": null
+    },
+    {
+      "name": "Start then A",
+      "frames_completed": 300,
+      "total_steps": 529829,
+      "seen_18": [
+        0
+      ],
+      "seen_19": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "state_changes": [
+        {
+          "frame": 1,
+          "18": 0,
+          "19": 1,
+          "68": 0,
+          "F8": 0
+        },
+        {
+          "frame": 2,
+          "18": 0,
+          "19": 2,
+          "68": 0,
+          "F8": 16
+        },
+        {
+          "frame": 3,
+          "18": 0,
+          "19": 3,
+          "68": 0,
+          "F8": 0
+        },
+        {
+          "frame": 4,
+          "18": 0,
+          "19": 4,
+          "68": 0,
+          "F8": 0
+        },
+        {
+          "frame": 261,
+          "18": 0,
+          "19": 0,
+          "68": 0,
+          "F8": 0
+        },
+        {
+          "frame": 262,
+          "18": 0,
+          "19": 1,
+          "68": 0,
+          "F8": 0
+        }
+      ],
+      "change_count": 6,
+      "failure": null
+    },
+    {
+      "name": "A,B,Start cadence",
+      "frames_completed": 300,
+      "total_steps": 647426,
+      "seen_18": [
+        0,
+        2,
+        10
+      ],
+      "seen_19": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "state_changes": [
+        {
+          "frame": 1,
+          "18": 0,
+          "19": 1,
+          "68": 0,
+          "F8": 128
+        },
+        {
+          "frame": 21,
+          "18": 0,
+          "19": 2,
+          "68": 0,
+          "F8": 16
+        },
+        {
+          "frame": 22,
+          "18": 0,
+          "19": 3,
+          "68": 0,
+          "F8": 0
+        },
+        {
+          "frame": 23,
+          "18": 0,
+          "19": 4,
+          "68": 0,
+          "F8": 0
+        },
+        {
+          "frame": 61,
+          "18": 0,
+          "19": 5,
+          "68": 0,
+          "F8": 16
+        },
+        {
+          "frame": 189,
+          "18": 2,
+          "19": 0,
+          "68": 0,
+          "F8": 0
+        },
+        {
+          "frame": 190,
+          "18": 10,
+          "19": 0,
+          "68": 0,
+          "F8": 0
+        },
+        {
+          "frame": 191,
+          "18": 10,
+          "19": 1,
+          "68": 0,
+          "F8": 0
+        },
+        {
+          "frame": 192,
+          "18": 10,
+          "19": 2,
+          "68": 0,
+          "F8": 0
+        },
+        {
+          "frame": 223,
+          "18": 10,
+          "19": 3,
+          "68": 0,
+          "F8": 0
+        },
+        {
+          "frame": 261,
+          "18": 10,
+          "19": 4,
+          "68": 0,
+          "F8": 16
+        },
+        {
+          "frame": 262,
+          "18": 10,
+          "19": 5,
+          "68": 0,
+          "F8": 0
+        }
+      ],
+      "change_count": 12,
+      "failure": null
+    }
+  ],
+  "total_original_instruction_steps": 15019406,
+  "tested_manual_NMIs": 4800,
+  "distinct_18_values": [
+    0,
+    2,
+    10
+  ],
+  "notes": [
+    "No IRQ scheduling",
+    "Controller values forced per artificial injection",
+    "PPU $2002 forced 0 outside synthetic reset waits",
+    "No real video/audio/timing or live original controller transcript",
+    "Never promote strict PRG from this sweep"
+  ]
+}
