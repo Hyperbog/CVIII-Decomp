@@ -1,0 +1,28 @@
+{
+  "status": "PROVISIONAL_CONDITIONAL_TWO_NMI_ENTRY_WITNESS",
+  "rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "executed_cases": 65536,
+  "first_nmi_entry": "fixed E51E -> mapper 0A -> raw0A AFA4 -> E7FB -> B36B -> RTS",
+  "second_nmi_entry": "fixed E526 -> mapper 0A -> raw0A B4CC -> E7FB -> B570 entry",
+  "incoming_saved_y_domain": "00-FF",
+  "incoming_0789_domain": "00-FF",
+  "initial_ram_18": "0C",
+  "initial_ram_19": "13",
+  "after_first_ram_18": "0D",
+  "after_first_ram_19": "00",
+  "second_target_cpu": "B570",
+  "first_instructions": 30,
+  "second_instructions": 23,
+  "first_pointer_reads": [
+    "AFCF",
+    "AFD0"
+  ],
+  "second_pointer_reads": [
+    "B4D1",
+    "B4D2"
+  ],
+  "caveat": "synthetic parent stack; first selector precondition NOT proven live, no full NMI or external callees; no unmodeled intervening writers",
+  "strict_new_prg_bytes": 0,
+  "strict_cumulative_prg_bytes": 49404,
+  "vpp": 24
+}

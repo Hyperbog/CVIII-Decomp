@@ -48,3 +48,9 @@ The owning chapter, this log, and the relevant Q/D/L/C/U entry should be updated
 The [Phase 1–5 research commit](https://github.com/Hyperbog/CVIII-Decomp/commit/bcf85ba64b50611a2ae7e7220cbadec8742202f3) records the bank-$0A 935-start candidate graph, predecessor $18 transition, $07A6 descriptor progressions, and five conditional bank-$0E room streams (175 bytes). Every claim is bounded and producer-domain caveats remain active.
 
 [Phase 6](../analysis/0508_PHASE6_FINDINGS.md) independently checks all previously admitted IRQ handler roots and their local/fixed helper closure: 558 handler instruction starts and 138 handler write sites, with two $0789,X writes bounded away from room indices. Fixed E2D2 maps bank $01 on IRQ entry without altering the tracker $23, and E2D0 restores the tracked PRG bank on exit. This removes the **verified IRQ handler graph** as a writer of $08/$09/$10/$18/$19/$23/$54/$68/$07A0/$07A6; NMI interleaving and non-IRQ producer liveness remain unknown. **No new strict PRG-byte count, VPP or resume-state advancement** is inferred from the intermediate research commits.
+
+
+## 0508 provisional research preserved in Git (not an authoritative checkpoint)
+
+- **Phase 7:** [conditional two-entry NMI witness](../analysis/0508_PHASE7_FINDINGS.md) executes fixed `E51E` → raw `0A:AFA4` → `E7FB` → `B36B`, setting `$18=$0D,$19=0`. The next dispatch under unchanged selectors selects `B570`. All 65,536 test pairs pass under synthetic-parent and precondition constraints; no reset-to-frame liveness is asserted. R-001/R-002 remain open.
+- Earlier 0508 [Phase 5](../analysis/0508_PHASE5_FINDINGS.md) records the bounded five-stream bank-`$0E` loader; [Phase 6](../analysis/0508_PHASE6_FINDINGS.md) records IRQ-side preservation of selector and pointer RAM. These are **provisional findings**, not newly credited strict ROM coverage. Current completed checkpoint remains 0507; 49,404 strict PRG bytes and 24/100 VPP.

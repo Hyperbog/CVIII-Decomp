@@ -36,3 +36,8 @@ Correctly implement interrupt priority, 6502 8-bit/16-bit wrap, JSR stack semant
 ## Provisional 0508 IRQ preservation result (R-001 / R-002)
 
 The [Phase 6 JP-ROM static audit](../analysis/0508_PHASE6_FINDINGS.md) re-traverses all 38 unique 04F2 IRQ handler entrypoints (45 encoded states), covering 558 handler instruction starts, the $9F5B helper including its $9F87 cursor-wrap branch, and fixed IRQ helper bodies. It proves the admitted IRQ graph leaves ZP $08/$09/$10/$18/$19/$23/$54/$68 and RAM $07A0/$07A6 untouched. The two indexed writes at $A328 and $A4A5 have locally bounded X=0..2 and X=0..7, excluding $07A0. The IRQ maps bank $01 through E2D2 without changing $23 and restores the tracked bank using E2D0 before RTI. This supports temporary bank-$0E source reads inside fixed $FB96 against ordinary IRQ interleaving, but does not prove NMI re-entry, reset-to-room reachability, cycle timing, or complete frame parity. No newly verified PRG bytes or VPP points are credited.
+
+
+## Provisional 0508 Phase 7 — two-entry inline-dispatch witness
+
+A ROM-backed 6502 instruction executor tests conditional `$18=$0C, $19=$13` through fixed `$E51E`, raw `$0A:$AFA4`, the exact `$E7FB` stack-consuming ABI and `$B36B`. The last routine assigns `$18=$0D` and `$19=0`. Under the explicit *no intervening selector writer* condition, a later fixed `$E526` dispatch reaches raw `$0A:$B4CC` and selects handler `$B570`. All 65,536 `$0789 × saved-Y` tests pass with byte/stack/mapper/flag assertions. This is **not** proof the initial predecessor state is reachable after RESET or a native NMI/IRQ timing trace; retain R-001 OPEN. [0508 Phase 7](../analysis/0508_PHASE7_FINDINGS.md).

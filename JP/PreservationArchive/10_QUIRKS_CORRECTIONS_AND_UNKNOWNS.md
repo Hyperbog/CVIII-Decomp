@@ -39,3 +39,6 @@
 For every new record add reproducible ROM address, evidence grade, whether actual gameplay reachability is proved, a minimal regression, and whether a correction affected already counted bytes. Do not infer an original-game quirk from a test failure in newly written C++ alone.
 
 **U-002 supplementary 0508 evidence (not closure):** the [Phase 6 IRQ write-set audit](../analysis/0508_PHASE6_FINDINGS.md) excludes the admitted 45-state IRQ graph as a modifier of $18/$19/$68, $07A0/$07A6 or $08/$09. It does not eliminate NMI and non-IRQ game-state writers, nor prove live room dispatch. Phase 4's bank-$01:$BB57 conditional $07A0>04 values remain an unresolved producer-domain counterexample, not a verified out-of-range room load.
+
+
+**U-001 / U-002, 0508 Phase 7 refinement (still OPEN):** With synthetic parent stack and incoming `$18=$0C,$19=$13`, ROM execution of raw `$0A:$B36B` sets `$18=$0D,$19=0`. A second independent NMI entry with no intervening writer then dispatches to `$B570`, as verified by 65,536 two-entry tests. This establishes a *conditional* original-ROM state transition, **not** live reset-to-NMI producer provenance; unresolved values beyond encoded table widths must not be clamped. [ROM-backed audit and caveats](../analysis/0508_PHASE7_FINDINGS.md).

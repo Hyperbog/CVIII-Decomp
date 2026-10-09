@@ -50,3 +50,8 @@ P0 = needed for faithful native runtime; P1 = subsystem documentation and recons
 ## Interim checkpoint-0508 research commits (R-001/R-002/R-004; still OPEN)
 
 The [Phase 1–5 research commit](https://github.com/Hyperbog/CVIII-Decomp/commit/bcf85ba64b50611a2ae7e7220cbadec8742202f3) preserves reproducible ROM audits and local findings, **without closing checkpoint 0508**. See [Phase 5 conditional bank-$0E streams](../analysis/0508_PHASE5_FINDINGS.md) and the [Phase 6 IRQ preservation audit](../analysis/0508_PHASE6_FINDINGS.md). The latter proves that the previously admitted IRQ-handler graph does not overwrite key room-loader pointer/index/state RAM, but no original reset-to-room trace, all-writer global bound, or native full-frame parity exists. R-001, R-002, R-004 and R-006 remain OPEN. The strict coverage floor stays 49,404 bytes and VPP stays 24; consult RESUME_STATE for the last **completed** checkpoint.
+
+
+### 0508 Phase 7 provisional evidence — R-001 remains OPEN
+
+[Phase 7](../analysis/0508_PHASE7_FINDINGS.md) reproduces the original 6502 `E7FB` stack ABI and conditional pair `$18=$0C,$19=$13` → `$B36B` → `$18=$0D,$19=0` → next dispatch `$B570` under an explicit no-intervening-writer assumption. 65,536 cases pass; this does not prove the first input pair is reached from reset or close all NMI-side writers. Phase 6 showed the already-admitted IRQ graph preserves the relevant selectors. **R-001 and R-002 remain OPEN, with no new strict PRG bytes or VPP.** The completed-checkpoint and raw-frontier values above are unchanged.

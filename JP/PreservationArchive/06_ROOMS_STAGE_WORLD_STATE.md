@@ -45,3 +45,10 @@ Next: close $18/$19/$68 live sources, B6A4 carry branch, $07A0-indexed pointer e
 The committed [0508 Phase 5 findings](../analysis/0508_PHASE5_FINDINGS.md) exercise B7F7 under explicitly assumed room indices $07A0=00..04 and map five complete bank-$0E data streams at $BE8B-$BF39 (175 physical bytes, 30 five-byte object records) through actual FB96 stack/mapper transactions. These are **conditional parser input bytes**, not additional semantic PRG coverage. Phase 4 shows a separate raw-bank-$01:$BB57 routine *can* write $07A0 values larger than $04, so the pointer-table width is not a proven global bound.
 
 The [Phase 6 IRQ audit](../analysis/0508_PHASE6_FINDINGS.md) closes a different bounded question: the verified IRQ handler graph preserves the loader pointer $08/$09, room indices $07A0/$07A6 and state selectors $18/$19/$68. This does **not** establish that the five-input loader executes from reset, or exclude NMI re-entry and other ordinary-frame writers. Research tasks R-001/R-002 remain OPEN; fixed PRG31 $FB96 remains an unclaimed semantic frontier.
+
+
+## Provisional 0508 — bounded original room-state transitions
+
+The [Phase 5 mapped-bus loader audit](../analysis/0508_PHASE5_FINDINGS.md) parses five conditional raw-bank-$0E room streams (175 bytes, 30 object records) through fixed `$FB96`, restoring bank `$0A` after each read. Phase 6's [IRQ preservation](../analysis/0508_PHASE6_FINDINGS.md) rules out overwrites to its pointer/selector inputs within the verified IRQ handler graph, but does not prove frame liveness.
+
+[Phase 7](../analysis/0508_PHASE7_FINDINGS.md) runs the exact first-level inline-tail dispatch twice under **conditional** seed `$18=$0C, $19=$13`: raw-`$0A:$B36B` updates `$18=$0D, $19=0`; if no other writer intervenes, the next NMI entry dispatches to raw-`$0A:$B570`. 65,536 saved-Y/field combinations pass. Because the initial pair's live producer and the subsequent handler execution are not proved, this remains a local two-entry witness, **not a verified stage progression or semantic-byte coverage addition**. R-001 and R-002 remain OPEN.
