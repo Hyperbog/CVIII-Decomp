@@ -49,4 +49,5 @@ fi
 "$cxx" "${flags[@]}" "$tests/vrc6_irq_trace_driver_0508.cpp" "$src/vrc6_irq.cpp" -o "$build/vrc6_irq_trace_driver"
 python3 "$root/JP/tools/test_vrc6_irq_cross_language_0508.py" "$build/vrc6_irq_trace_driver"
 python3 "$root/JP/tests/test_nes_reuse.py"
+python3 "$root/JP/tests/test_nes_mapper_family.py"
 echo "PASS: 8 native test binaries compiled; shared NES/FDS ROM-free tests executed"

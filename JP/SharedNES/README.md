@@ -23,6 +23,10 @@ python3 JP/tests/test_nes_reuse.py  # ROM-free in CI; private JP+US pair used if
 
 The example anchor is a 32-byte **unclassified exact physical PRG correspondence**, not yet a function. It exists to demonstrate deterministic fingerprint and mapper checks, not to raise coverage.
 
+## Mapper-family adapter (implemented)
+
+`../tools/nes_mapper_family.py` provides an explicit-provenance `BankContext` and physical PRG offset resolution for the 16 KiB switchable, 8 KiB switchable and fixed-last PRG windows of VRC6a/b. It normalizes mapper-26 A0/A1-swapped subregister addresses to mapper-24 chip-coordinate addresses without claiming the game actually wrote those registers. It raises errors on unknown mappers, missing bank-selection provenance and out-of-range banks. `../tests/test_nes_mapper_family.py` supplies nine ROM-free tests, including exhaustive register A0/A1 truth-table checks across 8 high-address pages. These are analytical adapters, **not a full VRC6 mapper emulator** and not an equivalence claim about different games.
+
 ## Engineering layers
 
 | Layer | Share across games? | Current evidence | Next gate |
