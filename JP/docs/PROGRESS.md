@@ -267,3 +267,8 @@ The [reusable 2A03/VRC6 stepper's RESET trace](../analysis/0508_RESET_NMI_SYNTHE
 ## 0508 modeled-vblank experimental NMI batch (infrastructure, zero strict-credit)
 
 The [experimental cycle/vblank execution report](../analysis/0508_EXPERIMENTAL_VBLANK_CYCLE_TRACE.md) adds a mapped original-ROM CPU instruction-cycle accounting and modeled PPUSTATUS/PPUCTRL/NMI-edge scheduler. Three input cases run **960 modeled PPU frames, 8,864,752 original ROM instructions and 948 modeled NMI entries**. The 480-frame Start-pulse path reaches conditional `$18=00,02,0A,09,03,04` but not `$0C/$0D`; the independent unit audit passes cycle classes for 151 official opcodes and 27 representative opcode timings. CPU/PPU bus interleave, VRC6 IRQ, odd-frame PPU dot, DMA and reference-emulator parity remain unimplemented. This is not hardware gameplay liveness, a bootable native game, or a new score criterion: strict PRG **49,404**, VPP **24/100**, checkpoint **0507**, fixed frontier `$FB96` unchanged.
+
+
+## Bulk 0508 IRQ-enabled RESET/NMI trace experiments (provisional)
+
+[Reproducible VRC6 IRQ/CPU-vector experiment](../analysis/0508_VRC6_IRQ_INSTRUCTION_BOUNDARY_TRACE.md): 267 modeled IRQ component checks, 8,861,056 original ROM instruction steps in 960 modeled frames, 948 NMIs, 350 mapper IRQ vector entries and 350 corresponding returns. This explicitly replaces the previous no-mapper-IRQ experimental limitation for these bounded traces, **not** the still-missing cycle-accurate reference CPU/PPU/DMA trace or live room-$0C/$0D state proof. VPP remains **24/100**, strict PRG **49,404/262,144 = 18.8461%**, last completed resume **0507**.

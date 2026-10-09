@@ -1,0 +1,5736 @@
+{
+  "status": "EXPERIMENTAL_MAPPER24_IRQ_CPU_VECTOR_NOT_REFERENCE_PARITY",
+  "rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "input_policy": "none",
+  "frames_target": 240,
+  "frames_completed": 240,
+  "cpu_steps": 2207098,
+  "cpu_cycles": 7147360,
+  "nmi_entries": 237,
+  "nmi_returns": 236,
+  "irq_entries": 234,
+  "irq_returns": 234,
+  "mapper_irq_assertions": 234,
+  "mapper_irq_counter_clocks": 6104,
+  "irq_masked_instruction_boundaries": 14040,
+  "irq_latch_writes": 708,
+  "irq_control_writes": 237,
+  "irq_ack_writes": 234,
+  "irq_register_writes": [
+    [
+      86985,
+      61440,
+      255
+    ],
+    [
+      86992,
+      61441,
+      0
+    ],
+    [
+      87001,
+      61440,
+      255
+    ],
+    [
+      116767,
+      61440,
+      255
+    ],
+    [
+      116774,
+      61441,
+      0
+    ],
+    [
+      116783,
+      61440,
+      255
+    ],
+    [
+      176329,
+      61440,
+      231
+    ],
+    [
+      176336,
+      61441,
+      2
+    ],
+    [
+      176345,
+      61440,
+      224
+    ],
+    [
+      179374,
+      61440,
+      255
+    ],
+    [
+      179392,
+      61442,
+      0
+    ],
+    [
+      206107,
+      61440,
+      231
+    ],
+    [
+      206114,
+      61441,
+      2
+    ],
+    [
+      206123,
+      61440,
+      224
+    ],
+    [
+      209154,
+      61440,
+      255
+    ],
+    [
+      209172,
+      61442,
+      0
+    ],
+    [
+      235888,
+      61440,
+      231
+    ],
+    [
+      235895,
+      61441,
+      2
+    ],
+    [
+      235904,
+      61440,
+      224
+    ],
+    [
+      238932,
+      61440,
+      255
+    ],
+    [
+      238950,
+      61442,
+      0
+    ],
+    [
+      265671,
+      61440,
+      231
+    ],
+    [
+      265678,
+      61441,
+      2
+    ],
+    [
+      265687,
+      61440,
+      224
+    ],
+    [
+      268718,
+      61440,
+      255
+    ],
+    [
+      268736,
+      61442,
+      0
+    ],
+    [
+      295451,
+      61440,
+      231
+    ],
+    [
+      295458,
+      61441,
+      2
+    ],
+    [
+      295467,
+      61440,
+      224
+    ],
+    [
+      298498,
+      61440,
+      255
+    ],
+    [
+      298516,
+      61442,
+      0
+    ],
+    [
+      325231,
+      61440,
+      231
+    ],
+    [
+      325238,
+      61441,
+      2
+    ],
+    [
+      325247,
+      61440,
+      224
+    ],
+    [
+      328276,
+      61440,
+      255
+    ],
+    [
+      328294,
+      61442,
+      0
+    ],
+    [
+      355013,
+      61440,
+      231
+    ],
+    [
+      355020,
+      61441,
+      2
+    ],
+    [
+      355029,
+      61440,
+      224
+    ],
+    [
+      358060,
+      61440,
+      255
+    ],
+    [
+      358078,
+      61442,
+      0
+    ],
+    [
+      384793,
+      61440,
+      231
+    ],
+    [
+      384800,
+      61441,
+      2
+    ],
+    [
+      384809,
+      61440,
+      224
+    ],
+    [
+      387838,
+      61440,
+      255
+    ],
+    [
+      387856,
+      61442,
+      0
+    ],
+    [
+      414572,
+      61440,
+      231
+    ],
+    [
+      414579,
+      61441,
+      2
+    ],
+    [
+      414588,
+      61440,
+      224
+    ],
+    [
+      417618,
+      61440,
+      255
+    ],
+    [
+      417636,
+      61442,
+      0
+    ],
+    [
+      444353,
+      61440,
+      231
+    ],
+    [
+      444360,
+      61441,
+      2
+    ],
+    [
+      444369,
+      61440,
+      224
+    ],
+    [
+      447402,
+      61440,
+      255
+    ],
+    [
+      447420,
+      61442,
+      0
+    ],
+    [
+      474136,
+      61440,
+      231
+    ],
+    [
+      474143,
+      61441,
+      2
+    ],
+    [
+      474152,
+      61440,
+      224
+    ],
+    [
+      477181,
+      61440,
+      255
+    ],
+    [
+      477199,
+      61442,
+      0
+    ],
+    [
+      503916,
+      61440,
+      231
+    ],
+    [
+      503923,
+      61441,
+      2
+    ],
+    [
+      503932,
+      61440,
+      224
+    ],
+    [
+      506964,
+      61440,
+      255
+    ],
+    [
+      506982,
+      61442,
+      0
+    ],
+    [
+      533697,
+      61440,
+      231
+    ],
+    [
+      533704,
+      61441,
+      2
+    ],
+    [
+      533713,
+      61440,
+      224
+    ],
+    [
+      536741,
+      61440,
+      255
+    ],
+    [
+      536759,
+      61442,
+      0
+    ],
+    [
+      563476,
+      61440,
+      231
+    ],
+    [
+      563483,
+      61441,
+      2
+    ],
+    [
+      563492,
+      61440,
+      224
+    ],
+    [
+      566521,
+      61440,
+      255
+    ],
+    [
+      566539,
+      61442,
+      0
+    ],
+    [
+      593258,
+      61440,
+      231
+    ],
+    [
+      593265,
+      61441,
+      2
+    ],
+    [
+      593274,
+      61440,
+      224
+    ],
+    [
+      596303,
+      61440,
+      255
+    ],
+    [
+      596321,
+      61442,
+      0
+    ],
+    [
+      623039,
+      61440,
+      231
+    ],
+    [
+      623046,
+      61441,
+      2
+    ],
+    [
+      623055,
+      61440,
+      224
+    ],
+    [
+      626083,
+      61440,
+      255
+    ],
+    [
+      626101,
+      61442,
+      0
+    ],
+    [
+      652819,
+      61440,
+      231
+    ],
+    [
+      652826,
+      61441,
+      2
+    ],
+    [
+      652835,
+      61440,
+      224
+    ],
+    [
+      655863,
+      61440,
+      255
+    ],
+    [
+      655881,
+      61442,
+      0
+    ],
+    [
+      682600,
+      61440,
+      231
+    ],
+    [
+      682607,
+      61441,
+      2
+    ],
+    [
+      682616,
+      61440,
+      224
+    ],
+    [
+      685645,
+      61440,
+      255
+    ],
+    [
+      685663,
+      61442,
+      0
+    ],
+    [
+      712380,
+      61440,
+      231
+    ],
+    [
+      712387,
+      61441,
+      2
+    ],
+    [
+      712396,
+      61440,
+      224
+    ],
+    [
+      715425,
+      61440,
+      255
+    ],
+    [
+      715443,
+      61442,
+      0
+    ],
+    [
+      742160,
+      61440,
+      231
+    ],
+    [
+      742167,
+      61441,
+      2
+    ],
+    [
+      742176,
+      61440,
+      224
+    ],
+    [
+      745205,
+      61440,
+      255
+    ],
+    [
+      745223,
+      61442,
+      0
+    ],
+    [
+      771944,
+      61440,
+      231
+    ],
+    [
+      771951,
+      61441,
+      2
+    ],
+    [
+      771960,
+      61440,
+      224
+    ],
+    [
+      774989,
+      61440,
+      255
+    ],
+    [
+      775007,
+      61442,
+      0
+    ],
+    [
+      801722,
+      61440,
+      231
+    ],
+    [
+      801729,
+      61441,
+      2
+    ],
+    [
+      801738,
+      61440,
+      224
+    ],
+    [
+      804767,
+      61440,
+      255
+    ],
+    [
+      804785,
+      61442,
+      0
+    ],
+    [
+      831502,
+      61440,
+      231
+    ],
+    [
+      831509,
+      61441,
+      2
+    ],
+    [
+      831518,
+      61440,
+      224
+    ],
+    [
+      834547,
+      61440,
+      255
+    ],
+    [
+      834565,
+      61442,
+      0
+    ],
+    [
+      861282,
+      61440,
+      231
+    ],
+    [
+      861289,
+      61441,
+      2
+    ],
+    [
+      861298,
+      61440,
+      224
+    ],
+    [
+      864329,
+      61440,
+      255
+    ],
+    [
+      864347,
+      61442,
+      0
+    ],
+    [
+      891064,
+      61440,
+      231
+    ],
+    [
+      891071,
+      61441,
+      2
+    ],
+    [
+      891080,
+      61440,
+      224
+    ],
+    [
+      894108,
+      61440,
+      255
+    ],
+    [
+      894126,
+      61442,
+      0
+    ],
+    [
+      920843,
+      61440,
+      231
+    ],
+    [
+      920850,
+      61441,
+      2
+    ],
+    [
+      920859,
+      61440,
+      224
+    ],
+    [
+      923888,
+      61440,
+      255
+    ],
+    [
+      923906,
+      61442,
+      0
+    ],
+    [
+      950628,
+      61440,
+      231
+    ],
+    [
+      950635,
+      61441,
+      2
+    ],
+    [
+      950644,
+      61440,
+      224
+    ],
+    [
+      953672,
+      61440,
+      255
+    ],
+    [
+      953690,
+      61442,
+      0
+    ],
+    [
+      980406,
+      61440,
+      231
+    ],
+    [
+      980413,
+      61441,
+      2
+    ],
+    [
+      980422,
+      61440,
+      224
+    ],
+    [
+      983450,
+      61440,
+      255
+    ],
+    [
+      983468,
+      61442,
+      0
+    ],
+    [
+      1010186,
+      61440,
+      231
+    ],
+    [
+      1010193,
+      61441,
+      2
+    ],
+    [
+      1010202,
+      61440,
+      224
+    ],
+    [
+      1013230,
+      61440,
+      255
+    ],
+    [
+      1013248,
+      61442,
+      0
+    ],
+    [
+      1039967,
+      61440,
+      231
+    ],
+    [
+      1039974,
+      61441,
+      2
+    ],
+    [
+      1039983,
+      61440,
+      224
+    ],
+    [
+      1043012,
+      61440,
+      255
+    ],
+    [
+      1043030,
+      61442,
+      0
+    ],
+    [
+      1069747,
+      61440,
+      231
+    ],
+    [
+      1069754,
+      61441,
+      2
+    ],
+    [
+      1069763,
+      61440,
+      224
+    ],
+    [
+      1072792,
+      61440,
+      255
+    ],
+    [
+      1072810,
+      61442,
+      0
+    ],
+    [
+      1099529,
+      61440,
+      231
+    ],
+    [
+      1099536,
+      61441,
+      2
+    ],
+    [
+      1099545,
+      61440,
+      224
+    ],
+    [
+      1102574,
+      61440,
+      255
+    ],
+    [
+      1102592,
+      61442,
+      0
+    ],
+    [
+      1129308,
+      61440,
+      231
+    ],
+    [
+      1129315,
+      61441,
+      2
+    ],
+    [
+      1129324,
+      61440,
+      224
+    ],
+    [
+      1132353,
+      61440,
+      255
+    ],
+    [
+      1132371,
+      61442,
+      0
+    ],
+    [
+      1159090,
+      61440,
+      231
+    ],
+    [
+      1159097,
+      61441,
+      2
+    ],
+    [
+      1159106,
+      61440,
+      224
+    ],
+    [
+      1162138,
+      61440,
+      255
+    ],
+    [
+      1162156,
+      61442,
+      0
+    ],
+    [
+      1188869,
+      61440,
+      231
+    ],
+    [
+      1188876,
+      61441,
+      2
+    ],
+    [
+      1188885,
+      61440,
+      224
+    ],
+    [
+      1191915,
+      61440,
+      255
+    ],
+    [
+      1191933,
+      61442,
+      0
+    ],
+    [
+      1218652,
+      61440,
+      231
+    ],
+    [
+      1218659,
+      61441,
+      2
+    ],
+    [
+      1218668,
+      61440,
+      224
+    ],
+    [
+      1221699,
+      61440,
+      255
+    ],
+    [
+      1221717,
+      61442,
+      0
+    ],
+    [
+      1248433,
+      61440,
+      231
+    ],
+    [
+      1248440,
+      61441,
+      2
+    ],
+    [
+      1248449,
+      61440,
+      224
+    ],
+    [
+      1251479,
+      61440,
+      255
+    ],
+    [
+      1251497,
+      61442,
+      0
+    ],
+    [
+      1278211,
+      61440,
+      231
+    ],
+    [
+      1278218,
+      61441,
+      2
+    ],
+    [
+      1278227,
+      61440,
+      224
+    ],
+    [
+      1281257,
+      61440,
+      255
+    ],
+    [
+      1281275,
+      61442,
+      0
+    ],
+    [
+      1307995,
+      61440,
+      231
+    ],
+    [
+      1308002,
+      61441,
+      2
+    ],
+    [
+      1308011,
+      61440,
+      224
+    ],
+    [
+      1311041,
+      61440,
+      255
+    ],
+    [
+      1311059,
+      61442,
+      0
+    ],
+    [
+      1337774,
+      61440,
+      231
+    ],
+    [
+      1337781,
+      61441,
+      2
+    ],
+    [
+      1337790,
+      61440,
+      224
+    ],
+    [
+      1340821,
+      61440,
+      255
+    ],
+    [
+      1340839,
+      61442,
+      0
+    ],
+    [
+      1367557,
+      61440,
+      231
+    ],
+    [
+      1367564,
+      61441,
+      2
+    ],
+    [
+      1367573,
+      61440,
+      224
+    ],
+    [
+      1370603,
+      61440,
+      255
+    ],
+    [
+      1370621,
+      61442,
+      0
+    ],
+    [
+      1397335,
+      61440,
+      231
+    ],
+    [
+      1397342,
+      61441,
+      2
+    ],
+    [
+      1397351,
+      61440,
+      224
+    ],
+    [
+      1400381,
+      61440,
+      255
+    ],
+    [
+      1400399,
+      61442,
+      0
+    ],
+    [
+      1427116,
+      61440,
+      231
+    ],
+    [
+      1427123,
+      61441,
+      2
+    ],
+    [
+      1427132,
+      61440,
+      224
+    ],
+    [
+      1430163,
+      61440,
+      255
+    ],
+    [
+      1430181,
+      61442,
+      0
+    ],
+    [
+      1456896,
+      61440,
+      231
+    ],
+    [
+      1456903,
+      61441,
+      2
+    ],
+    [
+      1456912,
+      61440,
+      224
+    ],
+    [
+      1459943,
+      61440,
+      255
+    ],
+    [
+      1459961,
+      61442,
+      0
+    ],
+    [
+      1486677,
+      61440,
+      231
+    ],
+    [
+      1486684,
+      61441,
+      2
+    ],
+    [
+      1486693,
+      61440,
+      224
+    ],
+    [
+      1489721,
+      61440,
+      255
+    ],
+    [
+      1489739,
+      61442,
+      0
+    ],
+    [
+      1516459,
+      61440,
+      231
+    ],
+    [
+      1516466,
+      61441,
+      2
+    ],
+    [
+      1516475,
+      61440,
+      224
+    ],
+    [
+      1519504,
+      61440,
+      255
+    ],
+    [
+      1519522,
+      61442,
+      0
+    ],
+    [
+      1546237,
+      61440,
+      231
+    ],
+    [
+      1546244,
+      61441,
+      2
+    ],
+    [
+      1546253,
+      61440,
+      224
+    ],
+    [
+      1549283,
+      61440,
+      255
+    ],
+    [
+      1549301,
+      61442,
+      0
+    ],
+    [
+      1576018,
+      61440,
+      231
+    ],
+    [
+      1576025,
+      61441,
+      2
+    ],
+    [
+      1576034,
+      61440,
+      224
+    ],
+    [
+      1579066,
+      61440,
+      255
+    ],
+    [
+      1579084,
+      61442,
+      0
+    ],
+    [
+      1605799,
+      61440,
+      231
+    ],
+    [
+      1605806,
+      61441,
+      2
+    ],
+    [
+      1605815,
+      61440,
+      224
+    ],
+    [
+      1608846,
+      61440,
+      255
+    ],
+    [
+      1608864,
+      61442,
+      0
+    ],
+    [
+      1635579,
+      61440,
+      231
+    ],
+    [
+      1635586,
+      61441,
+      2
+    ],
+    [
+      1635595,
+      61440,
+      224
+    ],
+    [
+      1638624,
+      61440,
+      255
+    ],
+    [
+      1638642,
+      61442,
+      0
+    ]
+  ],
+  "irq_entry_log": [
+    {
+      "entry": 1,
+      "cycle": 179186,
+      "frame": 6,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 4,
+      "raw_bank": 4,
+      "vector": 57589
+    },
+    {
+      "entry": 2,
+      "cycle": 208966,
+      "frame": 7,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 3,
+      "cycle": 238744,
+      "frame": 8,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 4,
+      "cycle": 268530,
+      "frame": 9,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 5,
+      "cycle": 298310,
+      "frame": 10,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 6,
+      "cycle": 328088,
+      "frame": 11,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 7,
+      "cycle": 357872,
+      "frame": 12,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 8,
+      "cycle": 387650,
+      "frame": 13,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 9,
+      "cycle": 417430,
+      "frame": 14,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 10,
+      "cycle": 447214,
+      "frame": 15,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 11,
+      "cycle": 476993,
+      "frame": 16,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 12,
+      "cycle": 506776,
+      "frame": 17,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 13,
+      "cycle": 536553,
+      "frame": 18,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 14,
+      "cycle": 566333,
+      "frame": 19,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 15,
+      "cycle": 596115,
+      "frame": 20,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 16,
+      "cycle": 625895,
+      "frame": 21,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 17,
+      "cycle": 655675,
+      "frame": 22,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 18,
+      "cycle": 685457,
+      "frame": 23,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 19,
+      "cycle": 715237,
+      "frame": 24,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 20,
+      "cycle": 745017,
+      "frame": 25,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 21,
+      "cycle": 774801,
+      "frame": 26,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 22,
+      "cycle": 804579,
+      "frame": 27,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 23,
+      "cycle": 834359,
+      "frame": 28,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 24,
+      "cycle": 864141,
+      "frame": 29,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 25,
+      "cycle": 893920,
+      "frame": 30,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 26,
+      "cycle": 923700,
+      "frame": 31,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 27,
+      "cycle": 953484,
+      "frame": 32,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 28,
+      "cycle": 983262,
+      "frame": 33,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 29,
+      "cycle": 1013042,
+      "frame": 34,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 30,
+      "cycle": 1042824,
+      "frame": 35,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 31,
+      "cycle": 1072604,
+      "frame": 36,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 32,
+      "cycle": 1102386,
+      "frame": 37,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 33,
+      "cycle": 1132165,
+      "frame": 38,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 34,
+      "cycle": 1161950,
+      "frame": 39,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 35,
+      "cycle": 1191727,
+      "frame": 40,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 36,
+      "cycle": 1221511,
+      "frame": 41,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 37,
+      "cycle": 1251291,
+      "frame": 42,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 38,
+      "cycle": 1281069,
+      "frame": 43,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 39,
+      "cycle": 1310853,
+      "frame": 44,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 40,
+      "cycle": 1340633,
+      "frame": 45,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 41,
+      "cycle": 1370415,
+      "frame": 46,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 42,
+      "cycle": 1400193,
+      "frame": 47,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 43,
+      "cycle": 1429975,
+      "frame": 48,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 44,
+      "cycle": 1459755,
+      "frame": 49,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 45,
+      "cycle": 1489533,
+      "frame": 50,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 4,
+      "raw_bank": 4,
+      "vector": 57589
+    },
+    {
+      "entry": 46,
+      "cycle": 1519316,
+      "frame": 51,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 47,
+      "cycle": 1549095,
+      "frame": 52,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 48,
+      "cycle": 1578878,
+      "frame": 53,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 49,
+      "cycle": 1608658,
+      "frame": 54,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 50,
+      "cycle": 1638436,
+      "frame": 55,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 51,
+      "cycle": 1668220,
+      "frame": 56,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 52,
+      "cycle": 1697999,
+      "frame": 57,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 53,
+      "cycle": 1727780,
+      "frame": 58,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 54,
+      "cycle": 1757563,
+      "frame": 59,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 55,
+      "cycle": 1787340,
+      "frame": 60,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 56,
+      "cycle": 1817121,
+      "frame": 61,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 57,
+      "cycle": 1846904,
+      "frame": 62,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 58,
+      "cycle": 1876682,
+      "frame": 63,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 59,
+      "cycle": 1906462,
+      "frame": 64,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 60,
+      "cycle": 1936246,
+      "frame": 65,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 61,
+      "cycle": 1966026,
+      "frame": 66,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 62,
+      "cycle": 1995804,
+      "frame": 67,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 63,
+      "cycle": 2025588,
+      "frame": 68,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 64,
+      "cycle": 2055367,
+      "frame": 69,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 65,
+      "cycle": 2085150,
+      "frame": 70,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 66,
+      "cycle": 2114928,
+      "frame": 71,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 67,
+      "cycle": 2144709,
+      "frame": 72,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 4,
+      "raw_bank": 4,
+      "vector": 57589
+    },
+    {
+      "entry": 68,
+      "cycle": 2174490,
+      "frame": 73,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 69,
+      "cycle": 2204270,
+      "frame": 74,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 70,
+      "cycle": 2234050,
+      "frame": 75,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 71,
+      "cycle": 2263830,
+      "frame": 76,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 72,
+      "cycle": 2293614,
+      "frame": 77,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 73,
+      "cycle": 2323396,
+      "frame": 78,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 74,
+      "cycle": 2353172,
+      "frame": 79,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 75,
+      "cycle": 2382954,
+      "frame": 80,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 76,
+      "cycle": 2412734,
+      "frame": 81,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 77,
+      "cycle": 2442513,
+      "frame": 82,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 78,
+      "cycle": 2472298,
+      "frame": 83,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 79,
+      "cycle": 2502077,
+      "frame": 84,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 80,
+      "cycle": 2531857,
+      "frame": 85,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 81,
+      "cycle": 2561637,
+      "frame": 86,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 82,
+      "cycle": 2591417,
+      "frame": 87,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 83,
+      "cycle": 2621199,
+      "frame": 88,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 84,
+      "cycle": 2650979,
+      "frame": 89,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 85,
+      "cycle": 2680760,
+      "frame": 90,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 86,
+      "cycle": 2710541,
+      "frame": 91,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 87,
+      "cycle": 2740320,
+      "frame": 92,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 88,
+      "cycle": 2770102,
+      "frame": 93,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 89,
+      "cycle": 2799887,
+      "frame": 94,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 4,
+      "raw_bank": 4,
+      "vector": 57589
+    },
+    {
+      "entry": 90,
+      "cycle": 2829665,
+      "frame": 95,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 91,
+      "cycle": 2859444,
+      "frame": 96,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 92,
+      "cycle": 2889226,
+      "frame": 97,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 93,
+      "cycle": 2919006,
+      "frame": 98,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 94,
+      "cycle": 2948786,
+      "frame": 99,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 95,
+      "cycle": 2978566,
+      "frame": 100,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 96,
+      "cycle": 3008348,
+      "frame": 101,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 97,
+      "cycle": 3038132,
+      "frame": 102,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 98,
+      "cycle": 3067908,
+      "frame": 103,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 99,
+      "cycle": 3097693,
+      "frame": 104,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 100,
+      "cycle": 3127476,
+      "frame": 105,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 101,
+      "cycle": 3157253,
+      "frame": 106,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 102,
+      "cycle": 3187033,
+      "frame": 107,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 103,
+      "cycle": 3216812,
+      "frame": 108,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 104,
+      "cycle": 3246592,
+      "frame": 109,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 105,
+      "cycle": 3276376,
+      "frame": 110,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 106,
+      "cycle": 3306158,
+      "frame": 111,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 107,
+      "cycle": 3335937,
+      "frame": 112,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 108,
+      "cycle": 3365720,
+      "frame": 113,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 109,
+      "cycle": 3395499,
+      "frame": 114,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 110,
+      "cycle": 3425278,
+      "frame": 115,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 111,
+      "cycle": 3455057,
+      "frame": 116,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 112,
+      "cycle": 3484840,
+      "frame": 117,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 113,
+      "cycle": 3514621,
+      "frame": 118,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 114,
+      "cycle": 3544402,
+      "frame": 119,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 115,
+      "cycle": 3574184,
+      "frame": 120,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 116,
+      "cycle": 3603960,
+      "frame": 121,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 117,
+      "cycle": 3633744,
+      "frame": 122,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 118,
+      "cycle": 3663523,
+      "frame": 123,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 119,
+      "cycle": 3693304,
+      "frame": 124,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 120,
+      "cycle": 3723085,
+      "frame": 125,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 121,
+      "cycle": 3752864,
+      "frame": 126,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 122,
+      "cycle": 3782645,
+      "frame": 127,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 123,
+      "cycle": 3812426,
+      "frame": 128,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 124,
+      "cycle": 3842206,
+      "frame": 129,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 125,
+      "cycle": 3871988,
+      "frame": 130,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 126,
+      "cycle": 3901768,
+      "frame": 131,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 127,
+      "cycle": 3931549,
+      "frame": 132,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    },
+    {
+      "entry": 128,
+      "cycle": 3961330,
+      "frame": 133,
+      "state6A": 30,
+      "irq_counter": 224,
+      "irq_latch": 224,
+      "bank_saved23": 12,
+      "raw_bank": 12,
+      "vector": 57589
+    }
+  ],
+  "observed_irq_state_values": [
+    30,
+    31
+  ],
+  "observed_state_transitions": [
+    {
+      "frame": 0,
+      "cpu_step": 1,
+      "18": 0,
+      "19": 0,
+      "68": 0,
+      "6A": 0,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 3,
+      "cpu_step": 29352,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 0,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 5,
+      "cpu_step": 53236,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 6,
+      "cpu_step": 54019,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 6,
+      "cpu_step": 62476,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 7,
+      "cpu_step": 63245,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 7,
+      "cpu_step": 71749,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 8,
+      "cpu_step": 72505,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 8,
+      "cpu_step": 81012,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 9,
+      "cpu_step": 81762,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 9,
+      "cpu_step": 90275,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 10,
+      "cpu_step": 91025,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 10,
+      "cpu_step": 99538,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 11,
+      "cpu_step": 100303,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 11,
+      "cpu_step": 108809,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 12,
+      "cpu_step": 109559,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 12,
+      "cpu_step": 118072,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 13,
+      "cpu_step": 118837,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 13,
+      "cpu_step": 127342,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 14,
+      "cpu_step": 128100,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 14,
+      "cpu_step": 136599,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 15,
+      "cpu_step": 137352,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 15,
+      "cpu_step": 145851,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 16,
+      "cpu_step": 146600,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 16,
+      "cpu_step": 155099,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 17,
+      "cpu_step": 155851,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 17,
+      "cpu_step": 164348,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 18,
+      "cpu_step": 165102,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 18,
+      "cpu_step": 173602,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 19,
+      "cpu_step": 174356,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 19,
+      "cpu_step": 182857,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 20,
+      "cpu_step": 183611,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 20,
+      "cpu_step": 192111,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 21,
+      "cpu_step": 192865,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 21,
+      "cpu_step": 201366,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 22,
+      "cpu_step": 202120,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 22,
+      "cpu_step": 210614,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 23,
+      "cpu_step": 211368,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 23,
+      "cpu_step": 219860,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 24,
+      "cpu_step": 220614,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 24,
+      "cpu_step": 229106,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 25,
+      "cpu_step": 229860,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 25,
+      "cpu_step": 238353,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 26,
+      "cpu_step": 239107,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 26,
+      "cpu_step": 247599,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 27,
+      "cpu_step": 248353,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 27,
+      "cpu_step": 256845,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 28,
+      "cpu_step": 257592,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 28,
+      "cpu_step": 266081,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 29,
+      "cpu_step": 266833,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 29,
+      "cpu_step": 275324,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 30,
+      "cpu_step": 276073,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 30,
+      "cpu_step": 284557,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 31,
+      "cpu_step": 285310,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 31,
+      "cpu_step": 293794,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 32,
+      "cpu_step": 294546,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 32,
+      "cpu_step": 303029,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 33,
+      "cpu_step": 303781,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 33,
+      "cpu_step": 312264,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 34,
+      "cpu_step": 313016,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 34,
+      "cpu_step": 321499,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 35,
+      "cpu_step": 322252,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 35,
+      "cpu_step": 330735,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 36,
+      "cpu_step": 331488,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 36,
+      "cpu_step": 339971,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 37,
+      "cpu_step": 340724,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 37,
+      "cpu_step": 349206,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 38,
+      "cpu_step": 349955,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 38,
+      "cpu_step": 358431,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 39,
+      "cpu_step": 359183,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 39,
+      "cpu_step": 367655,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 40,
+      "cpu_step": 368416,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 40,
+      "cpu_step": 376891,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 41,
+      "cpu_step": 377642,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 41,
+      "cpu_step": 386118,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 42,
+      "cpu_step": 386869,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 42,
+      "cpu_step": 395344,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 43,
+      "cpu_step": 396091,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 43,
+      "cpu_step": 404567,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 44,
+      "cpu_step": 405318,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 44,
+      "cpu_step": 413794,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 45,
+      "cpu_step": 414545,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 45,
+      "cpu_step": 423021,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 46,
+      "cpu_step": 423768,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 46,
+      "cpu_step": 432236,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 47,
+      "cpu_step": 432987,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 47,
+      "cpu_step": 441455,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 48,
+      "cpu_step": 442206,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 48,
+      "cpu_step": 450673,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 49,
+      "cpu_step": 451420,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 49,
+      "cpu_step": 459887,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 50,
+      "cpu_step": 460637,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 50,
+      "cpu_step": 469083,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 51,
+      "cpu_step": 469848,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 51,
+      "cpu_step": 478312,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 52,
+      "cpu_step": 479074,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 52,
+      "cpu_step": 487540,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 53,
+      "cpu_step": 488290,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 53,
+      "cpu_step": 496762,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 54,
+      "cpu_step": 497512,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 54,
+      "cpu_step": 505978,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 55,
+      "cpu_step": 506743,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 55,
+      "cpu_step": 515200,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 56,
+      "cpu_step": 515950,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 56,
+      "cpu_step": 524414,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 57,
+      "cpu_step": 525181,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 57,
+      "cpu_step": 533638,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 58,
+      "cpu_step": 534394,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 58,
+      "cpu_step": 542852,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 59,
+      "cpu_step": 543602,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 59,
+      "cpu_step": 552061,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 60,
+      "cpu_step": 552805,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 60,
+      "cpu_step": 561264,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 61,
+      "cpu_step": 562013,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 61,
+      "cpu_step": 570471,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 62,
+      "cpu_step": 571223,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 62,
+      "cpu_step": 579676,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 63,
+      "cpu_step": 580426,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 63,
+      "cpu_step": 588877,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 64,
+      "cpu_step": 589629,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 64,
+      "cpu_step": 598082,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 65,
+      "cpu_step": 598834,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 65,
+      "cpu_step": 607286,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 66,
+      "cpu_step": 608036,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 66,
+      "cpu_step": 616487,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 67,
+      "cpu_step": 617239,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 67,
+      "cpu_step": 625692,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 68,
+      "cpu_step": 626444,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 68,
+      "cpu_step": 634895,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 69,
+      "cpu_step": 635646,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 69,
+      "cpu_step": 644098,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 70,
+      "cpu_step": 644850,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 70,
+      "cpu_step": 653303,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 71,
+      "cpu_step": 654055,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 71,
+      "cpu_step": 662507,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 72,
+      "cpu_step": 663263,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 72,
+      "cpu_step": 671697,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 73,
+      "cpu_step": 672451,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 73,
+      "cpu_step": 680901,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 74,
+      "cpu_step": 681648,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 74,
+      "cpu_step": 690099,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 75,
+      "cpu_step": 690852,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 75,
+      "cpu_step": 699302,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 76,
+      "cpu_step": 700055,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 76,
+      "cpu_step": 708506,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 77,
+      "cpu_step": 709258,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 77,
+      "cpu_step": 717709,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 78,
+      "cpu_step": 718462,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 78,
+      "cpu_step": 726912,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 79,
+      "cpu_step": 727664,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 79,
+      "cpu_step": 736115,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 80,
+      "cpu_step": 736868,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 80,
+      "cpu_step": 745318,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 81,
+      "cpu_step": 746071,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 81,
+      "cpu_step": 754521,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 82,
+      "cpu_step": 755270,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 82,
+      "cpu_step": 763721,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 83,
+      "cpu_step": 764473,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 83,
+      "cpu_step": 772922,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 84,
+      "cpu_step": 773676,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 84,
+      "cpu_step": 782127,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 85,
+      "cpu_step": 782881,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 85,
+      "cpu_step": 791333,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 86,
+      "cpu_step": 792087,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 86,
+      "cpu_step": 800540,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 87,
+      "cpu_step": 801294,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 87,
+      "cpu_step": 809746,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 88,
+      "cpu_step": 810500,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 88,
+      "cpu_step": 818952,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 89,
+      "cpu_step": 819706,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 89,
+      "cpu_step": 828158,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 90,
+      "cpu_step": 828909,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 90,
+      "cpu_step": 837360,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 91,
+      "cpu_step": 838111,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 91,
+      "cpu_step": 846562,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 92,
+      "cpu_step": 847312,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 92,
+      "cpu_step": 855764,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 93,
+      "cpu_step": 856514,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 93,
+      "cpu_step": 864966,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 94,
+      "cpu_step": 865714,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 94,
+      "cpu_step": 874155,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 95,
+      "cpu_step": 874908,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 95,
+      "cpu_step": 883358,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 96,
+      "cpu_step": 884105,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 96,
+      "cpu_step": 892556,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 97,
+      "cpu_step": 893309,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 97,
+      "cpu_step": 901759,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 98,
+      "cpu_step": 902512,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 98,
+      "cpu_step": 910962,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 99,
+      "cpu_step": 911715,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 99,
+      "cpu_step": 920165,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 100,
+      "cpu_step": 920918,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 100,
+      "cpu_step": 929369,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 101,
+      "cpu_step": 930128,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 101,
+      "cpu_step": 938577,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 102,
+      "cpu_step": 939327,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 102,
+      "cpu_step": 947778,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 103,
+      "cpu_step": 948527,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 103,
+      "cpu_step": 956978,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 104,
+      "cpu_step": 957719,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 104,
+      "cpu_step": 966169,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 105,
+      "cpu_step": 966922,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 105,
+      "cpu_step": 975369,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 106,
+      "cpu_step": 976119,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 106,
+      "cpu_step": 984569,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 107,
+      "cpu_step": 985316,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 107,
+      "cpu_step": 993767,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 108,
+      "cpu_step": 994519,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 108,
+      "cpu_step": 1002968,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 109,
+      "cpu_step": 1003720,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 109,
+      "cpu_step": 1012170,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 110,
+      "cpu_step": 1012917,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 110,
+      "cpu_step": 1021368,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 111,
+      "cpu_step": 1022120,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 111,
+      "cpu_step": 1030569,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 112,
+      "cpu_step": 1031320,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 112,
+      "cpu_step": 1039772,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 113,
+      "cpu_step": 1040519,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 113,
+      "cpu_step": 1048968,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 114,
+      "cpu_step": 1049719,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 114,
+      "cpu_step": 1058170,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 115,
+      "cpu_step": 1058922,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 115,
+      "cpu_step": 1067372,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 116,
+      "cpu_step": 1068109,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 116,
+      "cpu_step": 1076547,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 117,
+      "cpu_step": 1077312,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 117,
+      "cpu_step": 1085760,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 118,
+      "cpu_step": 1086522,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 118,
+      "cpu_step": 1094972,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 119,
+      "cpu_step": 1095722,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 119,
+      "cpu_step": 1104179,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 120,
+      "cpu_step": 1104929,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 120,
+      "cpu_step": 1113385,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 121,
+      "cpu_step": 1114149,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 121,
+      "cpu_step": 1122598,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 122,
+      "cpu_step": 1123348,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 122,
+      "cpu_step": 1131804,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 123,
+      "cpu_step": 1132571,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 123,
+      "cpu_step": 1141020,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 124,
+      "cpu_step": 1141776,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 124,
+      "cpu_step": 1150226,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 125,
+      "cpu_step": 1150976,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 125,
+      "cpu_step": 1159427,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 126,
+      "cpu_step": 1160171,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 126,
+      "cpu_step": 1168623,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 127,
+      "cpu_step": 1169372,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 127,
+      "cpu_step": 1177821,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 128,
+      "cpu_step": 1178573,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 128,
+      "cpu_step": 1187025,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 129,
+      "cpu_step": 1187775,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 129,
+      "cpu_step": 1196227,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 130,
+      "cpu_step": 1196979,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 130,
+      "cpu_step": 1205431,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 131,
+      "cpu_step": 1206183,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 131,
+      "cpu_step": 1214635,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 132,
+      "cpu_step": 1215386,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 132,
+      "cpu_step": 1223837,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 133,
+      "cpu_step": 1224589,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 133,
+      "cpu_step": 1233042,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 134,
+      "cpu_step": 1233801,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 134,
+      "cpu_step": 1242269,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 135,
+      "cpu_step": 1243016,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 135,
+      "cpu_step": 1251466,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 136,
+      "cpu_step": 1252215,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 136,
+      "cpu_step": 1260663,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 137,
+      "cpu_step": 1261407,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 137,
+      "cpu_step": 1269856,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 138,
+      "cpu_step": 1270603,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 138,
+      "cpu_step": 1279022,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 139,
+      "cpu_step": 1279789,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 139,
+      "cpu_step": 1288149,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 140,
+      "cpu_step": 1288923,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 140,
+      "cpu_step": 1297368,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 141,
+      "cpu_step": 1298118,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 141,
+      "cpu_step": 1306571,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 142,
+      "cpu_step": 1307321,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 142,
+      "cpu_step": 1315774,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 143,
+      "cpu_step": 1316539,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 143,
+      "cpu_step": 1324904,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 144,
+      "cpu_step": 1325675,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 144,
+      "cpu_step": 1334120,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 145,
+      "cpu_step": 1334885,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 145,
+      "cpu_step": 1343330,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 146,
+      "cpu_step": 1344088,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 146,
+      "cpu_step": 1352535,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 147,
+      "cpu_step": 1353288,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 147,
+      "cpu_step": 1361656,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 148,
+      "cpu_step": 1362421,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 148,
+      "cpu_step": 1370865,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 149,
+      "cpu_step": 1371617,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 149,
+      "cpu_step": 1380063,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 150,
+      "cpu_step": 1380817,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 150,
+      "cpu_step": 1389265,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 151,
+      "cpu_step": 1390019,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 151,
+      "cpu_step": 1398390,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 152,
+      "cpu_step": 1399160,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 152,
+      "cpu_step": 1407606,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 153,
+      "cpu_step": 1408360,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 153,
+      "cpu_step": 1416809,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 30,
+      "07A0": 0,
+      "07A6": 0
+    },
+    {
+      "frame": 154,
+      "cpu_step": 1417563,
+      "18": 0,
+      "19": 1,
+      "68": 0,
+      "6A": 31,
+      "07A0": 0,
+      "07A6": 0
+    }
+  ],
+  "end": {
+    "pc": "8AFD",
+    "bank": 12,
+    "18": 0,
+    "19": 1,
+    "68": 0,
+    "07A0": 0,
+    "07A6": 0
+  },
+  "limits": [
+    "Instruction-boundary timing only (no per-bus-cycle writes)",
+    "PPU vblank proxy, no accurate video/CHR/raster behavior",
+    "Approximate DMA and CPU interrupt-vector latency",
+    "No APU waveform/DMC scheduling; no reference NES execution trace",
+    "IRQ counter mirrors repository native source model but no independent PPU parity"
+  ],
+  "new_strict_prg_bytes": 0,
+  "strict_prg_total": 49404,
+  "vpp": 24
+}

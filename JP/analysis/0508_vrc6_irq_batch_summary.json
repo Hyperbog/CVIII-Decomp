@@ -1,0 +1,118 @@
+{
+  "status": "BOUNDED_EXPERIMENTAL_IRQ_CPU_PPU_NOT_REFERENCE_PARITY",
+  "source_rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "component_regression_checks": 267,
+  "scenarios": [
+    {
+      "policy": "start30",
+      "frames": 480,
+      "cpu_instructions": 4437108,
+      "nmi": 475,
+      "irq_entries": 99,
+      "irq_returns": 99,
+      "irq_source_assertions": 142,
+      "irq_latch_writes": 1006,
+      "irq_control_writes": 518,
+      "irq_ack_writes": 99,
+      "selector_18_observed": [
+        0,
+        2,
+        3,
+        4,
+        9,
+        10
+      ],
+      "prior_no_irq_instructions": 4438080,
+      "instruction_delta_vs_no_irq": -972,
+      "prior_no_irq_nmi": 475,
+      "raw_report": "0508_irq_frames_start30_480.json",
+      "raw_report_sha256": "8cbc5b7fbc2b892042715f6556084e1b2bf723513d1a0e82fda8b4e556a21abc",
+      "final": {
+        "pc": "8A67",
+        "bank": 12,
+        "18": 4,
+        "19": 0,
+        "68": 0,
+        "07A0": 0,
+        "07A6": 0
+      }
+    },
+    {
+      "policy": "none",
+      "frames": 240,
+      "cpu_instructions": 2207098,
+      "nmi": 237,
+      "irq_entries": 234,
+      "irq_returns": 234,
+      "irq_source_assertions": 234,
+      "irq_latch_writes": 708,
+      "irq_control_writes": 237,
+      "irq_ack_writes": 234,
+      "selector_18_observed": [
+        0
+      ],
+      "prior_no_irq_instructions": 2209638,
+      "instruction_delta_vs_no_irq": -2540,
+      "prior_no_irq_nmi": 237,
+      "raw_report": "0508_irq_frames_none_240.json",
+      "raw_report_sha256": "f09ff9f06240256a52878c548189c4c9e745082e3279d8f2c3f367f65b471fc9",
+      "final": {
+        "pc": "8AFD",
+        "bank": 12,
+        "18": 0,
+        "19": 1,
+        "68": 0,
+        "07A0": 0,
+        "07A6": 0
+      }
+    },
+    {
+      "policy": "abstart",
+      "frames": 240,
+      "cpu_instructions": 2216850,
+      "nmi": 236,
+      "irq_entries": 17,
+      "irq_returns": 17,
+      "irq_source_assertions": 17,
+      "irq_latch_writes": 489,
+      "irq_control_writes": 236,
+      "irq_ack_writes": 17,
+      "selector_18_observed": [
+        0,
+        2,
+        10
+      ],
+      "prior_no_irq_instructions": 2217034,
+      "instruction_delta_vs_no_irq": -184,
+      "prior_no_irq_nmi": 236,
+      "raw_report": "0508_irq_frames_abstart_240.json",
+      "raw_report_sha256": "928f9f3ffff80d4ab069b99402b94c7f08d8e159e06b65a6c842e2db18cc7dd5",
+      "final": {
+        "pc": "8323",
+        "bank": 12,
+        "18": 10,
+        "19": 3,
+        "68": 0,
+        "07A0": 0,
+        "07A6": 0
+      }
+    }
+  ],
+  "totals": {
+    "frames": 960,
+    "cpu_instructions": 8861056,
+    "nmi": 948,
+    "irq_entries": 350,
+    "irq_returns": 350
+  },
+  "new_strict_prg_bytes": 0,
+  "strict_prg_total": 49404,
+  "vpp": 24,
+  "limitations": [
+    "No reference console/emulator parity",
+    "CPU interrupt sampled only at instruction boundaries",
+    "PPU vblank and DMA approximated",
+    "No cycle-positioned mapper register writes or APU/DMC timing",
+    "Observed selector states do not prove full-game reachability or global absent paths"
+  ]
+}

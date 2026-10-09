@@ -1,0 +1,10 @@
+{
+  "status": "IRQ_COMPONENT_REGRESSION_NOT_REFERENCE_EMULATOR_PARITY",
+  "rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "tests_passed": 267,
+  "source_relation": "Mirrors already-committed JP/src/vrc6_irq.cpp, validates batch equivalence",
+  "cpu_irq_vector": "E0F5",
+  "cpu_nmi_vector": "E057",
+  "strict_new_prg_bytes": 0,
+  "vpp": 24
+}

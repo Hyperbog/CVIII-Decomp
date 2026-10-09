@@ -97,3 +97,8 @@ The [physical-byte and RAM-writer manifest](../analysis/0508_BULK_DYNAMIC_PRODUC
 ### 0508 experimental modeled-vblank NMI progression (R-001/R-006 not closed)
 
 The [CPU-cycle/PPU-vblank synthetic trace](../analysis/0508_EXPERIMENTAL_VBLANK_CYCLE_TRACE.md) models nominal CPU instruction timing and vblank-generated NMI edges rather than manually injecting every NMI. Three synthetic controller scenarios produce **8,864,752 original ROM instruction steps**, **948 modeled NMI entries**, and `$18=00,02,0A,09,03,04` on the broadest trace, but neither original reference-emulator trace parity nor `$18=$0C/$19=$13` gameplay liveness is established. Key gaps: instruction-cycle PPU access precision, VRC6 IRQ, real OAMDMA, CHR/PPU rendering, CPU/PPU odd frame timing and authentic controller input. VPP and strict PRG unchanged; R-001, R-002, R-006 OPEN.
+
+
+### 0508 bulk IRQ-vector experiments — R-006 remains OPEN
+
+[Integrated IRQ source, CPU-vector execution and NMI experiment](../analysis/0508_VRC6_IRQ_INSTRUCTION_BOUNDARY_TRACE.md) reuses the repository's native VRC6 IRQ semantics and runs 350 original-ROM IRQ handlers to RTS/RTI return across 960 synthetic frames, with 948 NMIs and 8,861,056 original instruction steps. The verified source/handler paths and 267 component checks are useful for M1 trace infrastructure, but these are **not independent reference-console traces**. R-001/R-002/R-006 stay OPEN. Strict PRG 49,404/262,144; VPP 24/100; fixed frontier $FB96; RESUME_STATE remains checkpoint 0507.
