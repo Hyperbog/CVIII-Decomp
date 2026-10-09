@@ -1,0 +1,479 @@
+{
+  "status": "BULK_0508_0A_0E_CANDIDATE_AND_RESET_CLEAR_NO_PROMOTION",
+  "jp_rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "scoped_raw_vrc6_banks": [
+    "0A",
+    "0E"
+  ],
+  "scoped_physical_prg_banks": [
+    20,
+    21,
+    28,
+    29
+  ],
+  "unique_8K_banks_examined": 4,
+  "total_raw_bank_bytes_examined": 32768,
+  "bank0A_discovery": {
+    "physical_prg": [
+      20,
+      21
+    ],
+    "sha256": "1460df577d44e114c64fdf34a8837629765f3f6a93d45796fdf81e5ffacb5ed8",
+    "bytes_examined": 16384,
+    "all_offset_official_opcode_candidates": 12074,
+    "all_offset_control_flow_candidates": 1740,
+    "all_offset_jsr_E7FB_patterns": [
+      "AFA6",
+      "B122",
+      "B4CE",
+      "B68B"
+    ],
+    "all_offset_mapper_write_patterns_count": 0,
+    "classification": "all-offset discovery; code/data and mapper context not proven"
+  },
+  "bank0E_discovery": {
+    "physical_prg": [
+      28,
+      29
+    ],
+    "sha256": "9fc30168f3eca751de893aac2af31b5f4c40b8dcdcde1ad70b9614c607c29bb5",
+    "bytes_examined": 16384,
+    "all_offset_official_opcode_candidates": 12360,
+    "all_offset_control_flow_candidates": 2205,
+    "all_offset_jsr_E7FB_patterns": [
+      "8AE3"
+    ],
+    "all_offset_mapper_write_patterns_count": 0,
+    "classification": "all-offset discovery; code/data and mapper context not proven"
+  },
+  "candidate_root_code": {
+    "0A_instruction_starts": 935,
+    "0A_code_operand_bytes": 2042,
+    "0A_new_conditional_code_in_physical_bank_20": 0,
+    "0A_0501_previously_admitted_bank20_instruction_starts": 57,
+    "0A_0501_previously_admitted_bank20_bytes": 120,
+    "0A_previously_admitted_legacy_indirect_exit": "raw 0A CPU $8520 -> ($0002); live target context is not retested",
+    "0A_code_only_physical_bank_21": 2042,
+    "0A_inline_table_bytes": 130,
+    "0A_descriptor_bytes": 28,
+    "0A_room_pointer_bytes": 10,
+    "0E_conditional_stream_source_bytes": 175,
+    "new_conditional_distinct_labeled_bytes": 2385,
+    "total_distinct_labeled_including_120_previously_credited_bank20_bytes": 2505,
+    "nonoverlap_assertions_passed": true,
+    "mapper": "raw 0A PRG20/21; raw 0E PRG28/29",
+    "liveness": "UNPROVED, CODE AND DATA CLAIMS ARE CONDITIONAL"
+  },
+  "nested_tables": {
+    "AFA6": {
+      "words": 20,
+      "sha256": "422e65c2a5a5c30ea2e6a7c77978d54c2d1cd64b99628e7f94662a29f9f7d396"
+    },
+    "B122": {
+      "words": 22,
+      "sha256": "2c3db8027fdab36d434b87aa7b8e550617cf3e8fd2f14b59e0c7db47d0b1adba"
+    },
+    "B4CE": {
+      "words": 12,
+      "sha256": "380ecdac9478f19215c9a5628e8395dce3a11ba951218f5f01583fa6dabdfa7c"
+    },
+    "B68B": {
+      "words": 11,
+      "sha256": "c237cfadfe6c2f0c2e1bd4c6317adf57de417096779750133694c992b14c0583"
+    }
+  },
+  "local_graph_direct_writer_candidates": {
+    "0018": {
+      "candidate_graph_direct_writers": [
+        {
+          "cpu": "B373",
+          "operation": "STA",
+          "mode": "zp",
+          "encoded_operand": "0018"
+        },
+        {
+          "cpu": "B682",
+          "operation": "STA",
+          "mode": "zp",
+          "encoded_operand": "0018"
+        }
+      ],
+      "quantity": 2,
+      "scope": "conditional 0A decode, NOT live global writers"
+    },
+    "0019": {
+      "candidate_graph_direct_writers": [
+        {
+          "cpu": "B03A",
+          "operation": "INC",
+          "mode": "zp",
+          "encoded_operand": "0019"
+        },
+        {
+          "cpu": "B081",
+          "operation": "INC",
+          "mode": "zp",
+          "encoded_operand": "0019"
+        },
+        {
+          "cpu": "B0CD",
+          "operation": "INC",
+          "mode": "zp",
+          "encoded_operand": "0019"
+        },
+        {
+          "cpu": "B1CB",
+          "operation": "INC",
+          "mode": "zp",
+          "encoded_operand": "0019"
+        },
+        {
+          "cpu": "B27D",
+          "operation": "INC",
+          "mode": "zp",
+          "encoded_operand": "0019"
+        },
+        {
+          "cpu": "B313",
+          "operation": "INC",
+          "mode": "zp",
+          "encoded_operand": "0019"
+        },
+        {
+          "cpu": "B377",
+          "operation": "STA",
+          "mode": "zp",
+          "encoded_operand": "0019"
+        },
+        {
+          "cpu": "B589",
+          "operation": "INC",
+          "mode": "zp",
+          "encoded_operand": "0019"
+        },
+        {
+          "cpu": "B594",
+          "operation": "INC",
+          "mode": "zp",
+          "encoded_operand": "0019"
+        },
+        {
+          "cpu": "B5A0",
+          "operation": "INC",
+          "mode": "zp",
+          "encoded_operand": "0019"
+        },
+        {
+          "cpu": "B5C9",
+          "operation": "INC",
+          "mode": "zp",
+          "encoded_operand": "0019"
+        },
+        {
+          "cpu": "B5D7",
+          "operation": "INC",
+          "mode": "zp",
+          "encoded_operand": "0019"
+        },
+        {
+          "cpu": "B5E2",
+          "operation": "INC",
+          "mode": "zp",
+          "encoded_operand": "0019"
+        },
+        {
+          "cpu": "B61F",
+          "operation": "INC",
+          "mode": "zp",
+          "encoded_operand": "0019"
+        },
+        {
+          "cpu": "B62B",
+          "operation": "INC",
+          "mode": "zp",
+          "encoded_operand": "0019"
+        },
+        {
+          "cpu": "B65F",
+          "operation": "INC",
+          "mode": "zp",
+          "encoded_operand": "0019"
+        }
+      ],
+      "quantity": 16,
+      "scope": "conditional 0A decode, NOT live global writers"
+    },
+    "0068": {
+      "candidate_graph_direct_writers": [
+        {
+          "cpu": "B4EB",
+          "operation": "STA",
+          "mode": "zp",
+          "encoded_operand": "0068"
+        },
+        {
+          "cpu": "B6E5",
+          "operation": "INC",
+          "mode": "zp",
+          "encoded_operand": "0068"
+        },
+        {
+          "cpu": "B6FB",
+          "operation": "INC",
+          "mode": "zp",
+          "encoded_operand": "0068"
+        },
+        {
+          "cpu": "B706",
+          "operation": "INC",
+          "mode": "zp",
+          "encoded_operand": "0068"
+        },
+        {
+          "cpu": "B738",
+          "operation": "INC",
+          "mode": "zp",
+          "encoded_operand": "0068"
+        },
+        {
+          "cpu": "B75A",
+          "operation": "INC",
+          "mode": "zp",
+          "encoded_operand": "0068"
+        },
+        {
+          "cpu": "B78A",
+          "operation": "INC",
+          "mode": "zp",
+          "encoded_operand": "0068"
+        },
+        {
+          "cpu": "B7AF",
+          "operation": "INC",
+          "mode": "zp",
+          "encoded_operand": "0068"
+        },
+        {
+          "cpu": "B7BE",
+          "operation": "INC",
+          "mode": "zp",
+          "encoded_operand": "0068"
+        },
+        {
+          "cpu": "B7C5",
+          "operation": "INC",
+          "mode": "zp",
+          "encoded_operand": "0068"
+        },
+        {
+          "cpu": "B7F3",
+          "operation": "STA",
+          "mode": "zp",
+          "encoded_operand": "0068"
+        }
+      ],
+      "quantity": 11,
+      "scope": "conditional 0A decode, NOT live global writers"
+    },
+    "07A0": {
+      "candidate_graph_direct_writers": [
+        {
+          "cpu": "B7E3",
+          "operation": "INC",
+          "mode": "abs",
+          "encoded_operand": "07A0"
+        }
+      ],
+      "quantity": 1,
+      "scope": "conditional 0A decode, NOT live global writers"
+    },
+    "07A6": {
+      "candidate_graph_direct_writers": [
+        {
+          "cpu": "B628",
+          "operation": "STA",
+          "mode": "abs",
+          "encoded_operand": "07A6"
+        },
+        {
+          "cpu": "B7E0",
+          "operation": "STA",
+          "mode": "abs",
+          "encoded_operand": "07A6"
+        },
+        {
+          "cpu": "B89F",
+          "operation": "INC",
+          "mode": "abs",
+          "encoded_operand": "07A6"
+        }
+      ],
+      "quantity": 3,
+      "scope": "conditional 0A decode, NOT live global writers"
+    }
+  },
+  "whole_256KiB_physical_PRG_direct_writer_encoding_census": {
+    "0018": {
+      "all_offset_encoding_candidates": 75,
+      "per_physical_bank": {
+        "00": 2,
+        "01": 2,
+        "02": 3,
+        "03": 1,
+        "04": 4,
+        "06": 10,
+        "08": 3,
+        "09": 3,
+        "0A": 9,
+        "0B": 1,
+        "11": 1,
+        "12": 1,
+        "13": 5,
+        "15": 7,
+        "16": 2,
+        "17": 3,
+        "18": 2,
+        "19": 2,
+        "1C": 4,
+        "1D": 3,
+        "1E": 2,
+        "1F": 5
+      },
+      "only_three_abs_candidates": null,
+      "classification": "RAW ENCODING CANDIDATES; not proof of instruction alignment/liveness"
+    },
+    "0019": {
+      "all_offset_encoding_candidates": 113,
+      "per_physical_bank": {
+        "00": 4,
+        "01": 10,
+        "02": 5,
+        "03": 27,
+        "07": 2,
+        "08": 10,
+        "09": 11,
+        "0B": 7,
+        "0E": 1,
+        "11": 2,
+        "15": 16,
+        "19": 5,
+        "1C": 1,
+        "1E": 2,
+        "1F": 10
+      },
+      "only_three_abs_candidates": null,
+      "classification": "RAW ENCODING CANDIDATES; not proof of instruction alignment/liveness"
+    },
+    "0068": {
+      "all_offset_encoding_candidates": 105,
+      "per_physical_bank": {
+        "00": 28,
+        "01": 17,
+        "02": 2,
+        "04": 1,
+        "08": 2,
+        "0A": 2,
+        "0E": 1,
+        "0F": 1,
+        "10": 1,
+        "14": 1,
+        "15": 12,
+        "18": 2,
+        "19": 4,
+        "1B": 1,
+        "1C": 2,
+        "1D": 1,
+        "1F": 27
+      },
+      "only_three_abs_candidates": null,
+      "classification": "RAW ENCODING CANDIDATES; not proof of instruction alignment/liveness"
+    },
+    "07A0": {
+      "all_offset_encoding_candidates": 3,
+      "per_physical_bank": {
+        "01": 1,
+        "03": 1,
+        "15": 1
+      },
+      "only_three_abs_candidates": [
+        {
+          "physical_prg": 1,
+          "cpu": "A09B",
+          "opcode": "8D"
+        },
+        {
+          "physical_prg": 3,
+          "cpu": "BB5E",
+          "opcode": "8D"
+        },
+        {
+          "physical_prg": 21,
+          "cpu": "B7E3",
+          "opcode": "EE"
+        }
+      ],
+      "classification": "RAW ENCODING CANDIDATES; not proof of instruction alignment/liveness"
+    },
+    "07A6": {
+      "all_offset_encoding_candidates": 3,
+      "per_physical_bank": {
+        "15": 3
+      },
+      "only_three_abs_candidates": [
+        {
+          "physical_prg": 21,
+          "cpu": "B628",
+          "opcode": "8D"
+        },
+        {
+          "physical_prg": 21,
+          "cpu": "B7E0",
+          "opcode": "8D"
+        },
+        {
+          "physical_prg": 21,
+          "cpu": "B89F",
+          "opcode": "EE"
+        }
+      ],
+      "classification": "RAW ENCODING CANDIDATES; not proof of instruction alignment/liveness"
+    }
+  },
+  "reset_ram_clear": {
+    "proof_scope": "fixed RESET $E020-$E034 after both preceding X-preserving fixed helpers",
+    "case_count": 32,
+    "original_instruction_steps_per_case": 6174,
+    "indirect_zero_stores_per_case": 2048,
+    "cleared_RAM_except_pointer": "0002-07FF",
+    "final_reset_pointer_zp_00_01": "00 08",
+    "watchlist_zero_after_reset_clear": [
+      "0018",
+      "0019",
+      "0068",
+      "07A0",
+      "07A6"
+    ],
+    "not_proved": "actual PPU vblank timing / NMI timing / later arbitrary game-state mutations"
+  },
+  "fixed_E551_effect": {
+    "bytes": "E6 18 A9 00 85 19 60",
+    "incoming_18_0B_to_0C": "yes if entered at $0B; $19 reset to 0",
+    "live_call_path_to_0C": "not demonstrated"
+  },
+  "raw_direct_immediate_0C_to_18_encoding_count": 0,
+  "mapped_bank0E_loader_case_regression": 1280,
+  "not_proved": [
+    "RESET-to-$18=$0C first-level NMI trace",
+    "full $19=$13 liveness",
+    "external NMI producer order",
+    "global $07A0/$07A6 indexed/indirect alias domain",
+    "B6A4 gate and actual room-loader occurrence",
+    "all 0E source material interpreted",
+    "native CPU/PPU/APU frame parity"
+  ],
+  "strict_new_unique_prg_bytes": 0,
+  "strict_cumulative_prg_bytes": 49404,
+  "vpp": 24,
+  "recovery_last_completed_checkpoint": "0507",
+  "fixed_cpu_frontier": "FB96"
+}
