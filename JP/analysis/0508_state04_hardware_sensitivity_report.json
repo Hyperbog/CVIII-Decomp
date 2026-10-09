@@ -1,0 +1,235 @@
+{
+  "status": "SYNTHETIC_STATE04_SENSITIVITY_NOT_GAMEPLAY_PARITY",
+  "rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "fork_from": {
+    "frame": 421,
+    "instructions": 3892701,
+    "cpu_cycles": 12551228,
+    "NMI": 416,
+    "PC": "E553",
+    "RAM18": 4,
+    "RAM19": 2,
+    "RAM2C": 0,
+    "bank": 0
+  },
+  "results": [
+    {
+      "name": "baseline_start30",
+      "PPUSTATUS_bit6_heuristic_scanline": null,
+      "frames": 480,
+      "additional_instructions": 545379,
+      "additional_NMI": 59,
+      "PPUSTATUS_reads": 570,
+      "fault": null,
+      "end18": 4,
+      "end19": 0,
+      "end2C": 3,
+      "ever_18_0C": false,
+      "ever_18_0D": false,
+      "last_transitions": [
+        {
+          "frame": 421,
+          "18": 4,
+          "19": 0,
+          "2C": 0
+        },
+        {
+          "frame": 422,
+          "18": 4,
+          "19": 0,
+          "2C": 1
+        },
+        {
+          "frame": 423,
+          "18": 4,
+          "19": 0,
+          "2C": 2
+        },
+        {
+          "frame": 436,
+          "18": 4,
+          "19": 0,
+          "2C": 3
+        }
+      ]
+    },
+    {
+      "name": "held_start",
+      "PPUSTATUS_bit6_heuristic_scanline": null,
+      "frames": 480,
+      "additional_instructions": 545638,
+      "additional_NMI": 59,
+      "PPUSTATUS_reads": 177,
+      "fault": null,
+      "end18": 4,
+      "end19": 0,
+      "end2C": 0,
+      "ever_18_0C": false,
+      "ever_18_0D": false,
+      "last_transitions": [
+        {
+          "frame": 421,
+          "18": 4,
+          "19": 0,
+          "2C": 0
+        }
+      ]
+    },
+    {
+      "name": "frequent_start5",
+      "PPUSTATUS_bit6_heuristic_scanline": null,
+      "frames": 480,
+      "additional_instructions": 543948,
+      "additional_NMI": 59,
+      "PPUSTATUS_reads": 498,
+      "fault": null,
+      "end18": 4,
+      "end19": 0,
+      "end2C": 3,
+      "ever_18_0C": false,
+      "ever_18_0D": false,
+      "last_transitions": [
+        {
+          "frame": 421,
+          "18": 4,
+          "19": 0,
+          "2C": 0
+        },
+        {
+          "frame": 422,
+          "18": 4,
+          "19": 0,
+          "2C": 1
+        },
+        {
+          "frame": 423,
+          "18": 4,
+          "19": 0,
+          "2C": 2
+        },
+        {
+          "frame": 436,
+          "18": 4,
+          "19": 0,
+          "2C": 3
+        }
+      ]
+    },
+    {
+      "name": "all_buttons",
+      "PPUSTATUS_bit6_heuristic_scanline": null,
+      "frames": 480,
+      "additional_instructions": 545638,
+      "additional_NMI": 59,
+      "PPUSTATUS_reads": 177,
+      "fault": null,
+      "end18": 4,
+      "end19": 0,
+      "end2C": 0,
+      "ever_18_0C": false,
+      "ever_18_0D": false,
+      "last_transitions": [
+        {
+          "frame": 421,
+          "18": 4,
+          "19": 0,
+          "2C": 0
+        }
+      ]
+    },
+    {
+      "name": "sprite0_bit6_scanline0",
+      "PPUSTATUS_bit6_heuristic_scanline": 0,
+      "frames": 421,
+      "additional_instructions": 4432,
+      "additional_NMI": 1,
+      "PPUSTATUS_reads": 1,
+      "fault": {
+        "class": "KeyError",
+        "detail": "227",
+        "pc": "0001",
+        "raw_bank": 0,
+        "PPU_frame": 421,
+        "cpu_steps": 3897133
+      },
+      "end18": 4,
+      "end19": 0,
+      "end2C": 0,
+      "ever_18_0C": false,
+      "ever_18_0D": false,
+      "last_transitions": [
+        {
+          "frame": 421,
+          "18": 4,
+          "19": 0,
+          "2C": 0
+        }
+      ]
+    },
+    {
+      "name": "sprite0_bit6_scanline80",
+      "PPUSTATUS_bit6_heuristic_scanline": 80,
+      "frames": 421,
+      "additional_instructions": 4432,
+      "additional_NMI": 1,
+      "PPUSTATUS_reads": 1,
+      "fault": {
+        "class": "KeyError",
+        "detail": "227",
+        "pc": "0001",
+        "raw_bank": 0,
+        "PPU_frame": 421,
+        "cpu_steps": 3897133
+      },
+      "end18": 4,
+      "end19": 0,
+      "end2C": 0,
+      "ever_18_0C": false,
+      "ever_18_0D": false,
+      "last_transitions": [
+        {
+          "frame": 421,
+          "18": 4,
+          "19": 0,
+          "2C": 0
+        }
+      ]
+    },
+    {
+      "name": "sprite0_bit6_scanline180",
+      "PPUSTATUS_bit6_heuristic_scanline": 180,
+      "frames": 421,
+      "additional_instructions": 4567,
+      "additional_NMI": 1,
+      "PPUSTATUS_reads": 1,
+      "fault": {
+        "class": "KeyError",
+        "detail": "167",
+        "pc": "9F22",
+        "raw_bank": 13,
+        "PPU_frame": 421,
+        "cpu_steps": 3897268
+      },
+      "end18": 4,
+      "end19": 0,
+      "end2C": 0,
+      "ever_18_0C": false,
+      "ever_18_0D": false,
+      "last_transitions": [
+        {
+          "frame": 421,
+          "18": 4,
+          "19": 0,
+          "2C": 0
+        }
+      ]
+    }
+  ],
+  "strict_new_PRG_bytes": 0,
+  "verified_floor_PRG_bytes": 49404,
+  "limitations": [
+    "The checkpoint is produced under synthetic controller/PPU timing",
+    "Sprite 0 hit bit6 injected as an explicit hypothetical stimulus; not modeled sprites",
+    "No reference emulator traces or global nonreachability claim"
+  ]
+}
