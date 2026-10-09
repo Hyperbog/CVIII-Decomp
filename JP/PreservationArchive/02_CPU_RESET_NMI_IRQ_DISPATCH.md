@@ -68,3 +68,8 @@ The [32-KiB source/producer sweep](../analysis/0508_BULK_0A0E_FINDINGS.md) execu
 ## 0508 bulk first-NMI synthetic execution witness
 
 The [generic ROM-fetched RESET→NMI experiment](../analysis/0508_RESET_NMI_SYNTHETIC_TRACE.md) runs the original RESET from fixed `$E00B` to `$E04B` under two fixed VBlank-ready `$2002` reads, then manually injects 150 NMIs for each of three idle-instruction budgets (0/12/384). Its **450 synthetic NMIs/1,599,939 executed original instruction steps** demonstrate conditional first-NMI `$18=0,$19:0→1` and subsequent no-input `$18=0,$19=1`. No controller interface, frame timing, PPU pipeline, or IRQ scheduling is implemented; this is **not** reference hardware/gameplay liveness or full CPU trace parity. R-001 and R-006 remain OPEN; no PRG/VPP increase.
+
+
+## 0508 bulk dynamic CPU writer coverage (synthetic evidence only)
+
+The [mapped multi-bank original-ROM instruction audit](../analysis/0508_BULK_DYNAMIC_PRODUCER_TRACE.md) records all fetched opcode/operand physical bytes and exact RAM write PCs, including fixed `$E551: INC $18` and fixed `$E558: STA $18` plus a raw-bank-$01 write at `$A627`. Across three artificial controller schedules it executes 4,669,348 instructions / 1,800 manual NMIs. A subsequent fork of artificial NMI392 (`$18=$04`) tests 19 separate controller policies for 120 injections each and executes 7,132,248 more original instructions; every branch remains `$18=$04` under these simplified PPU and no-IRQ conditions. Fixed `$F6AE` checks `$1F|$2E|$1D|$A8` before its Start `$F8 & $10` predicate. **Neither original gameplay liveness nor permanent inaccessibility of `$0C/$0D` is implied**. R-001/R-006 remain OPEN; no VPP or strict byte change.

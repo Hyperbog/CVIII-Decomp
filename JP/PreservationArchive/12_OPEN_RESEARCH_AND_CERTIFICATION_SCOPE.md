@@ -87,3 +87,8 @@ The initial [32-KiB bank-$0A/$0E + 256-KiB producer-encoding census](../analysis
 ### M1 executable cold-start trace boundary — provisional, not external parity
 
 [450 manually injected NMIs](../analysis/0508_RESET_NMI_SYNTHETIC_TRACE.md) across three synthetic CPU-idle budgets execute **1,599,939** ROM instructions from the original RESET vector with stubbed PPU status, controller zero and no IRQ. The tested pair starts `$18=0,$19=0`, first NMI advances to 0/1 and no-input tests stay 0/1. This **narrows** reset origin but does not close R-001: actual gameplay path `$18=$0C,$19=$13` has no hardware/input/timing witness. R-006 remains OPEN because the harness does not supply reference-emulator cycles, PPU, IRQ or true input; it is a preparatory trace framework, not a completed VPP gate. All percentages remain unchanged.
+
+
+### 0508 expanded multi-bank dynamic producer census (R-001/R-002/R-006 remain OPEN)
+
+The [physical-byte and RAM-writer manifest](../analysis/0508_BULK_DYNAMIC_PRODUCER_TRACE.md) records 4,669,348 original ROM instructions across 1,800 artificial NMIs, union 11,127 fetched code/operand physical bytes and 16,718 PRG bytes read; **all discovery, not new strict coverage**. Nineteen forked post-`$18=04` controller schedules exercise 7,132,248 additional instructions and 2,280 additional NMIs without reaching `$18=0C/0D`. Since NMI is injected manually and the PPU/IRQ schedule is simulated incompletely, these are bounded negative observations only. Next evidence requirement is a genuine reference-timed reset/playthrough trace and producer-domain closure. 0507 remains last completed checkpoint; VPP 24/100, strict PRG 49,404/262,144 and fixed `$FB96` frontier are unchanged.

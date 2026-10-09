@@ -77,3 +77,6 @@ The [Phase 1–5 research commit](https://github.com/Hyperbog/CVIII-Decomp/commi
 
 
 **Provisional 0508 bulk M1 trace follow-up:** [ROM-fetched RESET + 450 synthetic NMIs](../analysis/0508_RESET_NMI_SYNTHETIC_TRACE.md), **1,599,939** original instruction steps, under exactly stated synthetic PPU/no-IRQ/zero-input conditions. Bounded first NMI `$18/$19:00/00→00/01`; repeated artificial no-input injections stay `00/01`. This is not reset-to-gameplay `$0C/$13` liveness or external emulator parity; R-001/R-006 remain OPEN, no new strict bytes/VPP.
+
+
+**0508 extended synthetic dynamic-byte/RAM-producer census (research, zero strict bytes):** [reproducible multi-bank audit and controlled input fork](../analysis/0508_BULK_DYNAMIC_PRODUCER_TRACE.md) execute 4,669,348 + 7,132,248 original instructions respectively, cataloguing 11,127 distinct fetched physical instruction+operand bytes, 16,718 read PRG bytes and exact selector/room index writer sites. Nineteen cloned controller input policies remain in artificial first-level state `$04`; they are not proof real gameplay cannot reach `$0C/$0D`. Fixed `$F6AE` OR-guard and Start test are locally decoded. R-001, R-002 and R-006 stay OPEN; strict 49,404 PRG, VPP24 and 0507 machine frontier unchanged.

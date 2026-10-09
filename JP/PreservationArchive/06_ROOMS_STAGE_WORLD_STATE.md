@@ -74,3 +74,8 @@ The [Phase 5 mapped-bus loader audit](../analysis/0508_PHASE5_FINDINGS.md) parse
 ## 0508 bulk two-bank dependency/accounting pass
 
 The [raw `$0A/$0E` 32-KiB bulk audit](../analysis/0508_BULK_0A0E_FINDINGS.md) incorporates 935 bank-$0A conditional instruction starts (2,042 code/operand bytes), 130 inline table bytes, 38 descriptor/pointer bytes, 175 bank-$0E stream bytes, and the 0501-already-credited 120-byte PRG20 scheduler subgraph: **2,505 distinct labeled bytes, zero new strict bytes**. It separately scans the full 256 KiB PRG for *direct non-indexed encoded* writers to `$18/$19/$68/$07A0/$07A6`; that census cannot rule out indirect or indexed aliases. Reset's bounded RAM clear proves initial indices zero, but global `$07A0≤4`, the live carry gate and continuous room progression remain unknown.
+
+
+## 0508 expanded synthetic room-state domain — concrete writer sites, no global index bounds
+
+The [physical-bank and RAM-producer audit](../analysis/0508_BULK_DYNAMIC_PRODUCER_TRACE.md) records **11,127 unique fetched physical PRG opcode/operand bytes** across a synthetic 4,669,348-instruction 3-scenario batch, plus 7,132,248 more instruction executions after a cloned artificial `$18=$04` state across 19 input policies. In these runs `$07A0` writers are RESET fixed `$E02A`, fixed `$E7CD` and raw `$01:$AA3E`, while `$07A6` is written by fixed `$E02A/$E7CD`; the observed inputs leave both zero. This does NOT exclude other writers, aliasing, later stage progression or the separate bank-$0A loader's `$B7DE` update. None of the tested fork policies reaches `$18=$0C/$0D`; hardware-timed PPU/IRQ and actual gameplay inputs are missing. R-001/R-002/R-006 remain OPEN; no strict PRG or VPP promotion.
