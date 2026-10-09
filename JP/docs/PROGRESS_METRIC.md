@@ -8,9 +8,9 @@ The machine-readable score is `analysis/PROGRESS_SCORE.csv`; `tools/progress_sco
 
 ## Current score
 
-**VPP: 24 / 100 (24%)**
+**VPP: 25 / 100 (25%)**
 
-The latest point is the reusable raw-bank `$0B` collision scratch/distance architecture plus its native 8-bit collision-math lift and exhaustive regression test. The two preceding points were the tested native Mapper 24 / VRC6 PRG+CHR mapper and native VRC6 IRQ timing/scheduler.
+The latest point is the reproducible C++20 build-and-test/CI gate: eight existing native test binaries compile with strict warnings, four ROM-free tests run in GitHub Actions, the weighted score and preservation archive are checked, and the remaining original-ROM-backed tests can be run locally against the SHA-256-verified JP image. The first green [Actions run](https://github.com/Hyperbog/CVIII-Decomp/actions/runs/37993214808) completed 2026-10-09. This earns validation item 8.8 only, not CPU trace or native playable parity.
 
 | category | weight | earned | current basis |
 |---|---:|---:|---|
@@ -21,8 +21,8 @@ The latest point is the reusable raw-bank `$0B` collision scratch/distance archi
 | Stage / world / progression | 20 | 0 | stage data, room/scrolling, collision maps, route/progression, menus/password/end flow not yet reconstructed |
 | Audio | 12 | 1 | NSF-to-ROM correlation is established; full driver/data/native APU+VRC6/parity work remains open |
 | Native runtime / platform | 10 | 1 | isolated faithful native OAM subsystem exists; native mapper/IRQ/collision primitives now exist but complete memory/PPU integration and executable are open |
-| Validation / tooling | 8 | 3 | ROM identity audit, subsystem binary audits, and native subsystem tests exist; CPU traces, frame goldens, CI/end-to-end parity remain open |
-| **Total** | **100** | **24** | |
+| Validation / tooling | 8 | 4 | ROM identity audit, subsystem binary audits, and native subsystem tests exist; CPU traces, frame goldens, CI/end-to-end parity remain open |
+| **Total** | **100** | **25** | |
 
 ## Fixed rubric
 
@@ -116,7 +116,7 @@ The standalone mapper, IRQ and collision-math source do not themselves earn addi
 - native subsystem regression tests: 1 — **earned**
 - CPU/bank/interrupt trace comparison harness: 2 — open
 - deterministic frame-state/image golden tests: 2 — open
-- CI/reproducible build-and-test gate: 1 — open
+- CI/reproducible build-and-test gate: 1 — **earned** (ROM-free [GitHub Actions](https://github.com/Hyperbog/CVIII-Decomp/actions/runs/37993214808); exact JP-ROM extensions runnable locally through `JP/tools/run_native_regressions.sh`)
 
 ## Scoring rules
 

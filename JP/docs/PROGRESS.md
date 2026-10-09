@@ -7,7 +7,7 @@ whole JP PRG scanned/indexed                 262144 / 262144 = 100%
 strict semantically verified PRG floor        49404 / 262144 = 18.8461%
 exact unique JP<->US correspondence           115865 / 262144 = 44.1990%
 exact-or-normalized structural candidates     149607 / 262144 = 57.0705%
-VPP                                             24 / 100
+VPP                                             25 / 100
 ```
 
 VPP is a fixed evidence rubric, not a byte-progress estimate. Cross-version and dispatch-atlas percentages/results are structural accelerators, not semantic verification.
@@ -272,3 +272,8 @@ The [experimental cycle/vblank execution report](../analysis/0508_EXPERIMENTAL_V
 ## Bulk 0508 IRQ-enabled RESET/NMI trace experiments (provisional)
 
 [Reproducible VRC6 IRQ/CPU-vector experiment](../analysis/0508_VRC6_IRQ_INSTRUCTION_BOUNDARY_TRACE.md): 267 modeled IRQ component checks, 8,861,056 original ROM instruction steps in 960 modeled frames, 948 NMIs, 350 mapper IRQ vector entries and 350 corresponding returns. This explicitly replaces the previous no-mapper-IRQ experimental limitation for these bounded traces, **not** the still-missing cycle-accurate reference CPU/PPU/DMA trace or live room-$0C/$0D state proof. VPP remains **24/100**, strict PRG **49,404/262,144 = 18.8461%**, last completed resume **0507**.
+
+
+## 2026-10-09 — Native regression CI gate (1 validation point; zero new PRG bytes)
+
+[Green GitHub Actions run 37993214808](https://github.com/Hyperbog/CVIII-Decomp/actions/runs/37993214808) proves a reproducible C++20 strict-warning build of all eight existing native subsystem tests; all four ROM-free executable suites passed; the fixed progress CSV and preservation-archive integrity audit also passed. Two accidental literal escaped-newline sequences in `tests/room_state_dispatch_test.cpp` and four in `src/room_state_dispatch.hpp` were repaired to restore an actual compiled high-byte read. `tools/run_native_regressions.sh <exact-JP-ROM.nes>` independently verifies ROM SHA-256 and enables four ROM-required suites plus two ROM-specific additional checks, without distributing the ROM in Git. **VPP validation/tooling 3→4 of 8; weighted VPP 24→25 of 100.** No new strict PRG bytes (49,404/262,144 = 18.8461%); no frame trace or playable-native-runtime claim. The research checkpoint 0508 remains provisional and last semantic checkpoint 0507 is unchanged.

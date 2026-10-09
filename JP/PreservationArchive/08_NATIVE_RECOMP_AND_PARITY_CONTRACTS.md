@@ -46,3 +46,8 @@ A native algorithm passing tests is **not** an emulator trace match. A decomp by
 ## 0508 experimental scheduler component — not integrated native parity
 
 [Conditional JP ROM CPU-cycle/NMI scheduler evidence](../analysis/0508_EXPERIMENTAL_VBLANK_CYCLE_TRACE.md) provides a reusable Python mapped 6502 timing-class and PPU vblank-edge research harness (151 official opcode classes, 27 selected timing unit checks, 960 modeled PPU frames and 8,864,752 executed JP ROM instructions). It is not the native executable/runtime, CPU/PPU/IRQ bus-cycle integration, a reference trace comparison, or a frame/video/audio golden. R-006 remains OPEN, native VPP category remains 1/10, overall VPP 24/100.
+
+
+## Reproducible native CI integration (validation milestone)
+
+`JP/tools/run_native_regressions.sh` compiles all eight native C++20 suites with strict warning/error flags. GitHub Actions workflow `jp-native-regressions.yml` runs four ROM-free suites plus progress-rubric/archive checks; [run 37993214808](https://github.com/Hyperbog/CVIII-Decomp/actions/runs/37993214808) passed. An exact SHA-256-checked JP ROM supplied locally enables four additional ROM-bound suites and two extra ROM-specific mapper/IRQ checks. This earns only the **CI/reproducible test gate** in validation, taking overall VPP to **25/100**. It does not prove the native platform boots, improve strict code coverage or substitute for original emulator reference-trace parity.

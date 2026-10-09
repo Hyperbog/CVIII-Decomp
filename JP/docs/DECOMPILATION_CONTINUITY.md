@@ -25,10 +25,10 @@ whole JP PRG scanned/indexed                 262144 / 262144 = 100%
 strict semantically verified PRG floor        49404 / 262144 = 18.8461%
 exact unique JP<->US correspondence           115865 / 262144 = 44.1990%
 exact-or-normalized structural candidates     149607 / 262144 = 57.0705%
-VPP                                             24 / 100
+VPP                                             25 / 100
 ```
 
-The newest VPP point is the raw-bank `$0B` collision scratch/distance architecture plus native exact-8-bit collision math/test. Cross-version and dispatch-atlas percentages remain candidate structural coverage only.
+The newest VPP point is the native C++20 reproducible build/CI regression gate (eight suites compile, four ROM-free suites run; run 37993214808 green); before it, the raw-bank `$0B` collision scratch/distance architecture with native exact-8-bit collision test earned the previous point. Cross-version and dispatch-atlas percentages remain candidate structural coverage only.
 
 ## Semantic chain through 0502
 
@@ -247,3 +247,8 @@ The RLOFT-inspired, game-specific `JP/PreservationArchive/README.md` and numbere
 On every semantic checkpoint: (1) establish JP ROM identity, physical bank and covered operands; (2) commit reproducible source/audit; (3) update relevant archive chapters with evidence class and scope, including negative findings; (4) maintain Q/D/L/C/U register in chapter 10 and open roadmap in chapter 12; (5) run `JP/tools/audit_preservation_archive.py`; (6) update `PROGRESS.md`/this continuity; and (7) write `analysis/RESUME_STATE.json` **LAST**. Both published archive chapters and native algorithm tests can change without moving strict PRG/VPP counters.
 
 The initial edition documents 0507's committed **49,404 verified PRG bytes (18.8461%)** and VPP **24/100**; this documentation update **adds zero semantic bytes and no rubric points**. Chapter publication is **not** a static-documentation completion certificate, a complete decomp, or a native playable/per-frame parity claim. Continue 0508 from actual schema-v23 ROM-verified resume state, not from archival section order.
+
+
+## Post-0507 independent validation rubric update
+
+GitHub Actions [run 37993214808](https://github.com/Hyperbog/CVIII-Decomp/actions/runs/37993214808) passes the new `jp-native-regressions.yml`: compile eight native test binaries, run four ROM-free suites, validate the fixed VPP rubric, and audit archive links. A SHA-verified local ROM enables the remaining tests through `JP/tools/run_native_regressions.sh`. **VPP is now 25/100** by validation item 8.8. Strict verified PRG remains 49,404; the prior checkpoint 0507 and fixed frontier FB96 do **not** advance due to this tooling point. The RESUME_STATE VPP number is updated independently LAST after all other documents.

@@ -1,6 +1,6 @@
 # CVIII Japanese ROM — subsystem progress and completion roadmap
 
-**Status: ACTIVE PLAN, NOT A COMPLETION CERTIFICATE.** Baseline 2026-10-09, after provisional checkpoint 0508 Phase 11. Authoritative score: [PROGRESS_SCORE.csv](../analysis/PROGRESS_SCORE.csv) and [PROGRESS_METRIC.md](PROGRESS_METRIC.md). Byte ledger/recovery source: [RESUME_STATE.json](../analysis/RESUME_STATE.json).
+**Status: ACTIVE PLAN, NOT A COMPLETION CERTIFICATE.** Originally baselined 2026-10-09 after provisional 0508 Phase 11; score updated after the first green native CI gate on 2026-10-09. Authoritative score: [PROGRESS_SCORE.csv](../analysis/PROGRESS_SCORE.csv) and [PROGRESS_METRIC.md](PROGRESS_METRIC.md). Byte ledger/recovery source: [RESUME_STATE.json](../analysis/RESUME_STATE.json).
 
 ## Audited progress
 
@@ -13,8 +13,8 @@
 | Stage/world/progression | 0/20 | 0.0% | Room formats, transitions, maps, routes, menus, endings |
 | Audio | 1/12 | 8.3% | Driver/data, native APU+VRC6, sound events and parity |
 | Native runtime/platform | 1/10 | 10.0% | Integrated bus, CPU, PPU, input, sound and playable build |
-| Validation/tooling | 3/8 | 37.5% | Trace harness, frame goldens and CI |
-| **Weighted overall verified parity** | **24/100** | **24.0%** | **76 fixed-rubric points not yet earned** |
+| Validation/tooling | 4/8 | 50.0% | Reference trace comparison and frame goldens remain; reproducible C++ native CI gate earned |
+| **Weighted overall verified parity** | **25/100** | **25.0%** | **75 fixed-rubric points not yet earned** |
 
 VPP is a fixed milestone/evidence rubric, **not** an estimate of labor or a calendar forecast. The unweighted average of category percentages is not the overall score. Different metric: **49,404 / 262,144 = 18.8461%** strictly verified PRG; **212,740** bytes uncredited. Whole-PRG mechanical indexing is 100%; JP/US exact-or-normalized structural candidates are 149,607/262,144 (57.0705%), **not semantic coverage**.
 
@@ -59,3 +59,6 @@ Milestones represent dependency/acceptance order, **not calendar promises**; ind
 Reuse committed [Phase 11](../analysis/0508_PHASE11_FINDINGS.md) and predecessor audits as modules. Sweep **complete raw bank $0A plus raw bank $0E room source dependencies**; derive a reset/frame selector witness or explicitly document its missing predicate; execute state-two and loader gates with mapper/IRQ interactions; classify complete affected code/data spans. Commit a consolidated multi-bank manifest, audit, report and relevant native tests; then reconcile the strict ledger against the already-counted bytes. Do not create a twelfth one-function micro-phase as a substitute for this batch.
 
 **Completion definition:** Overall 100 VPP requires all fixed criteria with committed evidence, integrated playable native game and actual reference frame/audio/CPU traces; it cannot be inferred from ROM scanning, decompilation labels, partial 6502 tests, US structural matches or narrative archive volume. Authentic original developer source recovery is a separate evidence-dependent historical task.
+
+
+**Progress change (2026-10-09):** First green [native regression CI](https://github.com/Hyperbog/CVIII-Decomp/actions/runs/37993214808) earned the fixed validation CI milestone: validation 3/8→4/8, weighted total 24→25/100. Game world remains 0/20 and strict PRG coverage remains 49,404 bytes. The preceding Phase 1–11 zero-credit stall diagnosis is historical and remains valid.

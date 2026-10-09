@@ -102,3 +102,8 @@ The [CPU-cycle/PPU-vblank synthetic trace](../analysis/0508_EXPERIMENTAL_VBLANK_
 ### 0508 bulk IRQ-vector experiments — R-006 remains OPEN
 
 [Integrated IRQ source, CPU-vector execution and NMI experiment](../analysis/0508_VRC6_IRQ_INSTRUCTION_BOUNDARY_TRACE.md) reuses the repository's native VRC6 IRQ semantics and runs 350 original-ROM IRQ handlers to RTS/RTI return across 960 synthetic frames, with 948 NMIs and 8,861,056 original instruction steps. The verified source/handler paths and 267 component checks are useful for M1 trace infrastructure, but these are **not independent reference-console traces**. R-001/R-002/R-006 stay OPEN. Strict PRG 49,404/262,144; VPP 24/100; fixed frontier $FB96; RESUME_STATE remains checkpoint 0507.
+
+
+## 2026-10-09 independent CI/testing gate (VPP 25/100, byte frontier unchanged)
+
+[Successful native CI build and tests](https://github.com/Hyperbog/CVIII-Decomp/actions/runs/37993214808) now close the previously open **reproducible build-and-test gate**, one fixed validation point. Eight native binaries compiled and four ROM-free suites executed on GitHub Actions; local SHA-verified Japanese ROM enables the four ROM-dependent suites. The reference CPU/PPU trace, frame parity and bootable native game remain OPEN. VPP **25/100**; strict PRG **49,404/262,144**; completed checkpoint **0507** and next fixed frontier **FB96** unchanged. The 0508 research trace claims above remain provisional.
