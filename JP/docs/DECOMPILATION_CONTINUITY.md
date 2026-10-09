@@ -22,7 +22,7 @@ US comparison SHA-256 `1c7b2ed2c1fb5839a6764006aa476f5c9d48f99465b6141980f3a5af1
 
 ```text
 whole JP PRG scanned/indexed                 262144 / 262144 = 100%
-strict semantically verified PRG floor        49399 / 262144 = 18.8442%
+strict semantically verified PRG floor        49404 / 262144 = 18.8461%
 exact unique JP<->US correspondence           115865 / 262144 = 44.1990%
 exact-or-normalized structural candidates     149607 / 262144 = 57.0705%
 VPP                                             24 / 100
@@ -223,3 +223,18 @@ All new work is infrastructure/semantic mechanism, with **zero strict new bytes*
 
 
 **0506 supplementary recovery edge:** raw bank-$0A:B4CC dispatcher is $19/JSR E7FB with 12 encoded targets. Its state index 1 B58C calls B4E9 (LDA #00; STA $68; RTS) then increments $19. State index 2 B597 invokes B689; $68=0 would select B6A4 and potentially B7F7. **This is conditional**, not live mapper/transitive $19/$68 proof. Run `tools/audit_bank0a_state_chain_0506.py` in addition to `audit_crossbank_ai_atlas_0506.py`. For 0507 trace caller bank state, interrupt/other $19/$68 mutations, and carry-gate at B6A4. Do not advance 0506 verified bytes or fixed physical frontier.
+
+
+## 0507 closed — raw-bank $0A B4CC NMI state entry; conditional 582-byte graph
+
+Reproducible evidence: `analysis/NMI_BANK0A_ROOM_DISPATCH_0507.md`, `tools/audit_nmi_room_dispatch_0507.py`, `src/room_state_dispatch.hpp`, `tests/room_state_dispatch_test.cpp`. Re-run the audit on the authoritative JP ROM and 65536-case C++ test for next recovery.
+
+Existing fixed first-level `E363` table slot **$0D** points to **$E526**; `E526: LDA #$0A; JSR $E2D0; JMP $B4CC`, E2D0 stores to $23 and VRC6 $8000. This proves **raw bank $0A** for $B4CC on that NMI dispatch. Newly credited code is *only* five bytes `raw0A:$B4CC-$B4D0 = A5 19 20 FB E7`, physical PRG21, SHA `0cbfd39d34523da29edaa6a2dcf5cdb4b62de628d0e5568ea3879d7de5a1c0c7`. All fixed E526/E2D0/E7FB bytes pre-covered and not recounted.
+
+The **12** mechanically encoded room-state pointer words $B4D1-$B4E8 plus second-level index0 $B6A4 yield a candidate **281-instruction/582-byte** graph (six noncontiguous ranges; SHA `807363d09368f7ae6ceaeae000df0fc50f56bba5bd2871ca749d7236ec9f3828`). This is **structural only**, except for $B4CC's 5 bytes. E7FB uses 8-bit ASL and can read beyond the encoded 12 entries for high state IDs; do **not** invent a $19 bound, clamp or classify all 582 bytes as verified. Selector $18=0D liveness, mapper state after external helpers, inter-frame $19/$68 mutations, B6A4 carry gate, and $07A0 B8C2 table producer remain unproved.
+
+Four superficially plausible AI ID24/25/26 **direct** producers are ruled out by destinations: bank0B $863B stores #24 to $0606,X; $9234 stores #25 to $05C1,X; $9531 #26 and $B4BC #24 call E249. Do not assume these write AI-script selector $05EF,X. Script IDs 24/25/26 and FC17 remain provisional.
+
+Native E7FB partial selector/Y lift has 65536 ROM-backed test cases. The ABI's final Z/N flags reflect **restored incoming Y**, not target high byte. No stack, zero-page side effects or full CPU parity claim.
+
+Coverage: **49,404/262,144 = 18.8461%**; VPP 24/100. Fixed investigation frontier still FB96 and all six fixed physical gaps retained. Next 0508 focus: producer $18/$19/$68 and helper bank state; conditional B6A4->B7F7, $07A0 table producer; only then commit further graph bytes; AI script IDs and FD62,Y unresolved.
