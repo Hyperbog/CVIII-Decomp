@@ -23,6 +23,7 @@ This is the canonical, reader-oriented subsystem archive for historical preserva
 | [10](10_QUIRKS_CORRECTIONS_AND_UNKNOWNS.md) | Q/D/L/C/U register and contradictions | active |
 | [11](11_PROGRAMMER_MODDER_REFERENCE.md) | Physical address notation, safe extension contracts | preliminary |
 | [12](12_OPEN_RESEARCH_AND_CERTIFICATION_SCOPE.md) | Open proofs, documentation audit, future certification | active |
+| [Discovery log](DISCOVERY_LOG.md) | Permanent technical findings and corrections (append per checkpoint) | active |
 
 ## Editing rule
 
