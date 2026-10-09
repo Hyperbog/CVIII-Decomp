@@ -1,14 +1,14 @@
 {
-  "schema_version": 19,
+  "schema_version": 20,
   "status": "ready",
   "project": "Akumajou Densetsu JP decomp/recomp",
   "repository": "Hyperbog/CVIII-Decomp",
   "branch": "decompilation",
   "rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
   "safe_forward_work": true,
-  "last_completed_checkpoint": "0503",
-  "last_completed_checkpoint_commit": "668c7f25044a1c9b91ef09a8fc61d97fb4f91d82",
-  "previous_checkpoint_audit": "tools/audit_raw0b_ai_dispatch_0503.py",
+  "last_completed_checkpoint": "0504",
+  "last_completed_checkpoint_commit": "9deb4b24cc559c475368d1e1287604022c3facb0",
+  "previous_checkpoint_audit": "tools/audit_ai_script_seed_0504.py",
   "vpp": {
     "earned": 24,
     "total": 100
@@ -27,13 +27,13 @@
     "last_closed_physical_prg_bank": 31,
     "next_unprocessed_cpu": "FB96",
     "next_physical_prg_bank": 31,
-    "next_checkpoint": "0504",
+    "next_checkpoint": "0505",
     "domain_transition": false,
     "initial_window_start_cpu": "FB96",
     "initial_window_end_cpu_inclusive": "FFFF",
     "initial_window_contiguous_bytes": 1130,
     "initial_window_sha256": "0cbfd0aa79f3c7d1db7a756c08c47bfe01cba321900fb8955e77ec8525d38d44",
-    "frontier_semantics": "fixed PRG31 raw tail $FB96 unchanged; 0503 is a tested native interpreter-address lift of previously verified 0501 code, not new physical ROM coverage"
+    "frontier_semantics": "physical fixed-PRG31 raw investigation frontier remains FB96, now 0504 noncontiguously closes FBF6-FC16, FC1F-FD58; never count intervening gaps"
   },
   "verification_overlap": {
     "physical_prg_bank": 31,
@@ -54,43 +54,175 @@
     "purpose": "alignment/fingerprint only; does not establish semantic closure"
   },
   "prior_dependency_manifest": {
-    "checkpoint": "0503",
-    "mapping": "raw VRC6 bank $0B",
-    "analysis": "analysis/RAW0B_AI_DISPATCH_NATIVE_0503.md",
-    "audit": "tools/audit_raw0b_ai_dispatch_0503.py",
-    "known_rom_code_start_cpu": "BD11",
-    "known_rom_code_end_cpu_inclusive": "BD66",
-    "known_code_sha256": "fbad027357da9de96af06f073ab22c6251d372af2a5f31a80edb0bf9e60f3e79",
-    "exact_new_bytes_in_checkpoint": 0,
-    "coverage_accounting": "all $BD11-$BD66 dispatch instructions previously admitted by checkpoint 0501; full mechanical 512-byte table remains structural only",
-    "action_slots_mechanical": 256,
-    "distinct_targets_mechanical": 217,
-    "action_9E_alias": "BEA3 -> BF79 script data"
+    "checkpoint": "0504",
+    "analysis": "analysis/RAW0B_AI_SCRIPT_SEED_0504.md",
+    "audit": "tools/audit_ai_script_seed_0504.py",
+    "new_code_instruction_starts": {
+      "raw_vrc6_bank_0B": 71,
+      "physical_prg31": 185
+    },
+    "new_code_bytes": {
+      "raw_vrc6_bank_0B": 169,
+      "physical_prg31": 335
+    },
+    "new_bounded_data_bytes": {
+      "raw_vrc6_bank_0B": 60,
+      "physical_prg31": 12
+    },
+    "exact_new_bytes_in_checkpoint": 576,
+    "manifest_sha256": "4416db601cba553569d4ccc4aba410a6d843a6da3504dac1d735317ca1106eb4",
+    "exact_new_ranges": [
+      {
+        "mapping": "physical_prg31",
+        "start_cpu": "FBF6",
+        "end_cpu_inclusive": "FC16",
+        "length": 33,
+        "sha256": "aef72125489106f46e5126d06c70468a12b2e5d3217bf5601856be437fa98ca6"
+      },
+      {
+        "mapping": "physical_prg31",
+        "start_cpu": "FC1F",
+        "end_cpu_inclusive": "FD4C",
+        "length": 302,
+        "sha256": "a87fac16f29f6f4ff4d80238545a35cd78446118a02110784835f075d8809c90"
+      },
+      {
+        "mapping": "physical_prg31",
+        "start_cpu": "FD4D",
+        "end_cpu_inclusive": "FD58",
+        "length": 12,
+        "sha256": "19f7481bdd32ba4244331a4948e09d1e541eef9702976d4d46b62fab475225b4"
+      },
+      {
+        "mapping": "raw_vrc6_0B",
+        "start_cpu": "807F",
+        "end_cpu_inclusive": "808E",
+        "length": 16,
+        "sha256": "872747bd9c7ae5b22d140e73f3b84d0eabf6907b4aed0edb9153ffdc5df3a78a"
+      },
+      {
+        "mapping": "raw_vrc6_0B",
+        "start_cpu": "82C7",
+        "end_cpu_inclusive": "82CC",
+        "length": 6,
+        "sha256": "01d6ddd14ddb51aa5e3256683173fc2e4ce8f5d5d556b095a6fc649397908db7"
+      },
+      {
+        "mapping": "raw_vrc6_0B",
+        "start_cpu": "8357",
+        "end_cpu_inclusive": "8362",
+        "length": 12,
+        "sha256": "3e3f9a6e7d3e43ad9c8b874723ac32a52f30cfafe5ab6aef218391b1b18dbf02"
+      },
+      {
+        "mapping": "raw_vrc6_0B",
+        "start_cpu": "8519",
+        "end_cpu_inclusive": "8528",
+        "length": 16,
+        "sha256": "a9522c36a2015d6ca882339bda770889688cc98b93ea40692e99ffdaf6e60096"
+      },
+      {
+        "mapping": "raw_vrc6_0B",
+        "start_cpu": "85E6",
+        "end_cpu_inclusive": "85FD",
+        "length": 24,
+        "sha256": "5fc395b6ecebef6e9de4ed33213afda0dd4959efd720b1730097d2a46e63fe9f"
+      },
+      {
+        "mapping": "raw_vrc6_0B",
+        "start_cpu": "8EF7",
+        "end_cpu_inclusive": "8F15",
+        "length": 31,
+        "sha256": "4ce1f0d6ebc209b7fd6aa554315b502767dd36c81305849d860cd23dc22a0ecc"
+      },
+      {
+        "mapping": "raw_vrc6_0B",
+        "start_cpu": "965D",
+        "end_cpu_inclusive": "968B",
+        "length": 47,
+        "sha256": "cae6fc5dec7311f65c17145809a7aa15d401ec7f99e8fcc12ad2457593eefd19"
+      },
+      {
+        "mapping": "raw_vrc6_0B",
+        "start_cpu": "96B4",
+        "end_cpu_inclusive": "96C4",
+        "length": 17,
+        "sha256": "2185fb411ee0675bb8113fe3da781a9a31bf4e420b5008d60c81a7538bbfb1d1"
+      },
+      {
+        "mapping": "raw_vrc6_0B",
+        "start_cpu": "968C",
+        "end_cpu_inclusive": "96B3",
+        "length": 40,
+        "sha256": "ecee5e26c7787f38575a7c1b282135c9d53a91bd9bd15273cb3db3c9dbe02336"
+      },
+      {
+        "mapping": "raw_vrc6_0B",
+        "start_cpu": "B03A",
+        "end_cpu_inclusive": "B045",
+        "length": 12,
+        "sha256": "86d624fa134201d5a290ea8668029dbab95f41a2e7717999144e12a70a1754d4"
+      },
+      {
+        "mapping": "raw_vrc6_0B",
+        "start_cpu": "BD7D",
+        "end_cpu_inclusive": "BD7E",
+        "length": 2,
+        "sha256": "6193628a00b751aeaf2e188b4d29405346f1ec74da4528a6b110ddbfaf216de9"
+      },
+      {
+        "mapping": "raw_vrc6_0B",
+        "start_cpu": "BDF1",
+        "end_cpu_inclusive": "BDF4",
+        "length": 4,
+        "sha256": "d336e3b392df397fdb0cedfe097889a4e6b54d83a39efd7f6523c6c6809066a5"
+      },
+      {
+        "mapping": "raw_vrc6_0B",
+        "start_cpu": "BED9",
+        "end_cpu_inclusive": "BEDA",
+        "length": 2,
+        "sha256": "c89c6b9852ba7db757b98b48dd2bf9d2ca9762247ec1aff4bf903aa5cb733435"
+      }
+    ],
+    "strict_accounting": "exact noncontiguous instruction/operand and bounded data; FD62,Y remains unresolved"
   },
   "pending_unclaimed_gaps": [
     {
       "start_cpu": "FAA0",
       "end_cpu_inclusive": "FAA9",
       "length": 10,
-      "reason": "indexed ROM data dependencies exist but $62/$054E index domains are not yet fully proven"
+      "reason": "unclosed indexed $62/$054E ROM producer from 0500"
     },
     {
       "start_cpu": "FB96",
+      "end_cpu_inclusive": "FBF5",
+      "length": 96,
+      "reason": "raw fixed frontier gap before 0504 admitted FBF6"
+    },
+    {
+      "start_cpu": "FC17",
+      "end_cpu_inclusive": "FC1E",
+      "length": 8,
+      "reason": "physical bytes not consumed by 0504 fixed code graph"
+    },
+    {
+      "start_cpu": "FD59",
       "end_cpu_inclusive": "FDE3",
-      "length": 590,
-      "reason": "raw fixed-tail bytes before first 0501 verified inbound root $FDE4 remain physically unprocessed/unclaimed"
+      "length": 139,
+      "reason": "physical bytes after 0504 bounded FD4D table and before 0501 FDE4 root"
     },
     {
       "start_cpu": "FEEA",
       "end_cpu_inclusive": "FF55",
       "length": 108,
-      "reason": "not consumed by admitted 0501 fixed graph"
+      "reason": "unconsumed between 0501 fixed ranges"
     },
     {
       "start_cpu": "FF7A",
       "end_cpu_inclusive": "FFFF",
       "length": 134,
-      "reason": "not consumed by admitted 0501 fixed graph; vectors/other prior semantics may overlap separately"
+      "reason": "unconsumed by 0501 fixed graph; other prior vectors/semantics may overlap"
     }
   ],
   "closed_state": [
@@ -106,11 +238,15 @@
     "JP-US exact and normalized structural matchers are implemented/audited",
     "0503 exact raw-bank 0B $BD11-$BD66 script pointer/subscript/action lookup formula is reproduced by independent JP-ROM audit",
     "0503 native C++ AI dispatch address lift and 256-action mechanical integration test pass with JP-ROM data; does not emulate prechecks or full CPU state",
-    "0503 whole-PRG $05EF writer byte-pattern shortlist built; executable liveness and index alias proof deliberately open"
+    "0503 whole-PRG $05EF writer byte-pattern shortlist built; executable liveness and index alias proof deliberately open",
+    "0504 JP producer script ID $1B and reset subscript $00 admit actions $0B/$45/$46; 71 raw-bank 0B instruction starts/169 new code bytes and 60 bounded data bytes",
+    "0504 fixed $FC1F local graph 185 starts/335 new code bytes and bounded FD4D modulo-12 table 12 bytes; five additional direct ZP10 writes at FBFC/FC1F/FC4F/FCA0/FCF9",
+    "0504 mechanical script pointer census 107 entries/72 distinct pointer words/792 candidate lattice records stays structural only, not action liveness"
   ],
   "open_edges": [
-    "0504: prove live JP script-ID/subscript/action producer domains feeding $05EF,X/$05C1,X; 0503 produced only raw candidate writer patterns and did not promote table/handler liveness",
-    "exact runtime final-writer/value domain for the seven raw-bank $0B collision-scratch writes",
+    "0505: prove fixed FD62,Y indexed ROM data producer domain; its target bytes remain deliberately unaccounted",
+    "expand verified JP $05EF/$05C1 producer domains and live AI script records/actions without treating all 107 pointer slots or 792 lattice cells as live",
+    "prove exact final writer of shared ZP $10 across seven raw-0B collision stores plus five newly decoded fixed-FC1F direct writes",
     "raw bank $0B E7FB dispatch sites $A15A/$A2CC/$A3A9",
     "raw bank $09 indirect/E5DA-selected callees and their $10 behavior",
     "live producer domain of selector $03 for fixed FE95 expression $0565,X >> 6",
@@ -122,7 +258,12 @@
     "CPU/interrupt trace parity; full PPU/runtime integration; VRC6 audio"
   ],
   "checkpoint_constraints": [
-    "0504 starts from mapper-aware JP producer/value domain closure for $05EF,X and $05C1,X; query global shortlist before narrow inspection",
+    "0505 begins with $FD62,Y producer/value-domain analysis and exact AI-script seed expansion",
+    "preserve 0504 admitted 576 bytes as disjoint, noncontiguous tagged ROM-manifest coverage",
+    "the five fixed FC1F ZP10 writers mean prior raw-bank-0B-only last writer model is incomplete",
+    "do not infer liveness for all 792 candidate four-byte records or all 107 script pointers",
+    "never claim $FD62,Y table data until Y producers are resolved",
+    "raw fixed PRG31 physical frontier remains FB96; unclaimed gaps now FB96-FBF5, FC17-FC1E, FD59-FDE3",
     "0503 address lift is mechanical and does not model stopwatch/$27 prechecks or CPU-memory side effects",
     "do not promote all 256 action slots: action $9E mechanically aliases $BEA3 script pointer bytes and lands at $BF79 data",
     "do not infer live action IDs from 256-slot mechanical table shape",
@@ -201,6 +342,34 @@
         "ora_abs_x": 1
       },
       "vpp_credit": 0
+    },
+    "raw0b_script_seed_0504": {
+      "status": "rom_audited_static_graph",
+      "analysis": "analysis/RAW0B_AI_SCRIPT_SEED_0504.md",
+      "audit": "tools/audit_ai_script_seed_0504.py",
+      "script_id": "1B",
+      "first_action_ids": [
+        "0B",
+        "45",
+        "46"
+      ],
+      "action_handlers": [
+        "8519",
+        "965D",
+        "96B4"
+      ],
+      "new_fixed_zp10_writers": [
+        "FBFC",
+        "FC1F",
+        "FC4F",
+        "FCA0",
+        "FCF9"
+      ],
+      "candidate_script_pointer_entries": 107,
+      "structural_four_byte_lattice_candidates": 792,
+      "manifest_sha256": "4416db601cba553569d4ccc4aba410a6d843a6da3504dac1d735317ca1106eb4",
+      "strict_new_bytes": 576,
+      "unresolved": "FD62,Y ROM index domain"
     }
   },
   "repair_history": {
@@ -210,12 +379,13 @@
     "native_mapper_transaction": "VPP 21->22",
     "native_irq_transaction": "VPP 22->23",
     "0502_collision_transaction": "2 new ROM bytes plus reusable collision architecture/native test; VPP 23->24",
-    "0503_ai_script_transaction": "Native AI-script address lift and exact ROM audit over previously admitted 0501 code; strict ROM floor and VPP unchanged"
+    "0503_ai_script_transaction": "Native AI-script address lift and exact ROM audit over previously admitted 0501 code; strict ROM floor and VPP unchanged",
+    "0504_script_seed_transaction": "576 noncontiguous newly audited code/data bytes, 256 opcode starts and five fixed ZP10 writers; full indexed FD62,Y and runtime liveness remain open; VPP unchanged"
   },
   "progress_metrics": {
     "whole_prg_scanned_bytes": 262144,
-    "strict_verified_prg_floor_bytes": 48823,
-    "strict_verified_prg_floor_fraction": 0.18624496459960938,
+    "strict_verified_prg_floor_bytes": 49399,
+    "strict_verified_prg_floor_fraction": 0.18844223022460938,
     "jp_us_exact_unique_bytes": 115865,
     "jp_us_exact_unique_fraction": 0.4419898986816406,
     "jp_us_exact_or_normalized_candidate_bytes": 149607,
