@@ -160,3 +160,16 @@ SHA 0cbfd0aa79f3c7d1db7a756c08c47bfe01cba321900fb8955e77ec8525d38d44
 ```
 
 Transaction order: analysis -> audit -> exact-ROM run -> progress/continuity -> `RESUME_STATE.json` last -> recovery checker -> branch-head confirmation.
+
+
+## 0503 completed — AI-script dispatcher native address lift
+
+Source `src/ai_script_dispatch.hpp/.cpp`, integration test `tests/ai_script_dispatch_test.cpp`, exact-JP-ROM audit `tools/audit_raw0b_ai_dispatch_0503.py`, analysis `analysis/RAW0B_AI_DISPATCH_NATIVE_0503.md`.
+
+Script ID $05EF,X selects $BEA3 + uint8(script_id*2) after prechecks; subscript $05C1,X adds uint8(subscript*4) with 16-bit carry to script base; the first 4-byte-record byte selects an action word at $BD67 or $BE67 depending on bit 7. Native code returns mechanical addresses and final A/Y/C/Z/N values but does **not** execute prechecks or write CPU state. Real JP ROM hash for $BD11-$BD66: `fbad027357da9de96af06f073ab22c6251d372af2a5f31a80edb0bf9e60f3e79`.
+
+Action $9E mechanically maps $BEA3 -> $BF79, which is script data. The 256-slot/217-target mechanical atlas cannot prove action liveness. Whole-ROM byte patterns for $05EF writers have been inventoried provisionally (96 STA X, 23 STA Y, 5 STA absolute, 2 STY absolute, 1 ORA X). Verify reachable code/indices and aliases before using this as a producer domain.
+
+**0503 adds zero newly accounted PRG bytes** (the decoder code was admitted in 0501). Floor 48,823 (18.6245%); VPP 24/100. Physical fixed frontier remains $FB96; unclaimed $FAA0-$FAA9 unchanged.
+
+Resume 0504 by running the ROM checker and `audit_raw0b_ai_dispatch_0503.py`, then prove live $05EF,X and $05C1,X producers and script record action bytes. Do not guess mapper state, full-table liveness, ROM data bounds, or CPU side effects.
