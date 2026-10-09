@@ -194,3 +194,16 @@ Next checkpoint **0505**: close fixed $FD62,Y index-domain producer if feasible;
 Physical fixed investigation frontier is **still $FB96**, with $FAA0-$FAA9 unclaimed, and 0504 fixed new intervals only $FBF6-$FC16 / $FC1F-$FD4C plus 12 bytes at $FD4D-$FD58. Keep exact noncontiguous accounting.
 
 Checkpoint transaction: analysis/audit committed, progress/continuity updated before machine resume state. Resume tool `check_resume_frontier.py` must still pass. No ROM material committed.
+
+
+## 0505 — fixed-$FD62,Y source-domain investigation and native test
+
+Evidence: `analysis/FIXED_TILE_PROBE_0505.md`, `tools/audit_fixed_tile_probe_0505.py`, `src/fixed_tile_probe.hpp`, `tests/fixed_tile_probe_test.cpp`.
+
+The native address/data lift runs the **actual mapped CPU read** at $FD62 + Y, followed by OR with $13 >> 5, iterative modulo-12 reduction, bounded $FD4D table read and ADC $11. The $FD62,Y source is **NOT proven within 12 bytes**; Y may come from either ($54+carry)&FF or ($54+$14+carry)&FF and whole-program values of $54/$14 are not yet closed. Without a live domain, overapproximate 256 possible CPU addresses FD62-FE61; reads may overlap executable bytes. No host clamp permitted. Tests pass 524,288 input combinations with JP fixed PRG31 ROM; not a full execution trace.
+
+The ROM-locked audit also records **156 provisional raw JSR byte-pattern candidates** to fixed $FB96/$FBA5/$FC17/$FC1F/$FCDE, and 37 provisional immediate script-ID stores to $05EF,X. Their physical code/data and bank contexts are not automatically proven. In particular $FC17-$FC1E remains 8 **unclaimed** bytes despite six plausible JSR patterns.
+
+0505 has **zero newly admitted ROM bytes** because all lifted $FD11-$FD2B mechanics were already audited in 0504. Strict verified PRG stays **49,399 = 18.8442%**, VPP **24/100**. Fixed raw frontier **FB96**, with six unclaimed gaps unchanged.
+
+For 0506: independently replay ROM checker and `audit_fixed_tile_probe_0505.py`. Establish live $54/$14 producer domains and mapper-backed JSR callers before claiming FD62 indexed data or $FC17 code. Expand JP-proven $05EF and $05C1 values for real script record/handler closure. Consult original MOS CPU manual, NESDoc and EveryNES for flags/memory/PPU timing; JP ROM remains authority.
