@@ -45,3 +45,7 @@ A ROM-backed 6502 instruction executor tests conditional `$18=$0C, $19=$13` thro
 ## Provisional 0508 Phase 8 — state-zero clear and preserved room field
 
 The [ROM-locked bounded execution audit](../analysis/0508_PHASE8_FINDINGS.md) follows raw bank `$0A:$B570` through fixed `$E2C4`, `$E616`, and `$E7B6` to the **entry** of `$EB82`. It executes 768 synthetic-entry cases, not complete NMI frames. `$E7B6` clears 1,297 distinct RAM destinations; caller `$B57B-$B583` saves/restores `$0781`. The tested entry consequently clears `$07A0/$07A6/$0789/$68`, retains `$0781`, and preserves `$18=$0D/$19=0`. State-zero entry and post-`$EB82` effects remain conditional/unclosed. No semantic PRG or VPP increment.
+
+## Provisional 0508 Phase 9 — fixed PPU stream returns to state one
+
+The [Phase 9 ROM-locked audit](../analysis/0508_PHASE9_FINDINGS.md) extends the *conditional* raw `$0A:$B570` state-zero prefix through fixed `$EB82` (and `$E16C/$E827/$ED89`), then executes raw `$0A:$B589 INC $19; RTS`. Its 512 bounded cases preserve `$0781`, leave `$07A0/$07A6/$68=0` and advance `$19=0→1`. The fixed `$EC1D-$EC46` data stream issues 2,048 zero-valued `$2007` writes. This is **not a full NMI trace**: PPUSTATUS is held at zero; reset-to-selector liveness, interrupt timing, other writers, and native PPU parity remain unresolved. The stream is previously counted fixed PRG data; no new strict coverage or VPP.

@@ -59,3 +59,7 @@ The [Phase 1–5 research commit](https://github.com/Hyperbog/CVIII-Decomp/commi
 ### 0508 Phase 8 bounded evidence (R-001/R-002 remain OPEN)
 
 [Phase 8](../analysis/0508_PHASE8_FINDINGS.md) proves from ROM-executed instructions that the **conditional** room state-zero `$B570` prefix clears `$07A0/$07A6/$0789/$68` and restores `$0781`, stopping before fixed `$EB82`. This narrows the room-index source to a known zeroing point **for that entry only**; it does not bound later producers, prove the initial NMI selector pair is live, or close $EB82 effects. Exactly 768 local tests pass. Research evidence only; strict floor **49,404**, VPP **24/100**, machine frontier **$FB96** unchanged.
+
+### 0508 Phase 9 bounded state-one transition (R-001/R-002/R-006 still OPEN)
+
+[Phase 9](../analysis/0508_PHASE9_FINDINGS.md) runs 512 original ROM-backed conditional `$B570→EB82→B589` executions. It fully consumes fixed `$EC1D-$EC46` stream data and tests 2,048 `$2007` writes plus RAM/index/stack postconditions under increment-1 and increment-32 PPUCTRL. It demonstrates a local `$19:0→1` state handoff with `$07A0/$07A6=0`, **not** actual gameplay reachability, arbitrary PPU/NMI/IRQ timing, later `$B58C` behavior, or a global room index bound. Fixed PRG stream bytes are already counted; strict coverage remains **49,404**, VPP **24/100**, resume checkpoint **0507**, frontier **$FB96**.

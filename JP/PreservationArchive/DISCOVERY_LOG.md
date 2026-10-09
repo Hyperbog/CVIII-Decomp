@@ -58,3 +58,7 @@ The [Phase 1–5 research commit](https://github.com/Hyperbog/CVIII-Decomp/commi
 ### Provisional 0508 Phase 8 (not a completed checkpoint)
 
 [ROM-backed state-zero prefix](../analysis/0508_PHASE8_FINDINGS.md): mapped raw `$0A:$B570` executes fixed `$E7B6` clear, zeroing `$07A0/$07A6/$0789/$68` while preserving `$0781` through `PHA/PLA` (stops at `$EB82`, 768 cases). This is a conditional initialization anchor for **R-001/R-002**, not a live selector-domain or five-pointer-table bound. No newly credited PRG bytes or VPP; retain completed recovery checkpoint 0507 until full reconciliation.
+
+### Provisional 0508 Phase 9 — state-zero PPU stream and indexed room handoff
+
+[Phase 9 ROM audit](../analysis/0508_PHASE9_FINDINGS.md): raw `$0A:$B570` conditionally calls fixed `$EB82`, which reads 42 previously counted ROM-data bytes `$EC1D-$EC46` to write 2,048 zeros to `$2007`. Return via `$B589` increments `$19=0→1`, preserving local `$07A0/$07A6/$68=0` and saved `$0781`. 512 original-instruction partial-PPU tests pass; increment-32 PPUCTRL produces VRAM-address aliases. R-001/R-002/R-006 remain OPEN because no reset-to-frame liveness or reference PPU trace exists. **Zero strict new PRG bytes, VPP remains 24/100, authoritative machine checkpoint still 0507.**

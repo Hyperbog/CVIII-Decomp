@@ -23,3 +23,7 @@ It is unsafe to initialize $10 to zero at renderer entry. Some full descriptors 
 Existing [native OAM](../src/oam_renderer.hpp) and [test](../tests/oam_renderer_test.cpp) cover established local descriptor behavior. This is not proof of complete PPU registers $2000/$2005/$2006/$2007, scrolling, CHR, sprite evaluation, scanline IRQ, or full frame parity. Refer to user-provided NESDoc, MOS 6500 manual and EveryNES for hardware checks; their generalized diagrams must not override JP ROM writes.
 
 Next: derive complete PPU/scrolling producer domain, CHR banking during render, real frame traces with 256-byte OAM golden comparisons, and shared-attribute initialization/provenance.
+
+## 0508 Phase 9 — bounded nametable clear port sequence, not frame parity
+
+The [Phase 9 original-instruction witness](../analysis/0508_PHASE9_FINDINGS.md) executes fixed `$EB82` on its conditionally entered room-state-zero path, reading the 42-byte `$EC1D-$EC46` stream. The original command interpreter issues two groups of **1,024 zero-valued `$2007` writes**, starting at `$2000` and `$2400`, and returns to raw `$0A:$B589`. The audit checks 512 combinations of initial RAM seeds and PPUCTRL increment=1 or 32. In increment-32 mode the bus addresses alias; neither stream length nor write count certifies 2,048 distinct VRAM destinations there. PPUSTATUS=0, no rendering/scanline timing or actual reset-to-frame trace; do not confuse this VRAM path with sprite OAM (`$10` last-writer still OPEN). Previously counted fixed PRG code/data: 0 newly credited bytes.
