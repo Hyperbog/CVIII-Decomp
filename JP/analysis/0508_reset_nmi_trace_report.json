@@ -1,0 +1,129 @@
+{
+  "status": "SYNTHETIC_VBLANK_AND_MANUAL_NMI_TRACE_NOT_REFERENCE_PLAYTHROUGH",
+  "rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "runs": [
+    {
+      "idle_instructions_before_each_NMI": 0,
+      "reset_instructions": 6417,
+      "frame_count": 150,
+      "total_original_instruction_steps": 513513,
+      "NMI_150_steps_last": 3452,
+      "first_frame": {
+        "frame": 1,
+        "instructions": 5321,
+        "room_18": 0,
+        "room_19": 1,
+        "secondary_68": 0,
+        "room_idx_07A0": 0,
+        "descriptor_idx_07A6": 0,
+        "mapped_bank": 13
+      },
+      "last_frame": {
+        "frame": 150,
+        "instructions": 3452,
+        "room_18": 0,
+        "room_19": 1,
+        "secondary_68": 0,
+        "room_idx_07A0": 0,
+        "descriptor_idx_07A6": 0,
+        "mapped_bank": 13
+      },
+      "frame_trace_sha256": "68e9523e6d0de1bdb77ca7935a9848303f91c66d2daa65cc570484ea976d74ea",
+      "state_domain": [
+        "00/01"
+      ],
+      "ppu_writes_during_NMIs": 5069,
+      "mapped_PRG_end": "0D"
+    },
+    {
+      "idle_instructions_before_each_NMI": 12,
+      "reset_instructions": 6417,
+      "frame_count": 150,
+      "total_original_instruction_steps": 515313,
+      "NMI_150_steps_last": 3452,
+      "first_frame": {
+        "frame": 1,
+        "instructions": 5321,
+        "room_18": 0,
+        "room_19": 1,
+        "secondary_68": 0,
+        "room_idx_07A0": 0,
+        "descriptor_idx_07A6": 0,
+        "mapped_bank": 13
+      },
+      "last_frame": {
+        "frame": 150,
+        "instructions": 3452,
+        "room_18": 0,
+        "room_19": 1,
+        "secondary_68": 0,
+        "room_idx_07A0": 0,
+        "descriptor_idx_07A6": 0,
+        "mapped_bank": 13
+      },
+      "frame_trace_sha256": "68e9523e6d0de1bdb77ca7935a9848303f91c66d2daa65cc570484ea976d74ea",
+      "state_domain": [
+        "00/01"
+      ],
+      "ppu_writes_during_NMIs": 5069,
+      "mapped_PRG_end": "0D"
+    },
+    {
+      "idle_instructions_before_each_NMI": 384,
+      "reset_instructions": 6417,
+      "frame_count": 150,
+      "total_original_instruction_steps": 571113,
+      "NMI_150_steps_last": 3452,
+      "first_frame": {
+        "frame": 1,
+        "instructions": 5321,
+        "room_18": 0,
+        "room_19": 1,
+        "secondary_68": 0,
+        "room_idx_07A0": 0,
+        "descriptor_idx_07A6": 0,
+        "mapped_bank": 13
+      },
+      "last_frame": {
+        "frame": 150,
+        "instructions": 3452,
+        "room_18": 0,
+        "room_19": 1,
+        "secondary_68": 0,
+        "room_idx_07A0": 0,
+        "descriptor_idx_07A6": 0,
+        "mapped_bank": 13
+      },
+      "frame_trace_sha256": "68e9523e6d0de1bdb77ca7935a9848303f91c66d2daa65cc570484ea976d74ea",
+      "state_domain": [
+        "00/01"
+      ],
+      "ppu_writes_during_NMIs": 5069,
+      "mapped_PRG_end": "0D"
+    }
+  ],
+  "synthetic_NMI_injections": 450,
+  "total_ROM_instructions_across_runs": 1599939,
+  "environment": {
+    "RESET_PPUSTATUS": "80 at both VBlank wait reads",
+    "NMI_PPUSTATUS": "00 on each $2002 read",
+    "IRQ": "none scheduled",
+    "controller": "$4016/$4017 synthetic zero",
+    "NMI_schedule": "manual after configurable main-loop instruction steps; NOT CPU cycles",
+    "PPU": "register writes captured, not rendered/timed"
+  },
+  "positive_facts": [
+    "RESET instruction path to E04B executes",
+    "all tested first NMIs start with 18=19=68=07A0=07A6=0",
+    "first NMI changes 19 00->01 under zero controller stub",
+    "150 manual NMIs per scenario stay at 18=00/19=01"
+  ],
+  "proof_limits": [
+    "This shows what the JP CPU program does under artificial environment inputs; it is NOT a natural console trace",
+    "Real controller input, PPU timing and mapper IRQ are not modeled; 18=0C and room-state liveness not established",
+    "No full reference CPU/PPU/APU trace or native full-game parity"
+  ],
+  "new_strict_prg_bytes": 0,
+  "strict_cumulative_prg_bytes": 49404,
+  "vpp": 24
+}

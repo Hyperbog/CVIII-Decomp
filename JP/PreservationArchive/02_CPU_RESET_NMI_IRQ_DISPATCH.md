@@ -63,3 +63,8 @@ The [Phase 9 ROM-locked audit](../analysis/0508_PHASE9_FINDINGS.md) extends the 
 ## 0508 bulk trace infrastructure and reset seeding
 
 The [32-KiB source/producer sweep](../analysis/0508_BULK_0A0E_FINDINGS.md) executes fixed RESET `$E020–E034`'s indirect RAM clear across 32 incoming RAM seeds (6,174 original instructions/case), proving `$18=$19=$68=$07A0=$07A6=0` immediately after that loop while `$00/$01` end as a working pointer `$0800`. This is a bounded initial state, **not** a reset-to-NMI frame witness or proof of later `$18=$0C` liveness. The new [reusable partial 2A03/VRC6 stepper](../analysis/0508_TRACE_CORE_AND_E7FB_CORRECTION.md) replays two independent ROM path regressions and detects E7FB's native index-wrap reconstruction error. No CPU-cycle timing or reference-emulator parity certificate exists.
+
+
+## 0508 bulk first-NMI synthetic execution witness
+
+The [generic ROM-fetched RESET→NMI experiment](../analysis/0508_RESET_NMI_SYNTHETIC_TRACE.md) runs the original RESET from fixed `$E00B` to `$E04B` under two fixed VBlank-ready `$2002` reads, then manually injects 150 NMIs for each of three idle-instruction budgets (0/12/384). Its **450 synthetic NMIs/1,599,939 executed original instruction steps** demonstrate conditional first-NMI `$18=0,$19:0→1` and subsequent no-input `$18=0,$19=1`. No controller interface, frame timing, PPU pipeline, or IRQ scheduling is implemented; this is **not** reference hardware/gameplay liveness or full CPU trace parity. R-001 and R-006 remain OPEN; no PRG/VPP increase.

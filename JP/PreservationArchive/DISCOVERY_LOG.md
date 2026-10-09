@@ -74,3 +74,6 @@ The [Phase 1–5 research commit](https://github.com/Hyperbog/CVIII-Decomp/commi
 
 
 **Provisional 0508 bulk research (not a completed checkpoint):** [32-KiB raw-bank `$0A/$0E` manifest and reset-loop proof](../analysis/0508_BULK_0A0E_FINDINGS.md) records 2,505 distinct labeled bytes, only 120 known previously credited, with **zero newly promoted** bytes. [Generic 6502/VRC6 partial bus/trace core](../analysis/0508_TRACE_CORE_AND_E7FB_CORRECTION.md) passes 272 ROM-path cases and E7FB/ALU edge tests, finding **C-003:** the old partial native room decoder incorrectly read the second inline table byte without modeling 8-bit Y wrap at selectors `$7F/$FF`. Corrected source/test and Phase 2 audit/report retain ROM authority. Last completed machine checkpoint stays 0507; strict 49,404 bytes, VPP 24. Live selector provenance and original reference frame traces remain open.
+
+
+**Provisional 0508 bulk M1 trace follow-up:** [ROM-fetched RESET + 450 synthetic NMIs](../analysis/0508_RESET_NMI_SYNTHETIC_TRACE.md), **1,599,939** original instruction steps, under exactly stated synthetic PPU/no-IRQ/zero-input conditions. Bounded first NMI `$18/$19:00/00→00/01`; repeated artificial no-input injections stay `00/01`. This is not reset-to-gameplay `$0C/$13` liveness or external emulator parity; R-001/R-006 remain OPEN, no new strict bytes/VPP.
