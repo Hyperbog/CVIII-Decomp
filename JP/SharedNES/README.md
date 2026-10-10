@@ -122,3 +122,6 @@ python3 JP/tools/nes_cdl_bridge_0508.py game.nes reference.cdl --format auto \
 ## First compiled 2A03 CPU and VRC6 mapped-bus integration (0509)
 
 [Native headless C++20 CPU package](../native0509/README.md) combines all 151 official NMOS/2A03 opcode models, native VRC6a mapper/IRQ, RAM, serial controllers, CIRAM/palette/OAM registers and a basic vblank/NMI schedule. It still requires private original JP PRG/CHR ROM code and is **not a playable reconstructed game**. 262,144 exhaustive arithmetic cases pass; real original-JP CPU PC prefixes match independently sourced Mesen2 for 7,828 initial instructions, then diverge at vblank phase. [Proof scope](../docs/0509_NATIVE_CPU_HEADLESS.md). The CPU implementation is reusable across NES developers; mapper and game semantics remain hardware/game-specific.
+
+
+**0509 CPU reference-fixture phase:** Native original-JP headless CPU now supports a non-default, explicit reference-only PPU start-dot input (Mesen debugger reset 0:31). This extends PC-prefix trace agreement from **7,828** to **24,773** original-ROM instructions before first NMI divergence. It does not convert the ROM-dependent native CPU into a playable independent port or a cycle-correct PPU. Source/tests and SHA-256 goldens: [technical note](../docs/0509_NATIVE_CPU_HEADLESS.md).

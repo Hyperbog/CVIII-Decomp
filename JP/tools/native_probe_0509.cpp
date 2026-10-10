@@ -9,7 +9,7 @@
 #include <cstdint>
 
 int main(int argc,char** argv){
-    if(argc<2||argc>4){std::cerr<<"Usage: native_probe_0509 ORIGINAL_JP_ROM.nes [MAX_STEPS] [TRACE_FILE]\n";return 2;}
+    if(argc<2||argc>5){std::cerr<<"Usage: native_probe_0509 ORIGINAL_JP_ROM.nes [MAX_STEPS] [TRACE_FILE] [REFERENCE_PPU_START_DOT]\n";return 2;}
     try{
         std::ifstream input(argv[1],std::ios::binary);
         if(!input)throw std::runtime_error("no ROM file");
@@ -19,7 +19,8 @@ int main(int argc,char** argv){
             throw std::runtime_error("expected unmodified NES format, 256 KiB PRG, 128 KiB CHR and Mapper24; SHA-256 must additionally be checked by wrapper");
         auto prg=std::span<const std::uint8_t>(rom.data()+16,262144);
         auto chr=std::span<const std::uint8_t>(rom.data()+16+262144,131072);
-        cv3::NativeMachine0509 machine(prg,chr);
+        const std::uint32_t reference_phase=argc>4?std::uint32_t(std::stoul(argv[4])):0;
+        cv3::NativeMachine0509 machine(prg,chr,reference_phase);
         const auto max=argc>2?std::stoull(argv[2]):10000ull;
         if(max>20000000ull)throw std::runtime_error("native probe bounded to 20 million instructions");
         std::ofstream trace;
@@ -34,7 +35,7 @@ int main(int argc,char** argv){
             <<" pc="<<std::hex<<std::uppercase<<s.pc<<std::dec
             <<" cycles="<<machine.cycles()<<" frames="<<machine.frames()
             <<" nmis="<<machine.nmis()<<" irqs="<<machine.irqs()
-            <<" selector18="<<unsigned(machine.ram_at(0x18))
+            <<" ref_ppu_phase="<<reference_phase<<" selector18="<<unsigned(machine.ram_at(0x18))
             <<" room19="<<unsigned(machine.ram_at(0x19))
             <<" bank16="<<unsigned(machine.mapper().prg16_bank())<<'\n';
         return 0;

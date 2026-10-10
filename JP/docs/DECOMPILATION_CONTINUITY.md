@@ -267,3 +267,6 @@ Checkpoint [0508](../analysis/0508_MESEN_FIXED_LIVE_PROOF.md) adds **exactly 100
 ## Native 0509 compiled CPU integration, not standalone port
 
 The new JP/native0509 CMake project builds a native C++ 2A03 interpreter with 151 official opcodes, VRC6a mapper and IRQ integration, controller and partial PPU/OAM/VRAM bus, and a headless original-source-ROM probe. It requires the exact Japanese ROM; it is **not yet playable**, pixel accurate, or independent of original PRG/CHR assets. An authenticated external Mesen2 original-ROM PC stream matches the first **7,828** instruction addresses; the first observed divergence at **7,829** is a PPU vblank timing mismatch, with native CPU state and gameplay reference parity still open. Synthetic and arithmetic regression tests run in CI. Technical note: docs/0509_NATIVE_CPU_HEADLESS.md. VPP 26/100, strict 49,504 bytes, last completed checkpoint 0508, fixed FB96 frontier retained.
+
+
+**0509 PPU startup phase controlled cross-check:** Explicit reference-only PPU phase seed 31 (from Mesen2 initial 0:31 debugger snapshot) extends PC-address prefix match from 7,828 default to **24,773**; NMI entry at 24,774 diverges. Default native startup remains unmodified. Full frame parity and ROM-independent port remain open; VPP26 and 49,504 verified ROM bytes unchanged. See docs/0509_NATIVE_CPU_HEADLESS.md.

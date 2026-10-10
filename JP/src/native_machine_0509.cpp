@@ -12,14 +12,18 @@ std::uint8_t pal_index(std::uint16_t a) {
 }
 }
 NativeMachine0509::NativeMachine0509(std::span<const std::uint8_t> prg,
-                                     std::span<const std::uint8_t> chr)
-    :mapper_(prg,chr),cpu_(*this){reset();}
+                                     std::span<const std::uint8_t> chr,
+                                     std::uint32_t reference_initial_ppu_dot)
+    :mapper_(prg,chr),cpu_(*this),reference_initial_ppu_dot_(reference_initial_ppu_dot){
+    if(reference_initial_ppu_dot_>=kDots)throw std::invalid_argument("PPU initial dot outside NTSC frame");
+    reset();
+}
 void NativeMachine0509::reset(){
     ram_.fill(0);ciram_.fill(0);palette_.fill(0);oam_.fill(0);
     controller_.fill(0);shifts_.fill(0);
     ppu_ctrl_=ppu_mask_=oam_addr_=ppu_scroll_=ppu_status_=ppu_read_buffer_=0;
     ppu_addr_=0;ppu_latch_=strobe_=nmi_line_=nmi_pending_=false;
-    cpu_cycles_=frames_=nmis_=irqs_=0;ppu_dot_in_frame_=dma_stall_=0;
+    cpu_cycles_=frames_=nmis_=irqs_=0;ppu_dot_in_frame_=reference_initial_ppu_dot_;dma_stall_=0;
     // The CPU power-on vectors are always in physical PRG bank31.
     cpu_.reset();cpu_cycles_=cpu_.cycle_count();
 }

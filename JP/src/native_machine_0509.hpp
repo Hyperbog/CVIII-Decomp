@@ -15,7 +15,8 @@ namespace cv3 {
 class NativeMachine0509 final : public CpuBus {
 public:
     NativeMachine0509(std::span<const std::uint8_t> prg,
-                      std::span<const std::uint8_t> chr);
+                      std::span<const std::uint8_t> chr,
+                      std::uint32_t reference_initial_ppu_dot = 0);
     std::uint8_t read(std::uint16_t address) override;
     void write(std::uint16_t address,std::uint8_t value) override;
     void reset();
@@ -50,5 +51,6 @@ private:
     bool ppu_latch_=false,strobe_=false,nmi_line_=false,nmi_pending_=false;
     std::uint64_t cpu_cycles_=0,frames_=0,nmis_=0,irqs_=0;
     std::uint32_t ppu_dot_in_frame_=0,dma_stall_=0;
+    std::uint32_t reference_initial_ppu_dot_=0;
 };
 } // namespace cv3

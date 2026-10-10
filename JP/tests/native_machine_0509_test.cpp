@@ -24,6 +24,19 @@ std::vector<std::uint8_t> synthetic_prg() {
     p[16384]=0x42;
     return p;
 }
+void test_reference_phase_is_explicit(){
+    const auto prg=synthetic_prg();const std::vector<std::uint8_t> chr(131072,0);
+    cv3::NativeMachine0509 normal(prg,chr);
+    cv3::NativeMachine0509 phase_fixture(prg,chr,31);
+    assert(normal.cpu_state().pc==phase_fixture.cpu_state().pc);
+    assert(normal.cycles()==phase_fixture.cycles());
+    for(int i=0;i<100;i++){normal.step();phase_fixture.step();}
+    assert(normal.cpu_state().pc==phase_fixture.cpu_state().pc);
+    bool rejects=false;
+    try{cv3::NativeMachine0509 invalid(prg,chr,341*262);}
+    catch(const std::invalid_argument&){rejects=true;}
+    assert(rejects);
+}
 void test_mapped_bus(){
     const auto prg=synthetic_prg();const std::vector<std::uint8_t> chr(131072,0);
     cv3::NativeMachine0509 m(prg,chr);
@@ -51,4 +64,4 @@ void test_mapped_bus(){
     assert(m.ram_at(1)>0);
     std::cout<<"VRC6 mapped native CPU/PPU/IRQ bus synthetic NMI PASS\n";
 }
-int main(){test_mapped_bus();}
+int main(){test_mapped_bus();test_reference_phase_is_explicit();}
