@@ -24,10 +24,10 @@ SOURCE_SHA = 'f4300055beb08d35061b4687f3f479782abc71957523304ad9fb0a685efa069a'
 
 
 class ActorSpawnCpu(BoundedCpu):
-    def __init__(self, prg: bytes, ram: bytearray):
-        super().__init__(prg, START, ram)
+    def __init__(self, prg: bytes, ram: bytearray, start: int = START, x: int = 0xD7):
+        super().__init__(prg, start, ram)
         self.sp = 0xFB  # artificial outer caller, FF06 JSR returns to $90D1
-        self.x = 0xD7  # scanner must override caller's incoming X
+        self.x = x  # scanner must override caller's incoming X on allocation
         self.a = 0xA9
         self.p = 0xA5
         self.terminal = None
@@ -44,7 +44,9 @@ class ActorSpawnCpu(BoundedCpu):
 
     def execute(self) -> None:
         while self.pc not in (FREE_EXIT, FULL_EXIT):
-            if not (START <= self.pc < SOURCE_END or 0xFF06 <= self.pc <= 0xFF14):
+            if not (0x90C5 <= self.pc < SOURCE_END or
+                    0x8CDD <= self.pc <= 0x8CE9 or
+                    0xFF06 <= self.pc <= 0xFF14):
                 raise ValueError(f'Unproved actor path at ${self.pc:04X}')
             self.steps += 1
             if self.steps > 200:
@@ -58,6 +60,9 @@ class ActorSpawnCpu(BoundedCpu):
                 else:
                     self.x = v
                 self.nz(v)
+            elif op == 0xA5:  # LDA zero page
+                self.a = self.read(self.fetch())
+                self.nz(self.a)
             elif op == 0x85:  # STA zero page
                 dst = self.fetch()
                 self.ram[dst] = self.a
@@ -93,6 +98,8 @@ class ActorSpawnCpu(BoundedCpu):
                 self.push((self.pc - 1) >> 8)
                 self.push((self.pc - 1) & 255)
                 self.pc = (hi << 8) | lo
+            elif op == 0x4C:  # JMP absolute
+                self.pc = self.fetch() | (self.fetch() << 8)
             elif op == 0x60:  # RTS, including FF06 scanner return
                 self.pc = ((self.pop() | (self.pop() << 8)) + 1) & 0xFFFF
             else:

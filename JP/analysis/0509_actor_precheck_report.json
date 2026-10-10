@@ -1,0 +1,33 @@
+{
+  "schema": "JP-0509-raw0A-actor-precheck-gated-source-execution/v1",
+  "rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "raw_vrc6_bank": "0A",
+  "fixed_physical_prg_bank": 31,
+  "entry_cpu": "90C5",
+  "helper_cpu": "8CDD",
+  "fixed_slot_scanner_cpu": "FF06",
+  "raw_8CDD_8CE9_sha256": "c1cd8387e6e6a0d5b7b460de3b869f77a2df3f3e15debfca42152acb85a65b06",
+  "raw_90C5_90C9_sha256": "c4d9c294a87d2b82fb2efb9e47a394029126a5873d29aa87d20ccce5e95b176c",
+  "pointer_slice_90BC_90C3_sha256": "a0f96ee2ce69a443b2f4d418e753150f57c2dfa574137305abccae3b78d717b6",
+  "pointer_slice_targets": [
+    "90C5",
+    "8E50",
+    "90DF",
+    "8E50"
+  ],
+  "occupancy_masks": 4096,
+  "precheck_classes": 3,
+  "total_cases": 12288,
+  "cases_by_result": {
+    "free_allocated": 4095,
+    "all_full": 1,
+    "state53_guard": 4096,
+    "indexed_guard": 4096
+  },
+  "total_original_instructions_executed": 188332,
+  "distinct_instruction_pcs": 25,
+  "outcome_sha256": "47fdbefa1de0cfc74889d9a04037c259ced20d22a186c8c0b18324ab3e74c263",
+  "proof_limit": "bounded ROM opcode execution with synthetic RAM; pointer table shape is structural only; actual gameplay callers and mapper lifetime open",
+  "new_strict_prg_bytes": 0,
+  "new_vpp_points": 0
+}

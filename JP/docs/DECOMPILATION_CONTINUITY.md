@@ -279,3 +279,7 @@ The new JP/native0509 CMake project builds a native C++ 2A03 interpreter with 15
 ## 0509 raw-$0A callsite verification (provisional)
 
 A ROM-executed [cross-bank actor producer audit](../analysis/0509_ACTOR_SPAWN_PRODUCER_FINDINGS.md) traces raw bank $0A:$90CA through fixed $FF06 with all 4,096 occupancy combinations and 73,717 fetched source instructions. The branch-selected actor allocation writes $054E,X=$13 and $05EF,X=0; the preamble writes $10=0. No genuine reference-frame source liveness, global mapper lifetime, strict new ROM bytes or VPP point is established. Last certified checkpoint remains 0508; PRG floor 49,504, VPP26, fixed frontier FB96.
+
+## 0509 actor allocation conditional source-producer gate
+
+[Mapped raw-bank $0A:$90C5 conditional actor gate](../analysis/0509_ACTOR_PRECHECK_PRODUCER_FINDINGS.md) verifies original source JSR $8CDD, conditional $53/$07E0,X checks and fixed $FF06 first-free-slot scanner, then the $90CA actor allocation body. 4,096 occupancy masks times three precondition families; 12,288 bounded cases, 188,332 original instruction fetches, 25 distinct PCs. Confirmed when it **would not** allocate as well as when it would; real game-frame liveness and global input domains remain open. Last certified source checkpoint 0508, strict 49,504 PRG bytes (18.8843%), VPP26, fixed frontier FB96 unchanged. No machine RESUME_STATE update for provisional research.

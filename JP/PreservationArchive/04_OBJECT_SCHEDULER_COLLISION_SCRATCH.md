@@ -25,3 +25,7 @@ A cross-frame/source-to-renderer $10 register-lifetime proof, complete $54/$14 p
 ## 0509 raw-bank $0A actor creation (provisional)
 
 [ROM-stepped mapped actor allocation](../analysis/0509_ACTOR_SPAWN_PRODUCER_FINDINGS.md) executes CPU $90CA in raw bank $0A and authentic PRG31 $FF06 for 4,096 slot maps (73,717 original instructions). Locally, $10=0 before scanning; success writes actor type $13 at $054E,X and clears $05EF,X, while all-full branches to $9128 without those stores. No original frame/mapper-liveness or global $10 lifetime claim. R-004 remains OPEN. New strict bytes 0, VPP 0.
+
+## 0509 raw bank $0A guarded actor spawn — conditional source behavior
+
+[Original instruction-step precheck evidence](../analysis/0509_ACTOR_PRECHECK_PRODUCER_FINDINGS.md) establishes a local raw-$0A:$90C5 JSR $8CDD and BNE $9128 guard, before the existing $90CA/$FF06 actor allocator. If $53 or $07E0,X is nonzero, no allocation occurs; otherwise $8CDD JMPs to fixed $FF06, and only a free slot proceeds to the second slot scan and $054E,X=$13 / $05EF,X=0. The local source execution confirms 12,288 synthetic cases, 188,332 instructions with 0 PRG/VPP promotion. The four encoded pointer words at $90BD are not verified dynamic dispatch. **Real game-path/mapper reachability, source of both guard bytes and shared $10 final writer remain unresolved.**
