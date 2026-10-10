@@ -285,7 +285,7 @@ static cv3::Input inWin(){cv3::Input i{};
  i.enter=(GetAsyncKeyState(VK_RETURN)&0x8000)!=0;
  i.restart=(GetAsyncKeyState('R')&0x8000)!=0;
  i.escape=(GetAsyncKeyState(VK_ESCAPE)&0x8000)!=0;return i;}
-static int windowRun(cv3::Game& game,const cv3::Art& art,int scale){
+static int windowRun(cv3::Game& game,const cv3::Art& art,int scale,int smokeFrames=0){
  auto name=L"Akumajou Densetsu - Native PC Prototype";
  HINSTANCE app=GetModuleHandleW(nullptr);
  WNDCLASSW wc{};wc.lpfnWndProc=DefWindowProcW;wc.hInstance=app;wc.lpszClassName=L"CVIIIJPHost0509";
