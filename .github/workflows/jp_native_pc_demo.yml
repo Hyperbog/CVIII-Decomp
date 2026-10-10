@@ -28,7 +28,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Configure and compile native Windows demo
-        run: cmake -S JP/native_demo0510 -B build/jp-native-pc -G "Visual Studio 17 2022" -A x64
+        run: cmake -S JP/native_demo0510 -B build/jp-native-pc -G "Visual Studio 18 2026" -A x64
       - name: Build
         run: cmake --build build/jp-native-pc --config Release --parallel
       - name: Native state-machine regression
