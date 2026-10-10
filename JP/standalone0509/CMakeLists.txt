@@ -8,6 +8,7 @@ add_library(cviii_standalone_sprite_pipeline STATIC
   "${SRC_DIR}/actor_slot_0509.cpp"
   "${SRC_DIR}/actor_event_row32_0510.cpp"
   "${SRC_DIR}/actor_motion_prg0b_0511.cpp"
+  "${SRC_DIR}/actor_displacement_prg0b_0512.cpp"
   "${SRC_DIR}/standalone_scene_0509.cpp"
   "${SRC_DIR}/oam_renderer.cpp"
   "${SRC_DIR}/collision_math.cpp")
@@ -38,3 +39,10 @@ target_link_libraries(actor_motion_prg0b_0511_test PRIVATE cviii_standalone_spri
 add_test(NAME native_original_actor_motion_0511 COMMAND actor_motion_prg0b_0511_test)
 add_executable(native_actor_motion_replay_0511 "${CMAKE_CURRENT_SOURCE_DIR}/../tools/native_actor_motion_replay_0511.cpp")
 target_link_libraries(native_actor_motion_replay_0511 PRIVATE cviii_standalone_sprite_pipeline)
+
+# Original JP fixed $FDF8 -> raw $0B:$80E3 horizontal displacement.
+add_executable(actor_displacement_prg0b_0512_test "${TEST_DIR}/actor_displacement_prg0b_0512_test.cpp")
+target_link_libraries(actor_displacement_prg0b_0512_test PRIVATE cviii_standalone_sprite_pipeline)
+add_test(NAME native_original_horizontal_displacement_0512 COMMAND actor_displacement_prg0b_0512_test)
+add_executable(native_displacement_replay_0512 "${CMAKE_CURRENT_SOURCE_DIR}/../tools/native_displacement_replay_0512.cpp")
+target_link_libraries(native_displacement_replay_0512 PRIVATE cviii_standalone_sprite_pipeline)
