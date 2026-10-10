@@ -10,6 +10,7 @@ add_library(cviii_standalone_sprite_pipeline STATIC
   "${SRC_DIR}/actor_motion_prg0b_0511.cpp"
   "${SRC_DIR}/actor_displacement_prg0b_0512.cpp"
   "${SRC_DIR}/actor_displacement_vertical_prg0b_0513.cpp"
+  "${SRC_DIR}/actor_preflight_0514.cpp"
   "${SRC_DIR}/standalone_scene_0509.cpp"
   "${SRC_DIR}/oam_renderer.cpp"
   "${SRC_DIR}/collision_math.cpp")
@@ -57,3 +58,10 @@ target_link_libraries(actor_post8843_0513_test PRIVATE cviii_standalone_sprite_p
 add_test(NAME native_original_post8843_0513 COMMAND actor_post8843_0513_test)
 add_executable(native_vertical_replay_0513 "${CMAKE_CURRENT_SOURCE_DIR}/../tools/native_vertical_replay_0513.cpp")
 target_link_libraries(native_vertical_replay_0513 PRIVATE cviii_standalone_sprite_pipeline)
+
+# Native source faithful bank30 actor $6B producer and bank0B B1F8 gate.
+add_executable(actor_preflight_0514_test "${TEST_DIR}/actor_preflight_0514_test.cpp")
+target_link_libraries(actor_preflight_0514_test PRIVATE cviii_standalone_sprite_pipeline)
+add_test(NAME native_original_actor_preflight_0514 COMMAND actor_preflight_0514_test)
+add_executable(native_preflight_replay_0514 "${CMAKE_CURRENT_SOURCE_DIR}/../tools/native_preflight_replay_0514.cpp")
+target_link_libraries(native_preflight_replay_0514 PRIVATE cviii_standalone_sprite_pipeline)
