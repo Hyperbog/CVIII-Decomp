@@ -1,0 +1,74 @@
+{
+  "schema": "JP-0521-original-EF93-source/v1",
+  "rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "private_natural_FDFE_state_sha256": "403e0819d38124abbc5156aae63f86566873c64719536eef9721d2fb40dc3a47",
+  "source_hashes": {
+    "EF93_EFD1": "bda4aad82a26f52a5f5fcefdedf647987d8e49ae4afb7b150b2d20f4903b3da5",
+    "EFE0_EFE1": "54819e9401d0371fa1f2ef00f1dba2a218bbcaa82af5ee3b2d0a0ee046409dda",
+    "F359_F388": "948eeb0adfde8a3316c4c0e72aef51d6132b6276f287767ebdca411c2a633283"
+  },
+  "comparisons": 38,
+  "natural_windows": 2,
+  "synthetic_windows": 36,
+  "independent_natural_events": 1,
+  "total_exact_ram_bytes": 77568,
+  "native_unit_cases": 65547,
+  "outcome_digest_sha256": "9f06575a0b8d250d9ad6e59ba0d9817cbbc0531ab40a9c3b85d74bf7060cfe0b",
+  "samples": [
+    {
+      "case": "natural_ef93",
+      "natural": true,
+      "steps": 28,
+      "bytes": 2048,
+      "regs": [
+        0,
+        15,
+        2,
+        3
+      ],
+      "ram_sha256": "4d8e0890a3926f86014f3b0b8996ee725a527aae18a334ca0ae5e2af91cdff78"
+    },
+    {
+      "case": "synthetic_00_below",
+      "natural": false,
+      "steps": 26,
+      "bytes": 2048,
+      "regs": [
+        3,
+        15,
+        2,
+        128
+      ],
+      "ram_sha256": "aa8f11bb6ca78116db4d6aed82ba7b5845dcdead1843afcd1a3e2c76ba4a93ec"
+    },
+    {
+      "case": "synthetic_timer_255",
+      "natural": false,
+      "steps": 3,
+      "bytes": 2048,
+      "regs": [
+        0,
+        15,
+        0,
+        129
+      ],
+      "ram_sha256": "3387b2e8691b803bba16e92513b3bf72d74af1b8079cdc9bfa83dcae39670e6f"
+    },
+    {
+      "case": "natural_57_step_composed",
+      "natural": true,
+      "overlaps_same_actor": true,
+      "steps": 57,
+      "bytes": 1792,
+      "regs": [
+        0,
+        15,
+        2,
+        3
+      ],
+      "nonstack_sha256": "fce5c5ae9c133a1138217a0e8f8ed06c66a0d12671329a2631645463fe2dbf07"
+    }
+  ],
+  "strict_new_prg_bytes": 0,
+  "vpp_added": 0
+}

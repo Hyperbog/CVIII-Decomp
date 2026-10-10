@@ -16,6 +16,7 @@ add_library(cviii_standalone_sprite_pipeline STATIC
   "${SRC_DIR}/actor_collision_result_0517.cpp"
   "${SRC_DIR}/scheduler_postcollision_0519.cpp"
   "${SRC_DIR}/scheduler_bd11_followup_0520.cpp"
+  "${SRC_DIR}/actor_animation_ef93_0521.cpp"
   "${SRC_DIR}/standalone_scene_0509.cpp"
   "${SRC_DIR}/oam_renderer.cpp"
   "${SRC_DIR}/collision_math.cpp")
@@ -107,3 +108,10 @@ target_link_libraries(scheduler_followup_0520_test PRIVATE cviii_standalone_spri
 add_test(NAME native_original_scheduler_followup_0520 COMMAND scheduler_followup_0520_test)
 add_executable(native_followup_replay_0520 "${CMAKE_CURRENT_SOURCE_DIR}/../tools/native_followup_replay_0520.cpp")
 target_link_libraries(native_followup_replay_0520 PRIVATE cviii_standalone_sprite_pipeline)
+
+# Original fixed bank31 $EF93-$EFD1 animation timer / descriptor 0E and full scheduler prefix.
+add_executable(actor_animation_ef93_0521_test "${TEST_DIR}/actor_animation_ef93_0521_test.cpp")
+target_link_libraries(actor_animation_ef93_0521_test PRIVATE cviii_standalone_sprite_pipeline)
+add_test(NAME native_original_actor_animation_0521 COMMAND actor_animation_ef93_0521_test)
+add_executable(native_animation_replay_0521 "${CMAKE_CURRENT_SOURCE_DIR}/../tools/native_animation_replay_0521.cpp")
+target_link_libraries(native_animation_replay_0521 PRIVATE cviii_standalone_sprite_pipeline)
