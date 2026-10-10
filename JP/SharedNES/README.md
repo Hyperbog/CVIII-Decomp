@@ -125,3 +125,8 @@ python3 JP/tools/nes_cdl_bridge_0508.py game.nes reference.cdl --format auto \
 
 
 **0509 CPU reference-fixture phase:** Native original-JP headless CPU now supports a non-default, explicit reference-only PPU start-dot input (Mesen debugger reset 0:31). This extends PC-prefix trace agreement from **7,828** to **24,773** original-ROM instructions before first NMI divergence. It does not convert the ROM-dependent native CPU into a playable independent port or a cycle-correct PPU. Source/tests and SHA-256 goldens: [technical note](../docs/0509_NATIVE_CPU_HEADLESS.md).
+
+
+## ROM-independent actor/OAM research demonstrator
+
+[Native source-only actor/OAM pipeline](../standalone0509/README.md) demonstrates **actual previously audited original-JP object-slot helper, indexed actor-field clearing, OAM shadow and collision arithmetic** executing without retail ROM bytes. Rendering resource tables, sprite patterns, simple animation controls and backdrop are all **synthetic**, deliberately not evidence of Castlevania III gameplay or graphics parity. The original `$FF06/$FF14` helper code is audited by [hash-locked ROM tooling](../tools/audit_actor_slot_0509.py); [full source evidence and boundaries](../docs/0509_ROM_FREE_ACTOR_PIPELINE.md). CMake builds two source-only native tests and an output-image CLI; no additional strict PRG or VPP credit.

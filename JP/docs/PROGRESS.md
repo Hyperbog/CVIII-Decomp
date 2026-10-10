@@ -323,3 +323,8 @@ The expanded independent [Stage 1 multi-branch suite](../SharedNES/0508_STAGE1_M
 
 
 **0509 native reference follow-up:** The independent original-Mesen reset snapshot reports PPU scanline 0, cycle 31. An explicit test-fixture PPU phase selector in the native headless probe, with default startup unchanged, reproduces **24,773** consecutive original-ROM PC addresses; first mismatch at ordinal **24,774** is the NMI entry timing. Without the fixture seed the 7,828-step default result remains. Neither result proves register/cycle timing, PPU output, native playable port or new PRG bytes. [Golden evidence](0509_NATIVE_CPU_HEADLESS.md); [golden verifier](../tools/test_native_mesen_pc_0509.py). Strict **49,504**; VPP **26** unchanged.
+
+
+## 0509 independent native object/OAM technical preview (ROM-free)
+
+[Standalone native actor/sprite pipeline](../standalone0509/README.md) now compiles and runs with no original ROM. It integrates the prior verified bank-0D C++ OAM assembler, bank-0B 8-bit collision helper, and new source-locked PRG31 FF06/FF15/FF24 actor scanner/18-field cleaner. The native program generates **synthetic** sprite descriptors/2bpp CHR, produces a deterministic 256x240 PPM, and accepts scripted demonstration inputs. Original-game helper bytes are SHA-audited; 4096 occupancy bitmaps and 512 RAM field-clear mutation cases plus exact image goldens pass Release and local ASan/UBSan CTest. **This is not the original game or a playable port**: assets, player control, physics, stage and background are synthetic, and PPU/audio parity remain open. [Technical scope](0509_ROM_FREE_ACTOR_PIPELINE.md); [ROM source audit](../tools/audit_actor_slot_0509.py). **No new semantic PRG bytes; strict 49,504/262,144 (18.8843%), VPP 26/100 unchanged.**

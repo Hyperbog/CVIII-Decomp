@@ -1,0 +1,44 @@
+{
+  "schema": "JP-0509-reconstructed-actor-helper-original-ROM-audit/v1",
+  "source_rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "source_prg31_ranges": [
+    {
+      "start_cpu": "FF06",
+      "bytes": 12,
+      "sha256": "c75f2332e11e13763245741d3f4ddb690f63dce3930c946cae3160090ac1488c"
+    },
+    {
+      "start_cpu": "FF14",
+      "bytes": 66,
+      "sha256": "9f4374fdf490e30015a28e44abdc20c87259b501064c1d8eb9f4fee353d40d1a"
+    }
+  ],
+  "scan_slots": "1..12 ascending, zero in RAM $054E,X is free, all full returns X=$0D A=$01",
+  "four_fields": [
+    "04F2",
+    "0509",
+    "0520",
+    "0537"
+  ],
+  "extra_fourteen_fields": [
+    "067B",
+    "068D",
+    "0454",
+    "0470",
+    "0565",
+    "04C4",
+    "04DB",
+    "05C1",
+    "05D8",
+    "05EF",
+    "0606",
+    "061D",
+    "0633",
+    "0645"
+  ],
+  "all_indexed_fields_count": 18,
+  "reference_scope": "previously strict-certified 0508 original bytes; pure C++ source lift / structural equivalence test, no new gameplay domain proof",
+  "new_strict_PRG_bytes": 0,
+  "new_VPP_points": 0,
+  "rom_code_data_exported": false
+}

@@ -78,3 +78,8 @@ The JP/native0509 C++20 headless executable compiles an official 151-opcode CPU 
 
 
 **0509 original source execution boundary correction:** The reference-fixture PPU phase from independently recorded Mesen2 reset state is optionally set to dot 31 for original-ROM comparison; this reproduces **24,773** prefix CPU PCs before a modeled NMI entry mismatch at instruction 24,774. It must NEVER be counted as verified PPU timing, full original/native state, or playable standalone game implementation. Default vblank phase remains zero and the unseeded test still matches only the first 7,828 PCs. VPP 26; strict PRG 49,504.
+
+
+## 0509 truly ROM-free actor/OAM execution, with deliberate limits
+
+The independent [standalone0509](../standalone0509/README.md) program links the verified bank0D OAM assembly, bank0B collision math and source-authenticated FF06/FF15/FF24 actor slot/cleanup helpers. It **does not load any original ROM**: fake sprite pointer tables, CHR pixels, movement inputs, backdrop and renderer output are synthesized and clearly segregated from reverse-engineered functions. It exercises real original-format 8-bit OAM byte semantics and CPU-indexed RAM field-clears, with CTest 4096 slot masks, 512 mutation maps, fixed pixel hashes and local sanitizer coverage. The original helper code was already counted in checkpoint 0508; **strict PRG 49,504, VPP26 unchanged**. **No reconstructed Castlevania III gameplay, native player control, authentic graphics, IRQ raster, sound or full CPU/PPU parity claim.** See [technical evidence](../docs/0509_ROM_FREE_ACTOR_PIPELINE.md).

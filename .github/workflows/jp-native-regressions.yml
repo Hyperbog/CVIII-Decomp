@@ -5,7 +5,10 @@ on:
     paths:
       - 'JP/src/**'
       - 'JP/native0509/**'
+      - 'JP/standalone0509/**'
       - 'JP/tools/native_probe_0509.cpp'
+      - 'JP/tools/standalone_preview_0509.cpp'
+      - 'JP/tools/audit_actor_slot_0509.py'
       - 'JP/tools/test_native_mesen_pc_0509.py'
       - 'JP/SharedNES/**'
       - 'JP/tools/nes_*.py'
@@ -20,7 +23,10 @@ on:
     paths:
       - 'JP/src/**'
       - 'JP/native0509/**'
+      - 'JP/standalone0509/**'
       - 'JP/tools/native_probe_0509.cpp'
+      - 'JP/tools/standalone_preview_0509.cpp'
+      - 'JP/tools/audit_actor_slot_0509.py'
       - 'JP/tools/test_native_mesen_pc_0509.py'
       - 'JP/SharedNES/**'
       - 'JP/tools/nes_*.py'
@@ -49,5 +55,10 @@ jobs:
           cmake -S JP/native0509 -B /tmp/cviii-native0509 -DCMAKE_BUILD_TYPE=Release
           cmake --build /tmp/cviii-native0509 --parallel 2
           ctest --test-dir /tmp/cviii-native0509 --output-on-failure
+      - name: Build ROM-independent native actor and sprite pipeline
+        run: |
+          cmake -S JP/standalone0509 -B /tmp/cviii-standalone0509 -DCMAKE_BUILD_TYPE=Release
+          cmake --build /tmp/cviii-standalone0509 --parallel 2
+          ctest --test-dir /tmp/cviii-standalone0509 --output-on-failure
       - name: Audit preservation archive
         run: python3 JP/tools/audit_preservation_archive.py

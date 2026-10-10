@@ -270,3 +270,8 @@ The new JP/native0509 CMake project builds a native C++ 2A03 interpreter with 15
 
 
 **0509 PPU startup phase controlled cross-check:** Explicit reference-only PPU phase seed 31 (from Mesen2 initial 0:31 debugger snapshot) extends PC-address prefix match from 7,828 default to **24,773**; NMI entry at 24,774 diverges. Default native startup remains unmodified. Full frame parity and ROM-independent port remain open; VPP26 and 49,504 verified ROM bytes unchanged. See docs/0509_NATIVE_CPU_HEADLESS.md.
+
+
+## 0509 native ROM-independent sprite/actor demonstrator
+
+`JP/standalone0509` builds a native C++20 program with **no original ROM file or embedded game code/data**. It executes actual source-verified original JP actor-slot scan FF06, field-clear helper FF15/FF24, existing bank0D OAM shadow lift and bank0B collision math, with **synthetic** descriptors, planar CHR, scripted positions and software sprite preview. ROM-free CTest verifies all 4096 slot occupancy cases, all 256 indexed clear states per helper, real OAM output and deterministic generated-pixel fixture; ASan/UBSan checks passed locally. This is NOT playable Castlevania III, correct player/AI/scroll/game-stage flow, full PPU frame parity or a creditable new PRG range. [Technical note](0509_ROM_FREE_ACTOR_PIPELINE.md) and [build](../standalone0509/README.md). VPP 26/100, strict 49,504 bytes, last completed semantic checkpoint 0508, fixed first unprocessed FB96 remain unchanged.
