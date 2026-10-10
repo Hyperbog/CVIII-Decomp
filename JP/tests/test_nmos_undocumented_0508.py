@@ -2,7 +2,7 @@
 """Exhaustive opcode-set smoke plus selected NMOS unofficial arithmetic edges."""
 import sys,unittest
 from pathlib import Path
-sys.path.insert(0,str(Path(__file__).resolve().parents[0]))
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'tools'))
 from nmos_undocumented_0508 import M
 from test_nestest_external_0508 import NromBus,NromCPU
 
