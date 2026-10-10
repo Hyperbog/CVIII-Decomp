@@ -22,7 +22,7 @@ void seed(Ram& r, std::uint8_t source=3) {
 }
 void check_success(const Ram& r, std::uint8_t source, std::uint8_t slot) {
  assert(r[0x0400+slot]==0);
- assert(r[0x054e+slot]==0x3d);
+ assert(r[0x054e + slot]==0x3d);
  assert(r[0x0438+slot]==0xa0 && r[0x041c+slot]==0x50);
  assert(r[0x05ef+slot]==0x13);
  assert(r[0x0657+slot]==0x20 && r[0x067b+slot]==0x01);
