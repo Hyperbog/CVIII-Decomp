@@ -1,0 +1,127 @@
+{
+  "schema": "JP-0514-original-native-actor-preflight-differential/v1",
+  "rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "mesen_agent_sha256": "95bcda9d4ff6428937183093386d993649c2d740273871ced78217d3d8f234d0",
+  "mesen_core_sha256": "d2831c26d42aba675ed5d2cf392b2e12a67cb25274d981ef2c7741e552b72040",
+  "private_natural_state_sha256": {
+    "delta": "c27c9c0437bb4c86121273590ed58f9ea276ed2919c125e0d03914659dbb083d",
+    "gate": "0fd7256466e3e952402858ecaa3034eda6774ab2acbf16ad4e2d00c99e1b442c"
+  },
+  "physical_original_source_hashes": {
+    "producer30_D2FE_D30C": "7694f4922335fb8e25f4639f983714ea86112971811c3bc8afc6dc6a9aef5553",
+    "gate0B_B1F8_B216": "481d2cfaaa53fe9b2a40e1bf20577fd83d871386a1037d28acfb36e5147c035f",
+    "roomflag30_D062_D068": "dca5f4c4fce297a90fe38a9a1df6ad646cfb424832bc039b2f7aab5e0b1a5039"
+  },
+  "cases": 38,
+  "native_exact_nonstack_ram_bytes": 68096,
+  "delta_cases": 20,
+  "postprocess_gate_cases": 18,
+  "outcome_digest_sha256": "4c8b821561085060437249f22bf0f78c22269951d8e2caf186aeaabceadf6394",
+  "examples": [
+    {
+      "branch": "delta",
+      "source": "natural_Ram_same_as_original",
+      "params": [
+        0,
+        0,
+        2
+      ],
+      "end_pc": "D15B",
+      "A_X_Y_P": [
+        0,
+        16,
+        1,
+        3
+      ],
+      "original_nonstack_sha256": "7759dd78697e5d9f38d17cffcf8351868613b20b81a1ea6feffbd8251efacb1c"
+    },
+    {
+      "branch": "delta",
+      "source": "synthetic_RAM",
+      "params": [
+        0,
+        1,
+        2
+      ],
+      "end_pc": "D15B",
+      "A_X_Y_P": [
+        255,
+        16,
+        1,
+        128
+      ],
+      "original_nonstack_sha256": "4a3010d281a3c3850ea36f125cae46cfb80291b94a8fe6dd7cedf26bc23da477"
+    },
+    {
+      "branch": "delta",
+      "source": "synthetic_RAM",
+      "params": [
+        1,
+        0,
+        2
+      ],
+      "end_pc": "D15B",
+      "A_X_Y_P": [
+        1,
+        16,
+        1,
+        1
+      ],
+      "original_nonstack_sha256": "10d6cd4b96d86b3370101dff6f0d85d595616f9a3cd7393f2100871be6dcafec"
+    },
+    {
+      "branch": "gate",
+      "source": "synthetic_RAM",
+      "params": [
+        80,
+        146,
+        255
+      ],
+      "end_pc": "B1F7",
+      "A_X_Y_P": [
+        16,
+        1,
+        0,
+        1
+      ],
+      "original_nonstack_sha256": "280f4188d8cb83120c902155567e49164c1bcaeb37f89cbb27b3138de0ee0028"
+    },
+    {
+      "branch": "gate",
+      "source": "synthetic_RAM",
+      "params": [
+        68,
+        255,
+        128
+      ],
+      "end_pc": "B258",
+      "A_X_Y_P": [
+        128,
+        1,
+        0,
+        3
+      ],
+      "original_nonstack_sha256": "56fdd16ad3e5dc205dd75c3ee8d5d41130af59f2f7eabfefb82e8a8687ab677e"
+    },
+    {
+      "branch": "gate",
+      "source": "synthetic_RAM",
+      "params": [
+        68,
+        1,
+        56
+      ],
+      "end_pc": "B217",
+      "A_X_Y_P": [
+        56,
+        1,
+        0,
+        128
+      ],
+      "original_nonstack_sha256": "70142033639acb57a6adb0561eaf94f284c0015598be7dc7905e5e191fb698a1"
+    }
+  ],
+  "evidence": "original unmodified ROM instructions with natural input-state anchors; synthetic test RAM edits explicitly flagged; not new original gameplay liveness",
+  "certified_PRG_addition": 0,
+  "VPP_addition": 0
+}
