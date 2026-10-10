@@ -28,9 +28,9 @@
 
 namespace cv3 {
 constexpr int W=256,H=240;
-using Frame=std::array<std::uint32_t,W*H>;
+using Frame=std::vector<std::uint32_t>;
 struct Art{
- Frame title{},intro{},stage{};
+ Frame title=Frame(W*H),intro=Frame(W*H),stage=Frame(W*H);
  std::array<std::uint8_t,25*34*4> player{};
  bool loaded=false;
 };
@@ -39,7 +39,7 @@ static bool ppm(const std::string& path,Frame& dst){
  std::ifstream f(path,std::ios::binary);if(!f)return false;
  std::string mag;int w=0,h=0,maxc=0;f>>mag>>w>>h>>maxc;
  if(mag!="P6" || w!=W || h!=H || maxc!=255)return false;
- f.get();std::array<unsigned char,W*H*3> bytes{};
+ f.get();std::vector<unsigned char> bytes(W*H*3);
  f.read(reinterpret_cast<char*>(bytes.data()),static_cast<std::streamsize>(bytes.size()));
  if(!f)return false;
  for(size_t i=0;i<dst.size();++i)dst[i]=color(bytes[i*3],bytes[i*3+1],bytes[i*3+2]);
