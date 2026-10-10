@@ -113,7 +113,7 @@ def audit(prg: bytes) -> dict:
             (fix,0xFB7A,0xFB96,0xE000,FIXED_HASH))
     for bank,start,end,base,want in checks:
         got=hashlib.sha256(bank[start-base:end-base]).hexdigest()
-        if got!=want: raise ValueError(f'Original ROM producer block hash mismatch ${start:04X}: ${got}')
+        if got!=want: raise ValueError(f'Original ROM producer block hash mismatch ${start:04X}: {got}')
     # Offset census is ONLY literal STA abs,X instruction encoding, not a
     # disassembly or a complete proof of indirect/aliased writers.
     stores=[]; p=0
@@ -122,7 +122,7 @@ def audit(prg: bytes) -> dict:
         if p<0: break
         stores.append(p+0x8000);p+=1
     if stores != [0x8154,0x82A5,0x83EE,0x8402]:
-        raise ValueError(f'Original raw $0A $07E0,X candidate census drift: ${stores}')
+        raise ValueError(f'Original raw $0A $07E0,X candidate census drift: {stores}')
     digest=hashlib.sha256(); steps=0; starts=set()
     # All 256 low-coordinate bytes x 256 delta bytes, both actual ROM
     # directional exits: 131072 original source executions.
@@ -157,7 +157,7 @@ def audit(prg: bytes) -> dict:
                     ram[0x07E0+x]!=hi or
                     ram[0x07C2+x]!=(0 if direction and hi else 0x7D) or
                     cpu.stores!=order or (cpu.p&1)!=expc):
-                    raise ValueError(f'ROM indexed coordinate producer mismatch dir=${direction} d=${delta} lo=${low}')
+                    raise ValueError(f'ROM indexed coordinate producer mismatch dir={direction} d={delta} lo={low}')
                 starts.update(cpu.path);steps+=cpu.steps
                 digest.update(bytes((direction,delta,low,high,hi,cpu.p,cpu.steps)))
     # Original fourth raw-bank literal writer: carry from the upstream ADC
@@ -197,12 +197,12 @@ def audit(prg: bytes) -> dict:
             cpu=ProducerCpu(prg,entry,ram);cpu.execute()
             expected=(value+step)&0xFFFF
             if ((ram[0x54]<<8)|ram[0x53])!=expected or cpu.stores!=[0x53,0x54]:
-                raise ValueError(f'ROM $53/$54 16-bit arithmetic mismatch ${entry:04X} ${value}')
+                raise ValueError(f'ROM $53/$54 16-bit arithmetic mismatch {entry:04X} {value}')
             starts.update(cpu.path);steps+=cpu.steps
             digest.update(bytes((entry&255,value&255,value>>8,ram[0x53],ram[0x54],cpu.p)))
     return {'schema':'JP-0509-actor-guard-producer-arithmetic/v1',
       'rom_sha256':ROM_SHA,
-      'raw0A_indexed_direct_store_encodings':[f'${i:04X}' for i in stores],
+      'raw0A_indexed_direct_store_encodings':[f'{i:04X}' for i in stores],
       'source_block_sha256':{'raw0A_83D1_840F':RAW_HASH,'raw0A_829E_82AB':INIT_HASH,'raw0A_814E_8156':CARRY_HASH,'fixed31_FB7A_FB95':FIXED_HASH},
       'raw0A_velocity_cases':131072,'raw0A_initialization_cases':256,'raw0A_carry_bit_cases':512,
       'fixed53_54_increment_cases':65536,'fixed53_54_decrement_cases':65536,
