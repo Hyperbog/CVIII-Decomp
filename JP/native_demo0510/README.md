@@ -47,12 +47,20 @@ ctest --test-dir build --output-on-failure
 
 Requires CMake 3.16+, a C++20 compiler and X11 development headers.
 
-Windows is supported by a native Win32/GDI front-end in the *source*; Windows
-has not been compiled or tested in this Linux environment. With Visual Studio
-2022, use `cmake -S . -B build-windows -G "Visual Studio 17 2022"` then
+A native Windows x64 executable was compiled on GitHub Actions' Windows
+Server 2025 / Visual Studio 2026 runner. Its ROM-free state-machine CTest
+passed; interactive Windows GUI behavior has **not** been manually exercised.
+With an installed Visual Studio toolchain, use `cmake -S . -B build-windows -G "Visual Studio 17 2022"` then
 `cmake --build build-windows --config Release`, and start the resulting
 `cviii-jp-native-demo.exe --assets assets` from this folder.
-**No prebuilt Windows executable is included in this package.**
+**The separate user-specific downloadable bundle includes native Windows and Linux binaries, private reference art, and source. Public Git intentionally contains no retail art.**
+
+## Launch the prebuilt Windows download
+
+Extract the complete user-specific ZIP, keep the `assets` directory next to
+the `.exe`, and double-click `run_windows.bat`. The app is native Win32/GDI and
+does not run a NES emulator. The Windows CI validated build and self-test,
+but a real user's GUI/keyboard compatibility test remains pending.
 
 ## Automated test mode
 

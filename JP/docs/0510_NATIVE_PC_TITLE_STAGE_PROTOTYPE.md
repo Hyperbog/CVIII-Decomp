@@ -13,10 +13,14 @@ Source: [C++ host-native runtime](../native_demo0510/src/main.cpp), [CMake proje
 
 ## Explicitly incomplete / uncredited
 
-The intro/title art and one-screen stage background are offline original-emulator screenshots used as **static licensed-reference placeholders**, not decoded original CHR/PPU rendering, scroll, exact room layout or dynamic movie scripting. Host-scripted jump, attack, enemy, floor, stage-clear condition and sprite bitmap presenter are not authenticated source gameplay; the project’s already separately audited native PRG26/0D OAM assembler has **not** been integrated into this new app. VRC6/APU audio, proper player physics, animation/AI, menus, branching, passwords, boss and stage progression are not implemented. The Windows build is source-supported; verify independent CI before claiming packaged Windows compatibility.
+The intro/title art and one-screen stage background are offline original-emulator screenshots used as **static licensed-reference placeholders**, not decoded original CHR/PPU rendering, scroll, exact room layout or dynamic movie scripting. Host-scripted jump, attack, enemy, floor, stage-clear condition and sprite bitmap presenter are not authenticated source gameplay; the project’s already separately audited native PRG26/0D OAM assembler has **not** been integrated into this new app. VRC6/APU audio, proper player physics, animation/AI, menus, branching, passwords, boss and stage progression are not implemented. Independent Windows GitHub Actions compilation and native self-test passed on Windows Server 2025 with Visual Studio 2026. Windows manual GUI input/visual compatibility still requires a user/device run.
 
 **No new strict semantic PRG bytes; strict 49,504/262,144 (18.8843%); VPP26/100; completed semantic checkpoint 0508; fixed PRG31 frontier FB96 unchanged.** This is a native UX and integration stepping stone, not a completed gameplay checkpoint.
 
 ## Next source-domain work
 
 Replace preview sprites with the existing source-verified bank-$0D OAM pipeline, derive background/scroll from authentic JP VRC6 CHR and nametable streams, and lift player collision/movement source events with independent Mesen frame goldens. Keep private screenshot art outside Git.
+
+## Portable native packaging and independent CI
+
+[GitHub Actions Windows and Linux build](https://github.com/Hyperbog/CVIII-Decomp/actions/runs/38076049062) succeeded in both jobs: native C++ compilation and ROM-free actor/scene-state CTest. The Windows executable is PE32+ x86-64; Linux native ELF x86-64 Release and ASan/UBSan CTest passed locally. The private cross-platform ZIP combines both verified host executables, original-JP-derived private reference stills, complete source and checksums. The binaries are **not** 6502 emulation or source-equivalent Castlevania III gameplay; native GUI on a user's Windows installation has not been tested. No ROM/mapped CHR/image bytes were committed.
