@@ -7,6 +7,7 @@ set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../src")
 add_library(cviii_standalone_sprite_pipeline STATIC
   "${SRC_DIR}/actor_slot_0509.cpp"
   "${SRC_DIR}/actor_event_row32_0510.cpp"
+  "${SRC_DIR}/actor_motion_prg0b_0511.cpp"
   "${SRC_DIR}/standalone_scene_0509.cpp"
   "${SRC_DIR}/oam_renderer.cpp"
   "${SRC_DIR}/collision_math.cpp")
@@ -30,3 +31,10 @@ target_link_libraries(actor_event_row32_0510_test PRIVATE cviii_standalone_sprit
 add_test(NAME native_original_row32_source_lift COMMAND actor_event_row32_0510_test)
 add_executable(native_row32_replay_0510 "${CMAKE_CURRENT_SOURCE_DIR}/../tools/native_row32_replay_0510.cpp")
 target_link_libraries(native_row32_replay_0510 PRIVATE cviii_standalone_sprite_pipeline)
+
+# Original JP raw-bank $0B:$8001 two-axis actor motion semantic lift.
+add_executable(actor_motion_prg0b_0511_test "${TEST_DIR}/actor_motion_prg0b_0511_test.cpp")
+target_link_libraries(actor_motion_prg0b_0511_test PRIVATE cviii_standalone_sprite_pipeline)
+add_test(NAME native_original_actor_motion_0511 COMMAND actor_motion_prg0b_0511_test)
+add_executable(native_actor_motion_replay_0511 "${CMAKE_CURRENT_SOURCE_DIR}/../tools/native_actor_motion_replay_0511.cpp")
+target_link_libraries(native_actor_motion_replay_0511 PRIVATE cviii_standalone_sprite_pipeline)
