@@ -1,0 +1,56 @@
+{
+  "schema": "JP-0512-live-native-prg0b-80E3-horizontal/v1",
+  "rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "source_block_sha256": "7cb6c954c56b9288f621afd4c03fdf7ccd3658c2597920fd3311cc7330d7cff3",
+  "fixed_caller_sha256": "49893822450a81ebc7347ffb15342a12320d7bf1802834b44a3a01e75b0a74c8",
+  "private_original_state_sha256": "c54060fc64196d750c79f222c22325d8ae1829a32f6da96c0fe93d808907a872",
+  "original_Mesen_version": "2.1.1",
+  "cases": [
+    {
+      "actor_slot": 1,
+      "original_frame": 2604,
+      "physical_prg_entry": "02C0E3",
+      "fixed_caller": "FDF8",
+      "original_source_instructions": 20,
+      "original_cpu_return": "FDFB",
+      "original_delta_6B": 0,
+      "original_axis_65": 0,
+      "returned_registers_A_X_Y_P": [
+        68,
+        1,
+        0,
+        1
+      ],
+      "original_cycles": 77522001,
+      "matched_nonstack_ram_bytes": 1792,
+      "before_nonstack_sha256": "50fbf891ea1ef8f43a63b7e06eef43a486f1eede4d03899635357e845e4abaf6",
+      "after_nonstack_sha256": "0007a85ee9cd626b13c98c3413d30747852d7764a35676cb20d001aeebd05fea"
+    },
+    {
+      "actor_slot": 2,
+      "original_frame": 2604,
+      "physical_prg_entry": "02C0E3",
+      "fixed_caller": "FDF8",
+      "original_source_instructions": 20,
+      "original_cpu_return": "FDFB",
+      "original_delta_6B": 0,
+      "original_axis_65": 0,
+      "returned_registers_A_X_Y_P": [
+        68,
+        2,
+        0,
+        1
+      ],
+      "original_cycles": 77523622,
+      "matched_nonstack_ram_bytes": 1792,
+      "before_nonstack_sha256": "12dcf98e4e814b3665000d87605f2be36b1590b4290a1fdd29c410aaf3b49a0e",
+      "after_nonstack_sha256": "63a855fd3ca2f062dfdc97f08097b1a3a9ae8242e97181c1f0160b3ae6745371"
+    }
+  ],
+  "verified_nonstack_ram_bytes": 3584,
+  "native_math_test_cases": 73742,
+  "claim": "two naturally reached horizontal zero-delta calls; signed/higher-bit cases are native math tests only",
+  "vertical_810F_status": "not implemented or live certified",
+  "new_strict_prg_bytes": 0,
+  "new_vpp_points": 0
+}

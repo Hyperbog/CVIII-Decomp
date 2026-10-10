@@ -66,6 +66,7 @@ compile actor_event_row32_0510 "$src/actor_event_row32_0510.cpp" "$src/actor_slo
 compile actor_motion_prg0b_0511 "$src/actor_motion_prg0b_0511.cpp"
 compile actor_displacement_prg0b_0512 "$src/actor_displacement_prg0b_0512.cpp"
 "$build/actor_displacement_prg0b_0512"
+python3 -m py_compile "$root/JP/tools/audit_mesen_displacement_0512.py"
 echo "TEST PASS faithful original JP $80E3 horizontal displacement (73742 cases)"
 python3 -m py_compile "$root/JP/tools/audit_mesen_actor_motion_0511.py"
 "$build/actor_motion_prg0b_0511"
