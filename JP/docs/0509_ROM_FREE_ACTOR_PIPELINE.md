@@ -65,3 +65,7 @@ scroll, palette, sound or PPU timing**. The code never reads any original ROM.
 VPP remains **26/100**. This new executable offers a practical test surface
 for reconstructing real object movement and renderer output but **does not
 satisfy playable-native-game or full hardware parity**.
+
+## 0509 ROM-original instruction ABI addendum
+
+[Original-source instruction-stepped actor CPU verification](../analysis/0509_ACTOR_CPU_ABI_FINDINGS.md) is optionally run with the authenticated local JP ROM and covers 4096 actor occupancies plus 512 indexed field mutation maps (44,538 original instructions). This additionally checks A/X/P and stack return effects rather than only helper output RAM. It is bounded unit validation, not original gameplay path evidence, and adds zero new PRG/VPP credit.

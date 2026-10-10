@@ -1,0 +1,18 @@
+{
+  "schema": "JP-0509-original-actor-CPU-ABI-differential/v1",
+  "rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "physical_prg_bank": 31,
+  "entries_cpu": [
+    "FF06",
+    "FF15",
+    "FF24"
+  ],
+  "slot_occupancy_patterns": 4096,
+  "indexed_field_clear_cases": 512,
+  "total_6502_instructions_executed": 44538,
+  "original_instruction_abi_sha256": "6f554d451b36f06e9d25ea8f40fa3248c6974c34d0a135de25d51a451a371b7b",
+  "comparison": "ROM-instruction stepping versus native actor scan and indexed-field contracts; stack/flags checked",
+  "limits": "bounded routines only; no proof of original gameplay state, frame timing, or unobserved source liveness",
+  "new_strict_prg_bytes": 0,
+  "new_vpp_points": 0
+}
