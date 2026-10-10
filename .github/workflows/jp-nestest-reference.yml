@@ -1,0 +1,46 @@
+name: Independent nestest CPU Golden Trace
+on:
+  push:
+    branches: [decompilation]
+    paths:
+      - 'JP/tools/test_nestest_external_0508.py'
+      - 'JP/tools/trace_6502_vrc6_0508.py'
+      - 'JP/tools/trace_cycle_vblank_0508.py'
+      - 'JP/tools/audit_irq_zp10.py'
+      - 'JP/tools/nes_trace_compare.py'
+      - 'JP/tests/test_nestest_runner_0508.py'
+      - '.github/workflows/jp-nestest-reference.yml'
+  pull_request:
+    paths:
+      - 'JP/tools/test_nestest_external_0508.py'
+      - 'JP/tools/trace_6502_vrc6_0508.py'
+      - 'JP/tools/trace_cycle_vblank_0508.py'
+      - 'JP/tools/audit_irq_zp10.py'
+      - 'JP/tools/nes_trace_compare.py'
+      - 'JP/tests/test_nestest_runner_0508.py'
+      - '.github/workflows/jp-nestest-reference.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  cpu-reference:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: ROM-free NROM harness regression
+        run: python3 JP/tests/test_nestest_runner_0508.py
+      - name: Fetch independent pinned nestest CPU test and Nintendulator log
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/nestest"
+          base='https://raw.githubusercontent.com/christopherpow/nes-test-roms/95d8f621ae55cee0d09b91519a8989ae0e64753b/other'
+          curl -fL --retry 2 --max-time 45 "$base/nestest.nes" -o "$RUNNER_TEMP/nestest/nestest.nes"
+          curl -fL --retry 2 --max-time 45 "$base/nestest.log" -o "$RUNNER_TEMP/nestest/nestest.log"
+          sha256sum "$RUNNER_TEMP/nestest/nestest.nes" "$RUNNER_TEMP/nestest/nestest.log"
+      - name: Run original project CPU against Nintendulator 8991-line golden trace
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 JP/tools/test_nestest_external_0508.py "$RUNNER_TEMP/nestest/nestest.nes" "$RUNNER_TEMP/nestest/nestest.log" --out "$RUNNER_TEMP/nestest/comparison.json"
