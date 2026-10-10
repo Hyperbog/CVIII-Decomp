@@ -70,3 +70,8 @@ The [Mesen original-game reference](../SharedNES/0508_MESEN_ORIGINAL_GAMEPLAY_RE
 ## Original-Mesen source-mapped reference development — checkpoint 0508
 
 Private SHA-pinned independent Mesen2 hardware emulation executes 9,500 frame jobs including original Stage 1-02 gameplay; only the first 1,100 frames form a contiguous common trajectory, seven 1,200-frame forks deliberately diverge thereafter. [Source/reference corpus](../SharedNES/0508_STAGE1_MULTIBRANCH_REFERENCE.md). The actual fixed CPU code at $FBA5/$FBB0/$FF06/$FF14 has independently decoded instruction boundaries, physical PRG31 CODE bits and genuine breakpoints, permitting narrow **100-byte strict ROM admission** after 0507's explicit physical-gap nonoverlap check. [Machine proof](../analysis/0508_MESEN_FIXED_LIVE_PROOF.json). The native executable's video, audio and CPU/mapper *frame-by-frame* equivalence is still NOT established. **Strict PRG 49,504; VPP 26/100.**
+
+
+## 0509 provisional native CPU and bus integration
+
+The JP/native0509 C++20 headless executable compiles an official 151-opcode CPU interpreter plus the existing VRC6 mapper/IRQ classes, `$4016/$4017` controller serial I/O, partial PPU `$2000-$2007` memory and OAM bus, and modeled NMI. 262,144 exhaustive binary ADC/SBC cases and synthetic cartridge CPU/PPU/NMI integration pass. An independent original-ROM Mesen2 v2.1.1 reference matches the first 7,828 native **CPU PCs** before vblank phase divergence at instruction 7,829. That does NOT certify source-code reconstruction, CPU register/cycle equivalence, image/audio parity, or a playable native game: the executable still reads the original JP ROM. [Detailed limitations](../docs/0509_NATIVE_CPU_HEADLESS.md). **VPP 26/100, strict 49,504 bytes.**

@@ -117,3 +117,8 @@ python3 JP/tools/nes_cdl_bridge_0508.py game.nes reference.cdl --format auto \
 ### Independent Stage 1-02 branching and first live fixed-bank strict credit
 
 [Original-Mesen Stage 1 multi-branch reference](0508_STAGE1_MULTIBRANCH_REFERENCE.md) contains a SHA-only bank-by-bank corpus from 9,500 real emulator frame executions across original progression and seven savestate forks; **16,772 PRG CODE** and **11,765 DATA** positions observed. [Original-US exact-window audit](../tools/audit_mesen_stage1_crossedition_0508.py) locates **3,165** Japanese observed code bytes in unique exact 16-byte US windows; no US runtime parity is inferred. A **separate** [0508 original-code admission](../analysis/0508_MESEN_FIXED_LIVE_PROOF.md) proves exactly **100 genuinely new fixed PRG31 bytes**, lifting the strict floor to **49,504** while VPP remains **26/100**. Source and tests are reusable across NES games but retain game-specific mapper/input/ROM hashes.
+
+
+## First compiled 2A03 CPU and VRC6 mapped-bus integration (0509)
+
+[Native headless C++20 CPU package](../native0509/README.md) combines all 151 official NMOS/2A03 opcode models, native VRC6a mapper/IRQ, RAM, serial controllers, CIRAM/palette/OAM registers and a basic vblank/NMI schedule. It still requires private original JP PRG/CHR ROM code and is **not a playable reconstructed game**. 262,144 exhaustive arithmetic cases pass; real original-JP CPU PC prefixes match independently sourced Mesen2 for 7,828 initial instructions, then diverge at vblank phase. [Proof scope](../docs/0509_NATIVE_CPU_HEADLESS.md). The CPU implementation is reusable across NES developers; mapper and game semantics remain hardware/game-specific.
