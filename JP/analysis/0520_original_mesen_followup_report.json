@@ -1,0 +1,205 @@
+{
+  "schema": "JP-0520-original-scheduler-BD11-FE34-differential/v1",
+  "rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "mesen_agent_sha256": "95bcda9d4ff6428937183093386d993649c2d740273871ced78217d3d8f234d0",
+  "mesen_core_sha256": "d2831c26d42aba675ed5d2cf392b2e12a67cb25274d981ef2c7741e552b72040",
+  "private_natural_FDFE_state_sha256": "403e0819d38124abbc5156aae63f86566873c64719536eef9721d2fb40dc3a47",
+  "physical_original_source_hashes": {
+    "raw0B_BD10_BD1E": "3b41c6d64f49c352ac47a80b050cd525e06b87f1f167bfdeddff57d274732484",
+    "fixed31_FE34_FE5F": "babee7df6116c8cdf20ee322f3ae4d3e9cef79a60399d2dfbb061cf5cbe4730c"
+  },
+  "comparisons": 14,
+  "naturally_reached_overlapping_windows": 2,
+  "synthetic_ram_override_windows": 12,
+  "total_exact_ram_bytes": 28416,
+  "native_unit_cases": 77827,
+  "original_results": [
+    {
+      "label": "natural_BD11_to_FE60",
+      "natural": true,
+      "source_instructions": 17,
+      "exit_pc": "FE60",
+      "returned_A_X_Y_P": [
+        0,
+        15,
+        0,
+        3
+      ],
+      "exact_ram_bytes": 2048
+    },
+    {
+      "label": "synthetic_A8_nonzero",
+      "natural": false,
+      "source_instructions": 2,
+      "exit_pc": "BD15",
+      "returned_A_X_Y_P": [
+        1,
+        15,
+        0,
+        1
+      ],
+      "exact_ram_bytes": 2048
+    },
+    {
+      "label": "synthetic_05FE_nonzero",
+      "natural": false,
+      "source_instructions": 4,
+      "exit_pc": "BD1F",
+      "returned_A_X_Y_P": [
+        61,
+        15,
+        0,
+        1
+      ],
+      "exact_ram_bytes": 2048
+    },
+    {
+      "label": "synthetic_type00",
+      "natural": false,
+      "source_instructions": 16,
+      "exit_pc": "FE6E",
+      "returned_A_X_Y_P": [
+        0,
+        15,
+        0,
+        2
+      ],
+      "exact_ram_bytes": 2048
+    },
+    {
+      "label": "synthetic_attribute_bit40",
+      "natural": false,
+      "source_instructions": 13,
+      "exit_pc": "FE4E",
+      "returned_A_X_Y_P": [
+        11,
+        15,
+        0,
+        1
+      ],
+      "exact_ram_bytes": 2048
+    },
+    {
+      "label": "synthetic_attribute_bit20",
+      "natural": false,
+      "source_instructions": 17,
+      "exit_pc": "FE63",
+      "returned_A_X_Y_P": [
+        32,
+        15,
+        0,
+        1
+      ],
+      "exact_ram_bytes": 2048
+    },
+    {
+      "label": "synthetic_type57",
+      "natural": false,
+      "source_instructions": 21,
+      "exit_pc": "FE60",
+      "returned_A_X_Y_P": [
+        0,
+        15,
+        0,
+        3
+      ],
+      "exact_ram_bytes": 2048
+    },
+    {
+      "label": "synthetic_type58",
+      "natural": false,
+      "source_instructions": 17,
+      "exit_pc": "FE60",
+      "returned_A_X_Y_P": [
+        0,
+        15,
+        0,
+        3
+      ],
+      "exact_ram_bytes": 2048
+    },
+    {
+      "label": "synthetic_type2F",
+      "natural": false,
+      "source_instructions": 19,
+      "exit_pc": "FE60",
+      "returned_A_X_Y_P": [
+        0,
+        15,
+        0,
+        2
+      ],
+      "exact_ram_bytes": 2048
+    },
+    {
+      "label": "synthetic_type30",
+      "natural": false,
+      "source_instructions": 21,
+      "exit_pc": "FE60",
+      "returned_A_X_Y_P": [
+        0,
+        15,
+        0,
+        3
+      ],
+      "exact_ram_bytes": 2048
+    },
+    {
+      "label": "synthetic_type68",
+      "natural": false,
+      "source_instructions": 17,
+      "exit_pc": "FE60",
+      "returned_A_X_Y_P": [
+        0,
+        15,
+        0,
+        3
+      ],
+      "exact_ram_bytes": 2048
+    },
+    {
+      "label": "synthetic_type7F",
+      "natural": false,
+      "source_instructions": 17,
+      "exit_pc": "FE60",
+      "returned_A_X_Y_P": [
+        0,
+        15,
+        0,
+        3
+      ],
+      "exact_ram_bytes": 2048
+    },
+    {
+      "label": "synthetic_type81",
+      "natural": false,
+      "source_instructions": 17,
+      "exit_pc": "FE60",
+      "returned_A_X_Y_P": [
+        0,
+        15,
+        0,
+        3
+      ],
+      "exact_ram_bytes": 2048
+    },
+    {
+      "label": "natural_FDFE_through_FE60",
+      "natural": true,
+      "overlap_same_natural_actor": true,
+      "source_instructions": 28,
+      "exit_pc": "FE60",
+      "returned_A_X_Y_P": [
+        0,
+        15,
+        0,
+        3
+      ],
+      "exact_ram_bytes": 1792
+    }
+  ],
+  "result_digest_sha256": "a03c1b658acb5c8a05d18cfe27226cfafce6538ec21cdf6326e4603320b4a058",
+  "new_strict_prg_bytes": 0,
+  "new_VPP": 0,
+  "unlifted_source": "BD15 JSR E744; BD1F dynamic table path; FE4E JSR E2D0; FE60 JSR EF93; FE63 later actor update"
+}
