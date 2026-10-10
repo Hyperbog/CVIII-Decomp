@@ -4,7 +4,7 @@
 
 namespace cv3 {
 // Structured state lift of original JP raw VRC6 bank $0B:$8001-$8036,
-// including its JSR to $8037-$804A. Not a 6502 interpreter; the eight RAM
+// including its JSR to $8037-$804A. Not a 6502 interpreter; the seven RAM
 // writes, 8-bit carry/overflow, and 9-bit horizontal coordinate are preserved.
 // Entry scope: original active actor index X=0..12; source actor RAM arrays.
 // Register snapshot describes A/Y/P on return, not the hardware JSR/RTS stack.
