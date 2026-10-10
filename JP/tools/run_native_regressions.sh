@@ -71,6 +71,7 @@ compile actor_preflight_0514 "$src/actor_preflight_0514.cpp"
 compile actor_collision_precheck_0515 "$src/actor_collision_precheck_0515.cpp" "$src/actor_preflight_0514.cpp"
 compile actor_collision_measure_0516 "$src/actor_collision_measure_0516.cpp" "$src/actor_collision_precheck_0515.cpp" "$src/actor_preflight_0514.cpp"
 compile actor_collision_tail_0517 "$src/actor_collision_result_0517.cpp" "$src/actor_collision_measure_0516.cpp" "$src/actor_collision_precheck_0515.cpp" "$src/actor_preflight_0514.cpp"
+python3 -m py_compile "$root/JP/tools/audit_actor_collision_tail_0517.py"
 "$build/actor_collision_tail_0517"
 echo 'TEST PASS original JP $B235 postcollision tail and empty attachment scan (65539 cases)'
 python3 -m py_compile "$root/JP/tools/audit_collision_measure_0516.py"

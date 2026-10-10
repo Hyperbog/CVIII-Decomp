@@ -1,0 +1,216 @@
+{
+  "schema": "JP-0517-native-original-Mesen-collision-tail/v1",
+  "rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "mesen_agent_sha256": "95bcda9d4ff6428937183093386d993649c2d740273871ced78217d3d8f234d0",
+  "mesen_core_sha256": "d2831c26d42aba675ed5d2cf392b2e12a67cb25274d981ef2c7741e552b72040",
+  "original_controller_state_sha256": "0fd7256466e3e952402858ecaa3034eda6774ab2acbf16ad4e2d00c99e1b442c",
+  "source_sha256": {
+    "0B:B235-B27B": "c574b40977c2792490272d71441d622dec6f29b3db1eed2709c69e979001e294",
+    "0B:B29D-B2A7": "dcb6ae9933347084a3403bd972b16568c780e350fef83be5e715618e615e2661",
+    "0B:B317-B31F": "76e769e52e5abe16461f696c487ef5e5edc1ec6aaf8565b543334b8d7230326c"
+  },
+  "independent_original_cpu_comparisons": 16,
+  "naturally_reached_windows": 2,
+  "explicit_synthetic_windows": 14,
+  "naturally_reached_windows_same_actor": true,
+  "exact_nonstack_ram_bytes": 28672,
+  "native_synthetic_math_tests": 65539,
+  "digest_sha256": "e2223bed31eadea37c45a94ca8b60928f8e4fd69df930be54278241d26dc70d6",
+  "limitations": "Original $B243 FF15/B568, $B27C B3EC and occupied $B2A8 branch are stop boundaries; collision response on natural sample is B235 carry-set; no PPU/frame/audio parity",
+  "strict_new_prg_bytes": 0,
+  "vpp_added": 0,
+  "window_summary": [
+    {
+      "case": "natural_original_B1F8_to_FDFE",
+      "evidence": "natural_gameplay",
+      "source_instructions": 91,
+      "stop_pc": "FDFE",
+      "return_A_X_Y_P": [
+        23,
+        1,
+        22,
+        3
+      ]
+    },
+    {
+      "case": "natural_normal",
+      "evidence": "natural_gameplay",
+      "source_instructions": 37,
+      "stop_pc": "FDFE",
+      "return_A_X_Y_P": [
+        23,
+        1,
+        22,
+        3
+      ]
+    },
+    {
+      "case": "overlap_overlap",
+      "evidence": "SYNTHETIC_RAM_OR_COORDINATE_INJECTION",
+      "source_instructions": 48,
+      "stop_pc": "FDFE",
+      "return_A_X_Y_P": [
+        23,
+        1,
+        22,
+        3
+      ]
+    },
+    {
+      "case": "natural_type16",
+      "evidence": "SYNTHETIC_RAM_OR_COORDINATE_INJECTION",
+      "source_instructions": 5,
+      "stop_pc": "FDFE",
+      "return_A_X_Y_P": [
+        22,
+        1,
+        61,
+        3
+      ]
+    },
+    {
+      "case": "natural_type37",
+      "evidence": "SYNTHETIC_RAM_OR_COORDINATE_INJECTION",
+      "source_instructions": 7,
+      "stop_pc": "FDFE",
+      "return_A_X_Y_P": [
+        55,
+        1,
+        61,
+        3
+      ]
+    },
+    {
+      "case": "natural_type61",
+      "evidence": "SYNTHETIC_RAM_OR_COORDINATE_INJECTION",
+      "source_instructions": 11,
+      "stop_pc": "FDFE",
+      "return_A_X_Y_P": [
+        97,
+        1,
+        61,
+        128
+      ]
+    },
+    {
+      "case": "natural_type7e",
+      "evidence": "SYNTHETIC_RAM_OR_COORDINATE_INJECTION",
+      "source_instructions": 11,
+      "stop_pc": "FDFE",
+      "return_A_X_Y_P": [
+        126,
+        1,
+        61,
+        128
+      ]
+    },
+    {
+      "case": "natural_type7f",
+      "evidence": "SYNTHETIC_RAM_OR_COORDINATE_INJECTION",
+      "source_instructions": 39,
+      "stop_pc": "FDFE",
+      "return_A_X_Y_P": [
+        23,
+        1,
+        22,
+        3
+      ]
+    },
+    {
+      "case": "natural_bit1",
+      "evidence": "SYNTHETIC_RAM_OR_COORDINATE_INJECTION",
+      "source_instructions": 35,
+      "stop_pc": "FDFE",
+      "return_A_X_Y_P": [
+        23,
+        1,
+        22,
+        3
+      ]
+    },
+    {
+      "case": "natural_B27C",
+      "evidence": "SYNTHETIC_RAM_OR_COORDINATE_INJECTION",
+      "source_instructions": 15,
+      "stop_pc": "B27C",
+      "return_A_X_Y_P": [
+        1,
+        1,
+        61,
+        0
+      ]
+    },
+    {
+      "case": "natural_follower",
+      "evidence": "SYNTHETIC_RAM_OR_COORDINATE_INJECTION",
+      "source_instructions": 18,
+      "stop_pc": "B2A8",
+      "return_A_X_Y_P": [
+        1,
+        1,
+        20,
+        0
+      ]
+    },
+    {
+      "case": "overlap_type39",
+      "evidence": "SYNTHETIC_RAM_OR_COORDINATE_INJECTION",
+      "source_instructions": 6,
+      "stop_pc": "B243",
+      "return_A_X_Y_P": [
+        57,
+        1,
+        0,
+        3
+      ]
+    },
+    {
+      "case": "overlap_left",
+      "evidence": "SYNTHETIC_RAM_OR_COORDINATE_INJECTION",
+      "source_instructions": 49,
+      "stop_pc": "FDFE",
+      "return_A_X_Y_P": [
+        23,
+        1,
+        22,
+        3
+      ]
+    },
+    {
+      "case": "overlap_type16",
+      "evidence": "SYNTHETIC_RAM_OR_COORDINATE_INJECTION",
+      "source_instructions": 16,
+      "stop_pc": "FDFE",
+      "return_A_X_Y_P": [
+        22,
+        1,
+        0,
+        3
+      ]
+    },
+    {
+      "case": "overlap_type7e",
+      "evidence": "SYNTHETIC_RAM_OR_COORDINATE_INJECTION",
+      "source_instructions": 22,
+      "stop_pc": "FDFE",
+      "return_A_X_Y_P": [
+        126,
+        1,
+        0,
+        128
+      ]
+    },
+    {
+      "case": "overlap_B27C",
+      "evidence": "SYNTHETIC_RAM_OR_COORDINATE_INJECTION",
+      "source_instructions": 26,
+      "stop_pc": "B27C",
+      "return_A_X_Y_P": [
+        1,
+        1,
+        0,
+        0
+      ]
+    }
+  ]
+}
