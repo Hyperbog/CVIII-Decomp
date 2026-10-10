@@ -82,6 +82,7 @@ compile actor_collision_measure_0516 "$src/actor_collision_measure_0516.cpp" "$s
 compile actor_collision_tail_0517 "$src/actor_collision_result_0517.cpp" "$src/actor_collision_measure_0516.cpp" "$src/actor_collision_precheck_0515.cpp" "$src/actor_preflight_0514.cpp"
 compile scheduler_postcollision_0519 "$src/scheduler_postcollision_0519.cpp"
 compile scheduler_followup_0520 "$src/scheduler_bd11_followup_0520.cpp" "$src/scheduler_postcollision_0519.cpp"
+python3 -m py_compile "$root/JP/tools/audit_scheduler_followup_0520.py"
 "$build/scheduler_followup_0520"
 echo "TEST PASS source-mapped raw0B BD11 and fixed31 FE34 scheduler continuation (77827 cases)"
 "$build/scheduler_postcollision_0519"
