@@ -1,0 +1,41 @@
+name: Prepare Independent Mesen Reference CLI
+on:
+  push:
+    branches: [decompilation]
+    paths:
+      - '.github/workflows/jp-reference-agent-bundle.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  reference-bundle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Retrieve published Mesen-based headless CLI (GPL-3.0-or-later)
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .reference
+          cd .reference
+          base='https://github.com/atonamy/mesen-agent/releases/download/v0.1.0'
+          curl -fL --retry 2 --max-time 90 "$base/mesen-agent-linux-x64.tar.gz" -o mesen-agent-linux-x64.tar.gz
+          curl -fL --retry 2 --max-time 45 "$base/SHA256SUMS" -o SHA256SUMS
+          grep ' mesen-agent-linux-x64.tar.gz$' SHA256SUMS | sha256sum -c -
+          sha256sum mesen-agent-linux-x64.tar.gz
+          tar -xzf mesen-agent-linux-x64.tar.gz
+          test -x mesen-agent
+          test -f MesenCore.so
+          ./mesen-agent --help > help.txt
+          head -n 10 help.txt
+      - name: Publish externally sourced binary for session-local testing only
+        uses: actions/upload-artifact@v4
+        with:
+          name: mesen-agent-linux-x64-v0-1-0-reference
+          path: |
+            .reference/mesen-agent
+            .reference/MesenCore.so
+            .reference/SHA256SUMS
+            .reference/help.txt
+          retention-days: 1
+          if-no-files-found: error
