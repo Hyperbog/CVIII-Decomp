@@ -9,6 +9,7 @@ add_library(cviii_standalone_sprite_pipeline STATIC
   "${SRC_DIR}/actor_event_row32_0510.cpp"
   "${SRC_DIR}/actor_motion_prg0b_0511.cpp"
   "${SRC_DIR}/actor_displacement_prg0b_0512.cpp"
+  "${SRC_DIR}/actor_displacement_vertical_prg0b_0513.cpp"
   "${SRC_DIR}/standalone_scene_0509.cpp"
   "${SRC_DIR}/oam_renderer.cpp"
   "${SRC_DIR}/collision_math.cpp")
@@ -46,3 +47,13 @@ target_link_libraries(actor_displacement_prg0b_0512_test PRIVATE cviii_standalon
 add_test(NAME native_original_horizontal_displacement_0512 COMMAND actor_displacement_prg0b_0512_test)
 add_executable(native_displacement_replay_0512 "${CMAKE_CURRENT_SOURCE_DIR}/../tools/native_displacement_replay_0512.cpp")
 target_link_libraries(native_displacement_replay_0512 PRIVATE cviii_standalone_sprite_pipeline)
+
+# Original $0B:$810F/$8140 vertical paths with $8843 continuation.
+add_executable(actor_displacement_vertical_prg0b_0513_test "${TEST_DIR}/actor_displacement_vertical_prg0b_0513_test.cpp")
+target_link_libraries(actor_displacement_vertical_prg0b_0513_test PRIVATE cviii_standalone_sprite_pipeline)
+add_test(NAME native_original_vertical_0513 COMMAND actor_displacement_vertical_prg0b_0513_test)
+add_executable(actor_post8843_0513_test "${TEST_DIR}/actor_post8843_0513_test.cpp")
+target_link_libraries(actor_post8843_0513_test PRIVATE cviii_standalone_sprite_pipeline)
+add_test(NAME native_original_post8843_0513 COMMAND actor_post8843_0513_test)
+add_executable(native_vertical_replay_0513 "${CMAKE_CURRENT_SOURCE_DIR}/../tools/native_vertical_replay_0513.cpp")
+target_link_libraries(native_vertical_replay_0513 PRIVATE cviii_standalone_sprite_pipeline)
