@@ -106,3 +106,7 @@ ROM or image data. For a code-only public repository, exclude `assets/*.ppm`,
 **Accounting:** completion evidence for original gameplay parity remains
 strict PRG 49,504/262,144 (18.8843%), VPP 26/100, completed checkpoint 0508;
 this provisional native demo does not earn additional strict bytes or VPP.
+
+## Alpha 1.1 Windows startup/CTD mitigation
+
+The first Windows ZIP used the MSVC dynamic runtime (MSVCP140/VCRUNTIME140 family), which was **not bundled** and could prevent startup on systems without the Microsoft C++ Redistributable. The rebuilt Windows x64 executable uses a static MSVC runtime (`/MT`) to remove that package dependency. CI now generates original-ROM-free fixture art and runs the actual Win32/GDI window for 120 frames, not merely the game-state unit tests. The launcher logs both its self-check and windowed failure codes to `demo_log.txt`, and retains a console on an error. This is a mitigation for the plausible CTD startup cause, **not** a confirmed diagnosis of the original user's crash. Remaining graphics driver/platform differences may require user machine logs.

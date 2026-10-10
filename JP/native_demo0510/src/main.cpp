@@ -229,7 +229,7 @@ static bool test(Game& g){
 }
 
 #ifndef _WIN32
-static int windowRun(cv3::Game& game,const cv3::Art& art,int scale){
+static int windowRun(cv3::Game& game,const cv3::Art& art,int scale,int smokeFrames=0){
  Display* d=XOpenDisplay(nullptr);if(!d){std::cerr<<"No X11 display; use --headless.\n";return 4;}
  const int sw=cv3::W*scale,sh=cv3::H*scale;
  Window w=XCreateSimpleWindow(d,DefaultRootWindow(d),100,80,sw,sh,0,0,0);
@@ -241,7 +241,7 @@ static int windowRun(cv3::Game& game,const cv3::Art& art,int scale){
  auto* image=XCreateImage(d,visual,DefaultDepth(d,DefaultScreen(d)),ZPixmap,0,
         static_cast<char*>(std::calloc(static_cast<size_t>(sw)*sh,4)),sw,sh,32,0);
  if(!image){XFreeGC(d,gc);XDestroyWindow(d,w);XCloseDisplay(d);return 3;}
- std::array<bool,8> key{};auto next=std::chrono::steady_clock::now();bool running=true;
+ std::array<bool,8> key{};auto next=std::chrono::steady_clock::now();bool running=true;int presented=0;
  while(running){
   while(XPending(d)){
    XEvent e{};XNextEvent(d,&e);
@@ -270,6 +270,7 @@ static int windowRun(cv3::Game& game,const cv3::Art& art,int scale){
    }
   }
   XPutImage(d,w,gc,image,0,0,0,0,sw,sh);XFlush(d);
+  if(smokeFrames>0 && ++presented>=smokeFrames)running=false;
   next+=std::chrono::milliseconds(16);
   std::this_thread::sleep_until(next);
  }
@@ -296,7 +297,7 @@ static int windowRun(cv3::Game& game,const cv3::Art& art,int scale){
  bmi.bmiHeader.biWidth=cv3::W;bmi.bmiHeader.biHeight=-cv3::H;
  bmi.bmiHeader.biPlanes=1;bmi.bmiHeader.biBitCount=32;bmi.bmiHeader.biCompression=BI_RGB;
  std::vector<std::uint32_t> bgr(cv3::W*cv3::H);
- auto t=std::chrono::steady_clock::now();bool previousEnter=false,previousReset=false;
+ auto t=std::chrono::steady_clock::now();bool previousEnter=false,previousReset=false;int presented=0;
  while(IsWindow(h)){
   MSG msg{};while(PeekMessageW(&msg,nullptr,0,0,PM_REMOVE)){
    if(msg.message==WM_QUIT){DestroyWindow(h);return 0;}
@@ -309,15 +310,17 @@ static int windowRun(cv3::Game& game,const cv3::Art& art,int scale){
   game.tick(in);auto frame=game.render(art);
   std::copy(frame.begin(),frame.end(),bgr.begin());
   HDC dc=GetDC(h);RECT rc{};GetClientRect(h,&rc);
-  StretchDIBits(dc,0,0,rc.right,rc.bottom,0,0,cv3::W,cv3::H,
+  const int blit=StretchDIBits(dc,0,0,rc.right,rc.bottom,0,0,cv3::W,cv3::H,
     bgr.data(),&bmi,DIB_RGB_COLORS,SRCCOPY);ReleaseDC(h,dc);
+  if(blit==GDI_ERROR || blit==0){DestroyWindow(h);std::cerr<<"GDI StretchDIBits failure\n";return 5;}
+  if(smokeFrames>0 && ++presented>=smokeFrames){DestroyWindow(h);std::cout<<"PASS Windows GDI window "<<presented<<" frames\n";return 0;}
   t+=std::chrono::milliseconds(16);std::this_thread::sleep_until(t);
  }return 0;
 }
 #endif
 int main(int argc,char** argv){
  try{
-  std::string assets="assets",script="",scene="title",output="";bool headless=false,selftest=false;
+  std::string assets="assets",script="",scene="title",output="";bool headless=false,selftest=false,windowtest=false;
   int frames=0,scale=3;
   for(int i=1;i<argc;++i){
    const std::string a=argv[i];
@@ -326,6 +329,7 @@ int main(int argc,char** argv){
    else if(a=="--scale")scale=std::stoi(arg());else if(a=="--scene")scene=arg();
    else if(a=="--script")script=arg();else if(a=="--output")output=arg();
    else if(a=="--headless")headless=true;else if(a=="--self-test")selftest=true;
+   else if(a=="--window-test")windowtest=true;
    else if(a=="--help"){
     std::cout<<"CVIII JP native PC preview (not full game parity)\n"
              <<"--assets DIR --headless --scene title|intro|stage --frames N --script TEXT --output screenshot.ppm\n"
@@ -335,7 +339,7 @@ int main(int argc,char** argv){
   cv3::Game g;if(selftest){if(!cv3::test(g)){std::cerr<<"Native stage machine self-test FAIL\n";return 2;}std::cout<<"PASS  native scene transitions, movement, jump, actor allocation, attack, stage exit\n";return 0;}
   cv3::Art art;if(!cv3::loadArt(assets,art))throw std::runtime_error("Missing private stage preview assets in "+assets);
   if(scale<1||scale>5)throw std::runtime_error("Scale must be 1..5");
-  if(!headless)return windowRun(g,art,scale);
+  if(!headless)return windowRun(g,art,scale,windowtest?120:0);
   if(frames<0||frames>30000)throw std::runtime_error("Frames out of range");
   if(scene=="intro"){g.scene=cv3::Game::Scene::Intro;g.phase=0;}
   else if(scene=="stage"){g.scene=cv3::Game::Scene::Stage;g.stageVisited=true;g.phase=0;}
@@ -349,5 +353,9 @@ int main(int argc,char** argv){
            <<" x="<<g.x<<" y="<<g.y<<" hits="<<g.hits
            <<" enemy_alive="<<g.enemyAlive<<" RGB_FNV64="<<std::hex<<cv3::hash(f)<<std::dec<<"\n";
   return 0;
- }catch(const std::exception& e){std::cerr<<"Error: "<<e.what()<<"\n";return 1;}
+ }catch(const std::exception& e){std::cerr<<"Error: "<<e.what()<<"\n";
+#ifdef _WIN32
+  MessageBoxA(nullptr,e.what(),"CVIII JP native demo error",MB_OK|MB_ICONERROR);
+#endif
+  return 1;}
 }

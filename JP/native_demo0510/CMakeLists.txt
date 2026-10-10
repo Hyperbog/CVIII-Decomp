@@ -4,6 +4,11 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 add_executable(cviii-jp-native-demo src/main.cpp)
+if(MSVC)
+  # /MT: avoid external MSVCP140/VCRUNTIME140 runtime DLL requirements.
+  set_property(TARGET cviii-jp-native-demo PROPERTY
+    MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
 if(WIN32)
   target_link_libraries(cviii-jp-native-demo PRIVATE user32 gdi32)
 else()

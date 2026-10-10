@@ -33,6 +33,15 @@ jobs:
         run: cmake --build build/jp-native-pc --config Release --parallel
       - name: Native state-machine regression
         run: ctest --test-dir build/jp-native-pc -C Release --output-on-failure
+      - name: Exercise native Win32 GDI window and art loading
+        shell: pwsh
+        run: |
+          python JP/native_demo0510/tools/make_test_assets.py build/jp-native-pc/synthetic-assets
+          & ".\\build\\jp-native-pc\\Release\\cviii-jp-native-demo.exe" --assets "build/jp-native-pc/synthetic-assets" --headless --scene stage --frames 120 --script r
+          if ($LASTEXITCODE -ne 0) { throw "Windows native headless asset smoke failed: $LASTEXITCODE" }
+          & ".\\build\\jp-native-pc\\Release\\cviii-jp-native-demo.exe" --assets "build/jp-native-pc/synthetic-assets" --window-test
+          if ($LASTEXITCODE -ne 0) { throw "Windows native Win32/GDI window smoke failed: $LASTEXITCODE" }
+
       - uses: actions/upload-artifact@v4
         with:
           name: cviii-jp-native-windows-x64
