@@ -1,0 +1,207 @@
+{
+  "schema": "JP-0509-Mesen-multi-policy-live-actor-feedback-merged/v1",
+  "rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "mesen_agent_sha256": "95bcda9d4ff6428937183093386d993649c2d740273871ced78217d3d8f234d0",
+  "mesen_core_sha256": "d2831c26d42aba675ed5d2cf392b2e12a67cb25274d981ef2c7741e552b72040",
+  "source": "seven independently completed Mesen2 runs from independently clean-boot-verified frame 2603 savestate",
+  "private_anchor_sha256": "24c54adbeb75cb03bc4fa825a91b91950f12b68e8271d08b4b1330afeee6d470",
+  "no_ram_or_pc_injection": true,
+  "policy_count": 7,
+  "branch_frames_each": 640,
+  "total_branch_frames": 4480,
+  "policy_results": [
+    {
+      "policy": "idle",
+      "original_frames_executed": 640,
+      "first_live_handler_frame_absolute": null,
+      "first_live_handler_frame_relative": null,
+      "handler_8B2C_exec_occurrences": 0,
+      "actor_type3D_stores": [],
+      "live_event_writer_pcs": [],
+      "branch_observer_sha256": "2342ffc41329aac06c4fcc6735986fe8376a1bdb98da692022ca462dbe460d0d"
+    },
+    {
+      "policy": "right",
+      "original_frames_executed": 640,
+      "first_live_handler_frame_absolute": null,
+      "first_live_handler_frame_relative": null,
+      "handler_8B2C_exec_occurrences": 0,
+      "actor_type3D_stores": [],
+      "live_event_writer_pcs": [],
+      "branch_observer_sha256": "2342ffc41329aac06c4fcc6735986fe8376a1bdb98da692022ca462dbe460d0d"
+    },
+    {
+      "policy": "left",
+      "original_frames_executed": 640,
+      "first_live_handler_frame_absolute": null,
+      "first_live_handler_frame_relative": null,
+      "handler_8B2C_exec_occurrences": 0,
+      "actor_type3D_stores": [],
+      "live_event_writer_pcs": [
+        {
+          "pc": "8143",
+          "physical_prg_offset": "028143"
+        }
+      ],
+      "branch_observer_sha256": "c8ba132c49f2e6d7c530c8d00ac81c46eda861d1d74eec505dc4f5e0e8bad103"
+    },
+    {
+      "policy": "right_whips",
+      "original_frames_executed": 640,
+      "first_live_handler_frame_absolute": null,
+      "first_live_handler_frame_relative": null,
+      "handler_8B2C_exec_occurrences": 0,
+      "actor_type3D_stores": [],
+      "live_event_writer_pcs": [],
+      "branch_observer_sha256": "2342ffc41329aac06c4fcc6735986fe8376a1bdb98da692022ca462dbe460d0d"
+    },
+    {
+      "policy": "right_jumps",
+      "original_frames_executed": 640,
+      "first_live_handler_frame_absolute": 3092,
+      "first_live_handler_frame_relative": 489,
+      "handler_8B2C_exec_occurrences": 2,
+      "actor_type3D_stores": [
+        {
+          "ram": "054F",
+          "value": "3D",
+          "pc": "8D90",
+          "prg_offset": "028D90"
+        },
+        {
+          "ram": "0550",
+          "value": "3D",
+          "pc": "8D90",
+          "prg_offset": "028D90"
+        }
+      ],
+      "live_event_writer_pcs": [
+        {
+          "pc": "8143",
+          "physical_prg_offset": "028143"
+        },
+        {
+          "pc": "8157",
+          "physical_prg_offset": "028157"
+        },
+        {
+          "pc": "8182",
+          "physical_prg_offset": "028182"
+        },
+        {
+          "pc": "8B71",
+          "physical_prg_offset": "028B71"
+        },
+        {
+          "pc": "85DD",
+          "physical_prg_offset": "0285DD"
+        },
+        {
+          "pc": "8D90",
+          "physical_prg_offset": "028D90"
+        }
+      ],
+      "branch_observer_sha256": "83b0103d7832403b1a9817a0d910b192155d8a52c4d271683768ac23a3473d5a"
+    },
+    {
+      "policy": "right_ab",
+      "original_frames_executed": 640,
+      "first_live_handler_frame_absolute": 3094,
+      "first_live_handler_frame_relative": 491,
+      "handler_8B2C_exec_occurrences": 2,
+      "actor_type3D_stores": [
+        {
+          "ram": "054F",
+          "value": "3D",
+          "pc": "8D90",
+          "prg_offset": "028D90"
+        },
+        {
+          "ram": "0550",
+          "value": "3D",
+          "pc": "8D90",
+          "prg_offset": "028D90"
+        }
+      ],
+      "live_event_writer_pcs": [
+        {
+          "pc": "8143",
+          "physical_prg_offset": "028143"
+        },
+        {
+          "pc": "8157",
+          "physical_prg_offset": "028157"
+        },
+        {
+          "pc": "8182",
+          "physical_prg_offset": "028182"
+        },
+        {
+          "pc": "8B71",
+          "physical_prg_offset": "028B71"
+        },
+        {
+          "pc": "85DD",
+          "physical_prg_offset": "0285DD"
+        },
+        {
+          "pc": "8D90",
+          "physical_prg_offset": "028D90"
+        }
+      ],
+      "branch_observer_sha256": "08c42e9978e045077ce36fffc21dd18d20697f24211aeb08f4fce9120c75f43a"
+    },
+    {
+      "policy": "up_right",
+      "original_frames_executed": 640,
+      "first_live_handler_frame_absolute": 3088,
+      "first_live_handler_frame_relative": 485,
+      "handler_8B2C_exec_occurrences": 2,
+      "actor_type3D_stores": [
+        {
+          "ram": "054F",
+          "value": "3D",
+          "pc": "8D90",
+          "prg_offset": "028D90"
+        },
+        {
+          "ram": "0550",
+          "value": "3D",
+          "pc": "8D90",
+          "prg_offset": "028D90"
+        }
+      ],
+      "live_event_writer_pcs": [
+        {
+          "pc": "8143",
+          "physical_prg_offset": "028143"
+        },
+        {
+          "pc": "8157",
+          "physical_prg_offset": "028157"
+        },
+        {
+          "pc": "8182",
+          "physical_prg_offset": "028182"
+        },
+        {
+          "pc": "8B71",
+          "physical_prg_offset": "028B71"
+        },
+        {
+          "pc": "85DD",
+          "physical_prg_offset": "0285DD"
+        },
+        {
+          "pc": "8D90",
+          "physical_prg_offset": "028D90"
+        }
+      ],
+      "branch_observer_sha256": "72c637349da428b05bd67c5c2f31f924cf3f1e3a81a0d13e2108cf922ae35296"
+    }
+  ],
+  "result_digest_sha256": "a63d82ef99b5c425b93b2f11211e10b2c0e11726d5c0efbe4360382ed7580ca2",
+  "remaining": "real other event rows 08/09/0A spawn handlers, full game-frame parity, strict PRG manifest overlap",
+  "new_strict_prg_bytes": 0,
+  "new_vpp_points": 0
+}

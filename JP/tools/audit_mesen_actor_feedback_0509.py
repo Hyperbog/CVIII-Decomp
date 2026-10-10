@@ -181,7 +181,7 @@ def audit(mesen,rom,private_anchor=None,only=None):
                            'source_instructions_sampled':source,'distinct_ram_writer_witnesses':writes,
                            'actor_slot_types_1_12':slots,
                            'observer_sha256':hashlib.sha256(lua[0].encode()).hexdigest()})
-        return {'schema':'JP-0509-independent-Mesen-agentic-feedback/v1',
+        return {'schema':'JP-0509-independent-Mesen-agentic-feedback-v1',
                 'rom_sha256':ROM_SHA,'mesen_agent_sha256':EXPECTED_AGENT,'mesen_core_sha256':EXPECTED_CORE,
                 'start_from_clean_rom':private_anchor is None,'natural_frame_checkpoint':2603,
                 'policy_count':len(result),'frames_per_policy':640,
@@ -197,7 +197,7 @@ def merge_reports(files):
     observed={}; anchor=None
     for path in files:
         report=json.loads(path.read_text())
-        if report['schema']!='JP-0509-independent-Mesen-agentic-feedback/v1' or report['rom_sha256']!=ROM_SHA:
+        if report['schema']!='JP-0509-independent-Mesen-agentic-feedback-v1' or report['rom_sha256']!=ROM_SHA:
             raise ValueError(f'Unexpected original source identity in {path}')
         if report['policy_count']!=len(report['policy_results']) or report['frames_per_policy']!=640:
             raise ValueError(f'Unfinished feedback policy in {path}')
