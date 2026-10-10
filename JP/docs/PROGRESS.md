@@ -336,3 +336,7 @@ The expanded independent [Stage 1 multi-branch suite](../SharedNES/0508_STAGE1_M
 ## 0509 provisional raw-$0A actor precheck producer
 
 [Source-stepped first-level actor gate](../analysis/0509_ACTOR_PRECHECK_PRODUCER_FINDINGS.md) extends $90CA back through $90C5: JSR $8CDD conditionally reads $53 and $07E0,X before tail-JMP $FF06. Only when both are zero and a slot is vacant does $90CA clear $10 and set $054E,X=$13 / $05EF,X=0; blocked/all-full routes branch to $9128. Original-ROM runner passes 12,288 synthetic-state scenarios and 188,332 fetched instructions; the four pointer words at $90BD are structural, not live-dispatch proof. No original Mesen gameplay reachability or mapper-time proof; **0 new strict PRG bytes**, PRG total **49,504/262,144**, VPP **26/100**, checkpoint 0508 and frontier FB96 unchanged.
+
+## 0509 provisional actor guard producer arithmetic
+
+[Raw-bank actor guard producer audit](../analysis/0509_ACTOR_GUARD_PRODUCERS_FINDINGS.md) now executes all four direct raw-$0A `$07E0,X` store encodings under bounded original-ROM CPU states (two 65,536-case signed-direction arithmetic paths, 512 carry-bit cases, 256 initializer cases). Source-accurate fixed PRG31 `$FB7A/$FB88` `$53/$54` increment/decrement passes 65,536 inputs in each direction. **262,912 local states / 3,280,384 authentic instructions**; the `$53/$54` paired arithmetic and `$07E0,X` bit masking are conditional source facts, not original Stage 1 entry/mapper liveness. Strict verified 49,504/262,144 (18.8843%), VPP26, checkpoint0508, frontierFB96 unchanged.

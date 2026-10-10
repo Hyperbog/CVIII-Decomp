@@ -72,11 +72,12 @@ if [[ -n "$rom" ]]; then
     python3 "$root/JP/tools/test_native_mesen_pc_0509.py" "$build/cviii-headless-0509" "$rom"
     echo "TEST PASS authenticated JP original-ROM 7828-PC golden Mesen2 prefix"
 fi
-python3 -m py_compile "$root/JP/tools/audit_actor_slot_0509.py" "$root/JP/tools/audit_actor_cpu_abi_0509.py" "$root/JP/tools/audit_actor_spawn_0509.py" "$root/JP/tools/audit_actor_precheck_0509.py"
+python3 -m py_compile "$root/JP/tools/audit_actor_slot_0509.py" "$root/JP/tools/audit_actor_cpu_abi_0509.py" "$root/JP/tools/audit_actor_spawn_0509.py" "$root/JP/tools/audit_actor_precheck_0509.py" "$root/JP/tools/audit_actor_guard_producers_0509.py"
 if [[ -n "$rom" ]]; then
   python3 "$root/JP/tools/audit_actor_slot_0509.py" "$rom" "$build/actor_lift_rom_hash_audit.json"
   python3 "$root/JP/tools/audit_actor_cpu_abi_0509.py" "$rom" --report "$build/actor_source_cpu_abi_audit.json"
   python3 "$root/JP/tools/audit_actor_spawn_0509.py" "$rom" --report "$build/actor_source_spawn_audit.json"
   python3 "$root/JP/tools/audit_actor_precheck_0509.py" "$rom" --report "$build/actor_source_precheck_audit.json"
+  python3 "$root/JP/tools/audit_actor_guard_producers_0509.py" "$rom" --report "$build/actor_source_guard_producer_audit.json"
 fi
 echo "PASS: 10 native test binaries plus original-ROM headless CLI compiled; ROM-free suites executed"

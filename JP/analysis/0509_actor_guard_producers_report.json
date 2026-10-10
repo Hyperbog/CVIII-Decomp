@@ -1,0 +1,28 @@
+{
+  "schema": "JP-0509-actor-guard-producer-arithmetic/v1",
+  "rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "raw0A_indexed_direct_store_encodings": [
+    "8154",
+    "82A5",
+    "83EE",
+    "8402"
+  ],
+  "source_block_sha256": {
+    "raw0A_83D1_840F": "f302ac2b3ac985520f5d7780d6583a5cbed3f9164b33136484b157b2c99f4a90",
+    "raw0A_829E_82AB": "c866e8b5baf03e06e6de4c026259946d99d6f10e3c5502ea9b151d07316cf70b",
+    "raw0A_814E_8156": "c943a5c9efd4ef4b341be5bc5ebfab559d89c89f706b07b8b72f11decd083410",
+    "fixed31_FB7A_FB95": "1d17a17feea36624e293df0ec5e794394fd6b6df8f706ade139a238d6d04e5c2"
+  },
+  "raw0A_velocity_cases": 131072,
+  "raw0A_initialization_cases": 256,
+  "raw0A_carry_bit_cases": 512,
+  "fixed53_54_increment_cases": 65536,
+  "fixed53_54_decrement_cases": 65536,
+  "total_original_instructions": 3280384,
+  "distinct_source_pcs": 55,
+  "outcome_digest_sha256": "ebbf4fa40d13909161b93293f8d3e4aff9e7e2a16bf8972f48cb2a9ca2791b8b",
+  "verified_local_invariant": "all four raw $0A literal $07E0,X stores have bounded source witnesses; $83D1 masks high-bit to {0,1}, $829E clears it, $814E uses incoming C; fixed $FB7A/$FB88 wrap $53/$54 as a 16-bit pair",
+  "proof_limit": "synthetic initial RAM, bounded source routines, direct-encoding candidate census only; no live actor producer/frame/IRQ or global writer-domain proof",
+  "new_strict_prg_bytes": 0,
+  "new_vpp_points": 0
+}

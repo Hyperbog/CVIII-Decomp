@@ -283,3 +283,7 @@ A ROM-executed [cross-bank actor producer audit](../analysis/0509_ACTOR_SPAWN_PR
 ## 0509 actor allocation conditional source-producer gate
 
 [Mapped raw-bank $0A:$90C5 conditional actor gate](../analysis/0509_ACTOR_PRECHECK_PRODUCER_FINDINGS.md) verifies original source JSR $8CDD, conditional $53/$07E0,X checks and fixed $FF06 first-free-slot scanner, then the $90CA actor allocation body. 4,096 occupancy masks times three precondition families; 12,288 bounded cases, 188,332 original instruction fetches, 25 distinct PCs. Confirmed when it **would not** allocate as well as when it would; real game-frame liveness and global input domains remain open. Last certified source checkpoint 0508, strict 49,504 PRG bytes (18.8843%), VPP26, fixed frontier FB96 unchanged. No machine RESUME_STATE update for provisional research.
+
+## 0509 guard-source producers, provisional
+
+[Original ROM-stepped $53/$54 and `$07E0,X` producer proof](../analysis/0509_ACTOR_GUARD_PRODUCERS_FINDINGS.md): source bank-$0A `$8154/$82A5/$83EE/$8402` indexed stores tested with carry/sign extension/6502 borrow and bit-0 masks; fixed `$FB7A-$FB95` paired counter tested exhaustively as a 16-bit wrapping increment/decrement. 262,912 source test cases and 3,280,384 instruction executions; three previous actor ROM audits also replayed locally. Global writers, genuine mapped caller and per-frame renderer effects still unknown. Not a new semantic PRG or VPP claim; completed checkpoint 0508, 49,504 verified PRG bytes, VPP26, fixed frontier FB96 unchanged.
