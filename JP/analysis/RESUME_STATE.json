@@ -10,7 +10,7 @@
   "last_completed_checkpoint_commit": "62b3cae1c7e46876edec2f635e00469e2cd8bc1a",
   "previous_checkpoint_audit": "tools/audit_mesen_fixed_live_0508.py",
   "vpp": {
-    "earned": 26,
+    "earned": 27,
     "total": 100
   },
   "execution_context": {
@@ -440,6 +440,24 @@
       "independently_emulated_original_frame_jobs": 9500,
       "original_JP_code_unique_US_exact_window_candidate_bytes": 3165,
       "new_strict_PRG31_bytes_proved": 100
+    },
+    "native_gameplay_vpp_0518": {
+      "research_checkpoint": "0518",
+      "status": "VPP rubric reassessment only; semantic certificate stays 0508",
+      "evidence": "analysis/0518_RECONCILIATION_AND_VPP_DECISION.md",
+      "gameplay_earned": 3,
+      "gameplay_weight": 25,
+      "movement_collision_earned": 2,
+      "movement_collision_weight": 4,
+      "natural_original_cpu_instructions": 91,
+      "natural_original_matched_nonstack_ram_bytes": 1792,
+      "strict_prg_new_bytes": 0,
+      "still_open": [
+        "fixed FDFE scheduler continuation",
+        "original positive-contact liveness",
+        "B243 B27C B2A8 helpers",
+        "complete gameplay frame"
+      ]
     }
   },
   "repair_history": {

@@ -8,21 +8,23 @@ The machine-readable score is `analysis/PROGRESS_SCORE.csv`; `tools/progress_sco
 
 ## Current score
 
-**VPP: 26 / 100 (26%)**
+**VPP: 27 / 100 (27%)**
 
-The latest point is independent CPU state+cycle trace conformance: the project's ROM-fetched 6502 core plus a separate test-only stable undocumented opcode extension matches all **8,991** preinstruction PC/A/X/Y/P/SP/cycle states of the independently recorded Nintendulator nestest log. [Green SHA-pinned Actions run 38010689051](https://github.com/Hyperbog/CVIII-Decomp/actions/runs/38010689051). This earns **one of the existing two validation trace-harness points**; the second point and separate original Japanese VRC6 CPU/interrupt trace-parity point remain OPEN. Strict game PRG coverage is unchanged.
+The newest point is a distinct reusable original-Stage-1 native actor collision subsystem: the 0514-0517 connected B1F8 to FDFE path matches original Mesen across 91 source CPU instructions and all 1,792 non-stack RAM bytes plus A/X/Y/P. A formal fixed-rubric review (analysis/0518_RECONCILIATION_AND_VPP_DECISION.md) advances gameplay movement/collision from 1/4 to 2/4. This is not full-frame parity or a strict PRG-byte promotion.
+
+The preceding validation point was independent CPU state+cycle trace conformance: the project's ROM-fetched 6502 core plus a separate test-only stable undocumented opcode extension matches all **8,991** preinstruction PC/A/X/Y/P/SP/cycle states of the independently recorded Nintendulator nestest log. [Green SHA-pinned Actions run 38010689051](https://github.com/Hyperbog/CVIII-Decomp/actions/runs/38010689051). This earns **one of the existing two validation trace-harness points**; the second point and separate original Japanese VRC6 CPU/interrupt trace-parity point remain OPEN. Strict game PRG coverage is unchanged.
 
 | category | weight | earned | current basis |
 |---|---:|---:|---|
 | Foundation / cartridge model | 5 | 4 | exact ROM identity, physical PRG/CHR map, vectors, VRC6 CPU-window model; complete mapper-register use inventory still open |
 | CPU / mapper / interrupts | 10 | 8 | RESET path, PRG helpers, top-level NMI, IRQ table/state machine, control-vs-ack behavior, native VRC6 PRG/CHR mapper, native VRC6 IRQ scheduler; trace parity still open |
 | Rendering / PPU | 10 | 5 | OAM arrays, selector/master tables, variable descriptor encoding, exact sprite transforms/state, native OAM lift; background/CHR/PPU parity open |
-| Gameplay / object systems | 25 | 2 | partial object dispatcher/state-machine architecture plus a ROM-backed collision scratch/distance architecture with native exact-8-bit math; player/combat/enemy/boss systems remain overwhelmingly open |
+| Gameplay / object systems | 25 | 3 | original object dispatcher architecture, isolated collision-math architecture, and distinct connected B1F8-to-FDFE actor collision/follower pipeline with 91-instruction original Mesen parity; remaining player/combat/enemy/boss systems open |
 | Stage / world / progression | 20 | 0 | stage data, room/scrolling, collision maps, route/progression, menus/password/end flow not yet reconstructed |
 | Audio | 12 | 1 | NSF-to-ROM correlation is established; full driver/data/native APU+VRC6/parity work remains open |
 | Native runtime / platform | 10 | 1 | isolated faithful native OAM subsystem exists; native mapper/IRQ/collision primitives now exist but complete memory/PPU integration and executable are open |
 | Validation / tooling | 8 | 5 | ROM identity/subsystem audits, native tests and CI; independent Nintendulator CPU register/status/stack/cycle trace 8991/8991; original JP VRC6 mapper/IRQ trace and frame goldens open |
-| **Total** | **100** | **26** | |
+| **Total** | **100** | **27** | |
 
 ## Fixed rubric
 
@@ -72,7 +74,7 @@ Subweights:
 
 - object dispatcher/state-table architecture: 5 points — **1 earned / 5**
 - player control/state machine: 4 — open
-- movement/physics/collision behavior: 4 — **1 earned / 4** (`analysis/NMI_BANK0B_COLLISION_ZP10_0502.md`, `src/collision_math.*`, `tests/collision_math_test.cpp`)
+- movement/physics/collision behavior: 4 — **2 earned / 4** (`analysis/NMI_BANK0B_COLLISION_ZP10_0502.md`, `src/collision_math.*`, `tests/collision_math_test.cpp`)
 - combat/weapons/damage: 4 — open
 - common enemy/actor AI: 4 — open
 - bosses/special actors: 4 — open
@@ -127,3 +129,7 @@ The standalone mapper, IRQ and collision-math source do not themselves earn addi
 5. Do not derive VPP from raw disassembly coverage. Data tables, overlapping semantics, and banked execution make raw byte percentage misleading at this stage.
 6. Report conservative ROM-byte/code-data coverage as a separate metric, never as a replacement for VPP.
 7. Every user-facing checkpoint report should include the current VPP and whether it changed.
+
+## 0518 fixed-rubric VPP reassessment
+
+The **second** (of four) movement/physics/collision subpoints credits the connected and reusable original-JP B1F8/B217/B339/B235/B29D-to-fixed-FDFE actor pipeline, **not** another point for previously counted isolated collision arithmetic. The naturally reached original Mesen actor executes 91 source CPU instructions; the native result matches 1,792/1,792 non-stack RAM bytes and return A/X/Y/P. 0517 alternative branches have bounded synthetic tests, not independent natural liveness. Full collision response, player physics, native integrated frame, original PPU and new strict PRG coverage are **not** credited. See [decision](../analysis/0518_RECONCILIATION_AND_VPP_DECISION.md).

@@ -11,6 +11,7 @@
   "full_strict_prg_floor_unchanged": 49504,
   "promotable_strict_prg_bytes": 0,
   "warning": "The outside-both count is NOT globally novel against the 49,504-byte historical ledger; 0502-0507 and other strict intervals still need a unified audit.",
-  "vpp": 26,
-  "explicit_gap_0508": "Fixed bank31 $FF12-$FF13 lies inside the 0510 tracked $FF06-$FF55 window but outside the 0508 certified ranges (two bytes A9 01); this is not a new certificate."
+  "vpp": 27,
+  "explicit_gap_0508": "Fixed bank31 $FF12-$FF13 lies inside the 0510 tracked $FF06-$FF55 window but outside the 0508 certified ranges (two bytes A9 01); this is not a new certificate.",
+  "vpp_adjustment": "Only the separate gameplay movement/collision architectural rubric point; zero strict PRG bytes."
 }

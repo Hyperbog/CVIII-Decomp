@@ -7,7 +7,7 @@ whole JP PRG scanned/indexed                 262144 / 262144 = 100%
 strict semantically verified PRG floor        49504 / 262144 = 18.8843%
 exact unique JP<->US correspondence           115865 / 262144 = 44.1990%
 exact-or-normalized structural candidates     149607 / 262144 = 57.0705%
-VPP                                             26 / 100
+VPP                                             27 / 100
 ```
 
 VPP is a fixed evidence rubric, not a byte-progress estimate. Cross-version and dispatch-atlas percentages/results are structural accelerators, not semantic verification.
@@ -390,3 +390,9 @@ The expanded independent [Stage 1 multi-branch suite](../SharedNES/0508_STAGE1_M
 ## 0517 native JP collision response / follower scan through fixed FDFE
 
 [Faithful original $0B:$B235-$B27B, $B29D-$B2A7 and $B317-$B31F native lift](../analysis/0517_ACTOR_COLLISION_TAIL_NATIVE_FINDINGS.md) now composes previous B1F8/B217/B339 collision measurement with original collision-result/carry branching, $7E/$8D/$8E response state, type filters and empty follower scan X20..22. **91 authentic original-Mesen instructions** on one naturally reached Stage1 type-$3D actor from B1F8 to fixed FDFE match **1,792/1,792 non-stack physical RAM bytes, CPU A/Y/P**, plus shorter overlapping natural tail. 14 expressly RAM-injected synthetic branch windows test B243/B27C/B2A8 stops: 16 total source comparisons, **28,672/28,672** bytes exact. **65,539 ROM-free native test cases + ASan/UBSan pass**. [Original ROM replay](../tools/audit_actor_collision_tail_0517.py), [compact report](../analysis/0517_actor_collision_tail_report.json). This is NOT whole actor frame: fixed FE00 continuation, nonempty follower and contact paths, PPU/OAM remain OPEN. Strict certified 0508 PRG49,504/262,144, VPP26, FB96 unchanged.
+
+## 0518 physical PRG overlap and VPP reassessment
+
+[Deterministic source audit](../tools/audit_native_coverage_0518.py) inventories 25 SHA-locked windows (1,365 distinct original physical PRG bytes): 546 overlap 0501 certified regions, 78 overlap 0508 independently certified fixed bytes, and 741 are outside **only those two named references**. The 741 cannot be certified until the full historical 0502–0507 ledger is reconstructed. Original fixed FF12–FF13 remain excluded from 0508. No new strict PRG credit: **49,504/262,144 (18.8843%)**, semantic checkpoint 0508 and frontier FB96 unchanged.
+
+[Formal VPP rubric review](../analysis/0518_RECONCILIATION_AND_VPP_DECISION.md) grants **one additional gameplay movement/collision architectural point** (1→2/4) for the reusable connected original-JP native collision route B1F8→FDFE, independently verified on one natural Stage 1 actor (91 original CPU instructions, 1,792 exact non-stack RAM bytes, original A/X/Y/P). Gameplay becomes **3/25**, total **VPP 27/100**. This does not prove positive contact during natural gameplay, full frame parity or extra native-runtime completion.

@@ -1,0 +1,28 @@
+{
+  "schema": "JP-0518-gameplay-vpp-evidence/v1",
+  "prior_vpp": 26,
+  "awarded_vpp": 27,
+  "category": "Gameplay / object systems",
+  "prior_category_earned": 2,
+  "new_category_earned": 3,
+  "subcriterion": "movement/physics/collision",
+  "prior_subpoints": 1,
+  "new_subpoints": 2,
+  "total_subpoints": 4,
+  "reason": "Distinct reusable source-native connected B1F8 to FDFE actor collision and empty follower scan, 91 original naturally reached Mesen CPU steps with exact 1792 non-stack system RAM bytes and A/X/Y/P",
+  "natural_original_cpu_instructions": 91,
+  "natural_exact_nonstack_ram_bytes": 1792,
+  "natural_event_count": 1,
+  "excluded": [
+    "full frame",
+    "positive-contact natural gameplay",
+    "unimplemented helper branches",
+    "player physics",
+    "native runtime/frame",
+    "new PRG bytes"
+  ],
+  "new_strict_prg_bytes": 0,
+  "strict_prg_floor": 49504,
+  "semantic_checkpoint": "0508",
+  "fixed_frontier": "FB96"
+}

@@ -2,7 +2,7 @@ category,weight,earned,evidence
 Foundation / cartridge model,5,4,"ROM identity; PRG/CHR bank map; vectors; VRC6 CPU-window model"
 CPU / mapper / interrupts,10,8,"RESET; PRG helpers; top-level NMI; IRQ table; IRQ state machine; IRQ control/ack distinction; native VRC6 PRG/CHR mapper; native VRC6 IRQ scheduler"
 Rendering / PPU,10,5,"OAM arrays/permutation; selector/master tables; variable descriptors; exact sprite semantics; native OAM renderer"
-Gameplay / object systems,25,2,"partial object dispatcher/state-table architecture; raw-bank $0B collision scratch/distance architecture with native collision math/tests"
+Gameplay / object systems,25,3,"partial object dispatcher architecture; isolated ROM collision arithmetic (first movement point); connected reusable original-JP B1F8-to-FDFE 91-instruction native actor collision/follower pipeline with independent Mesen exact state parity (second movement point); no whole-frame parity"
 Stage / world / progression,20,0,"not yet reconstructed"
 Audio,12,1,"NSF-to-ROM correlation"
 Native runtime / platform,10,1,"faithful native OAM subsystem; mapper/IRQ lifts exist but full memory/PPU integration remains open"

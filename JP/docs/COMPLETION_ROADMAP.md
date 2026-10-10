@@ -9,18 +9,18 @@
 | ROM foundation/cartridge | 4/5 | 80.0% | Complete mapper-register usage inventory |
 | CPU/mapper/interrupts | 8/10 | 80.0% | NMI transitive closure and reference CPU/interrupt traces |
 | Rendering/PPU | 5/10 | 50.0% | Background, CHR, frame goldens and integrated rendering |
-| Gameplay/objects/physics | 2/25 | 8.0% | Player, combat, common AI and bosses |
+| Gameplay/objects/physics | 3/25 | 12.0% | Player, combat, common AI and bosses |
 | Stage/world/progression | 0/20 | 0.0% | Room formats, transitions, maps, routes, menus, endings |
 | Audio | 1/12 | 8.3% | Driver/data, native APU+VRC6, sound events and parity |
 | Native runtime/platform | 1/10 | 10.0% | Integrated bus, CPU, PPU, input, sound and playable build |
 | Validation/tooling | 5/8 | 62.5% | Independent 8,991-state NROM CPU golden test and CI earned; JP VRC6/IRQ trace and frame goldens remain |
-| **Weighted overall verified parity** | **26/100** | **26.0%** | **74 fixed-rubric points not yet earned** |
+| **Weighted overall verified parity** | **27/100** | **27.0%** | **73 fixed-rubric points not yet earned** |
 
 VPP is a fixed milestone/evidence rubric, **not** an estimate of labor or a calendar forecast. The unweighted average of category percentages is not the overall score. Different metric: **49,504 / 262,144 = 18.8843%** strictly verified PRG; **212,740** bytes uncredited. Whole-PRG mechanical indexing is 100%; JP/US exact-or-normalized structural candidates are 149,607/262,144 (57.0705%), **not semantic coverage**.
 
 ### Subsystem detail within incomplete major areas
 
-- Gameplay 2/25: object dispatcher **1/5 (20%)**, player state **0/4**, movement/physics/collision **1/4 (25%)**, combat **0/4**, common enemy AI **0/4**, bosses **0/4**.
+- Gameplay 3/25: object dispatcher **1/5 (20%)**, player state **0/4**, movement/physics/collision **2/4 (50%)**, combat **0/4**, common enemy AI **0/4**, bosses **0/4**.
 - World 0/20: room formats **0/5**, scrolling/transitions **0/4**, environmental/collision maps **0/4**, route progression **0/3**, menus/password/ending **0/2**, deterministic stage extraction **0/2**.
 - Audio 1/12: NSF/ROM correlation **1/1**, driver **0/3**, data formats **0/2**, native APU+VRC6 **0/3**, event mapping **0/2**, register/output parity **0/1**.
 - Native 1/10: isolated native OAM component **1/1**; CPU core **0/3**, memory/mapper/PPU integration **0/2**, frame/input **0/1**, audio backend **0/1**, playable executable **0/1**, package **0/1**.
@@ -68,3 +68,7 @@ Reuse committed [Phase 11](../analysis/0508_PHASE11_FINDINGS.md) and predecessor
 
 
 **0508 strict-progress correction (2026-10-10):** Independent original-Mesen Stage 1-02 gameplay evidence and instruction-aligned fixed PRG31 source proof admitted **100 nonoverlapping bytes**, moving strict JP PRG to **49,504/262,144 (18.8843%)**. VPP remains **26/100**. This does not resolve the separate live NMI room-$0D producer domain or make the 16,772 Mesen-observed code bytes all certifiable. See [certificate](../analysis/0508_MESEN_FIXED_LIVE_PROOF.md) and [frame-branch census](../SharedNES/0508_STAGE1_MULTIBRANCH_REFERENCE.md).
+
+## 0518 rubric and byte review
+
+The reusable 91-source-instruction original-JP actor collision route B1F8-to-FDFE earns one additional **gameplay movement/collision** point, moving VPP 26 to 27. No integrated original game frame or additional native-runtime point is earned. The 25-window original physical-source audit inventories 1,365 unique bytes: 546 already in the 0501 manifest, 78 already in the 0508 addition, and 741 outside **those two references only**. Because the full intervening 0502-0507 strict PRG ledger is not yet reconciled, **zero** new PRG bytes are certified. Original strict floor remains 49,504, frontier FB96.
