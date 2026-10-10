@@ -4,12 +4,13 @@
   "tracked_windows": 25,
   "tracked_unique_source_bytes": 1365,
   "already_in_0501_reference": 546,
-  "already_in_0508_reference_only": 80,
-  "outside_both_named_reference_manifests": 739,
+  "already_in_0508_reference_only": 78,
+  "outside_both_named_reference_manifests": 741,
   "reference_0501_certified_bytes": 4364,
   "reference_0508_addition_bytes": 100,
   "full_strict_prg_floor_unchanged": 49504,
   "promotable_strict_prg_bytes": 0,
   "warning": "The outside-both count is NOT globally novel against the 49,504-byte historical ledger; 0502-0507 and other strict intervals still need a unified audit.",
-  "vpp": 26
+  "vpp": 26,
+  "explicit_gap_0508": "Fixed bank31 $FF12-$FF13 lies inside the 0510 tracked $FF06-$FF55 window but outside the 0508 certified ranges (two bytes A9 01); this is not a new certificate."
 }

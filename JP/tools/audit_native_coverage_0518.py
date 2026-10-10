@@ -101,7 +101,7 @@ def audit(rom_file: Path | None = None) -> dict:
     die_if((result["tracked_unique_source_bytes"],
             result["already_in_0501_reference"],
             result["already_in_0508_reference_only"],
-            result["outside_both_named_reference_manifests"]) != (1365,546,80,739),
+            result["outside_both_named_reference_manifests"]) != (1365,546,78,741),
            "original source window reconciliation drift")
     die_if(result["full_strict_prg_floor_unchanged"] != 49504,
            "unexpected certified strict PRG floor")
