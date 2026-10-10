@@ -15,6 +15,7 @@ add_library(cviii_standalone_sprite_pipeline STATIC
   "${SRC_DIR}/actor_collision_measure_0516.cpp"
   "${SRC_DIR}/actor_collision_result_0517.cpp"
   "${SRC_DIR}/scheduler_postcollision_0519.cpp"
+  "${SRC_DIR}/scheduler_bd11_followup_0520.cpp"
   "${SRC_DIR}/standalone_scene_0509.cpp"
   "${SRC_DIR}/oam_renderer.cpp"
   "${SRC_DIR}/collision_math.cpp")
@@ -99,3 +100,10 @@ target_link_libraries(scheduler_postcollision_0519_test PRIVATE cviii_standalone
 add_test(NAME native_original_scheduler_gate_0519 COMMAND scheduler_postcollision_0519_test)
 add_executable(native_scheduler_replay_0519 "${CMAKE_CURRENT_SOURCE_DIR}/../tools/native_scheduler_replay_0519.cpp")
 target_link_libraries(native_scheduler_replay_0519 PRIVATE cviii_standalone_sprite_pipeline)
+
+# Original JP bank0B BD11 gate and fixed-bank31 FE34–FE60 continuation.
+add_executable(scheduler_followup_0520_test "${TEST_DIR}/scheduler_followup_0520_test.cpp")
+target_link_libraries(scheduler_followup_0520_test PRIVATE cviii_standalone_sprite_pipeline)
+add_test(NAME native_original_scheduler_followup_0520 COMMAND scheduler_followup_0520_test)
+add_executable(native_followup_replay_0520 "${CMAKE_CURRENT_SOURCE_DIR}/../tools/native_followup_replay_0520.cpp")
+target_link_libraries(native_followup_replay_0520 PRIVATE cviii_standalone_sprite_pipeline)
