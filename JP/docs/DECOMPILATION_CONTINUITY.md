@@ -341,3 +341,7 @@ Windows build refinement: source-native Win32/GDI demo compiled and passed ROM-f
 ## 0518 evidence-based source accounting and gameplay VPP adjustment
 
 [0518 formal decision](../analysis/0518_RECONCILIATION_AND_VPP_DECISION.md): 25 original source windows/1,365 physical PRG bytes, 546 already 0501, 78 already 0508, **741 unclassified against full history** (not new certified bytes); original FF12–FF13 remains uncredited. Gameplay movement/collision VPP +1 on independent reusable 91-instruction Stage1 B1F8-to-FDFE source/native state-matched actor pipeline: gameplay **3/25**, VPP **27/100**. No further native-runtime/validation awards. Last completed semantic checkpoint **0508**, strict floor **49,504**, fixed frontier **FB96**. Continue fixed FDFE scheduler and B243/B27C/B2A8; assemble full earlier byte union before strict promotion.
+
+## 0519 first fixed-bank actor scheduler continuation beyond FDFE
+
+[Original ROM Mesen natural FDFE→FE31 actor15/type80 gate](../analysis/0519_FIXED_SCHEDULER_NATIVE_FINDINGS.md) now has 10 instruction-boundary replay and exact full 2 KiB RAM parity, PC/A/X/Y/P; 73,731 native bounded gate cases plus sanitizer pass. Native file `src/scheduler_postcollision_0519.cpp` only chooses next original fixed CPU call boundary FE0B/FE1D/FE2C/FE31/FE36/FE6E; **does not** model $BD11/$FF56/$FE8C. Independent 0518 VPP27 and source strict PRG49504 remain unchanged, semantic source certificate 0508/frontier FB96. Next prove original BD11 continuation from natural X15 state; no whole-frame parity.
