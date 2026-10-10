@@ -1,0 +1,289 @@
+{
+  "schema": "jp-original-mesen-stage1-branches-hash-summary/v1",
+  "status": "INDEPENDENT_REFERENCE_CODE_AND_DATA_OBSERVATIONS_NOT_FULL_NATIVE_PARITY",
+  "jp_rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "us_comparison_rom_sha256": "1c7b2ed2c1fb5839a6764006aa476f5c9d48f99465b6141980f3a5af1dfec0d6",
+  "mesen_executable_sha256": "95bcda9d4ff6428937183093386d993649c2d740273871ced78217d3d8f234d0",
+  "mesen_core_sha256": "fa0e7af858dce0171f5857837f8cad92090078c354631ce74f8279185df97bd1",
+  "original_contiguous_route_frames": 1100,
+  "divergent_stage1_forks": 7,
+  "total_frame_executions": 9500,
+  "number_of_CDL_sources": 10,
+  "original_baseline_code_bytes": 12885,
+  "physical_code_bytes_union": 16772,
+  "physical_data_bytes_union": 11765,
+  "physical_code_or_data_bytes_union": 28537,
+  "additional_unique_code_vs_original_reference": 3887,
+  "additional_unique_data_vs_original_reference": 3875,
+  "already_strict_certified_0501_bytes_reobserved": 1157,
+  "sha256_code_union_mask": "3b4b3437016c1bde90b7f87c93d49fc29f3a89fc2566c248919a41197cb0137c",
+  "sha256_data_union_mask": "4e67917eb9b3f2e76af4c13668e6391f131c2425ca7529757d50e7117f565af3",
+  "census_banks_format": "[physical PRG 8KiB bank, observed CODE, observed DATA, newly observed CODE after original 1100-frame route, already credited 0501 code]",
+  "census_banks": [
+    [
+      0,
+      1287,
+      394,
+      295,
+      0
+    ],
+    [
+      2,
+      0,
+      6,
+      0,
+      0
+    ],
+    [
+      3,
+      1333,
+      1636,
+      0,
+      0
+    ],
+    [
+      4,
+      70,
+      0,
+      0,
+      0
+    ],
+    [
+      5,
+      13,
+      436,
+      0,
+      0
+    ],
+    [
+      7,
+      0,
+      65,
+      0,
+      0
+    ],
+    [
+      8,
+      1149,
+      68,
+      0,
+      0
+    ],
+    [
+      9,
+      50,
+      198,
+      50,
+      0
+    ],
+    [
+      10,
+      1531,
+      2769,
+      227,
+      0
+    ],
+    [
+      11,
+      0,
+      92,
+      0,
+      0
+    ],
+    [
+      15,
+      151,
+      17,
+      110,
+      0
+    ],
+    [
+      16,
+      0,
+      1436,
+      0,
+      0
+    ],
+    [
+      20,
+      727,
+      105,
+      312,
+      89
+    ],
+    [
+      21,
+      0,
+      63,
+      0,
+      0
+    ],
+    [
+      22,
+      582,
+      5,
+      424,
+      233
+    ],
+    [
+      23,
+      937,
+      121,
+      719,
+      666
+    ],
+    [
+      24,
+      1994,
+      558,
+      232,
+      0
+    ],
+    [
+      25,
+      0,
+      878,
+      0,
+      0
+    ],
+    [
+      26,
+      323,
+      306,
+      7,
+      0
+    ],
+    [
+      27,
+      114,
+      203,
+      0,
+      0
+    ],
+    [
+      28,
+      1689,
+      68,
+      630,
+      0
+    ],
+    [
+      29,
+      354,
+      36,
+      13,
+      0
+    ],
+    [
+      30,
+      1273,
+      2134,
+      52,
+      0
+    ],
+    [
+      31,
+      3195,
+      171,
+      816,
+      169
+    ]
+  ],
+  "branches_format": "[run, simulated frames, CODE bytes in run, DATA bytes in run, first-seen unique CODE across sequential census]",
+  "branches": [
+    [
+      "play520",
+      520,
+      5536,
+      2666,
+      5536
+    ],
+    [
+      "stage220",
+      220,
+      5194,
+      1382,
+      1474
+    ],
+    [
+      "stage360",
+      360,
+      9352,
+      4361,
+      5875
+    ],
+    [
+      "right",
+      1200,
+      6568,
+      2748,
+      371
+    ],
+    [
+      "idle",
+      1200,
+      5114,
+      1927,
+      0
+    ],
+    [
+      "right_jump",
+      1200,
+      10799,
+      3847,
+      2126
+    ],
+    [
+      "right_whip",
+      1200,
+      8344,
+      4223,
+      679
+    ],
+    [
+      "keepjump",
+      1200,
+      10255,
+      3553,
+      420
+    ],
+    [
+      "keepwhip",
+      1200,
+      8018,
+      3664,
+      291
+    ],
+    [
+      "holdjump",
+      1200,
+      10735,
+      4826,
+      0
+    ]
+  ],
+  "cross_edition": {
+    "window_bytes": 16,
+    "independently_observed_code_runs_ge_16": 263,
+    "source_executed_code_bytes_in_qualifying_runs": 15382,
+    "source_code_covered_by_unique_exact_US_16_windows": 3165,
+    "source_code_covered_by_ambiguous_only_US_16_windows": 350,
+    "unique_US_matching_source_bytes_outside_0501_subset": 2906,
+    "full_exact_runs": 12,
+    "unique_full_exact_runs": 11,
+    "sha256_unique_exact_mask": "290defc9ef88b905a7360d62b2244259e8477cbb945235e3defcac6b0161c875",
+    "execution_US_proven": false
+  },
+  "independent_gameplay_scene": "original Japanese Stage 1-02 reached by right-jump script; manual screenshot verification",
+  "new_strict_credited_by_this_reference_sweep": 0,
+  "strict_gameplay_liveness": false,
+  "private_data_not_committed": [
+    "ROM",
+    "CDL flags",
+    "savestates",
+    "instruction trace",
+    "frame images"
+  ],
+  "local_full_report_sha256": "f8fdd82bc934a08b8c7e32da40b59f9f32e35e3181191b428da8976d7e1ebec5",
+  "local_full_US_candidate_report_sha256": "558753c54d14acbe3b8106686848847307ebe97e474d7b41c3d5d48ea21589b4"
+}

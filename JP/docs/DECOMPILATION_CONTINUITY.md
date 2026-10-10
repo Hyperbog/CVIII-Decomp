@@ -22,7 +22,7 @@ US comparison SHA-256 `1c7b2ed2c1fb5839a6764006aa476f5c9d48f99465b6141980f3a5af1
 
 ```text
 whole JP PRG scanned/indexed                 262144 / 262144 = 100%
-strict semantically verified PRG floor        49404 / 262144 = 18.8461%
+strict semantically verified PRG floor        49504 / 262144 = 18.8843%
 exact unique JP<->US correspondence           115865 / 262144 = 44.1990%
 exact-or-normalized structural candidates     149607 / 262144 = 57.0705%
 VPP                                             26 / 100
@@ -257,3 +257,8 @@ GitHub Actions [run 37993214808](https://github.com/Hyperbog/CVIII-Decomp/action
 ## Independent Nintendulator CPU reference conformance (separate validation milestone)
 
 The [shared-library NES CPU golden test](../SharedNES/NESTEST_REFERENCE_0508.md) passes all 8,991 original nestest Nintendulator register/flags/stack/cycle states in [Actions run 38010527144](https://github.com/Hyperbog/CVIII-Decomp/actions/runs/38010527144), with upstream test fixture SHA pins and 11 local ROM-free NROM/undocumented-opcode regression groups. This earns 1/2 of the two-point **validation reference trace harness** rubric: 4/8 -> 5/8, weighted VPP 25->26/100. The remaining validation point requires genuine JP VRC6 mapper/interrupt reference traces; the independent *CPU/mapper category's* original-game parity point remains open. Verified JP PRG stays 49,404; finished semantic checkpoint 0507; frontier FB96 unchanged.
+
+
+## 0508 completed (narrow independent-Mesen fixed PRG source proof)
+
+Checkpoint [0508](../analysis/0508_MESEN_FIXED_LIVE_PROOF.md) adds **exactly 100** original ROM bytes after 0507's 49,404: fixed PRG31 CPU **FBA5-FBAF (11), FBB0-FBBA (11), FF06-FF11 (12), FF14-FF55 (66)**. Real third-party Mesen2 breakpoint and stepped code evidence proves intro/prayer bank-00 stream-call restoration and Stage 1-02 active-object slot scanning/field clearing; independent disassembly verifies 39 original instruction starts and all 100 physical CODE-marked bytes. All credited new bytes lie inside 0507's *unclaimed* fixed gaps. **New strict lower bound 49,504 / 262,144 = 18.8843%; VPP 26/100, fixed frontier FB96 unchanged.** Reproduce with `tools/audit_mesen_fixed_live_0508.py JP.nes [report.json]` (source checks) and optional `--reference-emulator EMULATOR_DIR --private-evidence PRIVATE_DIR` (complete external witness); replay `audit_0508_predecessor.py` and 0507 native regression before further strict promotion. Previous 0508 room-$0D, $07A0 and full-frame/native parity questions remain OPEN; next research checkpoint 0509.

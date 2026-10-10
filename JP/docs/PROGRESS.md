@@ -4,7 +4,7 @@
 
 ```text
 whole JP PRG scanned/indexed                 262144 / 262144 = 100%
-strict semantically verified PRG floor        49404 / 262144 = 18.8461%
+strict semantically verified PRG floor        49504 / 262144 = 18.8843%
 exact unique JP<->US correspondence           115865 / 262144 = 44.1990%
 exact-or-normalized structural candidates     149607 / 262144 = 57.0705%
 VPP                                             26 / 100
@@ -306,3 +306,10 @@ The SHA-pinned [Nintendulator nestest reference audit](../SharedNES/NESTEST_REFE
 ## 2026-10-09 — Original Japanese-ROM independent playable Stage 1 reference (provisional, zero strict credit)
 
 The first independently sourced original-ROM frame trace is now available from [Mesen2 2.1.1 via externally SHA-verified v0.1.0 headless CLI](../SharedNES/0508_MESEN_ORIGINAL_GAMEPLAY_REFERENCE.md). The private JP ROM executes **1,100 sequential emulator frames**, from intro/name screen through prayer into visibly playable Stage 1; the earlier state `0A/03` was the name-entry interface, resolved by normal **START** in the original game. The physical-bank CDLv2 evidence class is **independent Mesen execution**, not manually injected-NMI simulation. Across these runs **12,885 distinct PRG code/operand bytes, 7,890 data bytes** were marked; **463 of the 4,364 already certified checkpoint-0501 bytes** are executed within the real Stage 1 continuation, not new credit. Authentic `$18` sampled states include `00,02,0A,09,03,04`, with `$18=04/$2C=03` during gameplay; `$0C/$0D` remains OPEN. Neither the full 0507 strict-ledger overlap nor complete mapped instruction/producer closure has been computed, so **new strict PRG bytes=0; total strict 49,404/262,144 (18.8461%), VPP 26/100, last semantic checkpoint 0507, fixed frontier FB96 unchanged**. SHA-pinned, hash-only [report](../analysis/0508_MESEN_ORIGINAL_GAMEPLAY_REFERENCE_REPORT.json) plus [reproducible audit](../tools/audit_mesen_reference_0508.py) and 12 ROM-free importer tests committed; private Mesen CDL/savestates/ROM/screenshots are never committed.
+
+
+## 0508 completed narrow fixed-bank certification — 100 NEW verified PRG bytes
+
+New original-Mesen gameplay and original-source full-instruction proof: [0508 fixed live code certificate](../analysis/0508_MESEN_FIXED_LIVE_PROOF.md) and [hash-only machine evidence](../analysis/0508_MESEN_FIXED_LIVE_PROOF.json). Four **nonoverlapping** fixed PRG31 code/operand intervals: `$FBA5-$FBAF` (11), `$FBB0-$FBBA` (11), `$FF06-$FF11` (12), `$FF14-$FF55` (66). Independent real game breakpoints at frames 314, 605, 2030, 39 instruction starts decoded under fixed physical mapping, genuine mapper bank-$00 restoration and actual 160-instruction object-cleaner trace. All 100 bytes were explicitly unclaimed in 0507's fixed gap ledger; other gaps and `$FF12-$FF13` **remain uncredited**. **Strict floor 49,404 → 49,504 / 262,144 = 18.8843%; VPP remains 26/100; fixed CPU frontier FB96 remains.** Completed checkpoint 0508 is limited to these four proven source fragments and does not close earlier provisional 0508 room-$0D or external/native parity uncertainties.
+
+The expanded independent [Stage 1 multi-branch suite](../SharedNES/0508_STAGE1_MULTIBRANCH_REFERENCE.md) executed **9,500 emulator frames in 10 jobs, seven divergent gameplay forks** from a common prior 1,100-frame route, reaching **BLK 1-02**. Physical code/data union **16,772 / 11,765** bytes (+3,887 / +3,875 newly *observed* relative to earlier reference), including **1,157** previously certified checkpoint-0501 code bytes. Cross-edition unique exact 16-byte candidate coverage: **3,165 JP code positions**; this is discovery evidence only, not additional semantic verification. All ROM/CDL/savestates/screenshots/instruction traces are private.

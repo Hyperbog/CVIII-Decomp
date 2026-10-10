@@ -1,0 +1,73 @@
+{
+  "checkpoint": "0508",
+  "status": "BOUND_FULL_ORIGINAL_MESEN_REFERENCE_AND_FIXED_ROM_CODE_PROOF",
+  "JP_SHA256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "Mesen2_SHA256": "95bcda9d4ff6428937183093386d993649c2d740273871ced78217d3d8f234d0",
+  "MesenCore_SHA256": "fa0e7af858dce0171f5857837f8cad92090078c354631ce74f8279185df97bd1",
+  "prior_verified_PRG_bytes": 49404,
+  "new_disjoint_PRG31_semantic_bytes": 100,
+  "new_verified_PRG_bytes": 49504,
+  "new_verified_PRG_fraction": 0.1888427734375,
+  "VPP": 26,
+  "fixed_PRG31_frontier": "FB96",
+  "live_fragments": [
+    {
+      "kind": "title_stream",
+      "physical_bank": 31,
+      "begin": "FBA5",
+      "end": "FBAF",
+      "length": 11,
+      "sha256": "096871e75eb8f81b8bfd99da6f781473d40b5453325f8b8e4df00b003325ea62",
+      "breakpoint_frame": 314,
+      "source": "play520"
+    },
+    {
+      "kind": "prayer_stream",
+      "physical_bank": 31,
+      "begin": "FBB0",
+      "end": "FBBA",
+      "length": 11,
+      "sha256": "355f9853ac905aa90b52482b798e6d9603649b745ba6bb1db579d0a723f79c06",
+      "breakpoint_frame": 605,
+      "source": "stage220"
+    },
+    {
+      "kind": "object_slot_scan",
+      "physical_bank": 31,
+      "begin": "FF06",
+      "end": "FF11",
+      "length": 12,
+      "sha256": "c75f2332e11e13763245741d3f4ddb690f63dce3930c946cae3160090ac1488c",
+      "breakpoint_frame": 2030,
+      "source": "right_jump_1200"
+    },
+    {
+      "kind": "object_clear",
+      "physical_bank": 31,
+      "begin": "FF14",
+      "end": "FF55",
+      "length": 66,
+      "sha256": "9f4374fdf490e30015a28e44abdc20c87259b501064c1d8eb9f4fee353d40d1a",
+      "source": "right_jump_1200"
+    }
+  ],
+  "source_verified_instruction_counts": [
+    4,
+    4,
+    6,
+    25
+  ],
+  "live_executable_proof": "Mesen physical PRG31 code bits in source CDL, independent Mesen disassembler exact 39 official instruction boundaries, real breakpoints, and stepped original CPU trace",
+  "mapped_bank0_stream_bank_restore_trace_sha256": [
+    "ccf457e86d56f9d83ad9a164e7798c827c50a7f2d400ecbdafe8f5e0ee4d26fc",
+    "44c604c8a1353526a8a45c5f98957ce8a2bd6c78fe34140f7e3ba223d8c66ba5"
+  ],
+  "object_clear_160_instruction_trace_sha256": "3af9ae952852a7f44c78c91c7ddf39f39709c28d60f1d1e18e52389c47347a32",
+  "scope_limitations": [
+    "FF12-FF13 not executed; not counted",
+    "other fixed-gaps unproven",
+    "stream data and unobserved object/script alternatives unclosed",
+    "no full CPU/PPU/APU native parity or RAM selector 0C/0D proof"
+  ],
+  "rom_or_cdl_or_trace_bytes_committed": false
+}

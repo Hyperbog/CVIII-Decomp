@@ -16,7 +16,7 @@
 | Validation/tooling | 5/8 | 62.5% | Independent 8,991-state NROM CPU golden test and CI earned; JP VRC6/IRQ trace and frame goldens remain |
 | **Weighted overall verified parity** | **26/100** | **26.0%** | **74 fixed-rubric points not yet earned** |
 
-VPP is a fixed milestone/evidence rubric, **not** an estimate of labor or a calendar forecast. The unweighted average of category percentages is not the overall score. Different metric: **49,404 / 262,144 = 18.8461%** strictly verified PRG; **212,740** bytes uncredited. Whole-PRG mechanical indexing is 100%; JP/US exact-or-normalized structural candidates are 149,607/262,144 (57.0705%), **not semantic coverage**.
+VPP is a fixed milestone/evidence rubric, **not** an estimate of labor or a calendar forecast. The unweighted average of category percentages is not the overall score. Different metric: **49,504 / 262,144 = 18.8843%** strictly verified PRG; **212,740** bytes uncredited. Whole-PRG mechanical indexing is 100%; JP/US exact-or-normalized structural candidates are 149,607/262,144 (57.0705%), **not semantic coverage**.
 
 ### Subsystem detail within incomplete major areas
 
@@ -65,3 +65,6 @@ Reuse committed [Phase 11](../analysis/0508_PHASE11_FINDINGS.md) and predecessor
 
 
 **Progress change (2026-10-09):** [Nintendulator CPU golden trace](https://github.com/Hyperbog/CVIII-Decomp/actions/runs/38010689051) passes all 8,991 NROM instruction register/status/stack/cycle states. One of two validation trace-harness points earned, validation 4/8→5/8, weighted VPP 25→26. Original Japanese VRC6/gameplay parity and strict PRG byte promotion remain open; last semantic checkpoint 0507 unchanged.
+
+
+**0508 strict-progress correction (2026-10-10):** Independent original-Mesen Stage 1-02 gameplay evidence and instruction-aligned fixed PRG31 source proof admitted **100 nonoverlapping bytes**, moving strict JP PRG to **49,504/262,144 (18.8843%)**. VPP remains **26/100**. This does not resolve the separate live NMI room-$0D producer domain or make the 16,772 Mesen-observed code bytes all certifiable. See [certificate](../analysis/0508_MESEN_FIXED_LIVE_PROOF.md) and [frame-branch census](../SharedNES/0508_STAGE1_MULTIBRANCH_REFERENCE.md).
