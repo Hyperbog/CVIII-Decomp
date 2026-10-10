@@ -1,0 +1,43 @@
+{
+  "schema": "JP-0510-row32-native-lift-independent-mesen-ram-v1",
+  "rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "mesen_agent_sha256": "95bcda9d4ff6428937183093386d993649c2d740273871ced78217d3d8f234d0",
+  "mesen_core_sha256": "d2831c26d42aba675ed5d2cf392b2e12a67cb25274d981ef2c7741e552b72040",
+  "original_source_frame": 3092,
+  "source_bank": "0A",
+  "independent_live_events": [
+    {
+      "source_object_x": 3,
+      "actor_slot_x": 1,
+      "begin_pc": "8501",
+      "end_pc": "84F6",
+      "mesen_source_steps_parameter": 0,
+      "mesen_end_steps_parameter": 189,
+      "cpu_original_instructions": 189,
+      "ram_bytes_compared_excluding_stack": 1792,
+      "before_non_stack_sha256": "ca68d28bb716d7874400f9e611b818077257ae835ac8ab2f3b168cd99327fefd",
+      "after_non_stack_sha256": "9e7a5a53b334421fbbb0a1d4130f883e04c24a7301b44e5cb01044ea018088c4",
+      "mesen_original_final_cycle": 92060617,
+      "native_vs_mesen": "exact_all_non_stack_ram_bytes"
+    },
+    {
+      "source_object_x": 4,
+      "actor_slot_x": 2,
+      "begin_pc": "8501",
+      "end_pc": "84F6",
+      "mesen_source_steps_parameter": 213,
+      "mesen_end_steps_parameter": 407,
+      "cpu_original_instructions": 194,
+      "ram_bytes_compared_excluding_stack": 1792,
+      "before_non_stack_sha256": "80a48d4860a7abc431823970c0a68f9dcacb0d9194bc6e437cd26f9be613a9a4",
+      "after_non_stack_sha256": "763f5189e5b36d86c25706d8e17dc794c7fcfe66ff6bdf2d16f90e6f248903f1",
+      "mesen_original_final_cycle": 92061393,
+      "native_vs_mesen": "exact_all_non_stack_ram_bytes"
+    }
+  ],
+  "verified_non_stack_ram_bytes": 3584,
+  "stack_comparison": "excluded: native structured code does not emulate JSR/RTS pushes",
+  "missing_evidence": "native full frame, all-event entry domains, renderer/audio, game continuation",
+  "new_strict_prg_bytes": 0,
+  "new_vpp_points": 0
+}
