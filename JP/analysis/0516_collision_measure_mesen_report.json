@@ -1,0 +1,89 @@
+{
+  "schema": "JP-0516-original-Mesen-native-B339-collision-measure/v1",
+  "rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "mesen_agent_sha256": "95bcda9d4ff6428937183093386d993649c2d740273871ced78217d3d8f234d0",
+  "mesen_core_sha256": "d2831c26d42aba675ed5d2cf392b2e12a67cb25274d981ef2c7741e552b72040",
+  "source_ranges_sha256": {
+    "B339_B393": "63ffaae0dcfa49c59976f908028c5d479b7a5a322c98fbe2a7c651e416f421e3",
+    "80B3_80CA": "30502fd79ec1b4a003445edee0f5d14b7d5abcd6bdf3ba006172ebf9bd316230",
+    "BB05_9": "bb77fce75faf9aa9c3114ffd5effec0eb52d21675d52553fdad025b057a4d809",
+    "BB0E_9": "9573f03f87b039a49537447dedc25de80f6d8b6b46118a5e60ce5153f4a2c84f",
+    "BB80_105": "1c80668c09c86baa24651b7ca05fa608627aaa83065974fbb5b6bf2ab00c3972",
+    "BC08_105": "dec7dfc688067be375a4f1a158dc2c9b46f00518dbc21209ef74886d2a79288c",
+    "B394_2": "9f1afa4dc124cba73134e82ff50f17c8f7164257c79fed9a13f5943a6acb8e3d"
+  },
+  "physical_prg_entry": "02F339",
+  "natural_pc_B339_cpu_cycle": 77522077,
+  "natural_B1F8_state_sha256": "0fd7256466e3e952402858ecaa3034eda6774ab2acbf16ad4e2d00c99e1b442c",
+  "derived_original_B339_ram_sha256": "938ba9d9775a9544da06f666802f34f4b4ee20096eb396c8480ade73fb7fdc67",
+  "scenarios": 50,
+  "natural_scenarios": 2,
+  "synthetic_scenarios": 48,
+  "natural_windows_same_actor": true,
+  "horizontal_early_exits": 12,
+  "vertical_compares": 38,
+  "original_ram_bytes_matched": 89600,
+  "comparison_digest_sha256": "88c500ebb8350e4a15393220f9f33a55529c1d7a8a5147d97cb975b9020de6af",
+  "cases_first_and_last": [
+    {
+      "case": "natural_B1F8_to_B393_same_actor",
+      "evidence": "natural-original-game, same original actor as shorter window",
+      "axis": "horizontal_early_exit",
+      "original_steps": 53,
+      "native_equal_original_ram_bytes": 1792,
+      "original_A_X_Y_P": [
+        47,
+        1,
+        61,
+        1
+      ],
+      "original_nonstack_ram_sha256": "08181e6183b3c5c8e94cfff1e986637ca28e00f434fd116ca1a2d8187bbf24bd"
+    },
+    {
+      "case": "natural_actor3D",
+      "evidence": "natural-original-game",
+      "axis": "horizontal_early_exit",
+      "original_steps": 29,
+      "native_equal_original_ram_bytes": 1792,
+      "original_A_X_Y_P": [
+        47,
+        1,
+        61,
+        1
+      ],
+      "original_nonstack_ram_sha256": "08181e6183b3c5c8e94cfff1e986637ca28e00f434fd116ca1a2d8187bbf24bd"
+    },
+    {
+      "case": "synthetic_46",
+      "evidence": "SYNTHETIC_RAM_override",
+      "axis": "horizontal_early_exit",
+      "original_steps": 24,
+      "native_equal_original_ram_bytes": 1792,
+      "original_A_X_Y_P": [
+        128,
+        1,
+        61,
+        1
+      ],
+      "original_nonstack_ram_sha256": "444ea18e92c8e04eac2a8652179ec5bfa085ef2bfa56f719c8061b60eb7c3b45"
+    },
+    {
+      "case": "synthetic_47",
+      "evidence": "SYNTHETIC_RAM_override",
+      "axis": "vertical",
+      "original_steps": 46,
+      "native_equal_original_ram_bytes": 1792,
+      "original_A_X_Y_P": [
+        7,
+        1,
+        1,
+        128
+      ],
+      "original_nonstack_ram_sha256": "34ec13b497d9294830181f5c85b208266b2236e6061ed262247fd975429bae61"
+    }
+  ],
+  "bounded_entry": "room $7F<=8; actor type<=68; $B7=0; $048C==8 with $0400>=EE excluded",
+  "excluded": "B7 E5BE branch, B396 alternate, actual B235 collision response, integrated full actor frame",
+  "certified_new_prg_bytes": 0,
+  "vpp_added": 0
+}
