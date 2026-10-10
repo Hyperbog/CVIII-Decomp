@@ -1,0 +1,20 @@
+{
+  "schema": "JP-0509-original-raw0A-actor-spawn-path/v1",
+  "rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "mapper_raw_bank": "0A",
+  "source_entry_cpu": "90CA",
+  "source_callee_cpu": "FF06",
+  "source_sha256_90CE_90DE": "f4300055beb08d35061b4687f3f479782abc71957523304ad9fb0a685efa069a",
+  "occupancy_cases": 4096,
+  "available_slot_cases": 4095,
+  "full_slot_cases": 1,
+  "total_original_instructions_executed": 73717,
+  "distinct_instruction_pcs": 17,
+  "result_digest_sha256": "600b9ee5fcc77de39ae83c871325b728881052c5cb07f9aad00a5d40b50f68e9",
+  "on_available": "first free slot X=1..12; $054E,X=$13; $05EF,X=0; branch to $90F7",
+  "on_full": "X=$0D, A=$01; conditional branch to $9128; no $054E/$05EF write",
+  "common": "$10=0 before fixed $FF06 call; caller JSR stack restored",
+  "scope": "synthetic occupancy memory and authentic instruction fetch only, no proven game entry/mapper lifetime",
+  "new_strict_prg_bytes": 0,
+  "new_vpp_points": 0
+}

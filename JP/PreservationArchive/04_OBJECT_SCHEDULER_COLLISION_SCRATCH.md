@@ -21,3 +21,7 @@ The fixed helper follows tile/background probe calculations. $FD25 uses a 12-byt
 ## Open proof
 
 A cross-frame/source-to-renderer $10 register-lifetime proof, complete $54/$14 producer bounds, and all collision/weapon/enemy subsystem behaviors are not yet complete. [UNKNOWN registry](10_QUIRKS_CORRECTIONS_AND_UNKNOWNS.md) tracks the missing guarantees.
+
+## 0509 raw-bank $0A actor creation (provisional)
+
+[ROM-stepped mapped actor allocation](../analysis/0509_ACTOR_SPAWN_PRODUCER_FINDINGS.md) executes CPU $90CA in raw bank $0A and authentic PRG31 $FF06 for 4,096 slot maps (73,717 original instructions). Locally, $10=0 before scanning; success writes actor type $13 at $054E,X and clears $05EF,X, while all-full branches to $9128 without those stores. No original frame/mapper-liveness or global $10 lifetime claim. R-004 remains OPEN. New strict bytes 0, VPP 0.
