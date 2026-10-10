@@ -1,0 +1,39 @@
+name: JP Native PC Demo Builds
+on:
+  push:
+    branches: [decompilation]
+    paths:
+      - 'JP/native_demo0510/**'
+      - '.github/workflows/jp_native_pc_demo.yml'
+  workflow_dispatch:
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure and compile native Linux demo (no original-ROM assets)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y libx11-dev
+          cmake -S JP/native_demo0510 -B build/jp-native-pc -DCMAKE_BUILD_TYPE=Release
+          cmake --build build/jp-native-pc --parallel
+      - name: Run native scene-state regression
+        run: ctest --test-dir build/jp-native-pc --output-on-failure
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cviii-jp-native-linux-x64
+          path: build/jp-native-pc/cviii-jp-native-demo
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure and compile native Windows demo
+        run: cmake -S JP/native_demo0510 -B build/jp-native-pc -G "Visual Studio 17 2022" -A x64
+      - name: Build
+        run: cmake --build build/jp-native-pc --config Release --parallel
+      - name: Native state-machine regression
+        run: ctest --test-dir build/jp-native-pc -C Release --output-on-failure
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cviii-jp-native-windows-x64
+          path: build/jp-native-pc/Release/cviii-jp-native-demo.exe

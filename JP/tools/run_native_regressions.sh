@@ -81,4 +81,14 @@ if [[ -n "$rom" ]]; then
   python3 "$root/JP/tools/audit_actor_guard_producers_0509.py" "$rom" --report "$build/actor_source_guard_producer_audit.json"
   python3 "$root/JP/tools/audit_actor_dispatch_chain_0509.py" "$rom" --report "$build/actor_source_indirect_dispatch_audit.json"
 fi
+# Native title -> intro -> Stage-1 prototype executes real host C++, but
+# source assets/physics are provisional. Never fetch commercial art in CI.
+if command -v cmake >/dev/null 2>&1 && command -v pkg-config >/dev/null 2>&1 && pkg-config --exists x11; then
+  cmake -S "$root/JP/native_demo0510" -B "$build/native_demo0510" -DCMAKE_BUILD_TYPE=Release
+  cmake --build "$build/native_demo0510" --parallel
+  ctest --test-dir "$build/native_demo0510" --output-on-failure
+  echo "TEST PASS ROM-free native title/intro/stage state machine"
+else
+  echo "SKIP native title/intro/stage demo: X11 development dependency not available"
+fi
 echo "PASS: 10 native test binaries plus original-ROM headless CLI compiled; ROM-free suites executed"
