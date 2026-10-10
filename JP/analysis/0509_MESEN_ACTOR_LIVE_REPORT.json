@@ -31,9 +31,9 @@
   "trace_original_6502_instructions": 600,
   "trace_sha256": "dce02d6ce15c65a4b2dbdeea880b3171206514eeb7d35bb9168fcff56db48d93",
   "trace_opcode_occurrences": {
+    "84F3": 2,
     "8501": 2,
     "8520": 2,
-    "84F3": 2,
     "8B2C": 2,
     "FF06": 2,
     "FF24": 2,
