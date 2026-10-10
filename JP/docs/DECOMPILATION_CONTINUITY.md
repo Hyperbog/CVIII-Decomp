@@ -252,3 +252,8 @@ The initial edition documents 0507's committed **49,404 verified PRG bytes (18.8
 ## Post-0507 independent validation rubric update
 
 GitHub Actions [run 37993214808](https://github.com/Hyperbog/CVIII-Decomp/actions/runs/37993214808) passes the new `jp-native-regressions.yml`: compile eight native test binaries, run four ROM-free suites, validate the fixed VPP rubric, and audit archive links. A SHA-verified local ROM enables the remaining tests through `JP/tools/run_native_regressions.sh`. **VPP is now 25/100** by validation item 8.8. Strict verified PRG remains 49,404; the prior checkpoint 0507 and fixed frontier FB96 do **not** advance due to this tooling point. The RESUME_STATE VPP number is updated independently LAST after all other documents.
+
+
+## Independent Nintendulator CPU reference conformance (separate validation milestone)
+
+The [shared-library NES CPU golden test](../SharedNES/NESTEST_REFERENCE_0508.md) passes all 8,991 original nestest Nintendulator register/flags/stack/cycle states in [Actions run 38010527144](https://github.com/Hyperbog/CVIII-Decomp/actions/runs/38010527144), with upstream test fixture SHA pins and 11 local ROM-free NROM/undocumented-opcode regression groups. This earns 1/2 of the two-point **validation reference trace harness** rubric: 4/8 -> 5/8, weighted VPP 25->26/100. The remaining validation point requires genuine JP VRC6 mapper/interrupt reference traces; the independent *CPU/mapper category's* original-game parity point remains open. Verified JP PRG stays 49,404; finished semantic checkpoint 0507; frontier FB96 unchanged.

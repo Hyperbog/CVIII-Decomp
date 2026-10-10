@@ -103,3 +103,7 @@ python3 JP/tools/nes_cdl_bridge_0508.py game.nes reference.cdl --format auto \
 [0508 code-fetch/US-match research](0508_CDL_CROSS_EDITION_EVIDENCE.md) adds reproducible original-JP-ROM-fingerprinted synthetic CPU crosschecks, explicit **non-reference provenance**, exact 0501 manifest overlap and a unique-code-window census against the US game. No full CDL masks or licensed ROM content are committed. ROM-free tests: **19 CDL parser cases + 10 synthetic cross-edition checks (one optional original pair integration)**, run in mandatory native CI.
 
 **Progress:** this is accelerator infrastructure and provisional structural evidence, not an independent emulator reference trace, a verified US caller, strict PRG promotion or VPP score increment.
+
+### Independent 2A03 CPU golden-log validation
+
+[CPU reference conformance](NESTEST_REFERENCE_0508.md) runs the project 6502 core against **8,991 independently recorded Nintendulator instruction states** from Kevin Horton's `nestest` test, including register flags and total CPU cycles. This passes in [GitHub Actions](https://github.com/Hyperbog/CVIII-Decomp/actions/runs/38010527144). The test uses a *separate NROM bus and opt-in undocumented-opcode adapter*, not unverified instructions in the Japanese Castlevania III core. All original test binaries are fetched at an immutable revision and SHA-pinned; no commercial ROM or lossless ROM dump is committed. This earns one of two existing validation reference-trace tooling points, leaving the mapper/IRQ/Japanese-game reference point open.
