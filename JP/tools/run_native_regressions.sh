@@ -69,6 +69,7 @@ compile actor_displacement_vertical_prg0b_0513 "$src/actor_displacement_vertical
 compile actor_post8843_0513 "$src/actor_displacement_vertical_prg0b_0513.cpp"
 compile actor_preflight_0514 "$src/actor_preflight_0514.cpp"
 compile actor_collision_precheck_0515 "$src/actor_collision_precheck_0515.cpp" "$src/actor_preflight_0514.cpp"
+python3 -m py_compile "$root/JP/tools/audit_b217_original_mesen_0515.py"
 "$build/actor_collision_precheck_0515"
 echo "TEST PASS JP original B217 collision admission and B1F8 composition (82947 cases)"
 python3 -m py_compile "$root/JP/tools/audit_actor_preflight_0514.py"

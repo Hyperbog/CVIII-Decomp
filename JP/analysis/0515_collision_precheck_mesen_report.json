@@ -1,0 +1,115 @@
+{
+  "schema": "JP-0515-original-B217-collision-admission-differential/v1",
+  "rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "mesen_agent_sha256": "95bcda9d4ff6428937183093386d993649c2d740273871ced78217d3d8f234d0",
+  "mesen_core_sha256": "d2831c26d42aba675ed5d2cf392b2e12a67cb25274d981ef2c7741e552b72040",
+  "natural_B1F8_state_sha256": "0fd7256466e3e952402858ecaa3034eda6774ab2acbf16ad4e2d00c99e1b442c",
+  "derived_natural_B217_ram_sha256": "07b0cbc2d94013a219276945e568bcd5b06c661da61f36cafeae1b7f1d8ec6b0",
+  "note_on_state_hash": "Mesen save-state serialization bytes can vary between equivalent CPU/RAM states; witness qualified by RAM SHA, mapped PC, registers and cycle count",
+  "physical_bank0B_B217_B231_sha256": "07704dd27ecdf3bdc4b0780dd5c0a00acf1bf3dc396fa0e7c93b28a790623587",
+  "physical_bank0B_B1F8_B231_sha256": "1a3b482dca0425a679df117a9330247c727042eb6d4b71fae32092b837956356",
+  "physical_prg_entry": "02F217",
+  "native_exact_nonstack_bytes": 103936,
+  "cases": 58,
+  "natural_cases": 2,
+  "synthetic_cases": 56,
+  "branch_histogram": {
+    "enter-collision-b339": 3,
+    "global-high-mask": 28,
+    "actor-bit2": 6,
+    "global-7d": 3,
+    "actor-type": 16
+  },
+  "result_digest": "af0f7510525e432cfbbed55e630a9bab05be1aa672dce9cacd9450dfb16b4e7d",
+  "examples": [
+    {
+      "kind": "natural",
+      "mode": "217",
+      "destination": "B232",
+      "instructions": 11,
+      "matched_ram": 1792,
+      "final_A_X_Y_P": [
+        0,
+        1,
+        0,
+        2
+      ]
+    },
+    {
+      "kind": "natural",
+      "mode": "1f8",
+      "destination": "B232",
+      "instructions": 23,
+      "matched_ram": 1792,
+      "final_A_X_Y_P": [
+        0,
+        1,
+        0,
+        2
+      ]
+    },
+    {
+      "kind": "synthetic RAM override, NOT game-live",
+      "actor_type": "00",
+      "mask": 0,
+      "branch": "enter-collision-b339",
+      "destination": "B232",
+      "instructions": 11,
+      "matched_ram": 1792,
+      "final_A_X_Y_P": [
+        0,
+        1,
+        0,
+        2
+      ]
+    },
+    {
+      "kind": "synthetic RAM override, NOT game-live",
+      "actor_type": "FF",
+      "mask": 5,
+      "branch": "global-high-mask",
+      "destination": "B258",
+      "instructions": 3,
+      "matched_ram": 1792,
+      "final_A_X_Y_P": [
+        16,
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "kind": "synthetic RAM override, NOT game-live",
+      "actor_type": "FF",
+      "mask": 6,
+      "branch": "actor-type",
+      "destination": "B162",
+      "instructions": 7,
+      "matched_ram": 1792,
+      "final_A_X_Y_P": [
+        255,
+        1,
+        0,
+        129
+      ]
+    },
+    {
+      "kind": "synthetic RAM override, NOT game-live",
+      "actor_type": "FF",
+      "mask": 7,
+      "branch": "global-high-mask",
+      "destination": "B258",
+      "instructions": 3,
+      "matched_ram": 1792,
+      "final_A_X_Y_P": [
+        16,
+        1,
+        0,
+        0
+      ]
+    }
+  ],
+  "scope": "B217 source collision eligibility only, stopping before JSR B339; no collision solve or frame parity",
+  "strict_PRG_bytes_added": 0,
+  "VPP_added": 0
+}
