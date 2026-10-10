@@ -1,0 +1,6 @@
+assets/
+build*/
+*.mss
+*.nes
+*.cdl
+*.trace
