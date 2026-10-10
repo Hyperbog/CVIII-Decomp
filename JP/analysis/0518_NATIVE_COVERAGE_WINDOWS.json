@@ -1,0 +1,260 @@
+{
+  "schema": "JP-0518-native-source-window-ledger/v1",
+  "rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "source": "0510-0517 committed original-source audit provenance; windows are bounded tracking slices, not complete byte-for-byte code-closure claims",
+  "reference_0501": "JP/SharedNES/JP_0501_CERTIFIED_REGIONS.json",
+  "reference_0508": "JP/analysis/RESUME_STATE.json:prior_dependency_manifest.exact_new_ranges",
+  "warning": "Bytes missing from these TWO manifests are not proven absent from the full 49,504-byte historical certified ledger; do not promote them.",
+  "windows": [
+    {
+      "checkpoint": "0510",
+      "raw_or_fixed_bank": "0A",
+      "start_cpu": "8501",
+      "end_cpu_exclusive": "8522",
+      "prg_offset": 165121,
+      "length": 33,
+      "sha256": "f866630df551d6446c21f174a4ae3fd73cfe92d4fb0216308551e654c1ab657d",
+      "kind": "mixed"
+    },
+    {
+      "checkpoint": "0510",
+      "raw_or_fixed_bank": "0A",
+      "start_cpu": "8B2C",
+      "end_cpu_exclusive": "8B74",
+      "prg_offset": 166700,
+      "length": 72,
+      "sha256": "a50e778b1ff8816b70a6491f2397cd5bc85b92cffd40d4aee7afda1a5bbfebf5",
+      "kind": "code"
+    },
+    {
+      "checkpoint": "0510",
+      "raw_or_fixed_bank": "0A",
+      "start_cpu": "8D5E",
+      "end_cpu_exclusive": "8D91",
+      "prg_offset": 167262,
+      "length": 51,
+      "sha256": "689675814b8ed0ac154e83095176c1653e4c323302394a56bfede55aa900fb21",
+      "kind": "code"
+    },
+    {
+      "checkpoint": "0510",
+      "raw_or_fixed_bank": "0A",
+      "start_cpu": "8DC1",
+      "end_cpu_exclusive": "8DE7",
+      "prg_offset": 167361,
+      "length": 38,
+      "sha256": "8e5a6a5190286f99eb83eabb2df3a467b8707363ded3df65fd0337ef30f13058",
+      "kind": "code"
+    },
+    {
+      "checkpoint": "0510",
+      "raw_or_fixed_bank": "0A",
+      "start_cpu": "9194",
+      "end_cpu_exclusive": "9244",
+      "prg_offset": 168340,
+      "length": 176,
+      "sha256": "a6348bc8c2c60c4c72b748b8dbfe610007e4f04867840db41fcc6d0c3cd47ae8",
+      "kind": "mixed"
+    },
+    {
+      "checkpoint": "0510",
+      "raw_or_fixed_bank": "0A",
+      "start_cpu": "9244",
+      "end_cpu_exclusive": "9290",
+      "prg_offset": 168516,
+      "length": 76,
+      "sha256": "927b91d6474c8814e2e4e54c6b622bf64d10e7674f9b30524286c4d8b6685f61",
+      "kind": "code"
+    },
+    {
+      "checkpoint": "0510",
+      "raw_or_fixed_bank": "0B",
+      "start_cpu": "A00F",
+      "end_cpu_exclusive": "A060",
+      "prg_offset": 188431,
+      "length": 81,
+      "sha256": "62b34daf7a29c73fa776ca5531a4bb0c47b1b962851687ed3b50b56786a32c3d",
+      "kind": "data"
+    },
+    {
+      "checkpoint": "0510",
+      "raw_or_fixed_bank": "1F",
+      "start_cpu": "FF06",
+      "end_cpu_exclusive": "FF56",
+      "prg_offset": 261894,
+      "length": 80,
+      "sha256": "7f3759cf37ed6c1e708700d5c00e51803a3b75400345012f93ab7a943bff5095",
+      "kind": "code"
+    },
+    {
+      "checkpoint": "0511",
+      "raw_or_fixed_bank": "0B",
+      "start_cpu": "8001",
+      "end_cpu_exclusive": "804B",
+      "prg_offset": 180225,
+      "length": 74,
+      "sha256": "4f8acdadcc27a00278b799ca271122d46c05473d92f19e1f01ee505113fccef9",
+      "kind": "code"
+    },
+    {
+      "checkpoint": "0512",
+      "raw_or_fixed_bank": "0B",
+      "start_cpu": "80E3",
+      "end_cpu_exclusive": "810F",
+      "prg_offset": 180451,
+      "length": 44,
+      "sha256": "7cb6c954c56b9288f621afd4c03fdf7ccd3658c2597920fd3311cc7330d7cff3",
+      "kind": "code"
+    },
+    {
+      "checkpoint": "0512",
+      "raw_or_fixed_bank": "1F",
+      "start_cpu": "FDF2",
+      "end_cpu_exclusive": "FDFE",
+      "prg_offset": 261618,
+      "length": 12,
+      "sha256": "49893822450a81ebc7347ffb15342a12320d7bf1802834b44a3a01e75b0a74c8",
+      "kind": "code"
+    },
+    {
+      "checkpoint": "0513",
+      "raw_or_fixed_bank": "0B",
+      "start_cpu": "810F",
+      "end_cpu_exclusive": "815F",
+      "prg_offset": 180495,
+      "length": 80,
+      "sha256": "173319a9dc3d58fe013fb501764bcf00985b7d21ba8b2b17a46f21ed5c8932bb",
+      "kind": "code"
+    },
+    {
+      "checkpoint": "0513",
+      "raw_or_fixed_bank": "0B",
+      "start_cpu": "8843",
+      "end_cpu_exclusive": "886C",
+      "prg_offset": 182339,
+      "length": 41,
+      "sha256": "c79cb2d2295368c2034f93615d0acf4aca20a24c3a338c9f3be0f7d54854d8eb",
+      "kind": "code"
+    },
+    {
+      "checkpoint": "0514",
+      "raw_or_fixed_bank": "1E",
+      "start_cpu": "D2FE",
+      "end_cpu_exclusive": "D30D",
+      "prg_offset": 250622,
+      "length": 15,
+      "sha256": "7694f4922335fb8e25f4639f983714ea86112971811c3bc8afc6dc6a9aef5553",
+      "kind": "code"
+    },
+    {
+      "checkpoint": "0514",
+      "raw_or_fixed_bank": "0B",
+      "start_cpu": "B1F8",
+      "end_cpu_exclusive": "B216",
+      "prg_offset": 193016,
+      "length": 30,
+      "sha256": "88226bf3b96d2fc2861127135dba2b0274b162b3fc94c204df396ebc7b66a51f",
+      "kind": "code"
+    },
+    {
+      "checkpoint": "0515",
+      "raw_or_fixed_bank": "0B",
+      "start_cpu": "B217",
+      "end_cpu_exclusive": "B232",
+      "prg_offset": 193047,
+      "length": 27,
+      "sha256": "07704dd27ecdf3bdc4b0780dd5c0a00acf1bf3dc396fa0e7c93b28a790623587",
+      "kind": "code"
+    },
+    {
+      "checkpoint": "0516",
+      "raw_or_fixed_bank": "0B",
+      "start_cpu": "B339",
+      "end_cpu_exclusive": "B394",
+      "prg_offset": 193337,
+      "length": 91,
+      "sha256": "63ffaae0dcfa49c59976f908028c5d479b7a5a322c98fbe2a7c651e416f421e3",
+      "kind": "code"
+    },
+    {
+      "checkpoint": "0516",
+      "raw_or_fixed_bank": "0B",
+      "start_cpu": "80B3",
+      "end_cpu_exclusive": "80CA",
+      "prg_offset": 180403,
+      "length": 23,
+      "sha256": "30502fd79ec1b4a003445edee0f5d14b7d5abcd6bdf3ba006172ebf9bd316230",
+      "kind": "code"
+    },
+    {
+      "checkpoint": "0516",
+      "raw_or_fixed_bank": "0B",
+      "start_cpu": "BB05",
+      "end_cpu_exclusive": "BB17",
+      "prg_offset": 195333,
+      "length": 18,
+      "sha256": "e2e90b52467f40ecaf52dbf668df044efc066d264e9ba8e7a03e0706a6c17969",
+      "kind": "data"
+    },
+    {
+      "checkpoint": "0516",
+      "raw_or_fixed_bank": "0B",
+      "start_cpu": "BB80",
+      "end_cpu_exclusive": "BBE9",
+      "prg_offset": 195456,
+      "length": 105,
+      "sha256": "1c80668c09c86baa24651b7ca05fa608627aaa83065974fbb5b6bf2ab00c3972",
+      "kind": "data"
+    },
+    {
+      "checkpoint": "0516",
+      "raw_or_fixed_bank": "0B",
+      "start_cpu": "BC08",
+      "end_cpu_exclusive": "BC71",
+      "prg_offset": 195592,
+      "length": 105,
+      "sha256": "dec7dfc688067be375a4f1a158dc2c9b46f00518dbc21209ef74886d2a79288c",
+      "kind": "data"
+    },
+    {
+      "checkpoint": "0516",
+      "raw_or_fixed_bank": "0B",
+      "start_cpu": "B394",
+      "end_cpu_exclusive": "B396",
+      "prg_offset": 193428,
+      "length": 2,
+      "sha256": "9f1afa4dc124cba73134e82ff50f17c8f7164257c79fed9a13f5943a6acb8e3d",
+      "kind": "data"
+    },
+    {
+      "checkpoint": "0517",
+      "raw_or_fixed_bank": "0B",
+      "start_cpu": "B235",
+      "end_cpu_exclusive": "B27C",
+      "prg_offset": 193077,
+      "length": 71,
+      "sha256": "c574b40977c2792490272d71441d622dec6f29b3db1eed2709c69e979001e294",
+      "kind": "code"
+    },
+    {
+      "checkpoint": "0517",
+      "raw_or_fixed_bank": "0B",
+      "start_cpu": "B29D",
+      "end_cpu_exclusive": "B2A8",
+      "prg_offset": 193181,
+      "length": 11,
+      "sha256": "dcb6ae9933347084a3403bd972b16568c780e350fef83be5e715618e615e2661",
+      "kind": "code"
+    },
+    {
+      "checkpoint": "0517",
+      "raw_or_fixed_bank": "0B",
+      "start_cpu": "B317",
+      "end_cpu_exclusive": "B320",
+      "prg_offset": 193303,
+      "length": 9,
+      "sha256": "76e769e52e5abe16461f696c487ef5e5edc1ec6aaf8565b543334b8d7230326c",
+      "kind": "code"
+    }
+  ]
+}
