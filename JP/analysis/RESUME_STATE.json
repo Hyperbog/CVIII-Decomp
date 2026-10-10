@@ -6,9 +6,9 @@
   "branch": "decompilation",
   "rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
   "safe_forward_work": true,
-  "last_completed_checkpoint": "0507",
-  "last_completed_checkpoint_commit": "cb9054ab6230924af8a0ec329474075ec54f1fe6",
-  "previous_checkpoint_audit": "tools/audit_nmi_room_dispatch_0507.py",
+  "last_completed_checkpoint": "0508",
+  "last_completed_checkpoint_commit": "62b3cae1c7e46876edec2f635e00469e2cd8bc1a",
+  "previous_checkpoint_audit": "tools/audit_mesen_fixed_live_0508.py",
   "vpp": {
     "earned": 26,
     "total": 100
@@ -27,13 +27,13 @@
     "last_closed_physical_prg_bank": 31,
     "next_unprocessed_cpu": "FB96",
     "next_physical_prg_bank": 31,
-    "next_checkpoint": "0508",
+    "next_checkpoint": "0509",
     "domain_transition": false,
     "initial_window_start_cpu": "FB96",
     "initial_window_end_cpu_inclusive": "FFFF",
     "initial_window_contiguous_bytes": 1130,
     "initial_window_sha256": "0cbfd0aa79f3c7d1db7a756c08c47bfe01cba321900fb8955e77ec8525d38d44",
-    "frontier_semantics": "raw fixed PRG31 physical frontier FB96 persists; 0507 proves separate raw VRC6 bank 0A B4CC-B4D0 entry, 5 bytes, without contiguous fixed-tail promotion"
+    "frontier_semantics": "Physical fixed PRG31 first unprocessed CPU byte FB96 persists after 0508 independently proves noncontiguous live fixed CPU FBA5-FBBA and FF06-FF55 (100 bytes); other fixed gaps and room-domain obligations remain OPEN."
   },
   "verification_overlap": {
     "physical_prg_bank": 31,
@@ -54,39 +54,57 @@
     "purpose": "alignment/fingerprint only; does not establish semantic closure"
   },
   "prior_dependency_manifest": {
-    "checkpoint": "0507",
-    "analysis": "analysis/NMI_BANK0A_ROOM_DISPATCH_0507.md",
-    "audit": "tools/audit_nmi_room_dispatch_0507.py",
-    "mapping": "raw VRC6 bank 0A; physical PRG 8KiB bank21",
-    "exact_new_bytes_in_checkpoint": 5,
+    "checkpoint": "0508",
+    "analysis": "analysis/0508_MESEN_FIXED_LIVE_PROOF.md",
+    "audit": "tools/audit_mesen_fixed_live_0508.py",
+    "mapping": "fixed PRG31 mapped CPU E000-FFFF; 8 KiB physical PRG bank 31",
+    "exact_new_bytes_in_checkpoint": 100,
     "exact_new_ranges": [
       {
-        "mapping": "raw VRC6 bank 0A",
-        "physical_prg_bank": 21,
-        "start_cpu": "B4CC",
-        "end_cpu_inclusive": "B4D0",
-        "prg_offset_start": "2B4CC",
-        "rom_file_offset_start": "2B4DC",
-        "length": 5,
-        "sha256": "0cbfd39d34523da29edaa6a2dcf5cdb4b62de628d0e5568ea3879d7de5a1c0c7"
+        "mapping": "fixed PRG31",
+        "physical_prg_bank": 31,
+        "cpu_base": "E000",
+        "start_cpu": "FBA5",
+        "end_cpu_inclusive": "FBAF",
+        "length": 11,
+        "prg_offset_start": "3FBA5",
+        "sha256": "096871e75eb8f81b8bfd99da6f781473d40b5453325f8b8e4df00b003325ea62"
+      },
+      {
+        "mapping": "fixed PRG31",
+        "physical_prg_bank": 31,
+        "cpu_base": "E000",
+        "start_cpu": "FBB0",
+        "end_cpu_inclusive": "FBBA",
+        "length": 11,
+        "prg_offset_start": "3FBB0",
+        "sha256": "355f9853ac905aa90b52482b798e6d9603649b745ba6bb1db579d0a723f79c06"
+      },
+      {
+        "mapping": "fixed PRG31",
+        "physical_prg_bank": 31,
+        "cpu_base": "E000",
+        "start_cpu": "FF06",
+        "end_cpu_inclusive": "FF11",
+        "length": 12,
+        "prg_offset_start": "3FF06",
+        "sha256": "c75f2332e11e13763245741d3f4ddb690f63dce3930c946cae3160090ac1488c"
+      },
+      {
+        "mapping": "fixed PRG31",
+        "physical_prg_bank": 31,
+        "cpu_base": "E000",
+        "start_cpu": "FF14",
+        "end_cpu_inclusive": "FF55",
+        "length": 66,
+        "prg_offset_start": "3FF14",
+        "sha256": "9f4374fdf490e30015a28e44abdc20c87259b501064c1d8eb9f4fee353d40d1a"
       }
     ],
-    "strict_accounting": "only LDA $19 / JSR E7FB entry code bytes under prior fixed E526 mapper-selected NMI entry; precovered E526/E2D0/E7FB bytes excluded",
-    "source": "fixed NMI first-level index 0D -> E526 LDA #0A; JSR E2D0; JMP B4CC",
-    "candidate_only": {
-      "raw_bank": "0A",
-      "encoded_state_table": "B4D1-B4E8",
-      "pointer_entries": 12,
-      "decoded_instruction_starts": 281,
-      "decoded_opcode_operand_bytes": 582,
-      "unknown_opcode_count": 0,
-      "fingerprint_sha256": "807363d09368f7ae6ceaeae000df0fc50f56bba5bd2871ca749d7236ec9f3828",
-      "counted_as_strict": false,
-      "conditional_fixed_FB96_jsr_sites": 11,
-      "selector_18_live_domain": "UNPROVED",
-      "selector_19_live_domain": "UNPROVED"
-    },
-    "native_test_cases": 65536
+    "evidence_grade": "Independent original-JP Mesen2 physical PRG CODE-bit CDL, real CPU execution breakpoint/stepped trace, mapper context and complete 6502 instruction decode",
+    "source": "Actual original retail-ROM intro/prayer and Stage1-02 actor scan/clear, with ROM/emulator hash pins",
+    "strict_accounting": "100 distinct formerly unclaimed fixed PRG31 instruction/operand bytes, disjoint from 0507 prior verified ledger",
+    "explicitly_unproved": "FF12-FF13, other fixed gaps, conditional first-level 0C/0D room liveness and original-vs-native full frame parity"
   },
   "pending_unclaimed_gaps": [
     {
@@ -97,9 +115,15 @@
     },
     {
       "start_cpu": "FB96",
+      "end_cpu_inclusive": "FBA4",
+      "length": 15,
+      "reason": "uncredited fixed gap preceding independently observed original intro-entry FBA5"
+    },
+    {
+      "start_cpu": "FBBB",
       "end_cpu_inclusive": "FBF5",
-      "length": 96,
-      "reason": "raw fixed frontier gap before 0504 admitted FBF6"
+      "length": 59,
+      "reason": "uncredited fixed gap after observed FBB0-FBBA and before previously admitted FBF6"
     },
     {
       "start_cpu": "FC17",
@@ -115,9 +139,15 @@
     },
     {
       "start_cpu": "FEEA",
-      "end_cpu_inclusive": "FF55",
-      "length": 108,
-      "reason": "unconsumed between 0501 fixed ranges"
+      "end_cpu_inclusive": "FF05",
+      "length": 28,
+      "reason": "uncredited fixed gap preceding independently observed FF06 actor scan"
+    },
+    {
+      "start_cpu": "FF12",
+      "end_cpu_inclusive": "FF13",
+      "length": 2,
+      "reason": "unobserved conditional FF06 scan alternative LDA #01; no credit"
     },
     {
       "start_cpu": "FF7A",
@@ -154,7 +184,9 @@
     "0507 12 encoded room-state pointers produce 281 candidate instruction starts/582 candidate bytes in six noncontiguous ranges, with no unknown opcodes; candidate graph not promoted without $19 and helper proof",
     "0507 native E7FB room-state decoder exhaustively checks 256 selectors x 256 incoming Y against JP bank0A ROM, including selector high-bit carry alias and final restored-Y Z/N",
     "0507 raw0B 24/25/26 immediates at 863B/9234/9531 and B4BC are not direct AI-selector 05EF,X stores; other indirect producer paths remain possible",
-    "preservation archive initial 13-chapter reader-facing technical documentation added and linked to existing JP ROM audits; no semantic byte or VPP movement"
+    "preservation archive initial 13-chapter reader-facing technical documentation added and linked to existing JP ROM audits; no semantic byte or VPP movement",
+    "0508: independent Mesen2 original JP game reaches authentic Stage1-02 after 1100-frame contiguous boot and seven 1200-frame savestate-fork simulations, totaling 9500 executed frame jobs (NOT a contiguous 9500-frame playthrough); 16772 distinct physical PRG CODE and 11765 DATA positions observed.",
+    "0508: exactly 100 genuinely new strict fixed PRG31 bytes at FBA5-FBAF, FBB0-FBBA, FF06-FF11, FF14-FF55; 39 independent original 6502 instruction starts, source-game CPU breakpoints frames 314/605/2030, bank00 mapper return and original object-slot clear trace."
   ],
   "open_edges": [
     "0508: prove actual first-level NMI selector $18=0D producer/liveness for fixed E526 to mapped bank0A B4CC",
@@ -171,7 +203,9 @@
     "indexed ROM data $FAA0-$FAA9",
     "raw fixed physical investigation frontier $FB96",
     "complete game-specific mapper-register use inventory",
-    "CPU/interrupt trace parity; full PPU/runtime integration; VRC6 audio"
+    "CPU/interrupt trace parity; full PPU/runtime integration; VRC6 audio",
+    "0509: reconcile full 0507 original physical credit manifest beyond 0501's 4364-byte subset against independent Mesen CDLv2 code bits before considering additional admission.",
+    "0509: FF12-FF13 alternative and all remaining physical fixed gaps, intro/prayer raw-bank00 stream data, live first-level NMI 0C/0D room-state producer and full native CPU/PPU/APU frame parity remain open."
   ],
   "checkpoint_constraints": [
     "run JP/tools/audit_preservation_archive.py for numbered chapters/relative links and preserve its status as documentation-only, not gameplay/ROM parity certification",
@@ -204,7 +238,9 @@
     "use external US labels only as candidate semantics; JP bytes/control flow remain authoritative",
     "preserve fixed scheduler outer slot order X=$01..$12 and B1F8 writer-family order",
     "preserve proven VRC6 mapper state for every $8000-$DFFF traversal",
-    "raw fixed frontier remains $FB96 and $FAA0-$FAA9 remains unclaimed"
+    "raw fixed frontier remains $FB96 and $FAA0-$FAA9 remains unclaimed",
+    "0509 onward: third-party original Mesen physical CODE bits support actual source-game liveness, not automatically instruction dependency closure or original-versus-native gameplay parity.",
+    "Replay JP/tools/audit_mesen_fixed_live_0508.py with SHA-verified JP ROM; private optional --reference-emulator and --private-evidence recheck original emulator disassembly, breakpoints, CDL and instruction trace if available."
   ],
   "acceleration_state": {
     "whole_prg_atlas": {
@@ -393,6 +429,17 @@
       "vpp_delta": 0,
       "semantic_checkpoint_unmodified": "0507",
       "require_update_each_checkpoint": true
+    },
+    "mesen_stage1_multibranch_0508": {
+      "status": "actual original-JP third-party emulator PRG execution/candidate census; strict promoted fragment separately source proved",
+      "reference_emulator": "Mesen2 v2.1.1 with mesen-agent 0.1.0",
+      "source": "analysis/0508_MESEN_STAGE1_MULTIBRANCH_SUMMARY.json",
+      "physical_code_bytes": 16772,
+      "physical_data_bytes": 11765,
+      "code_0501_already_credited": 1157,
+      "independently_emulated_original_frame_jobs": 9500,
+      "original_JP_code_unique_US_exact_window_candidate_bytes": 3165,
+      "new_strict_PRG31_bytes_proved": 100
     }
   },
   "repair_history": {
@@ -408,12 +455,13 @@
     "0506_crossbank_atlas": "Native JP bus bank transaction and mechanically linked script IDs tested/ROM audited, no strict ROM byte promotion; VPP 24",
     "0506_state_protocol_supplement": "ROM-backed state1 reset-$68 and state2 dispatch linkage added as conditional protocol; byte coverage unchanged; machine state updated LAST",
     "0507_nmi_bank0a_transaction": "5 new physical PRG21 bytes at raw0A B4CC-B4D0 strictly credited; 582-byte conditional graph explicitly excluded; native 65536-case test + ROM audit; fixed frontier unchanged",
-    "preservation_archive_initial_0507_baseline": "RLOFT-inspired JP/PreservationArchive 13 active partial chapters + structural auditor + GitHub workflow; mandatory checkpoint documentation; no semantic state change, strictly 49404 PRG bytes and VPP 24, 0508 still next"
+    "preservation_archive_initial_0507_baseline": "RLOFT-inspired JP/PreservationArchive 13 active partial chapters + structural auditor + GitHub workflow; mandatory checkpoint documentation; no semantic state change, strictly 49404 PRG bytes and VPP 24, 0508 still next",
+    "0508_independent_original_mesen_fixed_semantic_transaction": "Independent Mesen original Japanese gameplay proves 100 prior-gap disjoint fixed PRG31 code bytes: 49404 -> 49504; evidence commit 62b3cae1c7e46876edec2f635e00469e2cd8bc1a; VPP remains 26 and fixed physical frontier FB96."
   },
   "progress_metrics": {
     "whole_prg_scanned_bytes": 262144,
-    "strict_verified_prg_floor_bytes": 49404,
-    "strict_verified_prg_floor_fraction": 0.1884613037109375,
+    "strict_verified_prg_floor_bytes": 49504,
+    "strict_verified_prg_floor_fraction": 0.1888427734375,
     "jp_us_exact_unique_bytes": 115865,
     "jp_us_exact_unique_fraction": 0.4419898986816406,
     "jp_us_exact_or_normalized_candidate_bytes": 149607,
