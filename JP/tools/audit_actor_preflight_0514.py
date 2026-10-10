@@ -16,6 +16,8 @@ import tempfile
 ROM_SHA='958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28'
 AGENT_SHA='95bcda9d4ff6428937183093386d993649c2d740273871ced78217d3d8f234d0'
 CORE_SHA='d2831c26d42aba675ed5d2cf392b2e12a67cb25274d981ef2c7741e552b72040'
+NATURAL_DELTA_STATE_SHA='c27c9c0437bb4c86121273590ed58f9ea276ed2919c125e0d03914659dbb083d'
+NATURAL_GATE_STATE_SHA='0fd7256466e3e952402858ecaa3034eda6774ab2acbf16ad4e2d00c99e1b442c'
 def sha(b):return hashlib.sha256(b).hexdigest()
 def filehash(p):return sha(p.read_bytes())
 
@@ -50,6 +52,8 @@ def do_audit(rom,mesen_binary,native_binary,producer_state,post_state):
     if filehash(rom)!=ROM_SHA or rom.stat().st_size!=393232:raise ValueError('Original-JP ROM changed')
     if filehash(mesen_binary)!=AGENT_SHA or filehash(mesen_binary.parent/'MesenCore.so')!=CORE_SHA:
         raise ValueError('Independent Mesen2 binary changed')
+    if filehash(producer_state)!=NATURAL_DELTA_STATE_SHA or filehash(post_state)!=NATURAL_GATE_STATE_SHA:
+        raise ValueError('Expected exact unmodified natural gameplay entry states')
     source=rom.read_bytes()[16:16+262144]
     ranges={'producer30_D2FE_D30C':source[30*8192+0x12fe:30*8192+0x130d],
             'gate0B_B1F8_B216':source[11*16384+0x31f8:11*16384+0x3217],
