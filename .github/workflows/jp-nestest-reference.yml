@@ -4,20 +4,24 @@ on:
     branches: [decompilation]
     paths:
       - 'JP/tools/test_nestest_external_0508.py'
+      - 'JP/tools/nmos_undocumented_0508.py'
       - 'JP/tools/trace_6502_vrc6_0508.py'
       - 'JP/tools/trace_cycle_vblank_0508.py'
       - 'JP/tools/audit_irq_zp10.py'
       - 'JP/tools/nes_trace_compare.py'
       - 'JP/tests/test_nestest_runner_0508.py'
+      - 'JP/tests/test_nmos_undocumented_0508.py'
       - '.github/workflows/jp-nestest-reference.yml'
   pull_request:
     paths:
       - 'JP/tools/test_nestest_external_0508.py'
+      - 'JP/tools/nmos_undocumented_0508.py'
       - 'JP/tools/trace_6502_vrc6_0508.py'
       - 'JP/tools/trace_cycle_vblank_0508.py'
       - 'JP/tools/audit_irq_zp10.py'
       - 'JP/tools/nes_trace_compare.py'
       - 'JP/tests/test_nestest_runner_0508.py'
+      - 'JP/tests/test_nmos_undocumented_0508.py'
       - '.github/workflows/jp-nestest-reference.yml'
   workflow_dispatch:
 permissions:
@@ -29,7 +33,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: ROM-free NROM harness regression
-        run: python3 JP/tests/test_nestest_runner_0508.py
+        run: |
+          python3 JP/tests/test_nestest_runner_0508.py
+          python3 JP/tests/test_nmos_undocumented_0508.py
       - name: Fetch independent pinned nestest CPU test and Nintendulator log
         shell: bash
         run: |

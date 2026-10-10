@@ -12,6 +12,7 @@ from pathlib import Path
 from trace_6502_vrc6_0508 import CPU, OPS
 from trace_cycle_vblank_0508 import base_cycles, _BR, _PAGE_READ
 from nes_trace_compare import parse_nestest
+from nmos_undocumented_0508 import step as undocumented_step
 
 PINNED_UPSTREAM_COMMIT = '95d8f621ae55cee0d09b91519a8989ae0e64753b'
 FIELDS = ('pc', 'a', 'x', 'y', 'p', 'sp', 'cycles')
@@ -51,7 +52,9 @@ class NromCPU(CPU):
     def step(self):
         b=self.bus;pc=self.pc
         op=b.rb(pc)
-        if op not in OPS:raise ValueError(f'unsupported opcode {op:02X} at {pc:04X}')
+        if op not in OPS:
+            if undocumented_step(self,op):return
+            raise ValueError(f'unsupported opcode {op:02X} at {pc:04X}')
         m,mode,size=OPS[op]
         mode={'indx':'inx','indy':'iny','absx':'abx','absy':'aby'}.get(mode,mode)
         arg=b.rb((pc+1)&65535) if size>=2 else 0
