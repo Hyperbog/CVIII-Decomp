@@ -1,0 +1,307 @@
+{
+  "cdl_header_crc32_raw_be_in_hex": "6add6bba",
+  "cdl_header_type": "CDLv2",
+  "code_data_masks_not_exported": true,
+  "code_mask_sha256": "f3c53d374c8727d813fd526d11d2c00bc904902a139caa9e2370ae7f57042c9f",
+  "data_mask_sha256": "4e6a0558ba162b3ff0e74485e439e1e008ed24c348c5b73df5f6f29a890a4021",
+  "emulator_provenance": "https://github.com/atonamy/mesen-agent/releases/tag/v0.1.0",
+  "external_core_sha256": "fa0e7af858dce0171f5857837f8cad92090078c354631ce74f8279185df97bd1",
+  "external_emulator": "Mesen2 v2.1.1 via mesen-agent v0.1.0, unmodified licensed upstream",
+  "external_emulator_binary_sha256": "95bcda9d4ff6428937183093386d993649c2d740273871ced78217d3d8f234d0",
+  "external_release_archive_sha256": "bff3c1d31a4b5ae5322b075330eccb3e78e96050d7a4e593c02804d8f1de7ae2",
+  "last_frame_visual_check": "manual screenshot: first playable level, HUD and controllable protagonist (not machine verified scene classifier)",
+  "last_semantic_checkpoint": "0507",
+  "new_strict_prg_bytes": 0,
+  "observed_per_bank": [
+    {
+      "observed_code_bytes": 992,
+      "observed_data_bytes": 376,
+      "physical_PRG_bank": 0
+    },
+    {
+      "observed_code_bytes": 0,
+      "observed_data_bytes": 4,
+      "physical_PRG_bank": 2
+    },
+    {
+      "observed_code_bytes": 1333,
+      "observed_data_bytes": 1636,
+      "physical_PRG_bank": 3
+    },
+    {
+      "observed_code_bytes": 70,
+      "observed_data_bytes": 0,
+      "physical_PRG_bank": 4
+    },
+    {
+      "observed_code_bytes": 13,
+      "observed_data_bytes": 433,
+      "physical_PRG_bank": 5
+    },
+    {
+      "observed_code_bytes": 0,
+      "observed_data_bytes": 65,
+      "physical_PRG_bank": 7
+    },
+    {
+      "observed_code_bytes": 1149,
+      "observed_data_bytes": 68,
+      "physical_PRG_bank": 8
+    },
+    {
+      "observed_code_bytes": 0,
+      "observed_data_bytes": 195,
+      "physical_PRG_bank": 9
+    },
+    {
+      "observed_code_bytes": 1304,
+      "observed_data_bytes": 856,
+      "physical_PRG_bank": 10
+    },
+    {
+      "observed_code_bytes": 0,
+      "observed_data_bytes": 92,
+      "physical_PRG_bank": 11
+    },
+    {
+      "observed_code_bytes": 41,
+      "observed_data_bytes": 6,
+      "physical_PRG_bank": 15
+    },
+    {
+      "observed_code_bytes": 0,
+      "observed_data_bytes": 729,
+      "physical_PRG_bank": 16
+    },
+    {
+      "observed_code_bytes": 415,
+      "observed_data_bytes": 45,
+      "physical_PRG_bank": 20
+    },
+    {
+      "observed_code_bytes": 0,
+      "observed_data_bytes": 13,
+      "physical_PRG_bank": 21
+    },
+    {
+      "observed_code_bytes": 158,
+      "observed_data_bytes": 0,
+      "physical_PRG_bank": 22
+    },
+    {
+      "observed_code_bytes": 218,
+      "observed_data_bytes": 27,
+      "physical_PRG_bank": 23
+    },
+    {
+      "observed_code_bytes": 1762,
+      "observed_data_bytes": 237,
+      "physical_PRG_bank": 24
+    },
+    {
+      "observed_code_bytes": 0,
+      "observed_data_bytes": 738,
+      "physical_PRG_bank": 25
+    },
+    {
+      "observed_code_bytes": 316,
+      "observed_data_bytes": 166,
+      "physical_PRG_bank": 26
+    },
+    {
+      "observed_code_bytes": 114,
+      "observed_data_bytes": 117,
+      "physical_PRG_bank": 27
+    },
+    {
+      "observed_code_bytes": 1059,
+      "observed_data_bytes": 35,
+      "physical_PRG_bank": 28
+    },
+    {
+      "observed_code_bytes": 341,
+      "observed_data_bytes": 26,
+      "physical_PRG_bank": 29
+    },
+    {
+      "observed_code_bytes": 1221,
+      "observed_data_bytes": 1912,
+      "physical_PRG_bank": 30
+    },
+    {
+      "observed_code_bytes": 2379,
+      "observed_data_bytes": 114,
+      "physical_PRG_bank": 31
+    }
+  ],
+  "open": [
+    "prove exact all-checkpoint overlap and unique physical-code instruction/operand boundaries before promotion",
+    "reconcile mapper/IRQ/source/PPU timing against project CPU core",
+    "room selector 0C/0D has not appeared in sampled logs",
+    "control samples do not establish all code alternatives or reachability"
+  ],
+  "original_JP_rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "original_image_bytes_not_exported": true,
+  "physical_PRG_union": {
+    "both": 0,
+    "code": 12885,
+    "data": 7890,
+    "either": 20775
+  },
+  "prior_strict_PRG_floor": 49404,
+  "prior_vpp": 26,
+  "private_last_frame_screenshot_sha256": "d9d035c9d4bd9c3da3a60a8fa506ee300c724cbd7de71b737d96192e953f3f87",
+  "savestates_not_exported": true,
+  "segments": [
+    {
+      "0501_overlap": {
+        "certified_0501_bytes": 4364,
+        "code_0501_overlap": 0,
+        "data_0501_overlap": 0,
+        "regions": 31
+      },
+      "cdl_flags": {
+        "both": 0,
+        "code": 5536,
+        "data": 2666,
+        "either": 8202
+      },
+      "cdl_sha256": "842fa8680582d84076ff04ec7663ca88b3a8f280d874bcb36c698531ae8ca192",
+      "final_emulated_frame": 521,
+      "firstlevel_RAM18_values_seen_at_sampled_frames": [
+        0,
+        2,
+        10
+      ],
+      "firstlevel_transitions": [],
+      "frames_executed": 520,
+      "reference_lua_states": 16,
+      "reference_stdout_sha256": "3b6cf1455f5b6b0182920b3ac6e9fd687135836435db9e1fabea705d1b6bc2ab",
+      "segment": "play520",
+      "start_emulated_frame": 1
+    },
+    {
+      "0501_overlap": {
+        "certified_0501_bytes": 4364,
+        "code_0501_overlap": 0,
+        "data_0501_overlap": 0,
+        "regions": 31
+      },
+      "cdl_flags": {
+        "both": 0,
+        "code": 5194,
+        "data": 1382,
+        "either": 6576
+      },
+      "cdl_sha256": "1ee8e449509e93d5ead93cc0b915497ee1edc5682e3b5ef1c830f0a56b9b051a",
+      "final_emulated_frame": 741,
+      "firstlevel_RAM18_values_seen_at_sampled_frames": [
+        9,
+        10
+      ],
+      "firstlevel_transitions": [
+        {
+          "07A0": 0,
+          "07A6": 0,
+          "18": 10,
+          "19": 4,
+          "2C": 0,
+          "68": 0,
+          "absolute_frame": 531,
+          "frame_in_segment": 11
+        },
+        {
+          "07A0": 0,
+          "07A6": 0,
+          "18": 10,
+          "19": 5,
+          "2C": 0,
+          "68": 0,
+          "absolute_frame": 532,
+          "frame_in_segment": 12
+        }
+      ],
+      "frames_executed": 220,
+      "reference_lua_states": 7,
+      "reference_stdout_sha256": "22003481dbb8360df1eabf23e6a1fbc00438d2e66dbe3d071959e9618fce8c54",
+      "segment": "stage220",
+      "start_emulated_frame": 521
+    },
+    {
+      "0501_overlap": {
+        "certified_0501_bytes": 4364,
+        "code_0501_overlap": 463,
+        "data_0501_overlap": 0,
+        "regions": 31
+      },
+      "cdl_flags": {
+        "both": 0,
+        "code": 9352,
+        "data": 4361,
+        "either": 13713
+      },
+      "cdl_sha256": "514df22c6e4835eff81707d428620795c01f7fda89d861fe063f8c3a4d518dd9",
+      "final_emulated_frame": 1101,
+      "firstlevel_RAM18_values_seen_at_sampled_frames": [
+        3,
+        4
+      ],
+      "firstlevel_transitions": [
+        {
+          "07A0": 0,
+          "07A6": 0,
+          "18": 3,
+          "19": 2,
+          "2C": 0,
+          "68": 0,
+          "absolute_frame": 746,
+          "frame_in_segment": 6
+        },
+        {
+          "07A0": 0,
+          "07A6": 0,
+          "18": 4,
+          "19": 0,
+          "2C": 0,
+          "68": 0,
+          "absolute_frame": 747,
+          "frame_in_segment": 7
+        },
+        {
+          "07A0": 0,
+          "07A6": 0,
+          "18": 4,
+          "19": 0,
+          "2C": 1,
+          "68": 0,
+          "absolute_frame": 748,
+          "frame_in_segment": 8
+        },
+        {
+          "07A0": 0,
+          "07A6": 0,
+          "18": 4,
+          "19": 0,
+          "2C": 2,
+          "68": 0,
+          "absolute_frame": 749,
+          "frame_in_segment": 9
+        }
+      ],
+      "frames_executed": 360,
+      "reference_lua_states": 9,
+      "reference_stdout_sha256": "9fa0c917c9623d20499543b1588d2a8c1cac974b2d87dc10559028e1fbbc0d11",
+      "segment": "stage360",
+      "start_emulated_frame": 741
+    }
+  ],
+  "segments_are_contiguous_savestate_resumptions": true,
+  "status": "INDEPENDENT_MESEN2_ORIGINAL_JP_EXECUTION_NOT_AUTOMATIC_STRICT_COVERAGE",
+  "strict_0501_manifest_overlap": {
+    "certified_0501_bytes": 4364,
+    "code_0501_overlap": 463,
+    "data_0501_overlap": 0,
+    "regions": 31
+  },
+  "total_independently_emulated_frames": 1100
+}

@@ -60,3 +60,8 @@ A native algorithm passing tests is **not** an emulator trace match. A decomp by
 ## Independent generic NES CPU trace milestone (2026-10-09)
 
 [External Nintendulator nestest reference](../SharedNES/NESTEST_REFERENCE_0508.md) now verifies **8,991 sequential PC/A/X/Y/P/SP/cycle states** under NROM with a separately enabled stable-unofficial 2A03 opcode extension. [CI evidence](https://github.com/Hyperbog/CVIII-Decomp/actions/runs/38010527144) is green and both external test assets are SHA-pinned. This closes **one** of the validation trace-tooling rubric's two points, moving total VPP to **26/100**. It does **not** close the original-game CPU/interrupt parity criterion, real VRC6 bank/IRQ timing, PPU/OAM pixel verification, full playable runtime, or the verified PRG byte floor (49,404). Completed machine semantic checkpoint stays 0507.
+
+
+## Real independent Japanese-ROM frame/code-data witness (not native parity)
+
+The [Mesen original-game reference](../SharedNES/0508_MESEN_ORIGINAL_GAMEPLAY_REFERENCE.md) provides actual independently emulated Mapper-24 game execution through Stage 1 (1,100 contiguous frames) and Mesen CDLv2 physical-code/data accounting (**12,885 observed code/operand bytes**). The original game's name-entry START step was absent from the earlier synthetic input policies. This is **genuine full-system execution evidence**, not yet a stepwise side-by-side comparison with the native port or the partial Python runtime. The separate NROM/Nintendulator 8,991-state CPU test remains the only earned reference-trace tooling point. The second validation reference point, complete original-JP mapper/IRQ/frame comparison, remains OPEN. **VPP 26/100; strict PRG 49,404; no promotion by observed byte count alone.**
