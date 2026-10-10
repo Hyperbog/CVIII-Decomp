@@ -63,6 +63,7 @@ python3 -m py_compile "$root/JP/tools/audit_mesen_stage1_branch_0508.py" "$root/
 compile cpu_2a03 "$src/cpu_2a03.cpp"
 compile native_machine_0509 "$src/cpu_2a03.cpp" "$src/native_machine_0509.cpp" "$src/vrc6_mapper.cpp" "$src/vrc6_irq.cpp"
 compile actor_event_row32_0510 "$src/actor_event_row32_0510.cpp" "$src/actor_slot_0509.cpp"
+python3 -m py_compile "$root/JP/tools/audit_native_row32_live_0510.py"
 "$build/actor_event_row32_0510"
 echo "TEST PASS source-lift original JP row32 (4111 ROM-free boundary cases)"
 "$build/cpu_2a03"
