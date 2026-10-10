@@ -8,6 +8,10 @@ trap 'rm -rf "$build"' EXIT
 cxx="${CXX:-g++}"
 flags=(-std=c++20 -O2 -Wall -Wextra -Werror -pedantic -I "$src")
 rom="${1:-}"
+# Durable per-checkpoint research evidence gate. This catches provenance
+# regressions quickly, before slower native C++ compilation and CTest.
+python3 -m py_compile "$root/JP/tools/audit_native_evidence_ledger.py"
+python3 "$root/JP/tools/audit_native_evidence_ledger.py"
 # Source-window accounting is intentionally ROM-free in CI. With an authentic
 # private Japanese ROM, also verify 25 physical source ranges and all 0501/0508
 # certificate fingerprints; never add unclaimed historical bytes to the floor.
