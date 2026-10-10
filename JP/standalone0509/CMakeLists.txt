@@ -12,6 +12,7 @@ add_library(cviii_standalone_sprite_pipeline STATIC
   "${SRC_DIR}/actor_displacement_vertical_prg0b_0513.cpp"
   "${SRC_DIR}/actor_preflight_0514.cpp"
   "${SRC_DIR}/actor_collision_precheck_0515.cpp"
+  "${SRC_DIR}/actor_collision_measure_0516.cpp"
   "${SRC_DIR}/standalone_scene_0509.cpp"
   "${SRC_DIR}/oam_renderer.cpp"
   "${SRC_DIR}/collision_math.cpp")
@@ -73,3 +74,10 @@ target_link_libraries(actor_collision_precheck_0515_test PRIVATE cviii_standalon
 add_test(NAME native_original_collision_admission_0515 COMMAND actor_collision_precheck_0515_test)
 add_executable(native_collision_precheck_replay_0515 "${CMAKE_CURRENT_SOURCE_DIR}/../tools/native_collision_precheck_replay_0515.cpp")
 target_link_libraries(native_collision_precheck_replay_0515 PRIVATE cviii_standalone_sprite_pipeline)
+
+# Original JP mapped raw-bank $0B B339 collision measurement, B1F8 composition.
+add_executable(actor_collision_measure_0516_test "${TEST_DIR}/actor_collision_measure_0516_test.cpp")
+target_link_libraries(actor_collision_measure_0516_test PRIVATE cviii_standalone_sprite_pipeline)
+add_test(NAME native_original_collision_measure_0516 COMMAND actor_collision_measure_0516_test)
+add_executable(native_collision_measure_replay_0516 "${CMAKE_CURRENT_SOURCE_DIR}/../tools/native_collision_measure_replay_0516.cpp")
+target_link_libraries(native_collision_measure_replay_0516 PRIVATE cviii_standalone_sprite_pipeline)
