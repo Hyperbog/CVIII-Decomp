@@ -13,6 +13,7 @@ add_library(cviii_standalone_sprite_pipeline STATIC
   "${SRC_DIR}/actor_preflight_0514.cpp"
   "${SRC_DIR}/actor_collision_precheck_0515.cpp"
   "${SRC_DIR}/actor_collision_measure_0516.cpp"
+  "${SRC_DIR}/actor_collision_result_0517.cpp"
   "${SRC_DIR}/standalone_scene_0509.cpp"
   "${SRC_DIR}/oam_renderer.cpp"
   "${SRC_DIR}/collision_math.cpp")
@@ -81,3 +82,12 @@ target_link_libraries(actor_collision_measure_0516_test PRIVATE cviii_standalone
 add_test(NAME native_original_collision_measure_0516 COMMAND actor_collision_measure_0516_test)
 add_executable(native_collision_measure_replay_0516 "${CMAKE_CURRENT_SOURCE_DIR}/../tools/native_collision_measure_replay_0516.cpp")
 target_link_libraries(native_collision_measure_replay_0516 PRIVATE cviii_standalone_sprite_pipeline)
+
+# Original JP bank0B B235 tail, empty follower-slot loop, connected B1F8->FDFE.
+add_executable(actor_collision_tail_0517_test "${TEST_DIR}/actor_collision_tail_0517_test.cpp")
+target_link_libraries(actor_collision_tail_0517_test PRIVATE cviii_standalone_sprite_pipeline)
+add_test(NAME native_original_collision_tail_0517 COMMAND actor_collision_tail_0517_test)
+add_executable(native_tail_replay_0517 "${CMAKE_CURRENT_SOURCE_DIR}/../tools/native_tail_replay_0517.cpp")
+target_link_libraries(native_tail_replay_0517 PRIVATE cviii_standalone_sprite_pipeline)
+add_executable(native_composed_replay_0517 "${CMAKE_CURRENT_SOURCE_DIR}/../tools/native_composed_replay_0517.cpp")
+target_link_libraries(native_composed_replay_0517 PRIVATE cviii_standalone_sprite_pipeline)
