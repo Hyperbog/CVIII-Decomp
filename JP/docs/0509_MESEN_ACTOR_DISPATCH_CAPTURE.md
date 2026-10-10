@@ -11,3 +11,7 @@
 **Most useful single artifact:** one natural $84F3 breakpoint with confirmed bank $0A, frame/room, original X and the three indexed RAM selectors, plus a short stepping trace through $84F8. If none is hit, report the duration/frame count, input path and stage tested; that finite negative observation is not global proof of dead code.
 
 Do not change P/stack/mapper/selector state to make the test pass. The important missing evidence is the actual naturally reached producer-and-dispatch state, not another synthetic conditional CPU run.
+
+## 0509 Mesen capture fulfilled for one different actor handler
+
+The [independent live original-ROM Mesen2 report](../analysis/0509_MESEN_ACTOR_LIVE_FINDINGS.md) now shows a real $84F3 original bank-$0A hit at frame 3092 (X=3) selecting row $32→$8B2C, producing actor type $3D twice. This **satisfies a bank-qualified positive actor-dispatch example**, but it is **not** a live observation of the previously enumerated $90C5/$90DF/$9133 one/two/three-actor handlers; their requested pointer-row test remains available as an optional additional capture. No user action is required for the now-completed row-$32 Mesen test.
