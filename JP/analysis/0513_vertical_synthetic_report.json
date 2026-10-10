@@ -1,0 +1,118 @@
+{
+  "schema": "JP-0513-original-mesen-synthetic-vertical-ram-v1",
+  "provenance": "Original bank0B mapped source, real Mesen CPU instructions, but RAM and PC INJECTED per test; NOT natural gameplay reachability.",
+  "rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "mesen_version": "2.1.1",
+  "mesen_sha256": "95bcda9d4ff6428937183093386d993649c2d740273871ced78217d3d8f234d0",
+  "core_sha256": "d2831c26d42aba675ed5d2cf392b2e12a67cb25274d981ef2c7741e552b72040",
+  "natural_state_sha256": "9250a09c03b5ea2d56157ddfa5a857a8fddab305dd17aad74490e0d8eac797aa",
+  "source_bank0b_80e3_815e_sha256": "84af7cef133ae428a931360513ff77918ebcc6ff1861439799493fb69d2e71b0",
+  "continuation_8843_886b_sha256": "c79cb2d2295368c2034f93615d0acf4aca20a24c3a338c9f3be0f7d54854d8eb",
+  "cases": 54,
+  "nonstack_ram_compared": 96768,
+  "branch_counts": {
+    "even:cleared:negative": 4,
+    "even:cleared:positive": 3,
+    "even:retained:negative": 3,
+    "even:retained:positive": 3,
+    "even:transfer:negative": 6,
+    "even:transfer:positive": 8,
+    "odd:cleared:negative": 4,
+    "odd:cleared:positive": 3,
+    "odd:retained:negative": 4,
+    "odd:retained:positive": 4,
+    "odd:transfer:negative": 5,
+    "odd:transfer:positive": 7
+  },
+  "outcome_digest_sha256": "346cb04072a6ec025fa153441a7cff2cf43708ef3f1d6ce6fa81a2843c5d4871",
+  "first_cases": [
+    {
+      "axis_flag_65": "80",
+      "delta_6B": "80",
+      "initial_y": "00",
+      "initial_high_coordinate_bit": 0,
+      "type": "3D",
+      "terminal_pc": "FDFB",
+      "a_y_p": [
+        0,
+        255,
+        2
+      ],
+      "full_nonstack_ram_match": true
+    },
+    {
+      "axis_flag_65": "80",
+      "delta_6B": "FF",
+      "initial_y": "00",
+      "initial_high_coordinate_bit": 0,
+      "type": "3D",
+      "terminal_pc": "FDFB",
+      "a_y_p": [
+        0,
+        255,
+        2
+      ],
+      "full_nonstack_ram_match": true
+    },
+    {
+      "axis_flag_65": "80",
+      "delta_6B": "FF",
+      "initial_y": "FF",
+      "initial_high_coordinate_bit": 1,
+      "type": "80",
+      "terminal_pc": "FDFB",
+      "a_y_p": [
+        0,
+        255,
+        3
+      ],
+      "full_nonstack_ram_match": true
+    },
+    {
+      "axis_flag_65": "80",
+      "delta_6B": "00",
+      "initial_y": "00",
+      "initial_high_coordinate_bit": 1,
+      "type": "3D",
+      "terminal_pc": "FDFB",
+      "a_y_p": [
+        0,
+        0,
+        2
+      ],
+      "full_nonstack_ram_match": true
+    },
+    {
+      "axis_flag_65": "80",
+      "delta_6B": "01",
+      "initial_y": "30",
+      "initial_high_coordinate_bit": 1,
+      "type": "80",
+      "terminal_pc": "FDFB",
+      "a_y_p": [
+        0,
+        0,
+        2
+      ],
+      "full_nonstack_ram_match": true
+    },
+    {
+      "axis_flag_65": "80",
+      "delta_6B": "7F",
+      "initial_y": "FF",
+      "initial_high_coordinate_bit": 0,
+      "type": "80",
+      "terminal_pc": "FDFB",
+      "a_y_p": [
+        0,
+        0,
+        2
+      ],
+      "full_nonstack_ram_match": true
+    }
+  ],
+  "scope": "C++ vertical original $80E3 path through $8843 to fixed $FDFB",
+  "source_8843_886b_included": true,
+  "strict_new_prg_bytes": 0,
+  "new_vpp": 0
+}
