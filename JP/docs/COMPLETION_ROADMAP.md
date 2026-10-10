@@ -13,8 +13,8 @@
 | Stage/world/progression | 0/20 | 0.0% | Room formats, transitions, maps, routes, menus, endings |
 | Audio | 1/12 | 8.3% | Driver/data, native APU+VRC6, sound events and parity |
 | Native runtime/platform | 1/10 | 10.0% | Integrated bus, CPU, PPU, input, sound and playable build |
-| Validation/tooling | 4/8 | 50.0% | Reference trace comparison and frame goldens remain; reproducible C++ native CI gate earned |
-| **Weighted overall verified parity** | **25/100** | **25.0%** | **75 fixed-rubric points not yet earned** |
+| Validation/tooling | 5/8 | 62.5% | Independent 8,991-state NROM CPU golden test and CI earned; JP VRC6/IRQ trace and frame goldens remain |
+| **Weighted overall verified parity** | **26/100** | **26.0%** | **74 fixed-rubric points not yet earned** |
 
 VPP is a fixed milestone/evidence rubric, **not** an estimate of labor or a calendar forecast. The unweighted average of category percentages is not the overall score. Different metric: **49,404 / 262,144 = 18.8461%** strictly verified PRG; **212,740** bytes uncredited. Whole-PRG mechanical indexing is 100%; JP/US exact-or-normalized structural candidates are 149,607/262,144 (57.0705%), **not semantic coverage**.
 
@@ -62,3 +62,6 @@ Reuse committed [Phase 11](../analysis/0508_PHASE11_FINDINGS.md) and predecessor
 
 
 **Progress change (2026-10-09):** First green [native regression CI](https://github.com/Hyperbog/CVIII-Decomp/actions/runs/37993214808) earned the fixed validation CI milestone: validation 3/8→4/8, weighted total 24→25/100. Game world remains 0/20 and strict PRG coverage remains 49,404 bytes. The preceding Phase 1–11 zero-credit stall diagnosis is historical and remains valid.
+
+
+**Progress change (2026-10-09):** [Nintendulator CPU golden trace](https://github.com/Hyperbog/CVIII-Decomp/actions/runs/38010689051) passes all 8,991 NROM instruction register/status/stack/cycle states. One of two validation trace-harness points earned, validation 4/8→5/8, weighted VPP 25→26. Original Japanese VRC6/gameplay parity and strict PRG byte promotion remain open; last semantic checkpoint 0507 unchanged.

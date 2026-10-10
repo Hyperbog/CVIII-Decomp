@@ -25,7 +25,7 @@ whole JP PRG scanned/indexed                 262144 / 262144 = 100%
 strict semantically verified PRG floor        49404 / 262144 = 18.8461%
 exact unique JP<->US correspondence           115865 / 262144 = 44.1990%
 exact-or-normalized structural candidates     149607 / 262144 = 57.0705%
-VPP                                             25 / 100
+VPP                                             26 / 100
 ```
 
 The newest VPP point is the native C++20 reproducible build/CI regression gate (eight suites compile, four ROM-free suites run; run 37993214808 green); before it, the raw-bank `$0B` collision scratch/distance architecture with native exact-8-bit collision test earned the previous point. Cross-version and dispatch-atlas percentages remain candidate structural coverage only.

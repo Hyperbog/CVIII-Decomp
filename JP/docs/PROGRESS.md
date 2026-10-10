@@ -7,7 +7,7 @@ whole JP PRG scanned/indexed                 262144 / 262144 = 100%
 strict semantically verified PRG floor        49404 / 262144 = 18.8461%
 exact unique JP<->US correspondence           115865 / 262144 = 44.1990%
 exact-or-normalized structural candidates     149607 / 262144 = 57.0705%
-VPP                                             25 / 100
+VPP                                             26 / 100
 ```
 
 VPP is a fixed evidence rubric, not a byte-progress estimate. Cross-version and dispatch-atlas percentages/results are structural accelerators, not semantic verification.
@@ -296,3 +296,8 @@ The reusable [certified-source cross-edition census](../SharedNES/JP_0501_CROSS_
 ## 2026-10-09 — 0508 model-CDL/source-manifest and multi-bank US cross-edition census (provisional)
 
 The [shared NES CDL importer](../tools/nes_cdl_bridge_0508.py) implements separately parsed FCEUX/legacy-Mesen and Mesen2 CDLv2 layouts, explicit image/provenance caveats, physical 8-KiB code/data counts and overlap against SHA-pinned source regions. The [synthetic original-ROM path and cross-edition audit](../SharedNES/0508_CDL_CROSS_EDITION_EVIDENCE.md) executes **1,061,384 JP ROM-fetched instructions / 420 manually injected NMIs** (300 start30, 120 none); **4,979 unique code/operand PRG bytes** in the modeled traces. **Zero of 4,364** separately certified checkpoint-0501 source bytes are fetched in these two tested startup scenarios. Of **4,515 bytes** in 86 length-≥16 modeled code runs, **909** lie in unique exact US 16-byte windows, **146** have only ambiguous US matches and **3,460** lack 16-byte target matches. A **92-byte / 50-opcode** fixed-bank segment at JP E7B8–E813 matches US physical PRG31 candidate E82A–E885. This does **not** prove actual video/IRQ gameplay liveness, US mapped execution, or code/data coverage outside the checked 0501 subledger. Scores remain **VPP 25/100; strict PRG 49,404/262,144 (18.8461%); last completed checkpoint 0507; fixed frontier FB96**.
+
+
+## 2026-10-09 — Independent 2A03 CPU golden reference conformance (+1 validation VPP)
+
+The SHA-pinned [Nintendulator nestest reference audit](../SharedNES/NESTEST_REFERENCE_0508.md) passes **8,991/8,991** original preinstruction PC/A/X/Y/P/SP/cycle log rows in [CI run 38010689051](https://github.com/Hyperbog/CVIII-Decomp/actions/runs/38010689051). The original game 151-official-opcode core is unchanged; stable NMOS undocumented instructions are available only through a separate NROM test adapter. One of the two existing validation CPU/bank/interrupt trace-harness points is now earned: validation **4/8 -> 5/8**, overall weighted **25/100 -> 26/100**. The other point requires original Japanese VRC6 mapper/IRQ reference execution. The CPU/mapper category's distinct whole-game reference trace-parity point remains unearned. **New strict PRG 0**, cumulative **49,404/262,144 = 18.8461%**, last completed semantic checkpoint **0507**, physical fixed frontier **FB96** unchanged.

@@ -6,4 +6,4 @@ Gameplay / object systems,25,2,"partial object dispatcher/state-table architectu
 Stage / world / progression,20,0,"not yet reconstructed"
 Audio,12,1,"NSF-to-ROM correlation"
 Native runtime / platform,10,1,"faithful native OAM subsystem; mapper/IRQ lifts exist but full memory/PPU integration remains open"
-Validation / tooling,8,4,"ROM identity; subsystem ROM audits; native tests; green GitHub Actions C++20 eight-binary compile plus four ROM-free regressions and score/archive audit (run 37993214808); local exact JP ROM runner also executes ROM-backed suites"
+Validation / tooling,8,5,"ROM identity; subsystem ROM audits; native tests; green GitHub Actions C++20 eight-binary compile plus four ROM-free regressions and score/archive audit (run 37993214808); local JP-ROM tests; independent Nintendulator nestest 8991/8991 CPU registers status stack cycle trace green run 38010689051; 1 of 2 CPU/bank/IRQ trace subpoints earned, JP VRC6 mapper/interrupt comparison open"
