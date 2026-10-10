@@ -1,0 +1,47 @@
+{
+  "schema": "JP-0511-mesen-native-actor-motion/v1",
+  "rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "source_sha256": "4f8acdadcc27a00278b799ca271122d46c05473d92f19e1f01ee505113fccef9",
+  "mesen_agent_sha256": "95bcda9d4ff6428937183093386d993649c2d740273871ced78217d3d8f234d0",
+  "mesen_core_sha256": "d2831c26d42aba675ed5d2cf392b2e12a67cb25274d981ef2c7741e552b72040",
+  "private_original_state_sha256": "c54060fc64196d750c79f222c22325d8ae1829a32f6da96c0fe93d808907a872",
+  "case_provenance": "natural ROM/controller-run savestate, bank-qualified 0B:8001 execution; no RAM/PC edits",
+  "comparisons": [
+    {
+      "actor_slot": 1,
+      "frame": 2604,
+      "cpu_in": "8001",
+      "cpu_out": "FE54",
+      "instructions": 30,
+      "matched_nonstack_ram_bytes": 1792,
+      "before_nonstack_sha256": "cffaef22d200eddf70e53f5377cf7989b52b87e64bb3904d26a03c98d5d418e8",
+      "after_nonstack_sha256": "baef932f57dcc8ca8622ad837238ac15772b561e1f11dca38806839f6539ff35",
+      "registers_A_Y_P": [
+        80,
+        0,
+        0
+      ],
+      "original_cycles_end": 77523380
+    },
+    {
+      "actor_slot": 2,
+      "frame": 2604,
+      "cpu_in": "8001",
+      "cpu_out": "FE54",
+      "instructions": 30,
+      "matched_nonstack_ram_bytes": 1792,
+      "before_nonstack_sha256": "ec1dd56e88081f147f9eec49ca2c32674af8241a2154235c01f525a1f5edc4a4",
+      "after_nonstack_sha256": "de0826f579e18a69ab581c6ed272f036b4f19d340ce9b1e52a48565fecfa7b46",
+      "registers_A_Y_P": [
+        176,
+        0,
+        128
+      ],
+      "original_cycles_end": 77525243
+    }
+  ],
+  "verified_nonstack_ram_bytes": 3584,
+  "scope": "two live actor movement calls only, not whole frame or audio/PPU parity",
+  "new_strict_prg_bytes": 0,
+  "new_vpp_points": 0
+}
