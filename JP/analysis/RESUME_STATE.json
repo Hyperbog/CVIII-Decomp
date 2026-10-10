@@ -10,7 +10,7 @@
   "last_completed_checkpoint_commit": "cb9054ab6230924af8a0ec329474075ec54f1fe6",
   "previous_checkpoint_audit": "tools/audit_nmi_room_dispatch_0507.py",
   "vpp": {
-    "earned": 25,
+    "earned": 26,
     "total": 100
   },
   "execution_context": {
