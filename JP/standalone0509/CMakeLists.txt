@@ -14,6 +14,7 @@ add_library(cviii_standalone_sprite_pipeline STATIC
   "${SRC_DIR}/actor_collision_precheck_0515.cpp"
   "${SRC_DIR}/actor_collision_measure_0516.cpp"
   "${SRC_DIR}/actor_collision_result_0517.cpp"
+  "${SRC_DIR}/scheduler_postcollision_0519.cpp"
   "${SRC_DIR}/standalone_scene_0509.cpp"
   "${SRC_DIR}/oam_renderer.cpp"
   "${SRC_DIR}/collision_math.cpp")
@@ -91,3 +92,10 @@ add_executable(native_tail_replay_0517 "${CMAKE_CURRENT_SOURCE_DIR}/../tools/nat
 target_link_libraries(native_tail_replay_0517 PRIVATE cviii_standalone_sprite_pipeline)
 add_executable(native_composed_replay_0517 "${CMAKE_CURRENT_SOURCE_DIR}/../tools/native_composed_replay_0517.cpp")
 target_link_libraries(native_composed_replay_0517 PRIVATE cviii_standalone_sprite_pipeline)
+
+# Original JP fixed bank31 FDFE-FE2C actor scheduler branch preflight.
+add_executable(scheduler_postcollision_0519_test "${TEST_DIR}/scheduler_postcollision_0519_test.cpp")
+target_link_libraries(scheduler_postcollision_0519_test PRIVATE cviii_standalone_sprite_pipeline)
+add_test(NAME native_original_scheduler_gate_0519 COMMAND scheduler_postcollision_0519_test)
+add_executable(native_scheduler_replay_0519 "${CMAKE_CURRENT_SOURCE_DIR}/../tools/native_scheduler_replay_0519.cpp")
+target_link_libraries(native_scheduler_replay_0519 PRIVATE cviii_standalone_sprite_pipeline)
