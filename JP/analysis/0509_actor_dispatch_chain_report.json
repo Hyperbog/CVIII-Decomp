@@ -1,0 +1,70 @@
+{
+  "schema": "JP-0509-raw0A-original-actor-indirect-dispatch-chain/v1",
+  "rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "source_sha256": {
+    "dispatcher_8501_8522": "ad5600da3247b263c60371b9cca117cbcb2b77d37087b7de0318b6de525e26d3",
+    "parent_84EA_8500": "cc4f1153896f3e321872a7a92c70b0b3b9ef868bca258fa6ba1eb28856d9f6f7",
+    "pointer_rows_8533_8538": "09149bb0f11b4d7717c4742fea2a436904555c67f37b9191a77d2361d100b99e",
+    "spawn_handlers_90BC_917B": "9c3f69c360eb93021f7b602b89d061dd9d0e2ec731643e8c25d8f08f86627038",
+    "guard_8CDD_8CE9": "c1cd8387e6e6a0d5b7b460de3b869f77a2df3f3e15debfca42152acb85a65b06"
+  },
+  "event_selector_high_nibbles_tested": [
+    "00",
+    "F0"
+  ],
+  "routes": [
+    {
+      "row_07C2": "08",
+      "selector_07C8_low_nibble": 0,
+      "entry_cpu": "90DF",
+      "requested_actor_count": 2,
+      "actor_type": "68"
+    },
+    {
+      "row_07C2": "09",
+      "selector_07C8_low_nibble": 0,
+      "entry_cpu": "90C5",
+      "requested_actor_count": 1,
+      "actor_type": "13"
+    },
+    {
+      "row_07C2": "09",
+      "selector_07C8_low_nibble": 2,
+      "entry_cpu": "90DF",
+      "requested_actor_count": 2,
+      "actor_type": "68"
+    },
+    {
+      "row_07C2": "0A",
+      "selector_07C8_low_nibble": 0,
+      "entry_cpu": "9133",
+      "requested_actor_count": 3,
+      "actor_type": "12"
+    }
+  ],
+  "occupancy_masks_per_route": 4096,
+  "entry_modes": [
+    "direct $8501 dispatcher",
+    "six-object parent $84EA to $84F8"
+  ],
+  "guard_states_per_mask": 3,
+  "origin_object_slot_values": [
+    0,
+    2,
+    5
+  ],
+  "total_execution_cases": 98304,
+  "total_source_instructions": 6174946,
+  "distinct_instruction_pcs": 111,
+  "number_of_new_actors_histogram": {
+    "0": 65544,
+    "1": 8262,
+    "2": 16464,
+    "3": 8034
+  },
+  "outcome_categories": 40,
+  "outcome_digest_sha256": "119d21b0dc793e70731914b7ee4b162e8485cada3fdd2eb559d466e00880d532",
+  "scope": "authentic source instructions with synthetic dispatcher RAM; no real-play event liveness or mapper/IRQ proof",
+  "new_strict_prg_bytes": 0,
+  "new_vpp_points": 0
+}
