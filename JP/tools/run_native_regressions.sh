@@ -8,6 +8,15 @@ trap 'rm -rf "$build"' EXIT
 cxx="${CXX:-g++}"
 flags=(-std=c++20 -O2 -Wall -Wextra -Werror -pedantic -I "$src")
 rom="${1:-}"
+# Source-window accounting is intentionally ROM-free in CI. With an authentic
+# private Japanese ROM, also verify 25 physical source ranges and all 0501/0508
+# certificate fingerprints; never add unclaimed historical bytes to the floor.
+if [[ -n "$rom" ]]; then
+    python3 "$root/JP/tools/audit_native_coverage_0518.py" --rom "$rom"
+else
+    python3 "$root/JP/tools/audit_native_coverage_0518.py"
+fi
+
 if [[ -n "$rom" ]]; then
     [[ -f "$rom" ]] || { echo "ROM not found: $rom" >&2; exit 2; }
     python3 - "$rom" <<'PY'
