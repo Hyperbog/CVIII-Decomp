@@ -86,7 +86,7 @@ def audit(rom=None, historic_only=False):
         # their original committed manifests. Unlike a guessed baseline mask,
         # this is an actual union of all available certified intervals.
         import audit_prg_recomp_0525 as previous
-        after=previous.certified_intervals()
+        after=previous.certified()
         all_intervals=recovered+after
         combined=mask(all_intervals)
         if len(all_intervals)!=76 or sum(combined)!=7917:
