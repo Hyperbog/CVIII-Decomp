@@ -86,6 +86,11 @@ compile actor_collision_measure_0516 "$src/actor_collision_measure_0516.cpp" "$s
 compile actor_collision_tail_0517 "$src/actor_collision_result_0517.cpp" "$src/actor_collision_measure_0516.cpp" "$src/actor_collision_precheck_0515.cpp" "$src/actor_preflight_0514.cpp"
 compile scheduler_postcollision_0519 "$src/scheduler_postcollision_0519.cpp"
 compile scheduler_followup_0520 "$src/scheduler_bd11_followup_0520.cpp" "$src/scheduler_postcollision_0519.cpp"
+compile scheduler_fe63_0522 "$src/scheduler_fe63_0522.cpp"
+"$build/scheduler_fe63_0522"
+echo "TEST PASS provisional 0522 bounded FE63 actor callback foundation (110592 supported, 18432 rejected)"
+python3 -m py_compile "$root/JP/tools/audit_fe63_0522_rom.py"
+if [[ -n "$rom" ]]; then python3 "$root/JP/tools/audit_fe63_0522_rom.py" "$rom"; fi
 compile actor_animation_ef93_0521 "$src/actor_animation_ef93_0521.cpp" "$src/scheduler_bd11_followup_0520.cpp" "$src/scheduler_postcollision_0519.cpp"
 "$build/actor_animation_ef93_0521"
 echo "TEST PASS original JP EF93 source animation descriptor0E (65547 bounded cases)"
@@ -149,4 +154,4 @@ if command -v cmake >/dev/null 2>&1 && command -v pkg-config >/dev/null 2>&1 && 
 else
   echo "SKIP native title/intro/stage demo: X11 development dependency not available"
 fi
-echo "PASS: 10 native test binaries plus original-ROM headless CLI compiled; ROM-free suites executed"
+echo "PASS: native test binaries and original-ROM headless CLI compiled; ROM-free suites executed"

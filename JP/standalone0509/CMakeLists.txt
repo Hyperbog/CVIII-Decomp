@@ -17,6 +17,7 @@ add_library(cviii_standalone_sprite_pipeline STATIC
   "${SRC_DIR}/scheduler_postcollision_0519.cpp"
   "${SRC_DIR}/scheduler_bd11_followup_0520.cpp"
   "${SRC_DIR}/actor_animation_ef93_0521.cpp"
+  "${SRC_DIR}/scheduler_fe63_0522.cpp"
   "${SRC_DIR}/standalone_scene_0509.cpp"
   "${SRC_DIR}/oam_renderer.cpp"
   "${SRC_DIR}/collision_math.cpp")
@@ -115,3 +116,10 @@ target_link_libraries(actor_animation_ef93_0521_test PRIVATE cviii_standalone_sp
 add_test(NAME native_original_actor_animation_0521 COMMAND actor_animation_ef93_0521_test)
 add_executable(native_animation_replay_0521 "${CMAKE_CURRENT_SOURCE_DIR}/../tools/native_animation_replay_0521.cpp")
 target_link_libraries(native_animation_replay_0521 PRIVATE cviii_standalone_sprite_pipeline)
+
+# Provisional 0522 original $FE63 bank-$0B tail; no original-Mesen certification.
+add_executable(scheduler_fe63_0522_test "${TEST_DIR}/scheduler_fe63_0522_test.cpp")
+target_link_libraries(scheduler_fe63_0522_test PRIVATE cviii_standalone_sprite_pipeline)
+add_test(NAME native_original_scheduler_fe63_foundation_0522 COMMAND scheduler_fe63_0522_test)
+add_executable(native_fe63_replay_0522 "${CMAKE_CURRENT_SOURCE_DIR}/../tools/native_fe63_replay_0522.cpp")
+target_link_libraries(native_fe63_replay_0522 PRIVATE cviii_standalone_sprite_pipeline)
