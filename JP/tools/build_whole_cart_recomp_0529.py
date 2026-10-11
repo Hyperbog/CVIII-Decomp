@@ -21,8 +21,8 @@ ENDS={x.lower() for x in proof.TERM}
 SIZES={mode:n for (mn,mode),byte in OP.items() for _m,_mo,n in [proof.OPS[byte]]}
 SIZES['rel']=2
 BASE={'raw09':0x09*0x4000,'raw0A':0x0a*0x4000,'raw0B':0x0b*0x4000,'fixed31':31*0x2000}
-SRC={'actor_tail_0525.asm':('raw0B',p25.compile_file),
-     'fixed_tail_0525.asm':('fixed31',p25.compile_file),
+SRC={'actor_tail_0525.asm':('raw0B',p25.compile_source),
+     'fixed_tail_0525.asm':('fixed31',p25.compile_source),
      'fixed_scheduler_0526.asm':('fixed31',p26.assemble),
      'raw0b_callbacks_0526.asm':('raw0B',p26.assemble)}
 ROOTS={'fixed31':[0xfde4],'raw09':[0x8001],'raw0A':[0x84ea],
