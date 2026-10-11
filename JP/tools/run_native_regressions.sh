@@ -50,6 +50,13 @@ python3 "$root/JP/tools/test_bank04_parser_0532.py"
 if [[ -n "$rom" ]]; then
     python3 "$root/JP/tools/test_bank04_parser_0532.py" --rom "$rom"
 fi
+# Whole physical 16KiB raw0A bank is the unit of investigation. Candidate
+# opcodes remain explicitly NOT CERTIFIED; do not grant new strict PRG bytes.
+python3 -m py_compile "$root/JP/tools/recover_raw0a_bank_0537.py" "$root/JP/tools/test_fullbank_raw0a_0537.py"
+python3 "$root/JP/tools/test_fullbank_raw0a_0537.py" --smoke
+if [[ -n "$rom" ]]; then
+    python3 "$root/JP/tools/test_fullbank_raw0a_0537.py" --rom "$rom"
+fi
 python3 -m py_compile "$root/JP/tools/build_whole_cart_recomp_0529.py"
 python3 "$root/JP/tools/build_whole_cart_recomp_0529.py" --smoke
 if [[ -n "$rom" ]]; then
