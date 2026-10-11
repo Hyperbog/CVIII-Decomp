@@ -365,3 +365,7 @@ Windows build refinement: source-native Win32/GDI demo compiled and passed ROM-f
 ## 0524 source-bounded type4D linked actor callback, original Mesen pending
 
 [Physical source findings](../analysis/0524_SOURCE_FINDINGS.md) establish the raw0B $81B2-$81CB conditional actor link from $061D,X, optional $B56B reset gated by $0470,linked & $81, unconditional second B56B on index $69, and fixed $FE6E scheduler CPX. Structured native implementation composes 0523, passing 110,592 ROM-free indexed states plus guards and ASan/UBSan. Exact ROM opcodes and hashes audited; synthetic-only RAM replay smoke tested, not original Mesen. No original-Mesen evidence ledger row, natural type4D event, strict PRG or VPP promotion; retain PRG 49,504, VPP 27/100, certified semantic 0508 and fixed FB96 frontier.
+
+## 0525 reconstructed incremental physical PRG union; literal recomp bridge
+
+[ROM and recomp evidence](../analysis/0525_PRG_RECOMP_RECOVERY.md): historic 0500 physical SHA-locked intervals restored; 0500/0501/0502/0504/0507/0508 account for **59 mutually disjoint regions / 6,029 bytes**. A separate pre-0500 43,475-byte physical mask has not been recovered. Against this explicit 0500-0508 mask the 0510-0517 1,365-byte inventory has **739 outside-known bytes**, NOT the older partial 741 (two B394-B395 table bytes belonged to 0502). Machine audit optionally verifies original retail ROM and emits 59 byte-for-byte roundtrip .asm literal scaffolds; these are not source-semantic lifts. No strict PRG or VPP promotion, semantic0508/FB96 unchanged.

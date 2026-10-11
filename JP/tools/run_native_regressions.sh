@@ -12,6 +12,12 @@ rom="${1:-}"
 # regressions quickly, before slower native C++ compilation and CTest.
 python3 -m py_compile "$root/JP/tools/audit_native_evidence_ledger.py"
 python3 "$root/JP/tools/audit_native_evidence_ledger.py"
+# Reconstruct the recoverable historical 0500-0508 physical PRG union.
+# No globally new byte claims: the 43,475-byte earlier baseline is unmapped.
+python3 "$root/JP/tools/audit_prg_recomp_0525.py"
+if [[ -n "$rom" ]]; then
+    python3 "$root/JP/tools/audit_prg_recomp_0525.py" --rom "$rom"
+fi
 # Source-window accounting is intentionally ROM-free in CI. With an authentic
 # private Japanese ROM, also verify 25 physical source ranges and all 0501/0508
 # certificate fingerprints; never add unclaimed historical bytes to the floor.
