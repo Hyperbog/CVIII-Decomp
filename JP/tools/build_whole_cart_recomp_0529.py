@@ -13,6 +13,7 @@ from pathlib import Path
 import audit_nmi_fixed_scheduler_banked as proof
 import test_recomp_6502_0525 as p25
 import test_recomp_6502_0526 as p26
+import lift_fixed_dispatch_0530 as d30
 
 ROOT=Path(__file__).resolve().parents[1]
 OP={(mn.lower(),mode):byte for byte,(mn,mode,n) in proof.OPS.items()}
@@ -206,6 +207,14 @@ def generate_sources(rom,out):
     if len(rom)!=393232 or digest(rom)!=proof.ROM_SHA:raise ValueError('Incorrect original JP retail ROM')
     prg=rom[16:16+262144];chrrom=rom[16+262144:]
     graphs=cfg(prg);fragments,labels,manual=handwritten()
+    # Extend the 0501-only CFG with historic 04FE/04FF/0500 authenticated
+    # fixed-bank dispatch handlers and typed inline pointer data.
+    more,dispatch_tables,early_stats=d30.lift(prg)
+    for pc,ins in more.items():
+        if pc in graphs['fixed31'] and graphs['fixed31'][pc]!=ins:
+            raise ValueError('Fixed-bank graph instruction conflict')
+        graphs['fixed31'][pc]=ins
+    fragments.setdefault('fixed31',[]).extend(dispatch_tables)
     by_bank={};newbytes=0;new_instructions=0
     for bank,graph in graphs.items():
         old=set(x for f in fragments.get(bank,[]) for x in range(f['a'],f['b']))
@@ -223,7 +232,7 @@ def generate_sources(rom,out):
                 group={'a':pc,'b':pc,'src':'0501 mapped code graph','lines':[]}
                 fragments.setdefault(bank,[]).append(group)
             group['lines'].append('    '+mnemonic(mn,mode,arg));group['b']=pc+n
-    if newbytes!=4030 or manual+newbytes!=4433:raise ValueError('0501 lift did not produce expected new mnemonics')
+    if newbytes!=6749 or manual+newbytes+154!=7306:raise ValueError('0529+0530 lift did not reproduce audited source byte counts')
     out=Path(out);out.mkdir(parents=True,exist_ok=True)
     specs=[(f'prg_raw{b:02x}',f'raw{b:02X}',0x8000,0x4000,b*0x4000) for b in range(15)]
     specs += [('prg_fixed30','fixed30',0xc000,0x2000,30*0x2000),
@@ -264,14 +273,19 @@ def generate_sources(rom,out):
                      for filename,bank,base,n,off in specs)+b''.join(
         assemble((out/f'chr_{bank:02x}.asm').read_text(),0,16384) for bank in range(8))
     if rebuilt!=rom:raise ValueError('Whole cartridge recompilation incorrect')
-    if claimed!=4433:raise ValueError('Miscounted reassembled symbolic bytes')
-    manifest={'schema':'jp-0529-whole-cart-mapped-decomp/v1','original_sha256':proof.ROM_SHA,
+    if claimed!=7306:raise ValueError('Miscounted reassembled symbolic bytes')
+    manifest={'schema':'jp-0530-whole-cart-fixed-dispatch-source/v1','original_sha256':proof.ROM_SHA,
               'source_files':25,'prg_bytes_reassembled':262144,'chr_bytes_reassembled':131072,
-              'symbolic_6502_bytes':4433,'new_symbolic_bytes':newbytes,
+              '0530_fixed_dispatch_evidence':early_stats,
+              'symbolic_6502_and_typed_data_bytes':7306,'symbolic_6502_instruction_bytes':7146,
+              'total_verified_inline_pointer_bytes':160,
+              'new_mnemonic_bytes_since_0529':2719,'new_symbolic_bytes_since_0529':2873,
               'reused_handwritten_bytes':manual,'unclassified_prg_bytes':262144-claimed,
-              '0501_new_instruction_count':new_instructions,'0501_new_by_bank':by_bank,
+              'total_new_instruction_count':new_instructions,'new_by_bank':by_bank,
+              'new_typed_dispatch_table_bytes':154,
+              'extra_0530_symbolic_bytes':2873,
               'prg_banks':stats,'new_strict_certified_prg_bytes':0,
-              'limit':'Original 0501 authenticated code, not newly proven runtime parity or novel strict coverage.'}
+              'limit':'Original certified 04FE/04FF/0500/0501 source, not newly proven runtime parity or novel strict coverage.'}
     (out/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n',encoding='utf-8')
     print('PASS original JP whole cartridge 393232/393232 bytes, 25 bank sources')
     print('PASS new symbolic 6502 bytes',newbytes,'total',claimed,'raw bank distribution',by_bank)
