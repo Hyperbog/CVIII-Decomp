@@ -18,6 +18,7 @@ add_library(cviii_standalone_sprite_pipeline STATIC
   "${SRC_DIR}/scheduler_bd11_followup_0520.cpp"
   "${SRC_DIR}/actor_animation_ef93_0521.cpp"
   "${SRC_DIR}/scheduler_fe63_0522.cpp"
+  "${SRC_DIR}/scheduler_actor_reset_0523.cpp"
   "${SRC_DIR}/standalone_scene_0509.cpp"
   "${SRC_DIR}/oam_renderer.cpp"
   "${SRC_DIR}/collision_math.cpp")
@@ -123,3 +124,10 @@ target_link_libraries(scheduler_fe63_0522_test PRIVATE cviii_standalone_sprite_p
 add_test(NAME native_original_scheduler_fe63_foundation_0522 COMMAND scheduler_fe63_0522_test)
 add_executable(native_fe63_replay_0522 "${CMAKE_CURRENT_SOURCE_DIR}/../tools/native_fe63_replay_0522.cpp")
 target_link_libraries(native_fe63_replay_0522 PRIVATE cviii_standalone_sprite_pipeline)
+
+# Provisional 0523 original mapped bank0B $8193 non-$4D reset branch.
+add_executable(scheduler_actor_reset_0523_test "${TEST_DIR}/scheduler_actor_reset_0523_test.cpp")
+target_link_libraries(scheduler_actor_reset_0523_test PRIVATE cviii_standalone_sprite_pipeline)
+add_test(NAME native_original_actor_reset_source_0523 COMMAND scheduler_actor_reset_0523_test)
+add_executable(native_fe63_replay_0523 "${CMAKE_CURRENT_SOURCE_DIR}/../tools/native_fe63_replay_0523.cpp")
+target_link_libraries(native_fe63_replay_0523 PRIVATE cviii_standalone_sprite_pipeline)
