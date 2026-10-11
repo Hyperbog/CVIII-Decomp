@@ -369,3 +369,7 @@ Windows build refinement: source-native Win32/GDI demo compiled and passed ROM-f
 ## 0525 reconstructed incremental physical PRG union; literal recomp bridge
 
 [ROM and recomp evidence](../analysis/0525_PRG_RECOMP_RECOVERY.md): historic 0500 physical SHA-locked intervals restored; 0500/0501/0502/0504/0507/0508 account for **59 mutually disjoint regions / 6,029 bytes**. A separate pre-0500 43,475-byte physical mask has not been recovered. Against this explicit 0500-0508 mask the 0510-0517 1,365-byte inventory has **739 outside-known bytes**, NOT the older partial 741 (two B394-B395 table bytes belonged to 0502). Machine audit optionally verifies original retail ROM and emits 59 byte-for-byte roundtrip .asm literal scaffolds; these are not source-semantic lifts. No strict PRG or VPP promotion, semantic0508/FB96 unchanged.
+
+## 0525 additional executable decomp/recomp milestone — first 88 source opcodes/operands
+
+A real symbolic 6502 assembly reproduction of original PRG raw0B $8193/$81B2/$B56B and fixed E2D0/FE63 now reassembles **88/88** exact physical source bytes across five regions, including symbolic BEQ/BCS/JSR targets. Bounded two-pass reassembly checker is ROM-free in CI, exact-original-ROM byte comparison optional locally. [Source under JP/recomp](../recomp/actor_tail_0525.asm), [fixed source](../recomp/fixed_tail_0525.asm), [verifier](../tools/test_recomp_6502_0525.py). These source bytes were previously certified, so no strict PRG/VPP increase. This is static 6502 recompilation and does not demonstrate Mesen gameplay parity.
