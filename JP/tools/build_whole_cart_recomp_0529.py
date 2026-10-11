@@ -19,6 +19,7 @@ import lift_bank04_parser_0532 as data32
 import lift_bank0c_sound_0533 as data33
 import lift_sound_phrase_ai_0534 as data34
 import lift_bank0a_state_0535 as data35
+import lift_bank0a_0508_0536 as data36
 
 ROOT=Path(__file__).resolve().parents[1]
 OP={(mn.lower(),mode):byte for byte,(mn,mode,n) in proof.OPS.items()}
@@ -231,6 +232,9 @@ def generate_sources(rom,out):
     for bank,entries in source_0534.items():fragments.setdefault(bank,[]).extend(entries)
     source_0535,stats_0535=data35.classify(prg)
     for bank,entries in source_0535.items():fragments.setdefault(bank,[]).extend(entries)
+    prior_bank0a={address for group in fragments.get('raw0A',[]) for address in range(group['a'],group['b'])}
+    source_0536,stats_0536=data36.lift(prg,prior_bank0a)
+    for bank,entries in source_0536.items():fragments.setdefault(bank,[]).extend(entries)
     by_bank={};newbytes=0;new_instructions=0
     for bank,graph in graphs.items():
         old=set(x for f in fragments.get(bank,[]) for x in range(f['a'],f['b']))
@@ -289,8 +293,8 @@ def generate_sources(rom,out):
                      for filename,bank,base,n,off in specs)+b''.join(
         assemble((out/f'chr_{bank:02x}.asm').read_text(),0,16384) for bank in range(8))
     if rebuilt!=rom:raise ValueError('Whole cartridge recompilation incorrect')
-    if claimed!=50846:raise ValueError('0535 source count drift: 50223+623 original state/helper code and data')
-    manifest={'schema':'jp-0535-whole-cart-state-source/v1','original_sha256':proof.ROM_SHA,
+    if claimed!=52705:raise ValueError('0536 source count drift: 50846+1859 original conditional mapper-aware code/data')
+    manifest={'schema':'jp-0536-whole-cart-mapper-aware-source/v1','original_sha256':proof.ROM_SHA,
               'source_files':25,'prg_bytes_reassembled':262144,'chr_bytes_reassembled':131072,
               '0530_fixed_dispatch_evidence':early_stats,
               '0531_bank05_script_evidence':script_stats,
@@ -298,6 +302,11 @@ def generate_sources(rom,out):
               '0533_bank0c_sound_and_interpreter_evidence':stats_0533,
               '0534_phrase_table_and_AI_evidence':stats_0534,
               '0535_state_and_helper_source_evidence':stats_0535,
+              '0536_bank0A_0E_conditional_mapped_source_evidence':stats_0536,
+              '0536_new_classified_prg_bytes':1859,
+              '0536_additional_6502_opcode_bytes':1540,
+              '0536_additional_inline_pointer_and_descriptor_bytes':144,
+              '0536_additional_original_bank0E_object_stream_bytes':175,
               '0535_new_classified_prg_bytes':623,
               '0535_additional_6502_opcode_bytes':581,
               '0535_additional_lookup_table_bytes':42,
@@ -316,10 +325,10 @@ def generate_sources(rom,out):
               'total_authenticated_script_data_bytes':28200,
               'additional_source_linked_bank0c_stream_pool_bytes':3523,
               'total_sound_script_and_bounded_stream_pool_bytes':31723,
-              'symbolic_6502_and_typed_data_bytes':17504,'symbolic_6502_instruction_bytes':14978,
-              'total_verified_inline_pointer_bytes':160,
+              'symbolic_6502_and_typed_data_bytes':19188,'symbolic_6502_instruction_bytes':16518,
+              'total_verified_inline_pointer_bytes':266,
               'additional_parser_lookup_and_local_data_bytes':747,
-              'total_dispatch_parser_and_sound_metadata_bytes':2526,
+              'total_dispatch_parser_and_sound_metadata_bytes':2670,
               'additional_AI_bounded_table_bytes':72,
               'bank0c_secondary_phrase_table_and_pool_bytes':1619,
               'new_mnemonic_bytes_since_0529':2719,'new_symbolic_bytes_since_0529':2873,
@@ -328,10 +337,10 @@ def generate_sources(rom,out):
               'new_typed_dispatch_table_bytes':154,
               'extra_0530_symbolic_bytes':2873,
               'prg_banks':stats,'new_strict_certified_prg_bytes':0,
-              'limit':'0535 state-machine/static helper bytes added. No new strict PRG coverage, runtime mapper parity or certified sound selector bounds.'}
+              'limit':'0536 conditional bank0A selector CFG + mapper-switched bank0E records. No global $07A0 index proof, active frame liveness, novel strict certification, or native gameplay parity.'}
     (out/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n',encoding='utf-8')
     print('PASS original JP whole cartridge 393232/393232 bytes, 25 bank sources')
-    print('PASS 0535 original 6502 opcode/operand source 14978; typed tables 2526; scripts 28200; sound pool 3523; secondary phrase 1619; total classified',claimed)
+    print('PASS 0536 original 6502 opcode/operand source 16518; typed tables 2670; scripts 28200; sound pool 3523; secondary phrase 1619; bank0E object data 175; total classified',claimed)
     return manifest
 
 def smoke():
@@ -342,6 +351,7 @@ def smoke():
     data33.smoke()
     data34.smoke()
     data35.smoke()
+    data36.smoke()
     print('PASS ROM-free 6502 assembler branch/indexing/zero-page smoke')
 
 if __name__=='__main__':

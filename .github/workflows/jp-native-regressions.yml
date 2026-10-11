@@ -26,6 +26,8 @@ on:
       - 'JP/tools/lift_bank04_parser_0532.py'
       - 'JP/tools/lift_bank0c_sound_0533.py'
       - 'JP/tools/lift_sound_phrase_ai_0534.py'
+      - 'JP/tools/lift_bank0a_0508_0536.py'
+      - 'JP/tools/test_bank0a_0508_0536.py'
       - 'JP/tools/lift_bank0a_state_0535.py'
       - 'JP/tools/test_bank0a_state_0535.py'
       - 'JP/tools/test_sound_phrase_ai_0534.py'

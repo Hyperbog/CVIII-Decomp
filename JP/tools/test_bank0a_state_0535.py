@@ -59,7 +59,7 @@ def main(rom_file=None):
                 manifest['symbolic_6502_instruction_bytes'],
                 manifest['total_dispatch_parser_and_sound_metadata_bytes'],
                 manifest['unclassified_prg_bytes'])
-        if actual!=(50846,14978,2526,211298):
+        if actual!=(52705,16518,2670,209439):
             raise ValueError('0535 whole-cartridge source counts changed: '+str(actual))
     print('PASS 0535 original-JP ROM 393232-byte exact recompilation and 10 mutation negatives')
 

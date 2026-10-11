@@ -25,6 +25,12 @@ PYTHONPATH="$root/JP/tools" python3 -c 'import lift_fixed_dispatch_0530 as s; as
 # JP 0533 original sound interpreter and metadata proof (source-only CI).
 python3 -m py_compile "$root/JP/tools/lift_bank0c_sound_0533.py" "$root/JP/tools/test_bank0c_sound_0533.py"
 # 0535: ROM-free state-pointer/6502 source smoke and optional authenticated JP-ROM
+# 0536 0A/0E source schema, plus authenticated original ROM optional full recomp + corruption tests.
+python3 -m py_compile "$root/JP/tools/lift_bank0a_0508_0536.py" "$root/JP/tools/test_bank0a_0508_0536.py"
+python3 "$root/JP/tools/test_bank0a_0508_0536.py"
+if [[ -n "$rom" ]]; then
+  python3 "$root/JP/tools/test_bank0a_0508_0536.py" --rom "$rom"
+fi
 python3 -m py_compile "$root/JP/tools/lift_bank0a_state_0535.py" "$root/JP/tools/test_bank0a_state_0535.py"
 python3 "$root/JP/tools/test_bank0a_state_0535.py"
 if [[ -n "$rom" ]]; then
