@@ -1,53 +1,49 @@
-# Akumajou Densetsu decomp/recomp continuity playbook
+# Decompilation progress ledger
 
-Durable handoff for `Hyperbog/CVIII-Decomp`, branch `decompilation`.
-
-## Recovery
-
-After interruption:
-
-1. read `docs/INTERRUPTION_RECOVERY.md`, `docs/ACCELERATION_POLICY.md`, `docs/WHOLE_PRG_ATLAS.md`;
-2. read `analysis/RESUME_STATE.json` and `docs/PROGRESS.md`;
-3. inspect the live branch for commits newer than the state transaction;
-4. run `python tools/check_resume_frontier.py <JP ROM>`;
-5. run the audit named by `previous_checkpoint_audit`;
-6. continue only after both pass.
-
-Authority: JP ROM / observed JP execution -> reproducible JP-ROM audits -> NES/VRC6 hardware docs -> atlas, JP<->US matching and external disassemblies as accelerators. Never commit ROM-equivalent lossless dumps.
-
-JP SHA-256 `958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28`.
-US comparison SHA-256 `1c7b2ed2c1fb5839a6764006aa476f5c9d48f99465b6141980f3a5af1dfec0d6`.
-
-## Dashboard
+## Current dashboard
 
 ```text
 whole JP PRG scanned/indexed                 262144 / 262144 = 100%
 strict semantically verified PRG floor        49504 / 262144 = 18.8843%
 exact unique JP<->US correspondence           115865 / 262144 = 44.1990%
 exact-or-normalized structural candidates     149607 / 262144 = 57.0705%
-VPP                                             26 / 100
+VPP                                             27 / 100
 ```
 
-The newest VPP point is the native C++20 reproducible build/CI regression gate (eight suites compile, four ROM-free suites run; run 37993214808 green); before it, the raw-bank `$0B` collision scratch/distance architecture with native exact-8-bit collision test earned the previous point. Cross-version and dispatch-atlas percentages remain candidate structural coverage only.
+VPP is a fixed evidence rubric, not a byte-progress estimate. Cross-version and dispatch-atlas percentages/results are structural accelerators, not semantic verification.
 
-## Semantic chain through 0502
+Recovery: read `docs/INTERRUPTION_RECOVERY.md`, `docs/ACCELERATION_POLICY.md`, `docs/WHOLE_PRG_ATLAS.md`, `analysis/RESUME_STATE.json`; run `tools/check_resume_frontier.py` and the previous checkpoint audit before forward work.
 
-```text
-IRQ + fixed NMI + ED46                    -> $10-clean on admitted graphs
-raw bank $0C                              -> $10-clean on live admitted graph
-raw bank $04 parser + 96/96 roots         -> $10-clean
-raw bank $05 parser + 72/72 roots         -> $10-clean
-$E7FB / 04FF / 0500 fixed graphs          -> locally $10-clean
-0501 fixed scheduler                      -> locally $10-clean
-0501 raw bank $09                         -> locally $10-clean
-0501 raw bank $0A                         -> locally $10-clean
-0501/0502 raw bank $0B object/collision   -> WRITES $10 as collision scratch
-PRG26 renderer                            -> consumes/persists inherited $10
-```
+## Durable foundation
 
-0501 evidence: `analysis/NMI_FIXED_SCHEDULER_BANKED_0501.md`, `tools/audit_nmi_fixed_scheduler_banked.py`.
+- authoritative JP ROM SHA-256 `958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28`;
+- US comparison ROM SHA-256 `1c7b2ed2c1fb5839a6764006aa476f5c9d48f99465b6141980f3a5af1dfec0d6`;
+- JP: 256 KiB PRG, 128 KiB CHR, Mapper 24 / VRC6a; RESET `$E00B`, NMI `$E057`, IRQ `$E0F5`;
+- IRQ table/state ledger and control-vs-ack behavior reconciled;
+- native OAM renderer + tests;
+- whole-PRG atlas + focused xrefs;
+- exact and relocation-normalized JP<->US matchers + audits;
+- native VRC6 PRG/CHR mapper + tests;
+- native VRC6 IRQ timing/scheduler + tests;
+- raw-bank `$0B` collision scratch/distance architecture + native exact-8-bit collision math/tests.
 
-0501 result:
+## Native VRC6 runtime components
+
+### PRG/CHR mapper — earned VPP CPU/mapper item 8
+
+`analysis/NATIVE_VRC6_MAPPER.md`, `src/vrc6_mapper.*`, `tests/vrc6_mapper_test.cpp` implement target-game PRG RAM enable, switchable 16 KiB/8 KiB PRG windows, fixed PRG31, Mapper-24 register mirrors, eight CHR registers/pattern modes and target CIRAM mirroring.
+
+### IRQ timing/scheduler — earned VPP CPU/mapper item 9
+
+`analysis/NATIVE_VRC6_IRQ.md`, `src/vrc6_irq.*`, `tests/vrc6_irq_test.cpp` implement `$F000` latch, `$F001` M/E/A control, `$F002` acknowledge, cycle mode and scanline-mode 341/3 prescaling. Tests verify the **114,114,113 CPU-cycle** cadence and the JP `$F001/$F002` distinction.
+
+IRQ CPU polling/latency, full memory/PPU integration and VRC6 audio remain open.
+
+## Shared ZP `$10` provenance through 0501
+
+Earlier admitted IRQ/NMI/audio/fixed graphs, raw bank `$04` 96/96 roots and raw bank `$05` 72/72 roots preserve `$10`. The fixed `$E7FB`, 04FF `$2C` head and corrected 0500 `$68` graph are locally `$10`-clean.
+
+0501 changed the global model and traversed:
 
 ```text
 fixed PRG31                    161 starts    298 new bytes
@@ -58,9 +54,9 @@ raw bank $0B                  1338 starts   2896 new bytes
 0501                           2035 starts   4364 new bytes
 ```
 
-Tagged manifest SHA `639e20f7e96e816a40ef4ef7d8585c809ce670ac5384f3c2fabc9a77d275737e`.
+Tagged manifest SHA-256: `639e20f7e96e816a40ef4ef7d8585c809ce670ac5384f3c2fabc9a77d275737e`.
 
-Scheduler-proven bank roots:
+Scheduler-proven banked roots:
 
 ```text
 raw $0B: $80E3 $B1F8 $BD11 $8001 $8161 $826C
@@ -68,9 +64,13 @@ raw $09: $8001
 raw $0A: $84EA
 ```
 
-`$FE95` shifts `$0565,X` right six times and dispatches via `$E7FB`; `$FE98-$FE9D` contains exactly three pointers `$FE9E,$FEB1,$FEC6`. Live selector `$03` remains open.
+Raw banks `$09/$0A` are locally `$10`-clean. Raw bank `$0B` intentionally writes `$10` at exactly seven admitted sites:
 
-## 0502 collision architecture
+```text
+$B3B6 $B3D2 $B40E $B460 $B65F $B740 $B76C
+```
+
+## 0502 — collision scratch / final-writer ordering
 
 Evidence:
 
@@ -82,28 +82,22 @@ src/collision_math.cpp
 tests/collision_math_test.cpp
 ```
 
-Verified raw-$0B direct `$10` stores:
+Fixed `$FDE4` calls `$B1F8` once near the start of each active outer slot `X=$01..$12`; later admitted per-slot bank `$09/$0B/$0A` calls are `$10`-clean. Therefore the renderer-facing value is the last `$B1F8` scratch write made by the latest active slot that takes one of the seven paths, or older inherited `$10` when none writes it.
+
+Inside one `$B1F8` invocation the writer-family order is:
 
 ```text
-$B3B6 $B3D2 $B40E $B460 $B65F $B740 $B76C
+early vertical/proximity ($B634/$B64B)
+  -> object/player hitbox ($B339)
+  -> active weapon probe ($B3EC)
+  -> peer loop $B447 with $9B=$14,$15,$16
 ```
 
-Fixed `$FDE4` invokes `$B1F8` near the start of each active outer slot `X=$01..$12`; later admitted per-slot bank `$09/$0B/$0A` calls are `$10`-clean. Therefore the renderer-facing value is the last qualifying `$B1F8` scratch write by the latest active slot, or older inherited `$10` if no admitted writer fires.
+The seven writers are now identified as 8-bit wrapped coordinate/probe construction or adjustment, and `$B707/$B713/$B71D` plus `$80B3/$80C1/$80CB/$80D5` share the same unsigned 8-bit absolute-distance idiom.
 
-Within one `$B1F8` invocation the writer-family order is:
+`$B394-$B395 = 00 05` is locally indexed only by `Y=0/1`; those two bytes were outside 0501's `B323-B393` / `B396-B4D4` ranges and are the only newly promoted ROM bytes in 0502. Strict floor: **48,823 bytes = 18.6245%**.
 
-```text
-$B634/$B64B vertical/proximity
-  -> $B339 object/player hitbox
-  -> $B3EC weapon/projectile probe
-  -> $B447 peer loop, $9B=$14,$15,$16
-```
-
-The writer formulas are exact 8-bit wrapped coordinate/probe construction or adjustment. `$B707/$B713/$B71D` and `$80B3/$80C1/$80CB/$80D5` share the same 8-bit absolute-distance idiom.
-
-`$B394-$B395 = 00 05` is locally selected only by `Y=0/1`; these are the only 2 new ROM bytes in 0502. Strict floor is **48,823 bytes = 18.6245%**.
-
-The native collision-math test exhaustively validates all 65,536 input pairs for the absolute-difference primitive.
+The native `collision_math` lift preserves exact 8-bit wrap/absolute-distance/threshold semantics; its test exhaustively checks all 65,536 input pairs. This earns the first movement/physics/collision rubric point and advances VPP to **24/100**.
 
 ## Raw-bank `$0B` action-dispatch atlas
 
@@ -115,241 +109,302 @@ tools/extract_raw0b_action_dispatch.py
 tools/audit_raw0b_action_dispatch.py
 ```
 
-Mechanical action mapping:
+The formerly opaque `$BD56/$BD64` exits are mechanically resolved for every 8-bit action value:
 
 ```text
 $00-$7F -> word at $BD67 + 2*action
 $80-$FF -> word at $BE67 + 2*(action-$80)
 ```
 
-The 512 interpreted bytes hash to `eb075c21401906325dc497d6537978590dccf193abc3897d42a4935533800a13`; 256 mechanical slots yield 217 distinct raw-bank targets.
+The 512-byte mechanical interpretation has SHA-256 `eb075c21401906325dc497d6537978590dccf193abc3897d42a4935533800a13` and yields 217 distinct raw-bank targets.
 
-Do **not** count those 512 bytes as strict semantic coverage yet. `$9E` mechanically indexes `$BEA3`, which is also script-pointer data and yields `$BF79`; this proves live action bounds must come from JP producer/script evidence, not table shape.
+This is structural candidate coverage only. In particular `$9E` indexes `$BEA3`, which is also script-pointer data and mechanically yields `$BF79`; that alias is direct evidence that table shape cannot be used as a live action-domain proof. `$BD67-$BF66` is therefore **not** added to the strict semantic byte floor yet.
 
-## Native VRC6 components
+## `$FE95` dispatcher
 
-Mapper: `analysis/NATIVE_VRC6_MAPPER.md`, `src/vrc6_mapper.*`, `tests/vrc6_mapper_test.cpp`.
+`$FE8C-$FE95` shifts `$0565,X` right six times and calls `$E7FB`. `$FE98-$FE9D` contains exactly three encoded pointers: `$FE9E,$FEB1,$FEC6`. `$FE9E` is executable code, not a fourth pointer. Arithmetic selector `$03` remains an open producer-domain question.
 
-IRQ: `analysis/NATIVE_VRC6_IRQ.md`, `src/vrc6_irq.*`, `tests/vrc6_irq_test.cpp`.
-
-The mapper implements target PRG RAM/PRG/CHR/CIRAM mapping. The IRQ source implements `$F000/$F001/$F002`, cycle mode and scanline-mode **114,114,113** CPU-cycle cadence. CPU-side IRQ polling/latency, PPU integration and VRC6 audio remain open.
-
-## Cross-version accelerators
-
-Exact matcher: 115,865 unique exact JP bytes (44.1990%), 821 runs, 73 conflicting overlap bytes excluded.
-
-Normalized matcher: 24,014 unique matches; exact-or-normalized union 149,607 bytes (57.0705%); calibration 13,232/13,232 exact-supported starts agree with zero disagreements.
-
-## Next checkpoint — 0503
-
-Primary: prove the **live JP script/action producer domain** feeding `$BD56/$BD64`, intersect it with the action-dispatch atlas, and bulk-close only the handlers actually justified by JP data/control flow.
-
-Then continue the final `$10/$11` value-domain proof from real object/state predicates.
-
-Also open: `$A15A/$A2CC/$A3A9` raw-$0B `$E7FB` sites; raw-$09 `$E5DA` callees; `$0565>>6` selector `$03`; `$18/$2C/$68` producer closure; `$FAA0-$FAA9`; complete mapper-register inventory; CPU/interrupt trace parity; full native memory/PPU/audio/runtime.
-
-Raw fixed investigation frontier remains `$FB96`; 0501 was noncontiguous from `$FDE4` and mapper-selected callees.
+## Cross-version acceleration
 
 ```text
-overlap $FB76-$FB95
-SHA e4fa5e06e439ca12a84d935eb80224f448276c722399fe76fe0ce60013cc4ee7
-fingerprint $FB96-$FBB5
-SHA a5437f0f20034ba34d65afeec353d28846a321134061f765814d28eaa3f69157
-raw tail $FB96-$FFFF
-SHA 0cbfd0aa79f3c7d1db7a756c08c47bfe01cba321900fb8955e77ec8525d38d44
+exact unique JP bytes                 115865 = 44.1990%
+exact correspondence runs                821
+normalized unique starts              24014
+normalized-candidate JP bytes         68009
+exact-or-normalized candidate bytes  149607 = 57.0705%
+calibration                           13232/13232 agree; 0 disagree
 ```
 
-Transaction order: analysis -> audit -> exact-ROM run -> progress/continuity -> `RESUME_STATE.json` last -> recovery checker -> branch-head confirmation.
+Evidence: `tools/match_jp_us_exact.py`, `tools/audit_jp_us_exact_match.py`, `analysis/JP_US_EXACT_MATCH_SUMMARY.md`, `tools/match_jp_us_normalized.py`, `tools/audit_jp_us_normalized_match.py`, `analysis/JP_US_NORMALIZED_MATCH_SUMMARY.md`.
+
+## Critical invariants
+
+- JP ROM and observed JP behavior control semantics.
+- US labels/structures remain provisional until JP equivalence is demonstrated.
+- table length never proves a selector/action domain;
+- `$8000-$DFFF` traversal requires proven mapper state;
+- semantic coverage is exact/noncontiguous; unreached bytes remain unclaimed;
+- lossless ROM-equivalent generated dumps are never committed.
+
+## Open edges / next checkpoint 0503
+
+Primary: intersect the new `$BD56/$BD64` action atlas with **JP-proven live script/action producers**, then bulk-close the corresponding handler graph. Continue final `$10/$11` value-domain proof only from real object/state predicates.
+
+Also open: raw-$0B `$E7FB` sites `$A15A/$A2CC/$A3A9`; raw-$09 `$E5DA` selected callees; `$0565>>6` selector `$03`; `$18/$2C/$68` producer closure; `$FAA0-$FAA9`; fixed raw frontier `$FB96`; complete mapper-register inventory; CPU trace parity; full native memory/PPU/audio/runtime.
+
+The raw fixed investigation frontier remains `$FB96` because 0501 advanced from verified root `$FDE4` noncontiguously rather than claiming `$FB96-$FFFF` physically.
 
 
-## 0503 completed — AI-script dispatcher native address lift
+## 0503 — JP AI-script address lift (native and audited; zero newly counted bytes)
 
-Source `src/ai_script_dispatch.hpp/.cpp`, integration test `tests/ai_script_dispatch_test.cpp`, exact-JP-ROM audit `tools/audit_raw0b_ai_dispatch_0503.py`, analysis `analysis/RAW0B_AI_DISPATCH_NATIVE_0503.md`.
+Evidence: `analysis/RAW0B_AI_DISPATCH_NATIVE_0503.md`, `src/ai_script_dispatch.hpp`, `src/ai_script_dispatch.cpp`, `tests/ai_script_dispatch_test.cpp`, `tools/audit_raw0b_ai_dispatch_0503.py`.
 
-Script ID $05EF,X selects $BEA3 + uint8(script_id*2) after prechecks; subscript $05C1,X adds uint8(subscript*4) with 16-bit carry to script base; the first 4-byte-record byte selects an action word at $BD67 or $BE67 depending on bit 7. Native code returns mechanical addresses and final A/Y/C/Z/N values but does **not** execute prechecks or write CPU state. Real JP ROM hash for $BD11-$BD66: `fbad027357da9de96af06f073ab22c6251d372af2a5f31a80edb0bf9e60f3e79`.
+The exact JP raw-bank $0B interpreter at $BD11-$BD66 is now lifted into a CPU-bus-reader-based native address decoder, including script ID doubling, four-byte subscript-record addressing, 8-bit truncation, 16-bit carry and action bit-7 handler-table selection. Native tests cover all 256 mechanical action bytes and pointer-wrap scenarios; exact-ROM audit reproduces the $BD11-$BD66 hash `fbad027357da9de96af06f073ab22c6251d372af2a5f31a80edb0bf9e60f3e79` and the pre-existing 217 distinct mechanical targets. The decoder deliberately does not execute the stopwatch/script-$27 prechecks or write emulated CPU state.
 
-Action $9E mechanically maps $BEA3 -> $BF79, which is script data. The 256-slot/217-target mechanical atlas cannot prove action liveness. Whole-ROM byte patterns for $05EF writers have been inventoried provisionally (96 STA X, 23 STA Y, 5 STA absolute, 2 STY absolute, 1 ORA X). Verify reachable code/indices and aliases before using this as a producer domain.
+A full-PRG raw-byte pattern census locates 96 candidate `STA $05EF,X`, 23 `STA $05EF,Y`, 5 `STA $05EF`, 2 `STY $05EF`, and 1 `ORA $05EF,X`. They are **not** verified live writers: code/data classification, mapper context, indexing, and indirect aliasing remain separate. In particular action $9E maps to script data at $BF79; do not promote all 256 entries.
 
-**0503 adds zero newly accounted PRG bytes** (the decoder code was admitted in 0501). Floor 48,823 (18.6245%); VPP 24/100. Physical fixed frontier remains $FB96; unclaimed $FAA0-$FAA9 unchanged.
-
-Resume 0504 by running the ROM checker and `audit_raw0b_ai_dispatch_0503.py`, then prove live $05EF,X and $05C1,X producers and script record action bytes. Do not guess mapper state, full-table liveness, ROM data bounds, or CPU side effects.
+**Strict verified floor stays 48,823/262,144 = 18.6245%; VPP stays 24/100.** All $BD11-$BD66 bytes were already counted in 0501. Next 0504: prove actual JP producer/value domains feeding $05EF,X and $05C1,X, then intersect live records and action values with the mechanical dispatch map. Raw fixed PRG31 frontier stays $FB96, $FAA0-$FAA9 unclaimed.
 
 
-## Checkpoint 0504: AI-script seed $1B and fixed $FC1F — completed
+## 0504 — concrete AI-script seed, handler graph, fixed-$FC1F provenance
 
-Evidence:
+Committed evidence:
 - `analysis/RAW0B_AI_SCRIPT_SEED_0504.md`
 - `tools/audit_ai_script_seed_0504.py`
 
-Prior admitted raw-$0B script producer at $B503 writes ID $1B to $05EF,X and calls $B516 to reset subscript $05C1,X to zero. JP $BED9-$BEDA points to $B03A. Its first three records have actions $0B, $45, $46 and corresponding handler roots $8519, $965D, $96B4. $0B and $45 increment subscript, $46 implements countdown/movement/cleanup.
+JP raw bank $0B:$B503 explicitly writes AI script $1B to $05EF,X, then calls $B516 to reset $05C1,X to $00. The ROM pointer at $BED9 resolves $B03A; the first three four-byte records give actions $0B/$45/$46, handler roots $8519/$965D/$96B4. Action $0B and $45 increment the subscript; $46 decrements the object timer and follows movement/cleanup logic. Five parameter tables have an eight-entry proven index bound from AND #$07.
 
-The handlers use five tables at $968C-$96B3 indexed only through an AND #$07 producer. Action $46 invokes fixed PRG31:$FC1F through bank-$0B:$85F2. The fixed local graph has 185 starts and is mapper-stable, but introduces five direct shared-ZP $10 writers: $FBFC (STA), $FC1F (STA), $FC4F (STA), $FCA0 (STY), $FCF9 (STY). Renderer-facing final-$10 provenance remains open.
+The third handler calls fixed PRG31:$FC1F. Its 185-instruction local graph is mapper-stable (no JSR/indirect JMP or mapper-register write) and has **five direct ZP $10 stores**: $FBFC STA, $FC1F STA, $FC4F STA, $FCA0 STY, $FCF9 STY. This expands the final-$10 writer domain beyond the seven raw-bank $0B collision sites. The indexed $FD62,Y ROM producer is **still unproved** and those possible data bytes remain uncounted; $FD4D,Y is bounded to 12 entries by the local modulo-$0C loop.
 
-Code: raw-$0B 71 starts/169 bytes; fixed31 185 starts/335 bytes. Bounded data: raw-$0B 60, fixed31 $FD4D-$FD58 12 (index reduced modulo $0C). **Total 576 genuinely new bytes**, manifest of 16 tagged noncontiguous ranges SHA `4416db601cba553569d4ccc4aba410a6d843a6da3504dac1d735317ca1106eb4`. Conservative strict PRG floor **49,399 = 18.8442%**, VPP **24/100**.
+**0504: 256 decoded instruction starts, 504 new code/operand bytes, 72 bounded data bytes, 576 new strict bytes.** Sixteen exact noncontiguous manifest ranges, SHA-256 `4416db601cba553569d4ccc4aba410a6d843a6da3504dac1d735317ca1106eb4`. New conservative floor **49,399 / 262,144 = 18.8442%**, **VPP stays 24/100**.
 
-**Do not mark $FD62,Y data as closed.** Unlike $FD4D,Y, the $FD62,Y index has no complete producer bound; the 0504 audit leaves it explicitly open. Broader script-ID pointer atlas remains structural only: 107 entries (IDs 00-6A), 72 pointer values, 71 distinct candidate starts, 792 four-byte lattice positions in $A4A6-$B105; **NOT 792 live actions/records**. Never promote all table bytes just from shape.
+Bulk *structural-only* directory: 107 mechanical script IDs ($00-$6A), 72 distinct pointers, 71 aligned candidate starts, 792 four-byte lattice positions in $A4A6-$B105; not all candidate records or action bytes are live. Preserve pointer/record liveness policy.
 
-Next checkpoint **0505**: close fixed $FD62,Y index-domain producer if feasible; expand live script-ID/subscript record proofs and connected handler graphs; track the five new fixed $10 writer sites to PRG26 renderer; continue native parity infrastructure.
+Next 0505: close $FD62,Y index domain, expand mapper-aware script-ID/record producer seeds, and reconcile all new fixed $10 writers with scheduler/render ordering. The fixed physical frontier is still $FB96; $FAA0-$FAA9 remains unclaimed.
 
-Physical fixed investigation frontier is **still $FB96**, with $FAA0-$FAA9 unclaimed, and 0504 fixed new intervals only $FBF6-$FC16 / $FC1F-$FD4C plus 12 bytes at $FD4D-$FD58. Keep exact noncontiguous accounting.
 
-Checkpoint transaction: analysis/audit committed, progress/continuity updated before machine resume state. Resume tool `check_resume_frontier.py` must still pass. No ROM material committed.
+## 0505 — exact fixed-tile index lift and candidate source acceleration
 
+Committed evidence: `analysis/FIXED_TILE_PROBE_0505.md`, `src/fixed_tile_probe.hpp`, `tests/fixed_tile_probe_test.cpp`, `tools/audit_fixed_tile_probe_0505.py`.
 
-## 0505 — fixed-$FD62,Y source-domain investigation and native test
+ROM-exact fixed PRG31 $FD11-$FD2B address/data behavior is now separately lifted to a CPU-bus-reader native primitive. Two known Y producers reach the $FD62,Y high-table read: ($54 + low-coordinate carry)&$FF from $FD0A-$FD10, and ($54 + $14 + carry)&$FF via $FC76-$FC7A. Neither currently has a whole-program live value bound. Thus the conservative read range is $FD62-$FE61, including fixed program code. **Do not clamp Y, silently assume a small table, or promote the potential 256 source bytes.** The different $FD4D,Y lookup is reduced modulo 12 by admitted code and its twelve bytes were counted in 0504.
 
-Evidence: `analysis/FIXED_TILE_PROBE_0505.md`, `tools/audit_fixed_tile_probe_0505.py`, `src/fixed_tile_probe.hpp`, `tests/fixed_tile_probe_test.cpp`.
+Native regression covers **524,288** combinations of (8 low-coordinate equivalence classes, all 256 high-index values, all 256 fine offsets), including explicit Y=$FF reading executable fixed-bank bytes. It is **algorithm test evidence, not full CPU/PPU parity**.
 
-The native address/data lift runs the **actual mapped CPU read** at $FD62 + Y, followed by OR with $13 >> 5, iterative modulo-12 reduction, bounded $FD4D table read and ADC $11. The $FD62,Y source is **NOT proven within 12 bytes**; Y may come from either ($54+carry)&FF or ($54+$14+carry)&FF and whole-program values of $54/$14 are not yet closed. Without a live domain, overapproximate 256 possible CPU addresses FD62-FE61; reads may overlap executable bytes. No host clamp permitted. Tests pass 524,288 input combinations with JP fixed PRG31 ROM; not a full execution trace.
+The whole-PRG tool adds two reusable candidate lists: **156 raw JSR patterns** to fixed $FB96/$FBA5/$FC17/$FC1F/$FCDE (11/4/6/43/92 respectively), and **37 raw LDA #id; STA $05EF,X patterns** across banks 02/03/09/0A/0B/0C. These remain **unverified code/data and mapper-state candidates** until producers/callers are admitted. The 8-byte $FC17 alternate entry remains unclaimed.
 
-The ROM-locked audit also records **156 provisional raw JSR byte-pattern candidates** to fixed $FB96/$FBA5/$FC17/$FC1F/$FCDE, and 37 provisional immediate script-ID stores to $05EF,X. Their physical code/data and bank contexts are not automatically proven. In particular $FC17-$FC1E remains 8 **unclaimed** bytes despite six plausible JSR patterns.
+**0505 advances tooling and native functionality, but adds 0 strict PRG bytes. Total stays 49,399/262,144 = 18.8442%; VPP remains 24/100.**
 
-0505 has **zero newly admitted ROM bytes** because all lifted $FD11-$FD2B mechanics were already audited in 0504. Strict verified PRG stays **49,399 = 18.8442%**, VPP **24/100**. Fixed raw frontier **FB96**, with six unclaimed gaps unchanged.
+Next checkpoint 0506: prove JP mapper-selected inbound calls to $FB96/$FC17, bound live $54/$14 for $FD62,Y, and expand executable $05EF script-ID producers; preserve fixed physical frontier $FB96 and all six current gaps.
 
-For 0506: independently replay ROM checker and `audit_fixed_tile_probe_0505.py`. Establish live $54/$14 producer domains and mapper-backed JSR callers before claiming FD62 indexed data or $FC17 code. Expand JP-proven $05EF and $05C1 values for real script record/handler closure. Consult original MOS CPU manual, NESDoc and EveryNES for flags/memory/PPU timing; JP ROM remains authority.
 
+## 0506 — temporary VRC6 bank-read native lift and AI-script cross-links
 
-## Checkpoint 0506 completed — $FB96 mapper transaction and AI candidate atlas
+Committed `analysis/CROSSBANK_AI_ATLAS_0506.md`, `src/temporary_prg_bank_read.hpp`, `tests/temporary_prg_bank_read_test.cpp`, and `tools/audit_crossbank_ai_atlas_0506.py`.
 
-Evidence: `analysis/CROSSBANK_AI_ATLAS_0506.md`, `tools/audit_crossbank_ai_atlas_0506.py`, `src/temporary_prg_bank_read.hpp`, `tests/temporary_prg_bank_read_test.cpp`.
+Fixed PRG31 $FB96-$FBA4 is a real conditional mapper transaction: writes $0E to $23 and $8000 through fixed $E2D0, performs LDA ($08),Y in the newly selected raw PRG bank $0E, then restores raw bank $0A through the same helper. Native mapped-bus regression passes **65,537 cases** (all 256 pointer-low × 256 Y combinations plus a wrap case), checking mapped value, write order, mapper restoration, and N/Z of returned A. This is a bus transaction partial lift, not CPU stack/frame parity.
 
-The **15-byte fixed $FB96** helper itself has known JP semantics (select raw bank $0E via $E2D0, LDA ($08),Y, restore $0A); $E2D0 stores A to RAM $23 and VRC6 $8000. Do not treat the bank as permanently switched, use an array slice instead of an active mapped CPU bus, or omit $23/write-order effects. Native lift tests 65,537 combinations and preserves restored mapper; it is NOT a full 6502 stack/cycle simulation.
+Raw bank $0A:$B597 calls $B689, whose E7FB dispatch includes eleven encoded targets, index zero $B6A4. That target can call $B7F7, a room/object field loader with **eleven actual JSR $FB96 opcodes**. $B825/$B827 masks and stores low nibble into $54, so its **local** produced value is $00-$0F; no whole-program $54/$14 or FD62,Y domain is claimed. The $68 dispatch producer and inbound bank mapping still lack full liveness proof.
 
-Under **conditional** raw-$0A context: $B597 -> $B689 (LDA $68; JSR $E7FB); pointer slot 0 -> $B6A4 -> $B7F7; room loader $B7F7-$B872 has eleven JSR $FB96 calls. The local mask $B825 AND #$0F, $B827 STA $54 establishes a **local** low-nibble field bound, not global FD62,Y data coverage. Selector $68 liveness and inbound mapper context are open.
+Candidate script IDs $24/$25/$26 contain first/second record actions $5D/$5F/$89, mechanically selecting raw bank-$0B handler roots $8DC6/$8E10/$8DF9, which contain calls into fixed $FC17. All three script IDs and the $FC17 caller graph remain **structural candidates** until runtime producers are proven. The candidate script directory remains 107 pointers, 72 distinct words, 71 aligned starts and 792 possible lattice cells; 156 raw JSR patterns and 37 immediate script-store patterns remain undecided.
 
-Structural JP AI-script parallels: ID $24 record $A626 action $5D -> $8DC6; ID $25 record $AE1A action $5F -> $8E10; ID $26 record $AE6E action $89 -> $8DF9. Handler families contain raw JSR FC17 but **no script/handler liveness proof**. $FC17-$FC1E and fixed $FB96-$FBA4 remain unclaimed. This specifically prevents accidental code/data inflation from the 107 script pointers/792 candidate lattice cells.
+**0506 adds zero newly proven ROM bytes**; strict floor **49,399/262,144 = 18.8442%**, VPP **24/100**. The source/test and ROM audit add a native mapper primitive and a much narrower producer-resolution queue without artificially advancing physical PRG coverage.
 
-All new work is infrastructure/semantic mechanism, with **zero strict new bytes**, PRG floor 49,399 (18.8442%), VPP 24/100. Fixed raw frontier $FB96; preserve six unclaimed gaps. Run previous ROM audit and native regression before 0507. 0507 should resolve first concrete inbound bank0A state selector and AI ID24/25/26 producers, then promote only exact consumed ROM bytes if evidence closes.
+Next 0507: prove mapper-selected entry to $0A:B597/B689 and live $68=0; prove live source IDs $24/$25/$26 and $FC17 inbound calls; carry $54/$14 provenance through FD62,Y. Physical frontier $FB96 and six pending gaps remain unchanged.
 
 
-**0506 supplementary recovery edge:** raw bank-$0A:B4CC dispatcher is $19/JSR E7FB with 12 encoded targets. Its state index 1 B58C calls B4E9 (LDA #00; STA $68; RTS) then increments $19. State index 2 B597 invokes B689; $68=0 would select B6A4 and potentially B7F7. **This is conditional**, not live mapper/transitive $19/$68 proof. Run `tools/audit_bank0a_state_chain_0506.py` in addition to `audit_crossbank_ai_atlas_0506.py`. For 0507 trace caller bank state, interrupt/other $19/$68 mutations, and carry-gate at B6A4. Do not advance 0506 verified bytes or fixed physical frontier.
+**0506 follow-on producer proof:** JP raw bank $0A:$B4CC has 12 encoded $19 dispatch pointers (index 1 $B58C, index 2 $B597). $B58C calls $B4E9 to set $68=0 and increments $19, while $B597 calls the $68 dispatcher $B689. Under uninterrupted local state evolution, this is the missing conditional index-zero link to B6A4/B7F7. Still NOT global runtime proof: $19/$68 may change between frames, active VRC6 bank at B4CC unproven, and B6A4 has a carry gate. Supplement audit `tools/audit_bank0a_state_chain_0506.py`, appended analysis `analysis/CROSSBANK_AI_ATLAS_0506.md`. No additional ROM bytes promoted.
 
 
-## 0507 closed — raw-bank $0A B4CC NMI state entry; conditional 582-byte graph
+## 0507 — NMI maps raw bank $0A room dispatcher; 582-byte conditional CFG
 
-Reproducible evidence: `analysis/NMI_BANK0A_ROOM_DISPATCH_0507.md`, `tools/audit_nmi_room_dispatch_0507.py`, `src/room_state_dispatch.hpp`, `tests/room_state_dispatch_test.cpp`. Re-run the audit on the authoritative JP ROM and 65536-case C++ test for next recovery.
+Evidence: `analysis/NMI_BANK0A_ROOM_DISPATCH_0507.md`, `tools/audit_nmi_room_dispatch_0507.py`, native `src/room_state_dispatch.hpp`, test `tests/room_state_dispatch_test.cpp`.
 
-Existing fixed first-level `E363` table slot **$0D** points to **$E526**; `E526: LDA #$0A; JSR $E2D0; JMP $B4CC`, E2D0 stores to $23 and VRC6 $8000. This proves **raw bank $0A** for $B4CC on that NMI dispatch. Newly credited code is *only* five bytes `raw0A:$B4CC-$B4D0 = A5 19 20 FB E7`, physical PRG21, SHA `0cbfd39d34523da29edaa6a2dcf5cdb4b62de628d0e5568ea3879d7de5a1c0c7`. All fixed E526/E2D0/E7FB bytes pre-covered and not recounted.
+The prior-admitted fixed first-level NMI inline pointer entry **index $0D -> E526** selects raw bank **$0A** by `LDA #$0A; JSR $E2D0; JMP $B4CC`. Fixed E2D0 writes $23 and VRC6 $8000. This closes the **bank identity** for the switched $B4CC entry. Raw-bank-$0A:$B4CC-$B4D0 (`A5 19 20 FB E7`) is five **new verified code/operand bytes**, physical 8-KiB PRG21, SHA-256 `0cbfd39d34523da29edaa6a2dcf5cdb4b62de628d0e5568ea3879d7de5a1c0c7`.
 
-The **12** mechanically encoded room-state pointer words $B4D1-$B4E8 plus second-level index0 $B6A4 yield a candidate **281-instruction/582-byte** graph (six noncontiguous ranges; SHA `807363d09368f7ae6ceaeae000df0fc50f56bba5bd2871ca749d7236ec9f3828`). This is **structural only**, except for $B4CC's 5 bytes. E7FB uses 8-bit ASL and can read beyond the encoded 12 entries for high state IDs; do **not** invent a $19 bound, clamp or classify all 582 bytes as verified. Selector $18=0D liveness, mapper state after external helpers, inter-frame $19/$68 mutations, B6A4 carry gate, and $07A0 B8C2 table producer remain unproved.
+All **12 encoded state words** $B4D1-$B4E8 and secondary $68 entry0 $B6A4 seed allow a conditional official-opcode graph of **281 starts / 582 candidate code bytes** across six spans, with zero illegal opcodes/overlaps; fingerprint `807363d09368f7ae6ceaeae000df0fc50f56bba5bd2871ca749d7236ec9f3828`. **Only the five B4CC bytes are added to strict coverage**; $19 selector live domain, fixed-return bank contexts, B6A4 carry gate, $07A0 pointer table bound, and $18 index0D liveness remain open. Fixed $FB96 and $FC17 are NOT newly credited.
 
-Four superficially plausible AI ID24/25/26 **direct** producers are ruled out by destinations: bank0B $863B stores #24 to $0606,X; $9234 stores #25 to $05C1,X; $9531 #26 and $B4BC #24 call E249. Do not assume these write AI-script selector $05EF,X. Script IDs 24/25/26 and FC17 remain provisional.
+Native partial `E7FB` address/flag lift tests all **65,536** selector/Y pairs on JP bank0A ROM, including 8-bit ASL alias, C from selector bit7, Z/N from the ABI's restored incoming Y. No stack or scratch-RAM parity is claimed.
 
-Native E7FB partial selector/Y lift has 65536 ROM-backed test cases. The ABI's final Z/N flags reflect **restored incoming Y**, not target high byte. No stack, zero-page side effects or full CPU parity claim.
+Negative AI producer evidence: bank0B `A9 24` at $863B writes $0606,X, `A9 25` at $9234 writes **$05C1,X**, and `A9 26` at $9531 / `A9 24` at $B4BC call $E249. None is a **direct** $05EF,X script-ID initializer. Indirect script-ID producers may still exist.
 
-Coverage: **49,404/262,144 = 18.8461%**; VPP 24/100. Fixed investigation frontier still FB96 and all six fixed physical gaps retained. Next 0508 focus: producer $18/$19/$68 and helper bank state; conditional B6A4->B7F7, $07A0 table producer; only then commit further graph bytes; AI script IDs and FD62,Y unresolved.
+Strict verified floor **49,399 -> 49,404 / 262,144 = 18.8461%**; structural index **57.0705% unchanged**, VPP **24/100**. The six fixed physical gaps persist and fixed raw investigation frontier remains $FB96.
 
+Next 0508: prove $18/$19 and $68 cross-frame values, B6A4 carry-gated B7F7 loader, mapper restoration across the encoded state handlers; resolve $07A0 pointer/data domain, then promote warranted conditional bytes in bulk. Also prove actual script IDs $24/$25/$26 and FC17 path; revisit FD62,Y/$10 provenance.
 
-## Canonical subsystem documentation / preservation archive
 
-The RLOFT-inspired, game-specific `JP/PreservationArchive/README.md` and numbered chapters `00..12` were added as a **separate preservation workstream** after semantic checkpoint 0507. Historical analysis reports in `JP/analysis/` remain byte-evidence/audit records; the archive is the continually corrected **human-readable source of subsystem behavior, technical models, quirks, restrictions and modding contracts**.
+## Preservation Engineering Archive — documentation workstream established after 0507
 
-On every semantic checkpoint: (1) establish JP ROM identity, physical bank and covered operands; (2) commit reproducible source/audit; (3) update relevant archive chapters with evidence class and scope, including negative findings; (4) maintain Q/D/L/C/U register in chapter 10 and open roadmap in chapter 12; (5) run `JP/tools/audit_preservation_archive.py`; (6) update `PROGRESS.md`/this continuity; and (7) write `analysis/RESUME_STATE.json` **LAST**. Both published archive chapters and native algorithm tests can change without moving strict PRG/VPP counters.
+The connected private `Hyperbog/RLOFT` `PreservationArchive` was reviewed for its scoped evidence grades, canonical subsystem chapters, original quirks/dormancy/corrections/UNKNOWN registers, programmer reference and deliberately separate static-certification process.
 
-The initial edition documents 0507's committed **49,404 verified PRG bytes (18.8461%)** and VPP **24/100**; this documentation update **adds zero semantic bytes and no rubric points**. Chapter publication is **not** a static-documentation completion certificate, a complete decomp, or a native playable/per-frame parity claim. Continue 0508 from actual schema-v23 ROM-verified resume state, not from archival section order.
+A new **`JP/PreservationArchive/`** directory now contains 13 substantive numbered chapters `00..12` and a README/index, adapted to this JP 6502/VRC6 decomp: ROM provenance, mapper, RESET/NMI/IRQ, OAM/PPU, object/collision, AI bytecode, room/world data, sound, native recomp, JP↔US atlas, Q/D/L/C/U ledger, programmer/modder contracts and open certification targets. The original ROM is NOT committed.
 
+New `JP/tools/audit_preservation_archive.py` and GitHub workflow `.github/workflows/nes-preservation-archive.yml` validate chapter sequence and local links; this checks documentation structure, **not ROM semantics or native parity**. The acceleration policy, interruption recovery and continuity playbooks mandate archival updates alongside future semantic checkpoints.
 
-## Post-0507 independent validation rubric update
+This **documentation-only** transaction adds **0 newly verified PRG bytes** and **0 VPP**: the committed 0507 floor remains **49,404 / 262,144 = 18.8461%**, score **24/100**, and next semantic checkpoint **0508**. No source-path liveness, broader gameplay completion, or static documentation certification is inferred from the archive's existence.
 
-GitHub Actions [run 37993214808](https://github.com/Hyperbog/CVIII-Decomp/actions/runs/37993214808) passes the new `jp-native-regressions.yml`: compile eight native test binaries, run four ROM-free suites, validate the fixed VPP rubric, and audit archive links. A SHA-verified local ROM enables the remaining tests through `JP/tools/run_native_regressions.sh`. **VPP is now 25/100** by validation item 8.8. Strict verified PRG remains 49,404; the prior checkpoint 0507 and fixed frontier FB96 do **not** advance due to this tooling point. The RESUME_STATE VPP number is updated independently LAST after all other documents.
 
+## Forward completion plan — large verified subsystem batches (2026-10-09)
 
-## Independent Nintendulator CPU reference conformance (separate validation milestone)
+The score and strict-PRG dashboard above remain unchanged at **VPP 24/100 and strict 49,404/262,144**, despite eleven committed provisional 0508 research phases. Follow the new [subsystem-by-subsystem percentage dashboard, large-batch policy and acceptance-gated completion roadmap](COMPLETION_ROADMAP.md). Effective immediately, prioritize trace-backed selector producer closure and bank-scale room/stage sweeps over further single-handler micro-phases. The plan is not itself PRG or VPP evidence.
 
-The [shared-library NES CPU golden test](../SharedNES/NESTEST_REFERENCE_0508.md) passes all 8,991 original nestest Nintendulator register/flags/stack/cycle states in [Actions run 38010527144](https://github.com/Hyperbog/CVIII-Decomp/actions/runs/38010527144), with upstream test fixture SHA pins and 11 local ROM-free NROM/undocumented-opcode regression groups. This earns 1/2 of the two-point **validation reference trace harness** rubric: 4/8 -> 5/8, weighted VPP 25->26/100. The remaining validation point requires genuine JP VRC6 mapper/interrupt reference traces; the independent *CPU/mapper category's* original-game parity point remains open. Verified JP PRG stays 49,404; finished semantic checkpoint 0507; frontier FB96 unchanged.
 
+## 0508 bank-scale research and native E7FB fidelity repair (no new credit)
 
-## 0508 completed (narrow independent-Mesen fixed PRG source proof)
+After the [large-batch roadmap](COMPLETION_ROADMAP.md), a [32-KiB raw `$0A/$0E` pass](../analysis/0508_BULK_0A0E_FINDINGS.md) produced a physical candidate/previously-credited dependency manifest and 32-case RESET RAM clearing proof. A [reusable 151-official-opcode Python 2A03/VRC6 partial instruction-stepper](../analysis/0508_TRACE_CORE_AND_E7FB_CORRECTION.md) independently replays 334,912 original instruction steps across room initialization/PPU zeroing and sound command return. It revealed/corrected a native `$E7FB` high-byte read anomaly at selectors `$7F/$FF`; original sender stack/Y are now modeled and the C++ 65,536-case test was repaired. **All are provisional bounded/local proofs**: no full reset-to-NMI reference trace, no frame/native/audio parity, no new strict PRG bytes and no additional VPP points. Authoritative **49,404/262,144 (18.8461%)**, **24/100 VPP**, machine completed 0507, raw fixed frontier `$FB96`. Do not count the 2,505 classified bytes as additional coverage.
 
-Checkpoint [0508](../analysis/0508_MESEN_FIXED_LIVE_PROOF.md) adds **exactly 100** original ROM bytes after 0507's 49,404: fixed PRG31 CPU **FBA5-FBAF (11), FBB0-FBBA (11), FF06-FF11 (12), FF14-FF55 (66)**. Real third-party Mesen2 breakpoint and stepped code evidence proves intro/prayer bank-00 stream-call restoration and Stage 1-02 active-object slot scanning/field clearing; independent disassembly verifies 39 original instruction starts and all 100 physical CODE-marked bytes. All credited new bytes lie inside 0507's *unclaimed* fixed gaps. **New strict lower bound 49,504 / 262,144 = 18.8843%; VPP 26/100, fixed frontier FB96 unchanged.** Reproduce with `tools/audit_mesen_fixed_live_0508.py JP.nes [report.json]` (source checks) and optional `--reference-emulator EMULATOR_DIR --private-evidence PRIVATE_DIR` (complete external witness); replay `audit_0508_predecessor.py` and 0507 native regression before further strict promotion. Previous 0508 room-$0D, $07A0 and full-frame/native parity questions remain OPEN; next research checkpoint 0509.
 
+## 0508 multi-frame synthetic RESET/NMI instruction trace (provisional)
 
-## Native 0509 compiled CPU integration, not standalone port
+The [reusable 2A03/VRC6 stepper's RESET trace](../analysis/0508_RESET_NMI_SYNTHETIC_TRACE.md) runs original reset and **450 manually scheduled NMIs / 1,599,939 original CPU instructions** over three synthetic idle-loop budgets. Under fixed PPU readiness, zero controller and absent IRQ, original state is reset `$18/$19=00/00`, transitions to `00/01` on the first NMI and remains there. **This is not a frame timing/audio/PPU/video/reference-emulator test** and cannot establish live gameplay input, progression to `$18=$0C`, or new semantic-coverage/VPP credit. Machine last completed 0507, fixed frontier `$FB96`, strict floor 49,404 bytes, VPP 24/100 unchanged.
 
-The new JP/native0509 CMake project builds a native C++ 2A03 interpreter with 151 official opcodes, VRC6a mapper and IRQ integration, controller and partial PPU/OAM/VRAM bus, and a headless original-source-ROM probe. It requires the exact Japanese ROM; it is **not yet playable**, pixel accurate, or independent of original PRG/CHR assets. An authenticated external Mesen2 original-ROM PC stream matches the first **7,828** instruction addresses; the first observed divergence at **7,829** is a PPU vblank timing mismatch, with native CPU state and gameplay reference parity still open. Synthetic and arithmetic regression tests run in CI. Technical note: docs/0509_NATIVE_CPU_HEADLESS.md. VPP 26/100, strict 49,504 bytes, last completed checkpoint 0508, fixed FB96 frontier retained.
 
+## 0508 expanded execution manifest — synthetic traces, not strict bytes
 
-**0509 PPU startup phase controlled cross-check:** Explicit reference-only PPU phase seed 31 (from Mesen2 initial 0:31 debugger snapshot) extends PC-address prefix match from 7,828 default to **24,773**; NMI entry at 24,774 diverges. Default native startup remains unmodified. Full frame parity and ROM-independent port remain open; VPP26 and 49,504 verified ROM bytes unchanged. See docs/0509_NATIVE_CPU_HEADLESS.md.
+[The physical PRG/producer manifest](../analysis/0508_BULK_DYNAMIC_PRODUCER_TRACE.md) replays 1,800 manually injected NMIs under three controller schedules: **4,669,348 original ROM instructions**, with a **physical unique union of 11,127 executed code-and-operand bytes** and **16,718 PRG bytes read** across many banks. A separate cloned-state input search runs 19 controller policies × 120 NMIs = **2,280 additional NMIs / 7,132,248 instructions** from artificial state `$18=$04`. None reaches `$18=$0C/$0D`; some advance `$2C` through 0–3. These are not genuine hardware-playthrough reachability or new strict PRG; producer-site evidence and exact physical-mask hashes are in the linked audit. Next step: reference-timed PPU/NMI/IRQ + controller trace and actual room-entry provenance. **Verified PRG remains 49,404/262,144 (18.8461%), VPP 24/100; completed machine checkpoint 0507 and PRG31 `$FB96` unchanged.**
 
 
-## 0509 native ROM-independent sprite/actor demonstrator
+## 0508 modeled-vblank experimental NMI batch (infrastructure, zero strict-credit)
 
-`JP/standalone0509` builds a native C++20 program with **no original ROM file or embedded game code/data**. It executes actual source-verified original JP actor-slot scan FF06, field-clear helper FF15/FF24, existing bank0D OAM shadow lift and bank0B collision math, with **synthetic** descriptors, planar CHR, scripted positions and software sprite preview. ROM-free CTest verifies all 4096 slot occupancy cases, all 256 indexed clear states per helper, real OAM output and deterministic generated-pixel fixture; ASan/UBSan checks passed locally. This is NOT playable Castlevania III, correct player/AI/scroll/game-stage flow, full PPU frame parity or a creditable new PRG range. [Technical note](0509_ROM_FREE_ACTOR_PIPELINE.md) and [build](../standalone0509/README.md). VPP 26/100, strict 49,504 bytes, last completed semantic checkpoint 0508, fixed first unprocessed FB96 remain unchanged.
+The [experimental cycle/vblank execution report](../analysis/0508_EXPERIMENTAL_VBLANK_CYCLE_TRACE.md) adds a mapped original-ROM CPU instruction-cycle accounting and modeled PPUSTATUS/PPUCTRL/NMI-edge scheduler. Three input cases run **960 modeled PPU frames, 8,864,752 original ROM instructions and 948 modeled NMI entries**. The 480-frame Start-pulse path reaches conditional `$18=00,02,0A,09,03,04` but not `$0C/$0D`; the independent unit audit passes cycle classes for 151 official opcodes and 27 representative opcode timings. CPU/PPU bus interleave, VRC6 IRQ, odd-frame PPU dot, DMA and reference-emulator parity remain unimplemented. This is not hardware gameplay liveness, a bootable native game, or a new score criterion: strict PRG **49,404**, VPP **24/100**, checkpoint **0507**, fixed frontier `$FB96` unchanged.
 
-## 0509 raw-$0A callsite verification (provisional)
 
-A ROM-executed [cross-bank actor producer audit](../analysis/0509_ACTOR_SPAWN_PRODUCER_FINDINGS.md) traces raw bank $0A:$90CA through fixed $FF06 with all 4,096 occupancy combinations and 73,717 fetched source instructions. The branch-selected actor allocation writes $054E,X=$13 and $05EF,X=0; the preamble writes $10=0. No genuine reference-frame source liveness, global mapper lifetime, strict new ROM bytes or VPP point is established. Last certified checkpoint remains 0508; PRG floor 49,504, VPP26, fixed frontier FB96.
+## Bulk 0508 IRQ-enabled RESET/NMI trace experiments (provisional)
 
-## 0509 actor allocation conditional source-producer gate
+[Reproducible VRC6 IRQ/CPU-vector experiment](../analysis/0508_VRC6_IRQ_INSTRUCTION_BOUNDARY_TRACE.md): 267 modeled IRQ component checks, 8,861,056 original ROM instruction steps in 960 modeled frames, 948 NMIs, 350 mapper IRQ vector entries and 350 corresponding returns. This explicitly replaces the previous no-mapper-IRQ experimental limitation for these bounded traces, **not** the still-missing cycle-accurate reference CPU/PPU/DMA trace or live room-$0C/$0D state proof. VPP remains **24/100**, strict PRG **49,404/262,144 = 18.8461%**, last completed resume **0507**.
 
-[Mapped raw-bank $0A:$90C5 conditional actor gate](../analysis/0509_ACTOR_PRECHECK_PRODUCER_FINDINGS.md) verifies original source JSR $8CDD, conditional $53/$07E0,X checks and fixed $FF06 first-free-slot scanner, then the $90CA actor allocation body. 4,096 occupancy masks times three precondition families; 12,288 bounded cases, 188,332 original instruction fetches, 25 distinct PCs. Confirmed when it **would not** allocate as well as when it would; real game-frame liveness and global input domains remain open. Last certified source checkpoint 0508, strict 49,504 PRG bytes (18.8843%), VPP26, fixed frontier FB96 unchanged. No machine RESUME_STATE update for provisional research.
 
-## 0509 guard-source producers, provisional
+## 2026-10-09 — Native regression CI gate (1 validation point; zero new PRG bytes)
 
-[Original ROM-stepped $53/$54 and `$07E0,X` producer proof](../analysis/0509_ACTOR_GUARD_PRODUCERS_FINDINGS.md): source bank-$0A `$8154/$82A5/$83EE/$8402` indexed stores tested with carry/sign extension/6502 borrow and bit-0 masks; fixed `$FB7A-$FB95` paired counter tested exhaustively as a 16-bit wrapping increment/decrement. 262,912 source test cases and 3,280,384 instruction executions; three previous actor ROM audits also replayed locally. Global writers, genuine mapped caller and per-frame renderer effects still unknown. Not a new semantic PRG or VPP claim; completed checkpoint 0508, 49,504 verified PRG bytes, VPP26, fixed frontier FB96 unchanged.
+[Green GitHub Actions run 37993214808](https://github.com/Hyperbog/CVIII-Decomp/actions/runs/37993214808) proves a reproducible C++20 strict-warning build of all eight existing native subsystem tests; all four ROM-free executable suites passed; the fixed progress CSV and preservation-archive integrity audit also passed. Two accidental literal escaped-newline sequences in `tests/room_state_dispatch_test.cpp` and four in `src/room_state_dispatch.hpp` were repaired to restore an actual compiled high-byte read. `tools/run_native_regressions.sh <exact-JP-ROM.nes>` independently verifies ROM SHA-256 and enables four ROM-required suites plus two ROM-specific additional checks, without distributing the ROM in Git. **VPP validation/tooling 3→4 of 8; weighted VPP 24→25 of 100.** No new strict PRG bytes (49,404/262,144 = 18.8461%); no frame trace or playable-native-runtime claim. The research checkpoint 0508 remains provisional and last semantic checkpoint 0507 is unchanged.
 
-## 0509 original $84EA → $8501 → $8CDD/$FF06 → actor creation chain
 
-[ROM-authenticated connected actor dispatcher](../analysis/0509_ACTOR_DISPATCH_CHAIN_FINDINGS.md) executes all selected four ROM-table routes to the three actor-handling entries $90C5, $90DF, $9133. Two entry modes (direct and upstream scheduler), 4096 occupancy masks each, 3 guard classes and masked high-nibble event variants cover **98,304 CPU cases and 6,174,946 instructions**. Byte-ordered memory mutation, register/flag/stack behavior and no-rollback partial allocation are checked; execution stops at scheduler $84F8 before $83D1. Real in-game dispatcher-row/mapper/frame liveness and global writer sets remain unproved. [Optional independent Mesen evidence checklist](0509_MESEN_ACTOR_DISPATCH_CAPTURE.md). Strict 49,504 PRG bytes, VPP26, last certified 0508, frontier FB96 unchanged; machine RESUME_STATE not advanced.
+## 2026-10-09 — Reusable NES/FDS cross-game evidence layer (candidate-only)
 
-## 0509 Mesen2 independent gameplay actor event at frame 3092
+[SharedNES research library](../SharedNES/README.md) and its [curated historical/emulation source catalog](../SharedNES/SOURCE_CATALOG.md) now provide a standard-library cross-ROM cartridge inventory (iNES1/NES2 and cautious FDS disk-side identification), Mapper 24/26 physical bank mapping warnings, SHA-256 bank fingerprints, exact window candidate searches and bounded instruction-aligned JSR/JMP-operand relocation *hypotheses*. All outputs are derived hashes/offsets only, never ROM contents. Initial JP↔US test: **1,018** 32-byte windows examined, **364** exact candidate matches, **348** unique-target candidates (at stride 256; **not** strict semantic bytes); **26** automated test cases exercise parser, metadata, opcode and safety contracts. The two versions use **mapper 24 vs mapper 5**; no cross-game execution equivalence or hardware compatibility is asserted. See [example anchor](../SharedNES/EXAMPLE_JP_US_ANCHOR.json) for an exact but unclassified 32-byte match. This library consolidates NESdev hardware/test literature, legacy tools, FDS BIOS research, Mesen/FCEUX/cc65 and provided PDF manuals without importing copyrighted code. **No VPP or strict PRG increase: 25/100; 49,404/262,144; last completed checkpoint 0507.**
 
-The [source-backed live trace report](../analysis/0509_MESEN_ACTOR_LIVE_FINDINGS.md) and [compact machine JSON](../analysis/0509_MESEN_ACTOR_LIVE_REPORT.json) authenticate raw-$0A:$84F3→$8501→$8B2C under actual original-JP Mesen2 frame 3092 (X=$03, row=$32, subindex0, both $53/$07E0,X=0). 600 original source steps produce two type-$3D actor slots, execute fixed $FF06/$FF24 twice and return through $84F8. Clean-boot replay matches exact PC/cycles/trace hash; external emulator and unmodified user ROM are required for reproduction. **This settles a bounded live row, not all event rows**: direct $90C5/$90DF/$9133 remain synthetic-only; global $18 room and last-renderer $10 remain OPEN. Zero strict byte/VPP promotion, last completed 0508, verified floor 49,504, VPP26, fixed frontier FB96.
 
-## 0509 seven-controller original Mesen live producer matrix
+### Reusable VRC6a/VRC6b mapper adapter
 
-[Independent Mesen source/writer feedback loop](../analysis/0509_MESEN_ACTOR_FEEDBACK_FINDINGS.md) verifies 3 live row-$32 type-$3D spawn routes and 4 bounded negative routes across 7 separately completed 640-frame Mesen replays from verified clean ROM stage state. Physical PRG mapper conversion authenticates raw $0A RAM producer $8143/$8157/$8182, original dispatcher $84F3/$8501 and actor/event writers $8D90/$8B71/$85DD. Two bounded 5-byte source descriptors at original $A43F/$A444 are now linked to observed X=4/3 objects. Full cold-boot one-shot seven-fork driver was not completed due external orchestration timeout; isolated runs plus hash-constrained merger passed. No new coverage credit: checkpoint 0508, strict 49,504, VPP26, frontier FB96.
+`tools/nes_mapper_family.py` and nine ROM-free tests provide explicit-state physical PRG offsets for three VRC6 PRG windows, plus the VRC6b A0/A1 register swap normalized to VRC6a coordinates. They refuse an assumed bank state without producer/provenance evidence and do not imply shared sound drivers or gameplay architecture. This is analysis infrastructure only: no new strict PRG bytes, no VPP increase beyond 25/100.
 
-## 0510 native desktop title/intro/one-screen Stage 1 prototype (provisional)
 
-[Source-native PC project](../native_demo0510/README.md) compiles a C++20 app, keyboard control and deterministic headless tests. The independently supplied Japanese Mesen frame/raster reference asset pack is private and ignored by Git; runtime performs no 6502/NES emulation. Except for FF06 vacancy and FF24 clear helpers, character movement, cutscenes, host sprites, level geometry and enemy AI are **placeholder source**, not reconstructed gameplay. Linux build and sanitizer/tests validated locally; Windows native code requires actual Windows CI verification. Last certified semantic checkpoint 0508, strict PRG49,504 and VPP26, fixed frontier FB96 unchanged. No RESUME_STATE promotion.
+## 2026-10-09 — Reuse overlay on strict 0501 source bytes (candidate-only)
 
-Windows build refinement: source-native Win32/GDI demo compiled and passed ROM-free CTest on GitHub's Windows Server 2025 VS2026 CI; Linux x86-64 CI also passed. Both binaries are packed with user-private reference assets outside repository, but Windows desktop/keyboard test remains pending. No source-equivalent game stage or PRG/VPP promotion. CI [run 38076049062](https://github.com/Hyperbog/CVIII-Decomp/actions/runs/38076049062).
+The reusable [certified-source cross-edition census](../SharedNES/JP_0501_CROSS_EDITION_REUSE.md) verifies 31 physically nonoverlapping SHA-256-locked ranges from already credited checkpoint 0501 (4,364 code/operand bytes). In the US Castlevania III physical PRG, unique 16-byte exact windows cover **1,273** distinct JP source bytes; **5** have only ambiguous matches and **3,086** lack a matching 16-byte window entirely inside their original certified region. These are source-original code/data **transfer candidates only**; they are not newly certified bytes, nor proof of US MMC5 mapping/callers or executable parity. Tests and the hash-only 31-region report are committed. **New strict PRG bytes 0, cumulative 49,404/262,144 = 18.8461%, VPP 25/100, last semantic checkpoint 0507, fixed PRG31 frontier FB96 unchanged.**
 
-## 0510 faithful native C++ actor event row-$32 (not the PC demonstration)
+## 2026-10-09 — 0508 model-CDL/source-manifest and multi-bank US cross-edition census (provisional)
 
-[Independent Mesen original game row-$32 → C++ RAM-state comparator](../analysis/0510_ROW32_NATIVE_LIFT_FINDINGS.md) now includes an actual structured native semantic lift of $8501->$8B2C actor creation; type $3D, script $13, matching-count cap 3, first-free slot 1..12, fixed $FF24 field cleanup, original status/AI tables and source event high-nibble packing. Two naturally reached source object allocations X=3/4 at frame3092 match **all 1792 non-stack RAM bytes each**, across 383 original instructions; **4,111 native ROM-free test configurations**. Optional clean-boot original Mesen replay is source hash-locked and private savestate/output files are ephemeral. Original code/data spans are not promoted without certified physical overlap and all-route timing. Keep strict PRG49504, VPP26, last completed checkpoint0508 and fixed frontierFB96; no update to RESUME_STATE.json.
+The [shared NES CDL importer](../tools/nes_cdl_bridge_0508.py) implements separately parsed FCEUX/legacy-Mesen and Mesen2 CDLv2 layouts, explicit image/provenance caveats, physical 8-KiB code/data counts and overlap against SHA-pinned source regions. The [synthetic original-ROM path and cross-edition audit](../SharedNES/0508_CDL_CROSS_EDITION_EVIDENCE.md) executes **1,061,384 JP ROM-fetched instructions / 420 manually injected NMIs** (300 start30, 120 none); **4,979 unique code/operand PRG bytes** in the modeled traces. **Zero of 4,364** separately certified checkpoint-0501 source bytes are fetched in these two tested startup scenarios. Of **4,515 bytes** in 86 length-≥16 modeled code runs, **909** lie in unique exact US 16-byte windows, **146** have only ambiguous US matches and **3,460** lack 16-byte target matches. A **92-byte / 50-opcode** fixed-bank segment at JP E7B8–E813 matches US physical PRG31 candidate E82A–E885. This does **not** prove actual video/IRQ gameplay liveness, US mapped execution, or code/data coverage outside the checked 0501 subledger. Scores remain **VPP 25/100; strict PRG 49,404/262,144 (18.8461%); last completed checkpoint 0507; fixed frontier FB96**.
 
-## 0511 source-equivalent native 2-axis actor motion with original game RAM goldens
 
-[Validated original raw bank $0B:$8001 / $8037 source lift](../analysis/0511_ACTOR_MOTION_NATIVE_FINDINGS.md) integrates into `standalone0509` CMake and ROM-free regression gate; 69,646 oracle cases and sanitizers pass. Actual Mesen actor slots 1 and 2 spawned in natural Stage 1 gameplay have bank-qualified $0B 30-opcode movement calls, with all 1,792 nonstack RAM bytes and final A/Y/P matched for each. Real frame 2604 belongs to a 100-frame checkpoint-reload controller policy, not the earlier 0509 continuous frame3092 route. Original Mesen private state hash pinned; one-call cold replay bootstrap incomplete due Mesen headless stall. Next target original $0B:$80E3-$8100 writer and AI script dispatch, NOT host demo. Verified strict 49,504 PRG, VPP26, last completed 0508 and fixed frontier FB96 unchanged.
+## 2026-10-09 — Independent 2A03 CPU golden reference conformance (+1 validation VPP)
 
-## 0512 fixed FDF8 → mapped $0B:80E3 horizontal 9-bit displacement source lift
+The SHA-pinned [Nintendulator nestest reference audit](../SharedNES/NESTEST_REFERENCE_0508.md) passes **8,991/8,991** original preinstruction PC/A/X/Y/P/SP/cycle log rows in [CI run 38010689051](https://github.com/Hyperbog/CVIII-Decomp/actions/runs/38010689051). The original game 151-official-opcode core is unchanged; stable NMOS undocumented instructions are available only through a separate NROM test adapter. One of the two existing validation CPU/bank/interrupt trace-harness points is now earned: validation **4/8 -> 5/8**, overall weighted **25/100 -> 26/100**. The other point requires original Japanese VRC6 mapper/IRQ reference execution. The CPU/mapper category's distinct whole-game reference trace-parity point remains unearned. **New strict PRG 0**, cumulative **49,404/262,144 = 18.8461%**, last completed semantic checkpoint **0507**, physical fixed frontier **FB96** unchanged.
 
-[Verified 0512 native displacement](../analysis/0512_ACTOR_DISPLACEMENT_NATIVE_FINDINGS.md) reconstructs actual raw-bank `$0B:$80E3–$810E` branch with `SBC` signed delta and X ninth-bit carry, preserving original A/X/Y/P and scratch. Source fixed `$FDF2` maps bank $0B and `$FDF8` calls into it; physical mapping `$02C0E3` independently confirmed by Mesen. **73,742 native cases**, exact **1,792/1,792 RAM** for *each* of two naturally active type-$3D actors in original Mesen (3,584 overall). Their real `$65=$6B=0` while signed/overflow/wrap states are ROM-free math tests only. Original `$810F` vertical/actor-deletion branch and fixed `$B1F8` not lifted. [Private-state ROM-authenticated replay script](../tools/audit_mesen_displacement_0512.py). Preserve verified strict PRG49,504, VPP26, completed checkpoint0508, fixed CPU frontierFB96.
 
-## 0513 vertical signed displacement native code with clearly synthetic original-ROM differential
+## 2026-10-09 — Original Japanese-ROM independent playable Stage 1 reference (provisional, zero strict credit)
 
-[0513 original $0B:$810F/$8140/$8843 faithful C++ lift](../analysis/0513_VERTICAL_DISPLACEMENT_NATIVE_FINDINGS.md) closes these *instruction-defined semantic branches* for the bounded source entry, including original ZP scratch, 9-bit coordinate, `$054E/$0400` type gate, type-$3B `$0606/$061D` continuation and A/Y/P flag results. 270,351 independent ROM-free mathematical cases and 54 original Mesen forced-state CPU paths (96,768 nonstack RAM bytes exact). The Mesen 54 paths deliberately inject `$65/$6B` and PC; no gameplay liveness credit! Verified natural frame2603–2903 had no bank0B `$810F` branch. Next: actual `$65` producer domain, fixed `$B1F8` following `$FDFB`, native whole-actor frame goldens. PRG/VPP strict floor 0508, 49,504 bytes, 26 points and FB96 unchanged.
+The first independently sourced original-ROM frame trace is now available from [Mesen2 2.1.1 via externally SHA-verified v0.1.0 headless CLI](../SharedNES/0508_MESEN_ORIGINAL_GAMEPLAY_REFERENCE.md). The private JP ROM executes **1,100 sequential emulator frames**, from intro/name screen through prayer into visibly playable Stage 1; the earlier state `0A/03` was the name-entry interface, resolved by normal **START** in the original game. The physical-bank CDLv2 evidence class is **independent Mesen execution**, not manually injected-NMI simulation. Across these runs **12,885 distinct PRG code/operand bytes, 7,890 data bytes** were marked; **463 of the 4,364 already certified checkpoint-0501 bytes** are executed within the real Stage 1 continuation, not new credit. Authentic `$18` sampled states include `00,02,0A,09,03,04`, with `$18=04/$2C=03` during gameplay; `$0C/$0D` remains OPEN. Neither the full 0507 strict-ledger overlap nor complete mapped instruction/producer closure has been computed, so **new strict PRG bytes=0; total strict 49,404/262,144 (18.8461%), VPP 26/100, last semantic checkpoint 0507, fixed frontier FB96 unchanged**. SHA-pinned, hash-only [report](../analysis/0508_MESEN_ORIGINAL_GAMEPLAY_REFERENCE_REPORT.json) plus [reproducible audit](../tools/audit_mesen_reference_0508.py) and 12 ROM-free importer tests committed; private Mesen CDL/savestates/ROM/screenshots are never committed.
 
-## 0514 original gameplay preflight: source delta producer + postprocess B1F8 gate
 
-[0514 original-Mesen source and native differential](../analysis/0514_ACTOR_PREFLIGHT_NATIVE_FINDINGS.md): native PRG30 D2FE-D30C (`$62>=2` delta `$53-$08->$6B`) and bank0B B1F8-B215 actor type/frame eligibility, exact RAM/scratch plus A/X/Y/P and gate destination. 100,357 native mathematical/index tests; 38 original-ROM Mesen stepped cases (two natural-equivalent input, 36 forced RAM branch edges), 68,096 non-stack RAM bytes. Source `$D066` direct stage-row `$65` writer located via pointer `$0A/$0B` selected from `$34/$35/$36`, but genuine high-bit vertical input remains unobserved. Different scheduler vs allocator X ranges documented (1–17 vs 1–12). **Not** a reconstructed collision routine or complete frame: next original `$B217` / `$B258` and `$62=0/1` paths remain OPEN. Last completed strict 0508, PRG49504, VPP26 and fixed FB96 unchanged.
+## 0508 completed narrow fixed-bank certification — 100 NEW verified PRG bytes
 
-## 0515 original mapped actor collision admission through fixed collision call boundary
+New original-Mesen gameplay and original-source full-instruction proof: [0508 fixed live code certificate](../analysis/0508_MESEN_FIXED_LIVE_PROOF.md) and [hash-only machine evidence](../analysis/0508_MESEN_FIXED_LIVE_PROOF.json). Four **nonoverlapping** fixed PRG31 code/operand intervals: `$FBA5-$FBAF` (11), `$FBB0-$FBBA` (11), `$FF06-$FF11` (12), `$FF14-$FF55` (66). Independent real game breakpoints at frames 314, 605, 2030, 39 instruction starts decoded under fixed physical mapping, genuine mapper bank-$00 restoration and actual 160-instruction object-cleaner trace. All 100 bytes were explicitly unclaimed in 0507's fixed gap ledger; other gaps and `$FF12-$FF13` **remain uncredited**. **Strict floor 49,404 → 49,504 / 262,144 = 18.8843%; VPP remains 26/100; fixed CPU frontier FB96 remains.** Completed checkpoint 0508 is limited to these four proven source fragments and does not close earlier provisional 0508 room-$0D or external/native parity uncertainties.
 
-[Original Japanese native source-equivalent collision gate B217–B231](../analysis/0515_COLLISION_ADMISSION_NATIVE_FINDINGS.md) composes with 0514 B1F8 gate to `$B232` before actual `JSR $B339`. Hardware Mesen physical PRG `$02F217` and 27 original mapped bytes authenticated. **82,947 native test cases**, 58 original-Mesen RAM/CPU comparisons: TWO windows on the **same naturally reached actor X1** plus 56 explicitly RAM-injected synthetic branch cases, 103,936/103,936 non-stack RAM bytes and A/X/Y/P plus destination PC exact. No native B339 or collision helper yet; natural 48-instruction trace proves `$B339` table prelude then `$B36D JSR $80B3`, making this the next source-first frontier. Native index X1..17 does not alter FF06 allocation 1..12. Certification remains 0508: 49,504 PRG, VPP26, fixed frontier FB96, no RESUME_STATE promotion.
+The expanded independent [Stage 1 multi-branch suite](../SharedNES/0508_STAGE1_MULTIBRANCH_REFERENCE.md) executed **9,500 emulator frames in 10 jobs, seven divergent gameplay forks** from a common prior 1,100-frame route, reaching **BLK 1-02**. Physical code/data union **16,772 / 11,765** bytes (+3,887 / +3,875 newly *observed* relative to earlier reference), including **1,157** previously certified checkpoint-0501 code bytes. Cross-edition unique exact 16-byte candidate coverage: **3,165 JP code positions**; this is discovery evidence only, not additional semantic verification. All ROM/CDL/savestates/screenshots/instruction traces are private.
 
-## 0516 composed native actor collision measurement, original ROM/CPU verified
 
-[0516 original raw-bank0B B339/B393 collision measurement](../analysis/0516_COLLISION_MEASURE_NATIVE_FINDINGS.md) plus its absolute-difference subroutines `$80B3/$80C1` and authentic `$BB05/$BB0E/$BB80/$BC08/$B394` original data are source-lifted. The exact `$B394[1]=$05` was verified. New native code composes prior B1F8/B217 gates and B232 JSR B339 through B393. **139,343 C++ tests**, sanitizer pass; 50 original Mesen windows (2 overlapping windows on one naturally reached actor, 48 synthetic mutated RAM) exact across 89,600 nonstack RAM bytes and flags/PC. Natural actor takes horizontal early return; synthetic vertical path matches. Excluded original E5BE/B7 and B396 special branch; next source work is B235 collision response and alternate B396/E5BE. No new strict certified physical PRG bytes or VPP (0508 PRG49504/VPP26; FB96); source private artifacts retained locally.
+## Checkpoint 0509 — integrated native C++ CPU/mapper/IRQ headless execution (not playable)
 
-## 0517 original collision-tail path now natively reaches $FDFE
+[Native C++20 CPU/mapper/IRQ package](../native0509/README.md): 151 official 6502 opcodes, 2A03 binary ADC/SBC and instruction cycle costs, existing mapper 24 and VRC6 IRQ classes, controller serial I/O, RAM, partial PPU memory/registers, OAM DMA, modeled NMI scheduling and a bounded executable accepting the private original JP ROM. **262,144** exhaustive ADC/SBC arithmetic/flag cases passed locally, with synthetic mapped CPU/PPU/NMI tests. The first **7,828** original-ROM CPU PC addresses match an independently captured Mesen2 v2.1.1 PC stream; first divergence at **step 7,829** at PPU vblank polling. This is not standalone rewritten-game logic, CPU register or full hardware timing parity, a rendered game, or playable PC output. [Details and proof limits](0509_NATIVE_CPU_HEADLESS.md).
 
-[Original ROM source-backed collision-tail native state transfer](../analysis/0517_ACTOR_COLLISION_TAIL_NATIVE_FINDINGS.md): B235 carry branch skips/initializes $7E/$8E/$8D, B258 actor type and attachment gates, B29D empty follower slots 20..22 scan, B31F RTS return to fixed FDFE. Connected original B1F8→B217→B339→B393→B235→FDFE **91-instruction naturally reached CPU slice** matches full 1,792 nonstack Mesen RAM bytes and returned CPU registers/flags. Secondary 37-opcode natural tail overlaps same actor; 14 synthetic source comparisons cover type and attachment alternate stop branches, total 28,672 exact compared bytes. 65,539 ROM-free tests, sanitizers. Audit source SHA-locks bank0B windows and private controller-produced savestate; original FDFE continuation and B243/B27C/B2A8 helpers remain unlifted. Certified metrics 0508 PRG49,504, VPP26, physical frontier FB96 not promoted.
+**VPP stays 26/100; strict JP PRG 49,504/262,144 = 18.8843%; semantic checkpoint 0508; research 0509; fixed frontier FB96. No new credit for ROM-dependent native execution.**
 
-## 0518 evidence-based source accounting and gameplay VPP adjustment
 
-[0518 formal decision](../analysis/0518_RECONCILIATION_AND_VPP_DECISION.md): 25 original source windows/1,365 physical PRG bytes, 546 already 0501, 78 already 0508, **741 unclassified against full history** (not new certified bytes); original FF12–FF13 remains uncredited. Gameplay movement/collision VPP +1 on independent reusable 91-instruction Stage1 B1F8-to-FDFE source/native state-matched actor pipeline: gameplay **3/25**, VPP **27/100**. No further native-runtime/validation awards. Last completed semantic checkpoint **0508**, strict floor **49,504**, fixed frontier **FB96**. Continue fixed FDFE scheduler and B243/B27C/B2A8; assemble full earlier byte union before strict promotion.
+**0509 native reference follow-up:** The independent original-Mesen reset snapshot reports PPU scanline 0, cycle 31. An explicit test-fixture PPU phase selector in the native headless probe, with default startup unchanged, reproduces **24,773** consecutive original-ROM PC addresses; first mismatch at ordinal **24,774** is the NMI entry timing. Without the fixture seed the 7,828-step default result remains. Neither result proves register/cycle timing, PPU output, native playable port or new PRG bytes. [Golden evidence](0509_NATIVE_CPU_HEADLESS.md); [golden verifier](../tools/test_native_mesen_pc_0509.py). Strict **49,504**; VPP **26** unchanged.
 
-## 0519 first fixed-bank actor scheduler continuation beyond FDFE
 
-[Original ROM Mesen natural FDFE→FE31 actor15/type80 gate](../analysis/0519_FIXED_SCHEDULER_NATIVE_FINDINGS.md) now has 10 instruction-boundary replay and exact full 2 KiB RAM parity, PC/A/X/Y/P; 73,731 native bounded gate cases plus sanitizer pass. Native file `src/scheduler_postcollision_0519.cpp` only chooses next original fixed CPU call boundary FE0B/FE1D/FE2C/FE31/FE36/FE6E; **does not** model $BD11/$FF56/$FE8C. Independent 0518 VPP27 and source strict PRG49504 remain unchanged, semantic source certificate 0508/frontier FB96. Next prove original BD11 continuation from natural X15 state; no whole-frame parity.
+## 0509 independent native object/OAM technical preview (ROM-free)
 
-## 0520 original fixed/raw scheduler continuation with natural BD11->FE60
+[Standalone native actor/sprite pipeline](../standalone0509/README.md) now compiles and runs with no original ROM. It integrates the prior verified bank-0D C++ OAM assembler, bank-0B 8-bit collision helper, and new source-locked PRG31 FF06/FF15/FF24 actor scanner/18-field cleaner. The native program generates **synthetic** sprite descriptors/2bpp CHR, produces a deterministic 256x240 PPM, and accepts scripted demonstration inputs. Original-game helper bytes are SHA-audited; 4096 occupancy bitmaps and 512 RAM field-clear mutation cases plus exact image goldens pass Release and local ASan/UBSan CTest. **This is not the original game or a playable port**: assets, player control, physics, stage and background are synthetic, and PPU/audio parity remain open. [Technical scope](0509_ROM_FREE_ACTOR_PIPELINE.md); [ROM source audit](../tools/audit_actor_slot_0509.py). **No new semantic PRG bytes; strict 49,504/262,144 (18.8843%), VPP 26/100 unchanged.**
 
-[0520 original ROM CPU source audit](../analysis/0520_SCHEDULER_BD11_FE34_NATIVE_FINDINGS.md) extends the natural 0519 actor15/type80 from `$FDFE` through `JSR $BD11`, original raw-bank0B `$BD11/$BD10` early return, fixed PRG31 `$FE34` type/attribute logic, to `$FE60` before `JSR $EF93`. Connected 28-instruction natural window matches all 1,792 nonstack RAM bytes + A/X/Y/P/PC; nested BD11->FE60 natural 17-instruction window matches full 2KiB, same original actor. Twelve RAM-injected original CPU edge cases cover BD15/BD1F and FE4E/FE63/FE6E, total 14 cases/28,416 RAM bytes exact. 77,827 ROM-free native unit states+sanitizers, audited ROM/Mesen hashes, no full actor frame. Last strict semantic 0508, PRG49,504 and VPP27, frontier FB96 unchanged. Next original source FE60 JSR EF93; preserve source hardware stack exclusion rule in composed path.
+## 0509 provisional cross-bank source actor allocation
 
-## 0521 source-lifted original fixed EF93 animation timer/descriptor $0E
+[Actor spawn source audit](../analysis/0509_ACTOR_SPAWN_PRODUCER_FINDINGS.md) runs original raw $0A:$90CA into fixed $FF06 over all 4,096 occupancy masks: 4,095 available-slot routes and one full-slot exit; 73,717 source instructions. Exact scratch/actor/script RAM writes and 6502 flags/stack are checked. Conditional source code alone does not demonstrate game-frame entry or live mapper bank context. Strict verified PRG stays 49,504/262,144 (18.8843%), VPP stays 26/100, completed checkpoint 0508 and frontier FB96 unchanged.
 
-[0521 original Mesen source and native C++](../analysis/0521_ORIGINAL_ANIMATION_NATIVE_FINDINGS.md): natural Stage1 actor15 from FDFE→FE63 spans **57 original instructions**; exact 1,792 nonstack RAM bytes and A/X/Y/P/PC. Embedded EF93→FE63 window spans 28 steps and matches 2048/2048 RAM bytes including stack. ROM source code `$03EF93`, indexed original pointer `$03EFE0→F359`, and 48 ROM descriptor bytes authenticated; when timer expires only `$048C,X=$0E`, frame index 0–15 are supported; other pointers explicitly throw. Original Mesen matrix 38 windows (2 overlapping natural on same actor; 36 synthetic) agrees 77,568/77,568 RAM comparison bytes. 65,547 native C++ cases, sanitizers. Evidence ledger and project runner updated. Next fixed `$FE63 JSR $E2D0` and source `$8161/$826C`. PRG49,504, VPP27, last certified semantic0508, frontierFB96 unchanged.
+## 0509 provisional raw-$0A actor precheck producer
+
+[Source-stepped first-level actor gate](../analysis/0509_ACTOR_PRECHECK_PRODUCER_FINDINGS.md) extends $90CA back through $90C5: JSR $8CDD conditionally reads $53 and $07E0,X before tail-JMP $FF06. Only when both are zero and a slot is vacant does $90CA clear $10 and set $054E,X=$13 / $05EF,X=0; blocked/all-full routes branch to $9128. Original-ROM runner passes 12,288 synthetic-state scenarios and 188,332 fetched instructions; the four pointer words at $90BD are structural, not live-dispatch proof. No original Mesen gameplay reachability or mapper-time proof; **0 new strict PRG bytes**, PRG total **49,504/262,144**, VPP **26/100**, checkpoint 0508 and frontier FB96 unchanged.
+
+## 0509 provisional actor guard producer arithmetic
+
+[Raw-bank actor guard producer audit](../analysis/0509_ACTOR_GUARD_PRODUCERS_FINDINGS.md) now executes all four direct raw-$0A `$07E0,X` store encodings under bounded original-ROM CPU states (two 65,536-case signed-direction arithmetic paths, 512 carry-bit cases, 256 initializer cases). Source-accurate fixed PRG31 `$FB7A/$FB88` `$53/$54` increment/decrement passes 65,536 inputs in each direction. **262,912 local states / 3,280,384 authentic instructions**; the `$53/$54` paired arithmetic and `$07E0,X` bit masking are conditional source facts, not original Stage 1 entry/mapper liveness. Strict verified 49,504/262,144 (18.8843%), VPP26, checkpoint0508, frontierFB96 unchanged.
+
+## 0509 integrated six-object event dispatch and original actor lifecycle (provisional)
+
+[Source-stepped scheduler/dispatcher/actor chain](../analysis/0509_ACTOR_DISPATCH_CHAIN_FINDINGS.md) follows raw VRC6 bank $0A:$84EA scheduler through $8501 two-level indexed original-ROM pointers and $8CDD/fixed $FF06 guard into source $90C5/$90DF/$9133 (1/2/3 actor creations). **98,304 test states / 6,174,946 original instructions / 111 distinct PC addresses** pass with original ordered RAM writes, partial allocations, event progression only after complete success, source X/stack returns and $07C8 high-nibble masking. Source entry $9133 corrects an earlier provisional $9131 misidentification. This is bounded input-state evidence, not an original stage-liveness/PPU/frame certificate. [Optional independent Mesen2 trace recipe](0509_MESEN_ACTOR_DISPATCH_CAPTURE.md). **Zero new verified bytes**; strict PRG remains 49,504 / 262,144 (18.8843%), VPP 26/100, checkpoint 0508, fixed frontier FB96.
+
+## 0509 verified independent Mesen2 Stage 1-02 actor-event source entry
+
+[Live original-JP emulator evidence](../analysis/0509_MESEN_ACTOR_LIVE_FINDINGS.md) **closes the local game-frame reachability gap for raw bank $0A:$84EA→$84F3→$8501 and event row $32→$8B2C** on one naturally controlled Stage 1-02 route. Mesen2 2.1.1 hits frame 3092 with raw bank $0A and original X=3, $07C2,X=$32, $07C8,X=0, $53=$07E0,X=0; 600 actual CPU instructions contain two $84F3/$8501/$8520/$8B2C/$FF06/$FF24/$84F8 cycles, creating two type-$3D actors. Clean independent boot reproduces identical registers/cycles and trace SHA. The earlier synthetic $90C5/$90DF/$9133 actor handlers are **not** shown live by this event. Original Mesen savestates/CDL/traces and ROM remain private. Physical manifest overlap pending: strict PRG49,504, VPP26, certified 0508, frontier FB96 unchanged.
+
+## 0509 physically mapped Mesen actor-producer feedback matrix (provisional)
+
+[Seven-policy original emulator feedback report](../analysis/0509_MESEN_ACTOR_FEEDBACK_FINDINGS.md) executes seven independent 640-frame controller forks from the previously clean-boot-verified frame 2603, 4,480 total branch frames. Three jump-inclusive policies naturally activate raw-bank $0A source row $32 (frames 3088/3092/3094) and produce two live type-$3D actors each; four bounded policies do not. Source callbacks use Mesen physical PRG address conversion, not ZP mapper tracker alone. Authentic source $8143/$8157/$8182 row/guard/event writers, $8D90 actor setter, $8B71/$85DD event progression and original $A43F/$A444 five-byte descriptors are independently observed. [ROM-locked split-and-merge replay](../tools/audit_mesen_actor_feedback_0509.py) and [compact machine results](../analysis/0509_MESEN_ACTOR_FEEDBACK_REPORT.json). No strict promotion; 49,504/262,144, VPP26, last certified 0508, fixed FB96 unchanged.
+
+## 0510 provisional native PC title-to-first-stage playable prototype
+
+[Native host C++20 demonstrator](../native_demo0510/README.md) now implements a real PC title→short intro→single-room Stage 1 UI, keyboard movement/jump/attack, and local sample enemy/stage exit. The game logic is **not an emulator** but except for fixed $FF06/$FF24 actor slot/reset is currently **preview-authored**; visuals are local Mesen-derived Japanese scene reference stills that are **not committed in Git**. GCC14.2 X11 Release/ASan/UBSan, deterministic self-tests and clean ZIP unpack/rebuild pass locally. [Proof limitations](0510_NATIVE_PC_TITLE_STAGE_PROTOTYPE.md). This delivers a playable native starting point, not a Castlevania III source-equivalent port. Strict PRG49,504/262,144, VPP26/100, checkpoint0508, frontier FB96 unchanged.
+
+0510 native PC demo packaging refinement: independently compiled and ROM-free CTest-verified Linux **and Windows** executables (GitHub Actions [run 38076049062](https://github.com/Hyperbog/CVIII-Decomp/actions/runs/38076049062)). User-specific downloadable asset pack contains the private JP reference images, without committing game art. Windows GUI usability remains untested; native original gameplay parity remains unearned. Strict PRG/VPP unchanged.
+
+## 0510 original game actor row-$32 native semantic lift (source/Mesen exact RAM)
+
+[Source-faithful native C++ row-$32 handler](../analysis/0510_ROW32_NATIVE_LIFT_FINDINGS.md) replaces prototype rules with the actual raw-$0A:$8501→$8B2C source transition and its $8D5E/$8DC1/$8D76/fixed-$FF06/$FF24, raw-$0B:$A00F and $8B50 event packing. Two independently natural original Mesen Stage 1 frame-3092 actor dispatches (source objects 3,4; type-$3D actors in destination slots 1,2) are replayed against the C++ lift with **3,584/3,584 non-stack physical system-RAM bytes exact**; 4,111 separate ROM-free original-bounded tests pass and ASan/UBSan pass. Full 6502 stack/cycles, frame visual/audio, actor script follow-up and other event rows are not proved. No new strict PRG bytes or VPP; 49,504/262,144 (18.8843%), VPP26, completed 0508, fixed frontier FB96 unchanged.
+
+## 0511 faithful actor movement lift: original raw $0B 8001 and 8037
+
+[Source-exact native 2-axis actor arithmetic](../analysis/0511_ACTOR_MOTION_NATIVE_FINDINGS.md) now implements the actual original-JP raw bank $0B:$8001-$8036 and nested $8037-$804A source, not preview mechanics. Exhaustive/mixed **69,646 native arithmetic tests** and ASan/UBSan pass. An independent Mesen 2.1.1 naturally controller-produced type-$3D two-actor savestate permits exact native replay of two genuine $8001 calls: **3,584/3,584 nonstack RAM bytes, original A/Y/P, and 60 original instructions** at actual physical bank $0B (0x02Cxxx). The original Mesen source state is private/hash-locked; separate one-command full cold bootstrap intermittently stalls and is NOT claimed to pass. [Reproducer](../tools/audit_mesen_actor_motion_0511.py), [compact report](../analysis/0511_actor_motion_live_report.json). No full-frame native parity, no new strict PRG, VPP unchanged 26/100, certified 0508, physical frontier FB96.
+
+## 0512 original fixed-$FDF8 bank-$0B horizontal actor displacement
+
+[Faithful native original-JP `$0B:$80E3-$810E` horizontal branch](../analysis/0512_ACTOR_DISPLACEMENT_NATIVE_FINDINGS.md) is now separate C++ with original signed 8-bit `$6B`, 9th X bit `$0470,X`, double 6502 SBC carry/overflow and ZP `$00/$01` stores. **73,742 native mathematical/boundary test cases plus ASan/UBSan** pass. Mesen naturally reaches this exact source through fixed `$FDF2` bank switch / `$FDF8` call for both type-$3D actor slots; native 20-instruction per-call replay matches original **3,584/3,584 non-stack RAM bytes** and A/X/Y/P, physical PRG `$02C0E3`. Original live zero-delta only; negative `$65` vertical branch `$810F`, original $B1F8 continuation, collision/OAM and full frame remain OPEN. [ROM-locked replay](../tools/audit_mesen_displacement_0512.py); [compact Mesen results](../analysis/0512_live_displacement_report.json). Source strict PRG unchanged at 49,504/262,144, VPP26, last certified 0508, fixed FB96.
+
+## 0513 source-faithful vertical actor displacement and 8843 type3B continuation
+
+[Original raw $0B:$810F/$8140 → `$8843` native reconstruction](../analysis/0513_VERTICAL_DISPLACEMENT_NATIVE_FINDINGS.md) covers source `$65` negative-axis branch, signed Y and ninth-bit carry, actor removal gate `<$68` / negative types, and the real `$8843` type-$3B 16-bit extra-coordinate writer. **270,351** ROM-free native oracle inputs and ASan/UBSan pass. Independent original-Mesen **54 synthetic injected RAM/PC configurations**, each executed with unchanged original ROM code, match **96,768/96,768 non-stack RAM bytes** and return A/Y/P to fixed `$FDFB`. Do NOT call these natural gameplay paths: 300 natural original-Mesen Stage 1 frames observed no `$810F` entry. Genuine `$65` producer, fixed `$B1F8` downstream and complete native frame remain open. No new certified PRG/VPP; 49,504/262,144 (18.8843%), VPP26, last certified 0508, fixed frontier FB96.
+
+## 0514 native original $6B producer and bank-$0B actor postprocess gate
+
+[Verified Stage 1 actor preflight reconstruction](../analysis/0514_ACTOR_PREFLIGHT_NATIVE_FINDINGS.md) lifts original PRG30 `$D2FE–$D30C` ($62>=2 case, `$6B=$53-$08`) and raw bank-$0B `$B1F8–$B215` eligibility gate to original `$B1F7/$B217/$B258` outputs with A/X/Y/P. Original Mesen natural Stage 1 hit both; observer recorded 59 original `$6B=0` stores and 360 bank-qualified B1F8 calls in 60 frames (X1/2/14–17). The original direct `$65` writer at PRG30 `$D066` reads indexed room data and was **not** reached in those bounded samples; its input/liveness domain remains OPEN. 100,357 ROM-free native cases and sanitizers pass; 38 original-ROM emulator differential inputs (36 **injected synthetic**) match 68,096 non-stack RAM bytes plus flags and gate PCs. [Reproducer](../tools/audit_actor_preflight_0514.py) and [machine report](../analysis/0514_actor_preflight_report.json). No collision B217 continuation/full actor frame or strict PRG/VPP promotion; certified 0508 floor 49,504 bytes, VPP26, frontier FB96.
+
+## 0515 original Stage 1 collision admission: composed native B1F8 → B217 → B232
+
+[Authenticated JP source-faithful native collision precheck](../analysis/0515_COLLISION_ADMISSION_NATIVE_FINDINGS.md) extends the source-verified `$B1F8` gate through original raw-bank `$0B:$B217–$B231`: `$7E&$F0` bypass, `$054E,X` type ≥$69 route `$B162`, `$0470,X&2` route `$B1D8`, `$7D` bypass, or transfer `$B232` before `JSR $B339`. 82,947 ROM-free native cases + ASan/UBSan pass. Natural original-Mesen Stage1 actor X=1 passes composed 23 instructions and shorter 11-instruction tail with full 1,792 nonstack RAM, A/X/Y/P and PC exact each; 56 additional **RAM-injected synthetic** original-ROM branch cases also pass, 103,936 RAM bytes total. [ROM-locked audit](../tools/audit_b217_original_mesen_0515.py), [compact report](../analysis/0515_collision_precheck_mesen_report.json). Original next unlifted collision source `$B339→$80B3`. This is NOT full collision or frame native parity; strict PRG49,504/262,144, VPP26, completed certified 0508, fixed frontierFB96 unchanged.
+
+## 0516 original native collision distance, composed B1F8 → B393
+
+[Source-faithful native Japanese PRG `$0B:$B339-$B393` and `$80B3/$80C1` collision measurements](../analysis/0516_COLLISION_MEASURE_NATIVE_FINDINGS.md), including original room/player and actor type-indexed radius tables and correct 5-pixel `$B395` vertical offset, are integrated with the 0514/0515 gates into a single native B1F8→B393 path. **139,343 ROM-free C++ oracle cases** and ASan/UBSan pass. Independent original Mesen produces **50 windows**, two overlapping naturally reached paths on one Stage 1 actor (53 full prefix instructions; 29 measurement instructions) and 48 explicitly RAM-injected synthetic cases; **89,600/89,600 non-stack RAM bytes**, A/Y/P and next PC exact. Live original horizontal early exit; vertical path only synthetic Mesen differential. [ROM-locked automated replay](../tools/audit_collision_measure_0516.py), [compact machine report](../analysis/0516_collision_measure_mesen_report.json). Original `$B7/$E5BE`, `$B396`, `$B235` actual collision response and full frame remain OPEN. Strict PRG49,504/262,144 (18.8843%), VPP26, certified 0508, fixed frontier FB96 unchanged.
+
+## 0517 native JP collision response / follower scan through fixed FDFE
+
+[Faithful original $0B:$B235-$B27B, $B29D-$B2A7 and $B317-$B31F native lift](../analysis/0517_ACTOR_COLLISION_TAIL_NATIVE_FINDINGS.md) now composes previous B1F8/B217/B339 collision measurement with original collision-result/carry branching, $7E/$8D/$8E response state, type filters and empty follower scan X20..22. **91 authentic original-Mesen instructions** on one naturally reached Stage1 type-$3D actor from B1F8 to fixed FDFE match **1,792/1,792 non-stack physical RAM bytes, CPU A/Y/P**, plus shorter overlapping natural tail. 14 expressly RAM-injected synthetic branch windows test B243/B27C/B2A8 stops: 16 total source comparisons, **28,672/28,672** bytes exact. **65,539 ROM-free native test cases + ASan/UBSan pass**. [Original ROM replay](../tools/audit_actor_collision_tail_0517.py), [compact report](../analysis/0517_actor_collision_tail_report.json). This is NOT whole actor frame: fixed FE00 continuation, nonempty follower and contact paths, PPU/OAM remain OPEN. Strict certified 0508 PRG49,504/262,144, VPP26, FB96 unchanged.
+
+## 0518 physical PRG overlap and VPP reassessment
+
+[Deterministic source audit](../tools/audit_native_coverage_0518.py) inventories 25 SHA-locked windows (1,365 distinct original physical PRG bytes): 546 overlap 0501 certified regions, 78 overlap 0508 independently certified fixed bytes, and 741 are outside **only those two named references**. The 741 cannot be certified until the full historical 0502–0507 ledger is reconstructed. Original fixed FF12–FF13 remain excluded from 0508. No new strict PRG credit: **49,504/262,144 (18.8843%)**, semantic checkpoint 0508 and frontier FB96 unchanged.
+
+[Formal VPP rubric review](../analysis/0518_RECONCILIATION_AND_VPP_DECISION.md) grants **one additional gameplay movement/collision architectural point** (1→2/4) for the reusable connected original-JP native collision route B1F8→FDFE, independently verified on one natural Stage 1 actor (91 original CPU instructions, 1,792 exact non-stack RAM bytes, original A/X/Y/P). Gameplay becomes **3/25**, total **VPP 27/100**. This does not prove positive contact during natural gameplay, full frame parity or extra native-runtime completion.
+
+## 0519 original fixed FDFE scheduler decision, natural source-state native replay
+
+[Source-faithful fixed-bank actor gate](../analysis/0519_FIXED_SCHEDULER_NATIVE_FINDINGS.md) reconstructs `$FDFE→$FE00` original CPU type/attribute branching and stops before the next unlifted JSR. Natural Stage1 Mesen frame2603 actor X15/type `$80` executes **ten original instructions** to `$FE31` before `JSR $BD11`; structured native C++ matches **2,048/2,048 original RAM bytes including the stack**, exact PC/A/X/Y/P, with no stores. **73,731 ROM-free native test cases**, sanitizer builds and project CI pass. [Machine report](../analysis/0519_fixed_scheduler_mesen_report.json). Other first-call stop branches are native-synthetic only, not natural gameplay. Original `$BD11` and later scheduler steps remain OPEN. No new strict PRG credit, VPP stays 27/100, certified checkpoint 0508, physical frontier FB96 unchanged.
+
+## 0520 natural original JP BD11→FE34→FE60 scheduler continuation
+
+[Original source-qualified scheduler followup](../analysis/0520_SCHEDULER_BD11_FE34_NATIVE_FINDINGS.md): raw-bank `$0B:$BD11` original early-return gate reads `$A8/$05EF,X`; fixed PRG31 `$FE34–$FE5F` actor type/attribute checks resume at `$FE60 JSR $EF93` (unlifted). Native structured C++ composes 0519 `$FDFE` through `$FE60` for one natural Stage1 actor X15/type80 across **28 original CPU instructions**, 1,792 non-stack Mesen RAM bytes and exact A/X/Y/P/PC. Natural shorter `$BD11→$FE60` spans 17 instructions and **all 2,048 RAM bytes including stack** exact. 12 additional **RAM-injected synthetic** source paths authenticate BD15/BD1F/FE4E/FE63/FE6E alternatives: 14 Mesen comparisons, **28,416/28,416** RAM bytes exact. **77,827 ROM-free native cases**, ASan/UBSan pass. [Reproducer](../tools/audit_scheduler_followup_0520.py) and [machine report](../analysis/0520_original_mesen_followup_report.json). Strict PRG49,504, VPP27, certified semantic 0508/frontier FB96 unchanged. Next: original `$EF93` call and indexed animation/timer state.
+
+## 0521 original Japanese animation timer and source table F359
+
+[Fixed EF93 original source lift](../analysis/0521_ORIGINAL_ANIMATION_NATIVE_FINDINGS.md): authenticated ROM pointer EFD2+$0E -> F359, native exact source timer DEC and 16 animation triples. Natural actor15/type80 FDFE→FE63 **57 original CPU instructions**, native 1,792 nonstack RAM bytes exact; overlapping natural EF93 window 28 steps/full 2048-byte RAM exact. **38 Mesen windows**, 36 explicitly injected synthetic, **77,568/77,568** RAM comparisons and A/X/Y/P/PC exact; **65,547** native cases and sanitizers pass. [Audit](../tools/audit_animation_ef93_0521.py), [report](../analysis/0521_original_mesen_animation_report.json), [evidence ledger](../analysis/NATIVE_EVIDENCE_LEDGER.json). Unsupported descriptors and FE63 callbacks remain open. Strict PRG 49,504, VPP 27, completed semantic 0508/frontier FB96 unchanged.
