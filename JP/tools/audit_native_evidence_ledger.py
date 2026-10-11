@@ -40,11 +40,24 @@ def read(path: str) -> dict:
 
 def validate() -> dict:
     ledger = read("analysis/NATIVE_EVIDENCE_LEDGER.json")
+    # A previous parallel connector fetch paired document paths with the
+    # wrong content. Make the file-to-path contract executable, not just prose.
+    for relative, expected_heading in (
+        ("docs/PROGRESS.md", "# Decompilation progress ledger"),
+        ("docs/DECOMPILATION_CONTINUITY.md",
+         "# Akumajou Densetsu decomp/recomp continuity playbook"),
+        ("docs/CONTINUOUS_NATIVE_DECOMP_LOOP.md",
+         "# Japanese native decompilation"),
+    ):
+        document = ROOT / relative
+        insist(document.is_file() and document.read_text(encoding="utf-8").startswith(expected_heading),
+               f"Documentation content associated with wrong file path: {relative}")
+
     insist(ledger.get("schema") == "JP-native-original-evidence-ledger/v1",
            "Unexpected evidence ledger schema")
     insist(ledger.get("rom_sha256") == ROM_SHA, "Evidence ledger ROM identity drift")
     entries = ledger["entries"]
-    insist(isinstance(entries, list) and len(entries) >= 7,
+    insist(isinstance(entries, list) and len(entries) >= 8,
            "Missing historical original-JP Mesen evidence checkpoints")
     seen: set[str] = set()
     count = natural = synthetic = comparisons = independent_events = 0
@@ -94,7 +107,7 @@ def validate() -> dict:
         independent_events+=live
     # These historical anchors are intentionally locked. Additional entries
     # may expand totals but must not silently erase or rewrite prior evidence.
-    insist({"0513","0514","0515","0516","0517","0519","0520"} <= seen,
+    insist({"0513","0514","0515","0516","0517","0519","0520","0521"} <= seen,
            "A verified source checkpoint has disappeared from the evidence ledger")
     state = read("analysis/RESUME_STATE.json")
     expected = ledger["certification"]
