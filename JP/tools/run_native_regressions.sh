@@ -16,6 +16,11 @@ python3 "$root/JP/tools/audit_native_evidence_ledger.py"
 # No globally new byte claims: the 43,475-byte earlier baseline is unmapped.
 python3 -m py_compile "$root/JP/tools/test_recomp_6502_0525.py"
 python3 -m py_compile "$root/JP/tools/audit_historical_prg_0526.py" "$root/JP/tools/test_recomp_6502_0526.py"
+python3 -m py_compile "$root/JP/tools/audit_bank05_certificate_0527.py"
+python3 "$root/JP/tools/audit_bank05_certificate_0527.py"
+if [[ -n "$rom" ]]; then
+    python3 "$root/JP/tools/audit_bank05_certificate_0527.py" --rom "$rom"
+fi
 python3 "$root/JP/tools/audit_historical_prg_0526.py"
 python3 "$root/JP/tools/test_recomp_6502_0526.py"
 if [[ -n "$rom" ]]; then
