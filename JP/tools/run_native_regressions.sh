@@ -22,6 +22,12 @@ PYTHONPATH="$root/JP/tools" python3 -c 'import lift_bank05_scripts_0531 as s; as
 python3 -m py_compile "$root/JP/tools/lift_fixed_dispatch_0530.py"
 PYTHONPATH="$root/JP/tools" python3 -c 'import lift_fixed_dispatch_0530 as s; assert (sum(b-a for a,b,_ in s.HIST04FE),sum(b-a for a,b,_ in s.HIST04FF),sum(b-a for a,b,_ in s.HIST0500))==(957,931,982)'
 # JP 0532: verify original sound parser and bank04 source-lift invariants.
+# JP 0533 original sound interpreter and metadata proof (source-only CI).
+python3 -m py_compile "$root/JP/tools/lift_bank0c_sound_0533.py" "$root/JP/tools/test_bank0c_sound_0533.py"
+python3 "$root/JP/tools/test_bank0c_sound_0533.py"
+if [[ -n "$rom" ]]; then
+    python3 "$root/JP/tools/test_bank0c_sound_0533.py" --rom "$rom"
+fi
 python3 -m py_compile "$root/JP/tools/lift_bank04_parser_0532.py" "$root/JP/tools/test_bank04_parser_0532.py"
 python3 "$root/JP/tools/test_bank04_parser_0532.py"
 if [[ -n "$rom" ]]; then
