@@ -8,6 +8,12 @@ trap 'rm -rf "$build"' EXIT
 cxx="${CXX:-g++}"
 flags=(-std=c++20 -O2 -Wall -Wextra -Werror -pedantic -I "$src")
 rom="${1:-}"
+# Shared AI decomp/recomp semantic-evidence and native-source gates (ROM free).
+python3 -m unittest discover -s "$root/SharedDecomp" -p 'test_*.py' -v
+python3 "$root/SharedDecomp/workflow.py" bank "$root/JP/analysis/0539_RAW0A_BANK_MAP.json"
+python3 -m unittest discover -s "$root/JP/tools" -p 'test_0538_bank_workflow.py' -v
+python3 "$root/JP/tools/export_0538_bank_workflow.py" --smoke
+python3 -m unittest discover -s "$root/JP/tools/native" -p 'test_native_lookup_smoke.py' -v
 # Durable per-checkpoint research evidence gate. This catches provenance
 # regressions quickly, before slower native C++ compilation and CTest.
 python3 -m py_compile "$root/JP/tools/audit_native_evidence_ledger.py"
@@ -32,6 +38,12 @@ python3 "$root/JP/tools/build_fullbank_0a_source.py" --smoke
 python3 "$root/JP/tools/test_fullbank_raw0a_0538.py" --smoke
 if [[ -n "$rom" ]]; then
   python3 "$root/JP/tools/test_fullbank_raw0a_0538.py" --rom "$rom"
+fi
+if [[ -n "$rom" ]]; then
+  # Authenticated local-ROM only: 16KiB partition hashes and real original-6502 vs host-C++ lookup.
+  python3 "$root/JP/tools/build_fullbank_0a_source.py" --rom "$rom" --out "$build/0539_fullbank"
+  python3 "$root/JP/tools/export_0538_bank_workflow.py" --atlas "$build/0539_fullbank/raw0a_hierarchy_atlas.json" --rom "$rom" --out "$build/0539_evidence"
+  python3 "$root/JP/tools/native/replay_raw0a_native.py" --rom "$rom" --cases "$build/0539_fullbank/raw0a_bounded_selector_cases.json" --out "$build/0539_native"
 fi
 # 0536 0A/0E source schema, plus authenticated original ROM optional full recomp + corruption tests.
 python3 -m py_compile "$root/JP/tools/lift_bank0a_0508_0536.py" "$root/JP/tools/test_bank0a_0508_0536.py"
