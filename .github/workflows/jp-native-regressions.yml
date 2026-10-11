@@ -16,6 +16,11 @@ on:
       - 'JP/tools/mesen_0508_frame_state.lua'
       - 'JP/tests/**'
       - 'JP/tools/run_native_regressions.sh'
+      - 'JP/tools/audit_native_evidence_ledger.py'
+      - 'JP/tools/audit_native_coverage_0518.py'
+      - 'JP/tools/audit_animation_ef93_0521.py'
+      - 'JP/analysis/NATIVE_EVIDENCE_LEDGER.json'
+      - 'JP/analysis/0521_original_mesen_animation_report.json'
       - 'JP/tools/progress_score.py'
       - 'JP/analysis/PROGRESS_SCORE.csv'
       - '.github/workflows/jp-native-regressions.yml'
@@ -34,6 +39,11 @@ on:
       - 'JP/tools/mesen_0508_frame_state.lua'
       - 'JP/tests/**'
       - 'JP/tools/run_native_regressions.sh'
+      - 'JP/tools/audit_native_evidence_ledger.py'
+      - 'JP/tools/audit_native_coverage_0518.py'
+      - 'JP/tools/audit_animation_ef93_0521.py'
+      - 'JP/analysis/NATIVE_EVIDENCE_LEDGER.json'
+      - 'JP/analysis/0521_original_mesen_animation_report.json'
       - 'JP/tools/progress_score.py'
       - 'JP/analysis/PROGRESS_SCORE.csv'
       - '.github/workflows/jp-native-regressions.yml'
@@ -48,7 +58,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Validate weighted evidence rubric
         run: python3 JP/tools/progress_score.py
-      - name: Compile ten native tests and run ROM-free regressions
+      - name: Compile native source-level regressions and audit evidence provenance
         run: bash JP/tools/run_native_regressions.sh
       - name: Configure headless native CMake package and run CTest
         run: |
