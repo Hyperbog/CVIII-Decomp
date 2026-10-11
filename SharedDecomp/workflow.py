@@ -183,6 +183,37 @@ def normalize_frame(frame: dict, ignored: set[str]) -> dict:
     return {k: v for k, v in frame.items() if k not in ignored}
 
 
+def first_nested_difference(left: Any, right: Any, path: str = "") -> tuple[str, Any, Any] | None:
+    """Return a deterministic JSON-pointer path to the first nested mismatch.
+
+    Missing fields become safe string markers; live state is never ignored.
+    """
+    missing = "<missing>"
+    if isinstance(left, dict) and isinstance(right, dict):
+        for key in sorted(left.keys() | right.keys()):
+            segment = str(key).replace("~", "~0").replace("/", "~1")
+            next_path = path + "/" + segment
+            if key not in left:
+                return next_path, missing, right[key]
+            if key not in right:
+                return next_path, left[key], missing
+            nested = first_nested_difference(left[key], right[key], next_path)
+            if nested is not None:
+                return nested
+        return None
+    if isinstance(left, list) and isinstance(right, list):
+        for idx in range(min(len(left), len(right))):
+            nested = first_nested_difference(left[idx], right[idx], path+"/"+str(idx))
+            if nested is not None:
+                return nested
+        if len(left) != len(right):
+            return path+"/length", len(left), len(right)
+        return None
+    if left != right or type(left) is not type(right):
+        return path or "/", left, right
+    return None
+
+
 def trace_diff(reference: str | Path, candidate: str | Path,
                ignored: set[str] | None = None) -> dict:
     ignored = (ignored or set()) | {"wall_time", "capture_note"}
@@ -199,8 +230,13 @@ def trace_diff(reference: str | Path, candidate: str | Path,
         if left != right:
             differences = sorted(set(left) | set(right))
             first = next(x for x in differences if left.get(x, sentinel) != right.get(x, sentinel))
+            detail = first_nested_difference(left, right)
+            require(detail is not None, "trace mismatch without a nested difference")
+            first_path, ref_value, candidate_value = detail
             return {"status":"FAIL", "matched_steps":total,
                     "first_divergence_step":idx,"field":first,
+                    "field_path":first_path,
+                    "reference_value":ref_value, "candidate_value":candidate_value,
                     "reference":left.get(first), "candidate":right.get(first),
                     "reference_pc":left.get("pc"), "candidate_pc":right.get("pc"),
                     "reference_bank":left.get("physical_bank"), "candidate_bank":right.get("physical_bank")}

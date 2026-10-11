@@ -135,6 +135,30 @@ class TraceTests(unittest.TestCase):
         self.put(self.nat,mutated)
         self.assertEqual(trace_diff(self.ref,self.nat)['field'],'mapper')
 
+    def test_nested_ram_field_diagnostic(self):
+        mutated=copy.deepcopy(self.frames);mutated[1]['ram_writes'][0]['value']='FE'
+        self.put(self.nat,mutated)
+        r=trace_diff(self.ref,self.nat)
+        self.assertEqual(r['field_path'],'/ram_writes/0/value')
+        self.assertEqual((r['reference_value'],r['candidate_value']),('A0','FE'))
+
+    def test_nested_mapped_read_diagnostic(self):
+        events=[{'step':0,'mapped_accesses':[[0x9000,0x41],[0x9001,0x21]]}]
+        self.put(self.ref,events)
+        mutated=copy.deepcopy(events);mutated[0]['mapped_accesses'][1][0]=0x9002
+        self.put(self.nat,mutated)
+        r=trace_diff(self.ref,self.nat)
+        self.assertEqual(r['field_path'],'/mapped_accesses/1/0')
+        self.assertEqual((r['reference_value'],r['candidate_value']),(0x9001,0x9002))
+
+    def test_nested_missing_scalar_diagnostic(self):
+        mutated=copy.deepcopy(self.frames);del mutated[1]['regs']['A']
+        self.put(self.nat,mutated)
+        r=trace_diff(self.ref,self.nat)
+        self.assertEqual(r['field_path'],'/regs/A')
+        self.assertEqual(r['candidate_value'],'<missing>')
+        json.dumps(r)
+
     def test_truncated(self):
         self.put(self.nat,self.frames[:1]);self.assertEqual(trace_diff(self.ref,self.nat)['field'],'trace_length')
 
