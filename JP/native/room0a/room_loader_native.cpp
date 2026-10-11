@@ -12,6 +12,7 @@
 
 namespace {
 constexpr int kBankSize=0x4000;
+constexpr std::array<unsigned,8> kSlots{{0x400,0x41C,0x438,0x454,0x470,0x48C,0x4A8,0x54E}};
 class Image {
     std::array<uint8_t,kBankSize> bytes_{};
 public:
@@ -84,15 +85,46 @@ struct Room {
             ram.at(0x54E + x)=1;
             ++x;
         }
-        ram[0x7A6]=0;
+        // $07A6 is not altered by $B7F7-$B872. The older standalone
+        // fixture started it at zero and masked this preservation rule.
         ram[0x10]=0;
         if(mapper!=10 || mapper_writes!=2*indirect_reads)
             throw std::runtime_error("mapper restoration violation");
     }
+    void state_bridge(const Image& bank0a,const Image& bank0e,unsigned index,unsigned seed) {
+        // Execute the semantics of the authenticated, *conditional* path:
+        // E526 -> B4CC -> E7FB -> B597 -> B689 -> E7FB -> B6A4
+        // -> B873 (07A6=9 sentinel) -> E785 clear -> B7F7 loader.
+        for(unsigned x=1;x<23;++x)
+            for(unsigned k=0;k<kSlots.size();++k)
+                ram[kSlots[k]+x]=static_cast<uint8_t>(seed*13+x*17+k*31);
+        ram[0x19]=2;ram[0x68]=0;ram[0x7A6]=9;ram[0x7A0]=static_cast<uint8_t>(index);
+        // E526 writes mapper bank 0A via E2D0, then JMP B4CC.
+        mapper=10;ram[0x23]=10;
+        // E7FB consumes JSR return address and looks up the state target.
+        const uint16_t state_target=static_cast<uint16_t>(bank0a.at(0xB4D1+2*2) |
+            (static_cast<unsigned>(bank0a.at(0xB4D1+2*2+1))<<8));
+        const uint16_t substate_target=static_cast<uint16_t>(bank0a.at(0xB68E) |
+            (static_cast<unsigned>(bank0a.at(0xB68F))<<8));
+        if(state_target!=0xB597||substate_target!=0xB6A4)
+            throw std::runtime_error("inline dispatcher entry no longer proves B597/B6A4 path");
+        // B873 Y=07A6*3; the 10th descriptor is an FF sentinel.
+        if(bank0a.at(0xB8A6+3*9)!=0xFF)
+            throw std::runtime_error("B873 sentinel branch no longer taken");
+        // E785 clears the eight parallel object-slot fields, X=1..22.
+        for(unsigned x=1;x<23;++x)
+            for(unsigned base:kSlots)ram[base+x]=0;
+        // B6B1 JSR B7F7. B7F7 does *not* clear $07A6.
+        load(bank0a,bank0e,index);
+        if(ram[0x7A6]!=9||ram[0x19]!=2||ram[0x68]!=0)
+            throw std::runtime_error("state field mutated on sentinel loader path");
+    }
 };
-void json_frame(const Room& r,unsigned index,unsigned seed,unsigned step) {
+void json_frame(const Room& r,unsigned index,unsigned seed,unsigned step,bool integrated=false) {
     std::cout << "{\"step\":" << step << ",\"physical_bank\":\"NES:JP:VRC6:raw0A\""
-              << ",\"cpu_path\":\"B7F7-B872/FB96/E2D0\""
+              << ",\"cpu_path\":\"" << (integrated
+                  ? "E526/B4CC/E7FB/B597/B689/B6A4/B873/E785/B7F7/FB96/E2D0"
+                  : "B7F7-B872/FB96/E2D0") << "\""
               << ",\"room_index\":" << index << ",\"seed\":" << seed
               << ",\"header\":[" << unsigned(r.ram[0x34]) << ',' << unsigned(r.ram[0x35])
               << ',' << unsigned(r.ram[0x36]) << ',' << unsigned(r.ram[0x54])
@@ -123,18 +155,41 @@ void json_frame(const Room& r,unsigned index,unsigned seed,unsigned step) {
                  <<','<<unsigned(r.ram[0x438+i])<<','<<unsigned(r.ram[0x41C+i])
                  <<','<<unsigned(r.ram[0x4A8+i])<<','<<unsigned(r.ram[0x54E + i])<<']';
     }
-    std::cout<<"]}\n";
+    std::cout << "]";
+    if(integrated) {
+        std::cout << ",\"state_19\":" << unsigned(r.ram[0x19])
+                  << ",\"substate_68\":" << unsigned(r.ram[0x68])
+                  << ",\"room_stream_state_7a6\":" << unsigned(r.ram[0x7A6])
+                  << ",\"pc_after_loader\":46772,\"sp_after_loader\":249"
+                  << ",\"state_dispatch_targets\":[46487,46756]"
+                  << ",\"state_gate\":\"B8A4_07A6_9_sentinel\""
+                  << ",\"state_mapper_write_count\":1,\"slot_fields\":[";
+        for(unsigned x=1;x<23;++x){
+            if(x>1)std::cout<<',';
+            std::cout<<'[';
+            for(unsigned k=0;k<kSlots.size();++k){
+                if(k)std::cout<<',';
+                std::cout<<unsigned(r.ram[kSlots[k]+x]);
+            }
+            std::cout<<']';
+        }
+        std::cout<<']';
+    }
+    std::cout << "}\n";
 }
 }
 int main(int argc,char**argv) {
-    if(argc!=3){std::cerr<<"usage: room_loader_native physical_raw0a.bin physical_raw0e.bin\n";return 2;}
+    if(argc!=3 && argc!=4){std::cerr<<"usage: room_loader_native physical_raw0a.bin physical_raw0e.bin [--state-bridge]\n";return 2;}
+    const bool integrated=argc==4;
+    if(integrated && std::string(argv[3])!="--state-bridge")return 2;
     try {
         const Image a(argv[1]),e(argv[2]);
         unsigned step=0;
         for(unsigned index=0;index<5;++index)for(unsigned seed=0;seed<256;++seed){
             Room room;
-            room.load(a,e,index);
-            json_frame(room,index,seed,step++);
+            if(integrated)room.state_bridge(a,e,index,seed);
+            else room.load(a,e,index);
+            json_frame(room,index,seed,step++,integrated);
         }
     }catch(const std::exception&e){std::cerr<<"native loader: "<<e.what()<<'\n';return 1;}
     return 0;

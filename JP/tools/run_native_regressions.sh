@@ -45,6 +45,15 @@ if [[ -n "$rom" ]]; then
   python3 "$root/JP/tools/export_0538_bank_workflow.py" --atlas "$build/0539_fullbank/raw0a_hierarchy_atlas.json" --rom "$rom" --out "$build/0539_evidence"
   python3 "$root/JP/tools/native/replay_raw0a_native.py" --rom "$rom" --cases "$build/0539_fullbank/raw0a_bounded_selector_cases.json" --out "$build/0539_native"
 fi
+# 0541: original fixed E526 -> two bank0A inline-tail dispatches ->
+# B873 sentinel -> E785 22-slot clear -> bank0E object stream loader.
+# ROM-free synthetic state replay runs in public CI. Authenticated retail
+# CPU-vs-C++ 1280-case comparisons run only if supplied original JP ROM.
+python3 -m py_compile "$root/JP/tools/replay_room_state_0541.py" "$root/JP/tools/test_room_state_0541.py"
+python3 "$root/JP/tools/test_room_state_0541.py" --smoke
+if [[ -n "$rom" ]]; then
+  python3 "$root/JP/tools/test_room_state_0541.py" --rom "$rom" --out "$build/0541_state_bridge"
+fi
 # 0540: native translated JP room0A loader (five room streams),
 # optional full authenticated original-6502/native 1280-case trace replay.
 python3 -m py_compile "$root/JP/tools/replay_room_loader_0540.py" "$root/JP/tools/test_room_loader_0540.py"
