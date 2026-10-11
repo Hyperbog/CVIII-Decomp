@@ -45,6 +45,13 @@ if [[ -n "$rom" ]]; then
   python3 "$root/JP/tools/export_0538_bank_workflow.py" --atlas "$build/0539_fullbank/raw0a_hierarchy_atlas.json" --rom "$rom" --out "$build/0539_evidence"
   python3 "$root/JP/tools/native/replay_raw0a_native.py" --rom "$rom" --cases "$build/0539_fullbank/raw0a_bounded_selector_cases.json" --out "$build/0539_native"
 fi
+# 0540: native translated JP room0A loader (five room streams),
+# optional full authenticated original-6502/native 1280-case trace replay.
+python3 -m py_compile "$root/JP/tools/replay_room_loader_0540.py" "$root/JP/tools/test_room_loader_0540.py"
+python3 "$root/JP/tools/test_room_loader_0540.py" --smoke
+if [[ -n "$rom" ]]; then
+  python3 "$root/JP/tools/test_room_loader_0540.py" --rom "$rom"
+fi
 # 0536 0A/0E source schema, plus authenticated original ROM optional full recomp + corruption tests.
 python3 -m py_compile "$root/JP/tools/lift_bank0a_0508_0536.py" "$root/JP/tools/test_bank0a_0508_0536.py"
 python3 "$root/JP/tools/test_bank0a_0508_0536.py"
