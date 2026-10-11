@@ -91,6 +91,48 @@ struct Room {
         if(mapper!=10 || mapper_writes!=2*indirect_reads)
             throw std::runtime_error("mapper restoration violation");
     }
+    void state_gate(const Image& bank0a,unsigned index,unsigned seed) {
+        // Non-sentinel B873 branch after fixed E526, double E7FB dispatch
+        // and B597/B689/B6A4. This completes the *non-loading* branch,
+        // including the original E843 header, E86B / EC70 FF terminator,
+        // then B6AD and B5A2 return. Indices 0..8 are structural, not live.
+        if(index>=9)throw std::runtime_error("gate descriptor outside 0..8");
+        for(unsigned j=0x300;j<0x380;++j)
+            ram[j]=static_cast<uint8_t>(seed*13+j*7);
+        ram[0x19]=2;ram[0x68]=0;ram[0x7A6]=static_cast<uint8_t>(index);
+        ram[0x1E]=static_cast<uint8_t>(seed&31);
+        ram[0x1D]=2;ram[0x23]=10;mapper=10;
+        const auto state_target=static_cast<uint16_t>(bank0a.at(0xB4D5) |
+            (static_cast<unsigned>(bank0a.at(0xB4D6))<<8));
+        const auto substate_target=static_cast<uint16_t>(bank0a.at(0xB68E) |
+            (static_cast<unsigned>(bank0a.at(0xB68F))<<8));
+        if(state_target!=0xB597||substate_target!=0xB6A4)
+            throw std::runtime_error("inline state table drift");
+        const unsigned off=0xB8A6+3*index;
+        const auto first=bank0a.at(static_cast<uint16_t>(off));
+        const auto second=bank0a.at(static_cast<uint16_t>(off+1));
+        const auto count=bank0a.at(static_cast<uint16_t>(off+2));
+        if(first==0xFF||count==0||count>64)
+            throw std::runtime_error("invalid non-sentinel descriptor");
+        ram[0x5F]=first;ram[0x5E]=second;ram[0x10]=count;
+        unsigned cursor=ram[0x1E];
+        const unsigned finish=cursor+3+count;
+        if(finish>=0x80)throw std::runtime_error("bounded buffer exceeds $037F");
+        // E843 X=ram[$1E], writes the type and 16-bit fields to $0300,X.
+        ram[0x300+cursor++]=1;
+        ram[0x300+cursor++]=second;
+        ram[0x300+cursor++]=first;
+        ram[0x1E]=static_cast<uint8_t>(cursor);
+        // B894: zero-run of the descriptor's third byte.
+        for(unsigned j=0;j<count;++j)ram[0x300+cursor++]=0;
+        // E86B / EC70: update cursor, append FF, then increment cursor.
+        ram[0x1E]=static_cast<uint8_t>(cursor);
+        ram[0x300+cursor++]=0xFF;
+        ram[0x1E]=static_cast<uint8_t>(cursor);
+        ram[0x10]=0;
+        ++ram[0x7A6];
+        // B6A4 returns without clearing/loading room slots. B597 sees 68=0.
+    }
     void state_bridge(const Image& bank0a,const Image& bank0e,unsigned index,unsigned seed) {
         // Execute the semantics of the authenticated, *conditional* path:
         // E526 -> B4CC -> E7FB -> B597 -> B689 -> E7FB -> B6A4
@@ -120,6 +162,32 @@ struct Room {
             throw std::runtime_error("state field mutated on sentinel loader path");
     }
 };
+void json_gate(const Room& r,unsigned index,unsigned seed,unsigned step) {
+    std::cout << "{\"step\":" << step
+              << ",\"physical_bank\":\"NES:JP:VRC6:raw0A\""
+              << ",\"cpu_path\":\"E526/B4CC/E7FB/B597/B689/B6A4/B873/E843/E86B/EC70/B6AD/B5A2\""
+              << ",\"descriptor_index\":" << index << ",\"seed\":" << seed
+              << ",\"state_19\":" << unsigned(r.ram[0x19])
+              << ",\"substate_68\":" << unsigned(r.ram[0x68])
+              << ",\"stream_state_7a6\":" << unsigned(r.ram[0x7A6])
+              << ",\"ram_1d\":" << unsigned(r.ram[0x1D])
+              << ",\"ram_1e\":" << unsigned(r.ram[0x1E])
+              << ",\"ram_5e\":" << unsigned(r.ram[0x5E])
+              << ",\"ram_5f\":" << unsigned(r.ram[0x5F])
+              << ",\"ram_10\":" << unsigned(r.ram[0x10])
+              << ",\"pc_after_gate\":36864,\"sp_after_gate\":253"
+              << ",\"mapper\":" << unsigned(r.mapper)
+              << ",\"mapper_writes\":1,\"mapped_reads\":0"
+              << ",\"x\":" << unsigned(r.ram[0x1E])
+              << ",\"y\":" << 3*index
+              << ",\"carry\":false,\"zero\":false,\"negative\":false"
+              << ",\"buffer_0300_037f\":[";
+    for(unsigned j=0x300;j<0x380;++j) {
+        if(j>0x300)std::cout<<',';
+        std::cout<<unsigned(r.ram[j]);
+    }
+    std::cout<<"]}\n";
+}
 void json_frame(const Room& r,unsigned index,unsigned seed,unsigned step,bool integrated=false) {
     std::cout << "{\"step\":" << step << ",\"physical_bank\":\"NES:JP:VRC6:raw0A\""
               << ",\"cpu_path\":\"" << (integrated
@@ -179,12 +247,20 @@ void json_frame(const Room& r,unsigned index,unsigned seed,unsigned step,bool in
 }
 }
 int main(int argc,char**argv) {
-    if(argc!=3 && argc!=4){std::cerr<<"usage: room_loader_native physical_raw0a.bin physical_raw0e.bin [--state-bridge]\n";return 2;}
-    const bool integrated=argc==4;
-    if(integrated && std::string(argv[3])!="--state-bridge")return 2;
+    if(argc!=3 && argc!=4){std::cerr<<"usage: room_loader_native physical_raw0a.bin physical_raw0e.bin [--state-bridge|--state-gate]\n";return 2;}
+    const bool gated=argc==4 && std::string(argv[3])=="--state-gate";
+    const bool integrated=argc==4 && std::string(argv[3])=="--state-bridge";
+    if(argc==4 && !gated && !integrated)return 2;
     try {
         const Image a(argv[1]),e(argv[2]);
         unsigned step=0;
+        if(gated) {
+            for(unsigned index=0;index<9;++index)for(unsigned seed=0;seed<256;++seed){
+                Room room;room.state_gate(a,index,seed);
+                json_gate(room,index,seed,step++);
+            }
+            return 0;
+        }
         for(unsigned index=0;index<5;++index)for(unsigned seed=0;seed<256;++seed){
             Room room;
             if(integrated)room.state_bridge(a,e,index,seed);
