@@ -43,8 +43,8 @@ def test(rom=None):
         manifest=cart.generate_sources(data,Path(folder))
     if (manifest['total_prg_classified_code_table_and_script_bytes'],
         manifest['unclassified_prg_bytes'],
-        manifest['symbolic_6502_instruction_bytes'])!=(48028,214116,13893):
-        raise ValueError('0533 fully reassembled source classification regression')
+        manifest['symbolic_6502_instruction_bytes'])!=(50223,211921,14397):
+        raise ValueError('0533 bank0C source remains integrated into 0534 whole cart')
     print('PASS original JP ROM 0533 25-bank exact recomp, 6627 new classified bytes, 4 tampering tests')
 
 
@@ -53,3 +53,4 @@ if __name__=='__main__':
     p.add_argument('--rom',type=Path)
     args=p.parse_args()
     test(args.rom)
+

@@ -24,6 +24,11 @@ PYTHONPATH="$root/JP/tools" python3 -c 'import lift_fixed_dispatch_0530 as s; as
 # JP 0532: verify original sound parser and bank04 source-lift invariants.
 # JP 0533 original sound interpreter and metadata proof (source-only CI).
 python3 -m py_compile "$root/JP/tools/lift_bank0c_sound_0533.py" "$root/JP/tools/test_bank0c_sound_0533.py"
+python3 -m py_compile "$root/JP/tools/lift_sound_phrase_ai_0534.py" "$root/JP/tools/test_sound_phrase_ai_0534.py"
+python3 "$root/JP/tools/test_sound_phrase_ai_0534.py"
+if [[ -n "$rom" ]]; then
+  python3 "$root/JP/tools/test_sound_phrase_ai_0534.py" --rom "$rom"
+fi
 python3 "$root/JP/tools/test_bank0c_sound_0533.py"
 if [[ -n "$rom" ]]; then
     python3 "$root/JP/tools/test_bank0c_sound_0533.py" --rom "$rom"
