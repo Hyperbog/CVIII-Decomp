@@ -14,6 +14,7 @@ import audit_nmi_fixed_scheduler_banked as proof
 import test_recomp_6502_0525 as p25
 import test_recomp_6502_0526 as p26
 import lift_fixed_dispatch_0530 as d30
+import lift_bank05_scripts_0531 as data31
 
 ROOT=Path(__file__).resolve().parents[1]
 OP={(mn.lower(),mode):byte for byte,(mn,mode,n) in proof.OPS.items()}
@@ -215,6 +216,8 @@ def generate_sources(rom,out):
             raise ValueError('Fixed-bank graph instruction conflict')
         graphs['fixed31'][pc]=ins
     fragments.setdefault('fixed31',[]).extend(dispatch_tables)
+    script_fragment,script_stats=data31.lift(prg)
+    fragments.setdefault('raw05',[]).append(script_fragment)
     by_bank={};newbytes=0;new_instructions=0
     for bank,graph in graphs.items():
         old=set(x for f in fragments.get(bank,[]) for x in range(f['a'],f['b']))
@@ -273,10 +276,13 @@ def generate_sources(rom,out):
                      for filename,bank,base,n,off in specs)+b''.join(
         assemble((out/f'chr_{bank:02x}.asm').read_text(),0,16384) for bank in range(8))
     if rebuilt!=rom:raise ValueError('Whole cartridge recompilation incorrect')
-    if claimed!=7306:raise ValueError('Miscounted reassembled symbolic bytes')
-    manifest={'schema':'jp-0530-whole-cart-fixed-dispatch-source/v1','original_sha256':proof.ROM_SHA,
+    if claimed!=21474:raise ValueError('Miscounted reconstructed code/table/script bytes')
+    manifest={'schema':'jp-0531-whole-cart-original-script-source/v1','original_sha256':proof.ROM_SHA,
               'source_files':25,'prg_bytes_reassembled':262144,'chr_bytes_reassembled':131072,
               '0530_fixed_dispatch_evidence':early_stats,
+              '0531_bank05_script_evidence':script_stats,
+              'total_prg_classified_code_table_and_script_bytes':claimed,
+              'total_authenticated_script_data_bytes':14168,
               'symbolic_6502_and_typed_data_bytes':7306,'symbolic_6502_instruction_bytes':7146,
               'total_verified_inline_pointer_bytes':160,
               'new_mnemonic_bytes_since_0529':2719,'new_symbolic_bytes_since_0529':2873,
@@ -288,7 +294,7 @@ def generate_sources(rom,out):
               'limit':'Original certified 04FE/04FF/0500/0501 source, not newly proven runtime parity or novel strict coverage.'}
     (out/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n',encoding='utf-8')
     print('PASS original JP whole cartridge 393232/393232 bytes, 25 bank sources')
-    print('PASS new symbolic 6502 bytes',newbytes,'total',claimed,'raw bank distribution',by_bank)
+    print('PASS 6502 mnemonic/table bytes 7306; authenticated bank05 script bytes 14168; total classified',claimed)
     return manifest
 
 def smoke():

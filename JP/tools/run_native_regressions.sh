@@ -17,6 +17,8 @@ python3 "$root/JP/tools/audit_native_evidence_ledger.py"
 python3 -m py_compile "$root/JP/tools/test_recomp_6502_0525.py"
 python3 -m py_compile "$root/JP/tools/audit_historical_prg_0526.py" "$root/JP/tools/test_recomp_6502_0526.py"
 # Source reproducibility: ROM-free assembler smoke, original-ROM full 25-bank rebuild.
+python3 -m py_compile "$root/JP/tools/lift_bank05_scripts_0531.py"
+PYTHONPATH="$root/JP/tools" python3 -c 'import lift_bank05_scripts_0531 as s; assert sum(b-a for _,a,b,_ in s.WINDOWS)==14168 and len(s.WINDOWS)==3'
 python3 -m py_compile "$root/JP/tools/lift_fixed_dispatch_0530.py"
 PYTHONPATH="$root/JP/tools" python3 -c 'import lift_fixed_dispatch_0530 as s; assert (sum(b-a for a,b,_ in s.HIST04FE),sum(b-a for a,b,_ in s.HIST04FF),sum(b-a for a,b,_ in s.HIST0500))==(957,931,982)'
 python3 -m py_compile "$root/JP/tools/build_whole_cart_recomp_0529.py"
