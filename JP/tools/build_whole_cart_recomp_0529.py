@@ -18,6 +18,7 @@ import lift_bank05_scripts_0531 as data31
 import lift_bank04_parser_0532 as data32
 import lift_bank0c_sound_0533 as data33
 import lift_sound_phrase_ai_0534 as data34
+import lift_bank0a_state_0535 as data35
 
 ROOT=Path(__file__).resolve().parents[1]
 OP={(mn.lower(),mode):byte for byte,(mn,mode,n) in proof.OPS.items()}
@@ -228,6 +229,8 @@ def generate_sources(rom,out):
     fragments.setdefault('raw0C',[]).extend(bank0c_0533)
     source_0534,stats_0534=data34.source(prg)
     for bank,entries in source_0534.items():fragments.setdefault(bank,[]).extend(entries)
+    source_0535,stats_0535=data35.classify(prg)
+    for bank,entries in source_0535.items():fragments.setdefault(bank,[]).extend(entries)
     by_bank={};newbytes=0;new_instructions=0
     for bank,graph in graphs.items():
         old=set(x for f in fragments.get(bank,[]) for x in range(f['a'],f['b']))
@@ -286,14 +289,18 @@ def generate_sources(rom,out):
                      for filename,bank,base,n,off in specs)+b''.join(
         assemble((out/f'chr_{bank:02x}.asm').read_text(),0,16384) for bank in range(8))
     if rebuilt!=rom:raise ValueError('Whole cartridge recompilation incorrect')
-    if claimed!=50223:raise ValueError('0534 source count drift: 48028+576 AI+1619 phrase structure')
-    manifest={'schema':'jp-0534-whole-cart-sound-phrases-and-AI-source/v1','original_sha256':proof.ROM_SHA,
+    if claimed!=50846:raise ValueError('0535 source count drift: 50223+623 original state/helper code and data')
+    manifest={'schema':'jp-0535-whole-cart-state-source/v1','original_sha256':proof.ROM_SHA,
               'source_files':25,'prg_bytes_reassembled':262144,'chr_bytes_reassembled':131072,
               '0530_fixed_dispatch_evidence':early_stats,
               '0531_bank05_script_evidence':script_stats,
               '0532_bank04_and_parser_evidence':stats_0532,
               '0533_bank0c_sound_and_interpreter_evidence':stats_0533,
               '0534_phrase_table_and_AI_evidence':stats_0534,
+              '0535_state_and_helper_source_evidence':stats_0535,
+              '0535_new_classified_prg_bytes':623,
+              '0535_additional_6502_opcode_bytes':581,
+              '0535_additional_lookup_table_bytes':42,
               '0534_new_verified_AI_code_and_data_bytes':576,
               '0534_phrase_structural_candidate_bytes':1619,
               '0534_new_classified_source_bytes':2195,
@@ -309,10 +316,10 @@ def generate_sources(rom,out):
               'total_authenticated_script_data_bytes':28200,
               'additional_source_linked_bank0c_stream_pool_bytes':3523,
               'total_sound_script_and_bounded_stream_pool_bytes':31723,
-              'symbolic_6502_and_typed_data_bytes':16881,'symbolic_6502_instruction_bytes':14397,
+              'symbolic_6502_and_typed_data_bytes':17504,'symbolic_6502_instruction_bytes':14978,
               'total_verified_inline_pointer_bytes':160,
               'additional_parser_lookup_and_local_data_bytes':747,
-              'total_dispatch_parser_and_sound_metadata_bytes':2484,
+              'total_dispatch_parser_and_sound_metadata_bytes':2526,
               'additional_AI_bounded_table_bytes':72,
               'bank0c_secondary_phrase_table_and_pool_bytes':1619,
               'new_mnemonic_bytes_since_0529':2719,'new_symbolic_bytes_since_0529':2873,
@@ -321,10 +328,10 @@ def generate_sources(rom,out):
               'new_typed_dispatch_table_bytes':154,
               'extra_0530_symbolic_bytes':2873,
               'prg_banks':stats,'new_strict_certified_prg_bytes':0,
-              'limit':'Original certified 04FE/04FF/0500/0501 source, not newly proven runtime parity or novel strict coverage.'}
+              'limit':'0535 state-machine/static helper bytes added. No new strict PRG coverage, runtime mapper parity or certified sound selector bounds.'}
     (out/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n',encoding='utf-8')
     print('PASS original JP whole cartridge 393232/393232 bytes, 25 bank sources')
-    print('PASS 0534 original 6502 source 14397; typed tables 2484; original scripts 28200; sound pool 3523; secondary phrase structure 1619; total classified',claimed)
+    print('PASS 0535 original 6502 opcode/operand source 14978; typed tables 2526; scripts 28200; sound pool 3523; secondary phrase 1619; total classified',claimed)
     return manifest
 
 def smoke():
@@ -334,6 +341,7 @@ def smoke():
     data32.smoke()
     data33.smoke()
     data34.smoke()
+    data35.smoke()
     print('PASS ROM-free 6502 assembler branch/indexing/zero-page smoke')
 
 if __name__=='__main__':
@@ -343,4 +351,3 @@ if __name__=='__main__':
     else:
         if not a.rom or not a.out:p.error('both --rom and --out required, or --smoke')
         generate_sources(a.rom.read_bytes(),a.out)
-

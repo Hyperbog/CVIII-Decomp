@@ -59,7 +59,7 @@ def main(path=None):
         if (report['total_prg_classified_code_table_and_script_bytes'],
             report['symbolic_6502_instruction_bytes'],
             report['unclassified_prg_bytes'],
-            report['bank0c_secondary_phrase_table_and_pool_bytes'])!=(50223,14397,211921,1619):
+            report['bank0c_secondary_phrase_table_and_pool_bytes'])!=(50846,14978,211298,1619):
             raise ValueError('0534 exact ROM round-trip manifest mismatch')
     print('PASS 0534 exact original-JP ROM 25-bank 393232-byte recompilation; 9 negative source mutations')
 
@@ -69,4 +69,3 @@ if __name__=='__main__':
     a.add_argument('--rom',type=Path)
     args=a.parse_args()
     main(args.rom)
-
