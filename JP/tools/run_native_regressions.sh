@@ -86,6 +86,11 @@ compile actor_collision_measure_0516 "$src/actor_collision_measure_0516.cpp" "$s
 compile actor_collision_tail_0517 "$src/actor_collision_result_0517.cpp" "$src/actor_collision_measure_0516.cpp" "$src/actor_collision_precheck_0515.cpp" "$src/actor_preflight_0514.cpp"
 compile scheduler_postcollision_0519 "$src/scheduler_postcollision_0519.cpp"
 compile scheduler_followup_0520 "$src/scheduler_bd11_followup_0520.cpp" "$src/scheduler_postcollision_0519.cpp"
+compile scheduler_linked_actor_0524 "$src/scheduler_linked_actor_0524.cpp" "$src/scheduler_actor_reset_0523.cpp" "$src/scheduler_fe63_0522.cpp"
+"$build/scheduler_linked_actor_0524"
+echo "TEST PASS original JP type4D linked actor source (110592 bounded cases)"
+python3 -m py_compile "$root/JP/tools/audit_linked_actor_0524_rom.py"
+if [[ -n "$rom" ]]; then python3 "$root/JP/tools/audit_linked_actor_0524_rom.py" "$rom"; fi
 compile scheduler_actor_reset_0523 "$src/scheduler_actor_reset_0523.cpp" "$src/scheduler_fe63_0522.cpp"
 "$build/scheduler_actor_reset_0523"
 echo "TEST PASS source-bounded raw0B 8193 non-4D actor reset: 138240 supported / 9216 rejected"

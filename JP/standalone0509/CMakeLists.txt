@@ -19,6 +19,7 @@ add_library(cviii_standalone_sprite_pipeline STATIC
   "${SRC_DIR}/actor_animation_ef93_0521.cpp"
   "${SRC_DIR}/scheduler_fe63_0522.cpp"
   "${SRC_DIR}/scheduler_actor_reset_0523.cpp"
+  "${SRC_DIR}/scheduler_linked_actor_0524.cpp"
   "${SRC_DIR}/standalone_scene_0509.cpp"
   "${SRC_DIR}/oam_renderer.cpp"
   "${SRC_DIR}/collision_math.cpp")
@@ -131,3 +132,10 @@ target_link_libraries(scheduler_actor_reset_0523_test PRIVATE cviii_standalone_s
 add_test(NAME native_original_actor_reset_source_0523 COMMAND scheduler_actor_reset_0523_test)
 add_executable(native_fe63_replay_0523 "${CMAKE_CURRENT_SOURCE_DIR}/../tools/native_fe63_replay_0523.cpp")
 target_link_libraries(native_fe63_replay_0523 PRIVATE cviii_standalone_sprite_pipeline)
+
+# Provisional original-JP raw0B 0524 $81B2->$B56B linked actor source lift.
+add_executable(scheduler_linked_actor_0524_test "${TEST_DIR}/scheduler_linked_actor_0524_test.cpp")
+target_link_libraries(scheduler_linked_actor_0524_test PRIVATE cviii_standalone_sprite_pipeline)
+add_test(NAME native_original_linked_actor_source_0524 COMMAND scheduler_linked_actor_0524_test)
+add_executable(native_fe63_replay_0524 "${CMAKE_CURRENT_SOURCE_DIR}/../tools/native_fe63_replay_0524.cpp")
+target_link_libraries(native_fe63_replay_0524 PRIVATE cviii_standalone_sprite_pipeline)
