@@ -65,6 +65,13 @@ fi
 # 0546: authenticated-ROM mode now executes all six 6502 foreign scripts
 # against independent native translations with zero callbacks; synthetic
 # ROM-free mode retains explicitly labeled ID3/ID4 fixtures.
+# 0548: authenticated original CPU reset->first NMI, scripted external PPU/IRQ source.
+# CI runs ROM-free CPU and protocol checks; original ROM replay is opt-in.
+python3 -m py_compile "$root/JP/tools/replay_reset_0548.py" "$root/JP/tools/test_reset_0548.py"
+python3 "$root/JP/tools/test_reset_0548.py"
+if [[ -n "$rom" ]]; then
+    python3 "$root/JP/tools/test_reset_0548.py" --rom "$rom" --out "$build/0548_reset_nmi.json"
+fi
 # 0547: original 6502 NMI inline-dispatch -> native integrated six-script path.
 python3 -m py_compile "$root/JP/tools/replay_nmi_dispatch_0547.py" "$root/JP/tools/test_nmi_dispatch_0547.py"
 python3 "$root/JP/tools/test_nmi_dispatch_0547.py" --smoke
