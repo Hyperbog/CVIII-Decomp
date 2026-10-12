@@ -465,3 +465,7 @@ The expanded independent [Stage 1 multi-branch suite](../SharedNES/0508_STAGE1_M
 ## 0554 — NTSC PPU timing primitive (first native frame-scheduling foundation)
 
 [Standalone C++20 2C02 clock](../analysis/0554_NTSC_PPU_FRAME_CLOCK.md) adds deterministic 341×262 dot scheduling, 3 PPU clocks/CPU clock, VBlank and NMI-line/read-clear edges, and the odd-frame prerender skipped dot when rendering is enabled. GCC and Clang unit tests pass; CMake/CTest registers a ROM-free test. **Not wired to 0553 CPU/Bus**: instruction cycles, DMA, true $2002/PPUCTRL bus timing, IRQ, frame output and Mesen gameplay parity remain open. No strict PRG/VPP advancement: 49,504/262,144, VPP27/100, last semantic checkpoint 0508/frontier FB96.
+
+## 0554 Phase 2 — Account CPU instruction cycles and advance native PPU dot clock
+
+[CPU timing foundation](../analysis/0554_PHASE2_CPU_CYCLE_ACCOUNTING.md) adds official 6502 opcode/mode base cycles to the shared static-native `Cpu::exec`, taken branch and branch-page-cross penalties, indexed-read page-cross penalties, and 7 CPU-cycle NMI entry. Each counted CPU cycle advances the existing deterministic NTSC PPU dot clock by 3; new CTest covers representative instructions, JSR/RTS/NMI/RTI, indexed-store/RMW distinctions and clock totals. **The 0553 scripted $2002 and injected-NMI bus policy remains untouched**; this does not implement cycle-positioned bus reads, DMA, IRQ or natural PPU/CPU game frames. Strict 49,504/262,144, VPP27/100, last semantic checkpoint 0508/frontier FB96 remain unchanged.

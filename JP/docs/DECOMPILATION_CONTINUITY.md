@@ -422,3 +422,7 @@ The [raw0A 16KiB whole-bank reconstruction](../analysis/0537_WHOLE_BANK_RAW0A_FI
 ## 0554 — Native NTSC clock handoff
 
 `native/boot/ntsc_ppu_clock_0554.hpp` and CTest cover NTSC 341-dot/262-line frames, VBlank status, NMI edge semantics, 3:1 PPU:CPU tick advancement and odd-frame dot skip. See `analysis/0554_NTSC_PPU_FRAME_CLOCK.md`. Existing 0553 reset/NMI compiled CPU replay **still uses scripted PPU I/O and injected NMI**, not this clock. Next integrate instruction-cycle accounting and CPU/PPU bus access phases before claiming natural NMI or frame parity. Strict 49,504/262,144, VPP27/100 and semantic checkpoint 0508/fixed FB96 unchanged.
+
+## 0554 Phase 2 — Static native CPU cycle-accounting handoff
+
+Shared `native/bank0a/static_6502.hpp` now uses `cpu_cycle_0554.hpp` to count official per-instruction CPU cycles, conditional branches/indexed page crosses, 7-cycle NMI, and advances `NtscPpuClock` three dots per CPU cycle. CTest in `native/boot/cpu_cycle_test_0554.cpp`; source limitations and reproduction in `analysis/0554_PHASE2_CPU_CYCLE_ACCOUNTING.md`. The original 0553 boot CPU/ROM parity path has no new PPU bus timing or automatic interrupt arbitration: scripted $2002 responses and injected NMI stay in place. Strict PRG 49,504/262,144, VPP27, checkpoint 0508, fixed frontier FB96 unchanged.

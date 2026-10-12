@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 #include <type_traits>
+#include "../boot/ntsc_ppu_clock_0554.hpp"
 
 namespace jpstatic {
 enum class Mode { imp, acc, imm, zp, zpx, zpy, abs, absx, absy, indx, indy, ind, rel };
@@ -17,6 +18,7 @@ enum class Op {
  STA, STX, STY, TYA, TXA, TAY, TAX, TXS, TSX, LDA, LDX, LDY,
  CMP, CPX, CPY, DEC, INC, SBC, NOP
 };
+#include "cpu_cycle_0554.hpp"  // Timing traits inside namespace jpstatic.
 struct Bus {
  std::array<uint8_t,2048> ram{};
  std::array<uint8_t,16384> bank0a{},bank0e{};
@@ -73,6 +75,9 @@ struct Bus {
 template <Op O> struct UnhandledOpcode : std::false_type {};
 struct Cpu {
  Bus &bus;
+ NtscPpuClock ppu_clock{};  // Observes instruction totals, not individual bus phases.
+ uint64_t cycles=0;
+ bool address_page_cross_=false;
  uint16_t pc=0;
  uint8_t a=0,x=0,y=0,s=0xfd,p=0x20;
  explicit Cpu(Bus& b):bus(b){}
@@ -84,6 +89,7 @@ struct Cpu {
  void nmi() {
   push(uint8_t(pc>>8));push(uint8_t(pc));push(uint8_t((p&~0x10)|0x20));
   set(4,true);pc=bus.word(0xfffa);
+  cycles+=7;ppu_clock.advance_cpu_cycles(7); // NMOS 6502 interrupt entry.
  }
  void rts() {uint16_t low=pop(),hi=pop();pc=uint16_t((hi<<8|low)+1);}
  uint16_t address(Mode m,uint16_t operand) {
@@ -92,10 +98,10 @@ struct Cpu {
    case Mode::zpx:return uint8_t(operand+x);
    case Mode::zpy:return uint8_t(operand+y);
    case Mode::abs:return operand;
-   case Mode::absx:return uint16_t(operand+x);
-   case Mode::absy:return uint16_t(operand+y);
+   case Mode::absx:{const auto at=uint16_t(operand+x);address_page_cross_=(operand&0xff00)!=(at&0xff00);return at;}
+   case Mode::absy:{const auto at=uint16_t(operand+y);address_page_cross_=(operand&0xff00)!=(at&0xff00);return at;}
    case Mode::indx:return bus.zpword(uint8_t(operand+x));
-   case Mode::indy:return uint16_t(bus.zpword(uint8_t(operand))+y);
+   case Mode::indy:{const auto base=bus.zpword(uint8_t(operand));const auto at=uint16_t(base+y);address_page_cross_=(base&0xff00)!=(at&0xff00);return at;}
    case Mode::ind:{const uint16_t lo=bus.read(operand);
        const uint16_t hi=bus.read(uint16_t((operand&0xff00)|uint8_t(operand+1)));
        return uint16_t(lo|(hi<<8));}
@@ -112,7 +118,11 @@ struct Cpu {
   set(1,t>255);set(0x40,((~(a^rhs)&(a^v))&128)!=0);a=v;nz(a);}
  void sbc(uint8_t rhs){adc(uint8_t(~rhs));}
  template <Op O,Mode M> void exec(uint16_t operand,uint16_t next) {
+  constexpr unsigned base_cycles=base_cpu_cycles_0554<O,M>();
+  static_assert(base_cycles!=0,"unsupported original opcode/address-mode timing");
   pc=next;
+  address_page_cross_=false;
+  unsigned branch_penalty=0;
   if constexpr(O==Op::LDA){a=value(M,operand);nz(a);}
   else if constexpr(O==Op::LDX){x=value(M,operand);nz(x);}
   else if constexpr(O==Op::LDY){y=value(M,operand);nz(y);}
@@ -152,7 +162,7 @@ struct Cpu {
    if constexpr(O==Op::BCS)taken=flag(1);
    if constexpr(O==Op::BNE)taken=!flag(2);
    if constexpr(O==Op::BEQ)taken=flag(2);
-   if(taken)pc=operand;
+   if(taken){branch_penalty=1u+(((next^operand)&0xff00u)?1u:0u);pc=operand;}
   }
   else if constexpr(O==Op::JSR){auto ret=uint16_t(next-1);push(uint8_t(ret>>8));push(uint8_t(ret));pc=operand;}
   else if constexpr(O==Op::JMP){if constexpr(M==Mode::ind)pc=address(M,operand);else pc=operand;}
@@ -182,6 +192,10 @@ struct Cpu {
   else if constexpr(O==Op::TXS)s=x;
   else if constexpr(O==Op::NOP){}
   else static_assert(UnhandledOpcode<O>::value,"unimplemented 6502 opcode");
+  const unsigned added=base_cycles+branch_penalty+
+      ((indexed_read_penalty_0554<O,M>() && address_page_cross_)?1u:0u);
+  cycles+=added;
+  ppu_clock.advance_cpu_cycles(added);
  }
  // Fixed-$FB96 is independently bounded. Other cross-bank calls FAIL CLOSED.
  bool bounded_external() {
