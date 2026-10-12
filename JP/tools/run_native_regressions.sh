@@ -61,6 +61,14 @@ python3 "$root/JP/tools/test_room_state_0541.py" --smoke
 if [[ -n "$rom" ]]; then
   python3 "$root/JP/tools/test_room_state_0541.py" --rom "$rom" --out "$build/0541_state_bridge"
 fi
+# 0543: entire post-loader caller and six original cross-bank dispatch envelopes.
+# The four still-untranslated external scripts are explicit neutral test callbacks;
+# never claim complete-room parity from this bounded result.
+python3 -m py_compile "$root/JP/tools/replay_postdispatch_0543.py" "$root/JP/tools/test_postdispatch_0543.py"
+python3 "$root/JP/tools/test_postdispatch_0543.py" --smoke
+if [[ -n "$rom" ]]; then
+    python3 "$root/JP/tools/test_postdispatch_0543.py" --rom "$rom" --out "$build/0543_post_dispatch"
+fi
 # 0540: native translated JP room0A loader (five room streams),
 # optional full authenticated original-6502/native 1280-case trace replay.
 python3 -m py_compile "$root/JP/tools/replay_room_loader_0540.py" "$root/JP/tools/test_room_loader_0540.py"

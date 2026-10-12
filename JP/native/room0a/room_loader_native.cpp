@@ -29,6 +29,12 @@ public:
     }
 };
 struct Room {
+    struct DispatchEvent {
+        unsigned id, target, mapped_bank, ram16, ram17, ram23, ram3f_at_entry, stack_pointer;
+        bool stubbed;
+    };
+    std::vector<DispatchEvent> dispatches;
+    std::vector<std::array<unsigned,2>> post_mapper_changes;
     std::array<uint8_t,2048> ram{};
     uint8_t mapper=10;
     unsigned indirect_reads=0, mapper_writes=0;
@@ -90,6 +96,68 @@ struct Room {
         ram[0x10]=0;
         if(mapper!=10 || mapper_writes!=2*indirect_reads)
             throw std::runtime_error("mapper restoration violation");
+    }
+    void post_dispatch(const Image& bank0a,const Image& bank0e,const Image& bank00,
+                       unsigned index,unsigned seed) {
+        // Translate the *entire caller* $B6B4-$B6E7 and its six original
+        // B49A/FBBB mapper trampolines. Four foreign callees are controlled
+        // zero-effect test callbacks; they are NOT native game behavior.
+        state_bridge(bank0a,bank0e,index,seed);
+        ram[0xFF]=0xB0;
+        ram[0xFD]=0;
+        ram[0xFC]=0x10;
+        constexpr std::array<unsigned,6> kCalls{{0,1,2,6,3,4}};
+        constexpr std::array<unsigned,9> kTargets{{
+            0x84A0,0x8001,0x8013,0xD03C,0xD0CD,0xCDA8,0x8F3E,0xFBA5,0xFBB0}};
+        for(unsigned i=0;i<kTargets.size();++i) {
+            const unsigned where=0xB4B1+3*i;
+            const unsigned target=static_cast<unsigned>(bank0a.at(static_cast<uint16_t>(where))) |
+                (static_cast<unsigned>(bank0a.at(static_cast<uint16_t>(where+1)))<<8);
+            if(target!=kTargets[i] || bank0a.at(static_cast<uint16_t>(where+2))!=0)
+                throw std::runtime_error("original 9-record mapper dispatch table drift");
+        }
+        for(unsigned id:kCalls) {
+            // B49A multiplies A=id by 3, selects an original 3-byte
+            // (target, raw bank) record; $FBBB calls E2D0 to map it.
+            ram[0]=static_cast<uint8_t>(id);
+            const unsigned where=0xB4B1+3*id;
+            if(id==3)ram[0x3F]=0x37; // B6D4/D6: before original ID3 call
+            const uint8_t lo=bank0a.at(static_cast<uint16_t>(where));
+            const uint8_t hi=bank0a.at(static_cast<uint16_t>(where+1));
+            const uint8_t bank=bank0a.at(static_cast<uint16_t>(where+2));
+            if(bank!=0)throw std::runtime_error("unexpected trampoline mapper");
+            ram[0x16]=lo; ram[0x17]=hi;
+            mapper=bank;ram[0x23]=bank;
+            post_mapper_changes.push_back({0xE2D2,bank});
+            const unsigned target=static_cast<unsigned>(lo)|(static_cast<unsigned>(hi)<<8);
+            const bool stubbed=id!=1 && id!=6;
+            dispatches.push_back({id,target,bank,lo,hi,bank,ram[0x3f],0xF5,stubbed});
+            // This explicit boundary is the scope limit. No speculative
+            // C++ behavior is supplied for original routines 0,2,3,4.
+            if(id==1) {
+                // Authentic bank00 $8001-$800E: LDY $054E; LDA $800F,Y;
+                // STA $38; CLC; ADC #1; STA $39; RTS.
+                const unsigned selector=ram[0x54E];
+                if(selector>3)throw std::runtime_error("bounded room selector escaped original table");
+                const uint8_t value=bank00.at(static_cast<uint16_t>(0x800F+selector));
+                ram[0x38]=value;ram[0x39]=static_cast<uint8_t>(value+1);
+            }
+            if(id==6) {
+                // Authentic bank00 $8F3E-$8F46: two immediate ZP stores.
+                ram[0x3C]=0x40;ram[0x3F]=0x43;
+            }
+            // Foreign callee RTS -> fixed $FBC9; $FBC9 JMP E2D0
+            // reselects bank0A; E2D5 RTS resumes the original caller.
+            mapper=10;ram[0x23]=10;
+            post_mapper_changes.push_back({0xE2D2,10});
+        }
+        // Original $B4EE/$B4F9 and B6E5/B6E7; B597/B5A2 return.
+        ram[0x61]=8;
+        ram[0x57]=static_cast<uint8_t>(ram[0x56]+2);
+        ram[0x68]=static_cast<uint8_t>(ram[0x68]+1);
+        if(ram[0x19]!=2 || ram[0x68]!=1 || ram[0x7A6]!=9 || mapper!=10
+            || dispatches.size()!=6 || post_mapper_changes.size()!=12)
+            throw std::runtime_error("post-loader return state mismatch");
     }
     void state_gate(const Image& bank0a,unsigned index,unsigned seed) {
         // Non-sentinel B873 branch after fixed E526, double E7FB dispatch
@@ -162,6 +230,50 @@ struct Room {
             throw std::runtime_error("state field mutated on sentinel loader path");
     }
 };
+void json_post(const Room& r,unsigned index,unsigned seed,unsigned step) {
+    std::cout<<"{\"step\":"<<step<<",\"room_index\":"<<index
+             <<",\"seed\":"<<seed
+             <<",\"scope\":\"conditional_6502_post_B6B4_native_host_with_four_stub_callbacks\""
+             <<",\"callbacks\":[";
+    for(std::size_t i=0;i<r.dispatches.size();++i) {
+        if(i)std::cout<<',';
+        const auto& d=r.dispatches[i];
+        std::cout<<"{\"id\":"<<d.id<<",\"target\":"<<d.target
+                 <<",\"mapped_bank\":"<<d.mapped_bank
+                 <<",\"target_region\":\""<<(d.target>=0xC000?"PRG30":"raw00")<<"\""
+                 <<",\"ram16\":"<<d.ram16<<",\"ram17\":"<<d.ram17
+                 <<",\"ram23\":"<<d.ram23<<",\"ram3f_at_entry\":"<<d.ram3f_at_entry
+                 <<",\"stack_pointer\":"<<d.stack_pointer
+                 <<",\"stubbed\":"<<(d.stubbed?"true":"false")<<'}';
+    }
+    std::cout<<"],\"mapper_changes\":[";
+    for(std::size_t i=0;i<r.post_mapper_changes.size();++i) {
+        if(i)std::cout<<',';
+        const auto& w=r.post_mapper_changes[i];
+        std::cout<<'['<<w[0]<<','<<w[1]<<']';
+    }
+    const auto& m=r.ram;
+    std::cout<<"],\"ram_00\":"<<unsigned(m[0])
+             <<",\"ram_16\":"<<unsigned(m[0x16])
+             <<",\"ram_17\":"<<unsigned(m[0x17])
+             <<",\"ram_23\":"<<unsigned(m[0x23])
+             <<",\"ram_ff\":"<<unsigned(m[0xff])
+             <<",\"ram_fc\":"<<unsigned(m[0xfc])
+             <<",\"ram_fd\":"<<unsigned(m[0xfd])
+             <<",\"ram_3f\":"<<unsigned(m[0x3f])
+             <<",\"ram_3c\":"<<unsigned(m[0x3c])
+             <<",\"ram_38\":"<<unsigned(m[0x38])
+             <<",\"ram_39\":"<<unsigned(m[0x39])
+             <<",\"ram_57\":"<<unsigned(m[0x57])
+             <<",\"ram_61\":"<<unsigned(m[0x61])
+             <<",\"state_19\":"<<unsigned(m[0x19])
+             <<",\"substate_68\":"<<unsigned(m[0x68])
+             <<",\"stream_state_7a6\":"<<unsigned(m[0x7a6])
+             <<",\"mapper\":"<<unsigned(r.mapper)
+             <<",\"pc_after_state\":36864,\"sp_after_state\":253"
+             <<",\"a\":1,\"x\":"<<unsigned(r.x)<<",\"y\":12"
+             <<",\"carry\":false,\"zero\":false,\"negative\":false}"<<'\n';
+}
 void json_gate(const Room& r,unsigned index,unsigned seed,unsigned step) {
     std::cout << "{\"step\":" << step
               << ",\"physical_bank\":\"NES:JP:VRC6:raw0A\""
@@ -247,13 +359,24 @@ void json_frame(const Room& r,unsigned index,unsigned seed,unsigned step,bool in
 }
 }
 int main(int argc,char**argv) {
-    if(argc!=3 && argc!=4){std::cerr<<"usage: room_loader_native physical_raw0a.bin physical_raw0e.bin [--state-bridge|--state-gate]\n";return 2;}
+    if(argc!=3 && argc!=4 && argc!=5){
+        std::cerr<<"usage: room_loader_native raw0a.bin raw0e.bin [--state-bridge|--state-gate|--post-dispatch raw00.bin]\n";return 2;
+    }
     const bool gated=argc==4 && std::string(argv[3])=="--state-gate";
     const bool integrated=argc==4 && std::string(argv[3])=="--state-bridge";
-    if(argc==4 && !gated && !integrated)return 2;
+    const bool post=argc==5 && std::string(argv[3])=="--post-dispatch";
+    if((argc==4 && !gated && !integrated) || (argc==5 && !post))return 2;
     try {
         const Image a(argv[1]),e(argv[2]);
         unsigned step=0;
+        if(post) {
+            const Image bank00(argv[4]);
+            for(unsigned index=0;index<5;++index)for(unsigned seed=0;seed<256;++seed){
+                Room room;room.post_dispatch(a,e,bank00,index,seed);
+                json_post(room,index,seed,step++);
+            }
+            return 0;
+        }
         if(gated) {
             for(unsigned index=0;index<9;++index)for(unsigned seed=0;seed<256;++seed){
                 Room room;room.state_gate(a,index,seed);
