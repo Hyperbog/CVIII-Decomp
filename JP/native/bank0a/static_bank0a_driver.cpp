@@ -2,6 +2,7 @@
 // Test CLI for native static-compiled bank0A instructions with a bounded FB96 helper.
 #include "static_6502.hpp"
 #include "room_selector_native_0560.hpp"
+#include "room_message_native_0561.hpp"
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -54,6 +55,21 @@ int main(int argc,char**argv){
    std::ifstream input(argv[3]);
    if(!input)throw std::runtime_error("no bounded selector-case file");
    const Room0aSelector0560 host_selector(a);
+   // Independently translate the audited original $B8CC message pointer
+   // path into host C++; all ten source-backed tables are bounds checked.
+   const Room0aMessageSelector0561 native_messages(a);
+   for(unsigned group=0;group<2;++group)
+    for(unsigned stage=0;stage<5;++stage) {
+     const uint8_t predicate=uint8_t(group);
+     const auto message=native_messages.lookup(predicate,0,stage,0);
+     if(message.terminal || message.message_pointer<0xb921 ||
+        message.message_pointer>=0xb937)
+      throw std::runtime_error("native original raw0A message lookup mismatch");
+     const auto last=native_messages.lookup(predicate,0,stage,
+                               native_messages.message_length(group,stage)-1);
+     if(!last.terminal || last.value!=0xff)
+      throw std::runtime_error("native original raw0A message lost FF terminator");
+    }
    int x,y,z;char comma1,comma2;
    int total=0;
    while(input>>x>>comma1>>y>>comma2>>z){

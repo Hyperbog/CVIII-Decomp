@@ -501,3 +501,7 @@ The expanded independent [Stage 1 multi-branch suite](../SharedNES/0508_STAGE1_M
 ## 0560 — host-native C++ port of raw0A selector (source-first)
 
 [0560 source translation report](../analysis/0560_RAW0A_NATIVE_ROOM_SELECTOR.md) introduces `native/bank0a/room_selector_native_0560.hpp`, a readable C++ implementation of original $801E–$8046 three-level pointer selection, with 15 stage groups, 64 middle roots, 135 bounded leaf indexes and original structural data types. Existing ROM-backed 135-case native-CPU driver now independently compares the original statically compiled 6502 path with the host-native routine. Synthetic 135-case ROM-free unit test and corrupt-boundary gates added. No extra instruction sites or strict-certified PRG bytes; VPP27/100, 49,504/262,144, 4,261 compiled sites remain unchanged.
+
+## 0561 — raw0A original $B8CC room-message selector to readable C++
+
+[0561 semantic source port](../analysis/0561_RAW0A_NATIVE_ROOM_MESSAGE.md) adds `native/bank0a/room_message_native_0561.hpp`: group predicate $07F6/$0781, 5 message stages per group, RAM $07A5 index, typed $FF terminal/next-offset contract. Ten original source message tables occupy 22 bytes; ROM-free corrupted-case tests and 10-entry original-ROM structural checks in the native bank0A driver. The external fixed-bank $EC47 renderer is *not* fabricated. VPP 27/100, strict 49,504/262,144, compiled 4,261 sites unchanged.

@@ -467,3 +467,16 @@ analysis `0560_RAW0A_NATIVE_ROOM_SELECTOR.md`. Original ROM-backed
 `test_static_bank0a_0552.py --rom` additionally compares against an
 independent 6502 interpreter. Other bank0A candidates and unresolved
 code/data remain gated, not falsely promoted. Coverage unchanged.
+
+## 0561 — original raw0A $B8CC–$B908 room-message source port
+
+Direct C++ `native/bank0a/room_message_native_0561.hpp`
+describes original ROM selector predicates $07F6/$0781, RAM $07A0,
+$07A5 and the exact 10 messages/22 total bytes $B921–$B936.
+$FF means terminal; the original $EC47 external text/render
+routine is a separate dependency. ROM-free CTest
+`native/boot/room_message_native_test_0561.cpp`,
+ROM-backed structural checks in `static_bank0a_driver.cpp`,
+and `analysis/0561_RAW0A_NATIVE_ROOM_MESSAGE.md`. Source data
+is loaded from a private ROM-derived bank at runtime, not embedded.
+VPP27, strict49,504, 4,261 sites, frontier0508/$FB96.
