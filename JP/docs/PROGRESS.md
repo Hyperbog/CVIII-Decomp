@@ -553,3 +553,7 @@ The expanded independent [Stage 1 multi-branch suite](../SharedNES/0508_STAGE1_M
 ## 0573 — actual Japanese ROM native C11 selector build (local)
 
 [0573 real-ROM C compilation](../analysis/0573_ORIGINAL_ROM_C11_SELECTOR_BUILD.md) authenticated the user-uploaded Japanese mapper24 ROM and built a 24-instruction original-bank0A $801E selector into an executable with GCC C11. 135/135 bounded pointer results matched both authenticated ROM tables and an independent 6502 interpreter. `tools/build_original_c11_0573.py` now persists the existing source-generated **2,357-site bank0A C11 test** as a separate local executable/report, with synthetic smoke in CI. **This is not a full playable ROM build:** the external NESRecomp cycle source is unavailable in the local sandbox; no retail-game frames or new PRG/VPP coverage certified.
+
+## 0574 — independent VRC6a $C000 PRG bank mapping in C11
+
+[0574 VRC6a PRG correctness](../analysis/0574_C11_VRC6_INDEPENDENT_PRG_WINDOWS.md) corrects C11 ROM mapping: $8000–$BFFF selected 16 KiB, $C000–$DFFF **separately selected 8 KiB**, $E000–$FFFF fixed last 8 KiB, with $F003 address-register mirrors and a single common physical-offset resolver for native generated fixed code and interpreted reads. Focused tests cover selector independence and mirror behavior, not reconstruction census. External cycle backend still required for PPU/APU/VRC6 IRQ/audio/WRAM, and VPP27, strict49,504/262,144, 4,261 existing compiled sites unchanged.

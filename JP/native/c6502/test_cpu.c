@@ -40,7 +40,26 @@ int main(void){
  CHECK(jp_cpu_step(&c,example_static)==JP_STEP_UNSUPPORTED);
  CHECK(jp_bus_read(&bus,0x2002,&v)==JP_STEP_UNSUPPORTED);
  CHECK(jp_bus_write(&bus,0x2000,0x80)==JP_STEP_UNSUPPORTED);
- CHECK(jp_bus_write(&bus,0x8000,16)==JP_STEP_UNSUPPORTED);
+ /* VRC6 16KiB low four bits and separate 8KiB low five bits. */
+ CHECK(jp_bus_write(&bus,0x8000,16)==JP_STEP_EXECUTED&&bus.bank==0);
+ prg[10*16384]=0xaau;prg[14*16384]=0xbbu;
+ CHECK(jp_bus_write(&bus,0x80f2,0x0a)==JP_STEP_EXECUTED&&bus.bank==10);
+ CHECK(jp_bus_read(&bus,0x8000,&v)==JP_STEP_EXECUTED&&v==0xaa);
+ CHECK(jp_bus_write(&bus,0x8003,0x1e)==JP_STEP_EXECUTED&&bus.bank==14);
+ CHECK(jp_bus_read(&bus,0x8000,&v)==JP_STEP_EXECUTED&&v==0xbb);
+ prg[3u*8192u]=0x33;prg[28u*8192u]=0xdd;prg[31u*8192u]=0x31;
+ CHECK(jp_bus_write(&bus,0xc001,3)==JP_STEP_EXECUTED&&bus.bank8==3);
+ CHECK(jp_bus_read(&bus,0xc000,&v)==JP_STEP_EXECUTED&&v==0x33);
+ CHECK(jp_bus_write(&bus,0xc1f1,28)==JP_STEP_EXECUTED&&bus.bank8==28);
+ CHECK(jp_bus_read(&bus,0xc000,&v)==JP_STEP_EXECUTED&&v==0xdd);
+ CHECK(jp_bus_read(&bus,0xe000,&v)==JP_STEP_EXECUTED&&v==0x31);
+ unsigned physical=0;
+ CHECK(jp_bus_physical_offset(&bus,0xc000,&physical)==JP_STEP_EXECUTED &&
+       physical==28u*8192u);
+ CHECK(jp_bus_physical_offset(&bus,0xe000,&physical)==JP_STEP_EXECUTED &&
+       physical==31u*8192u);
+ CHECK(jp_bus_physical_offset(&bus,0x6000,&physical)==JP_STEP_UNSUPPORTED);
+ CHECK(jp_bus_write(&bus,0xb003,0xa0)==JP_STEP_UNSUPPORTED);
  CHECK(jp_bus_write(&bus,0x1fff,0xab)==JP_STEP_EXECUTED && bus.ram[0x7ff]==0xab);
  CHECK(jp_bus_read(&bus,0x07ff,&v)==JP_STEP_EXECUTED && v==0xab);
  /* Verify interpreter correctly follows branch, JSR, RTS, and stack. */

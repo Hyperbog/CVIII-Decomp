@@ -528,3 +528,7 @@ New GitHub Action `.github/workflows/jp_nesrecomp_cycle_mapper24.yml` checks out
 ## 0573 — authenticated original-ROM C11 compilation gate
 
 The uploaded Japanese mapper24 ROM SHA-256 matches `958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28`. A local GCC C11 binary compiled the **24 original** $801E–$8046 raw0A selector instruction starts and ran 135 bounded triples matching independent original-6502 semantics. Repo `tools/build_original_c11_0573.py --rom ORIGINAL_JP.nes --out /outside-git/build` wraps the previously established 2,357-site native-C code generator and persistent test executable, with source regeneration and original-ROM proof gates; CI smoke is ROM-free. The **full external NESRecomp cycle C11 runtime cannot be downloaded in the isolated local execution environment**; GitHub Actions synthetic VRC6 runs don't establish retail gameplay. See `analysis/0573_ORIGINAL_ROM_C11_SELECTOR_BUILD.md`. No VPP/strict coverage increment.
+
+## 0574 — fix standalone C11 mapper24 bank model
+
+Standalone `native/c6502/cpu.c` now models VRC6a $8000–$BFFF 16KiB PRG bank plus independent $C000–$DFFF 8KiB PRG bank and fixed $E000–$FFFF. `jp_bus_physical_offset` is reused by C11 interpreter reads and fixed physical-codegen output (`tools/static_recompile_boot_c_0564.py`). ROM-free CTest enforces actual VRC6 PRG decode and mirroring. Other console hardware still fails closed; external NESRecomp cycle engine remains the intended complete C runtime. Evidence `analysis/0574_C11_VRC6_INDEPENDENT_PRG_WINDOWS.md`.

@@ -21,9 +21,20 @@ def extract(cpp):
     for phys,pc,opcode,evidence,op,mode,arg,nxt in CASE.findall(cpp):
         entry=dict(physical=int(phys,16),pc=int(pc,16),opcode=int(opcode,16),
             evidence=evidence,op=op,mode=mode,arg=int(arg,16),next=int(nxt,16))
-        if entry['physical']!= (31*8192 + entry['pc']-0xe000 if entry['pc']>=0xe000
-          else 30*8192+entry['pc']-0xc000 if entry['pc']>=0xc000 else
-          (entry['physical']//16384)*16384+entry['pc']-0x8000):
+        # C000-DFFF is an independently switched VRC6a 8KiB PRG slot.
+        # Never assume physical bank30 is fixed at $C000.
+        physical,pc=entry['physical'],entry['pc']
+        if not 0<=physical<262144:
+            raise ValueError('physical ROM index out of bounds')
+        if pc>=0xe000:
+            valid=(physical==31*8192+pc-0xe000)
+        elif pc>=0xc000:
+            valid=(physical%8192==pc-0xc000)
+        elif pc>=0x8000:
+            valid=(physical%16384==pc-0x8000)
+        else:
+            valid=False
+        if not valid:
             raise ValueError('physical mapper / PC alias contradiction')
         rows.append(entry)
     if not rows or sorted(x['physical'] for x in rows)!=[x['physical'] for x in rows]:
@@ -40,11 +51,8 @@ def generate(rows):
        'JpStep jp_fixed_compiled_step(JpCpu *c) {',
        '  if(!c || !c->bus)return JP_STEP_UNRESOLVED;',
        '  unsigned physical;',
-       '  if(c->pc>=0xe000)physical=31u*8192u+c->pc-0xe000u;',
-       '  else if(c->pc>=0xc000)physical=30u*8192u+c->pc-0xc000u;',
-       '  else if(c->pc>=0x8000 && c->bus->bank<16)',
-       '    physical=(unsigned)c->bus->bank*16384u+c->pc-0x8000u;',
-       '  else return JP_STEP_UNRESOLVED;',
+       '  if(jp_bus_physical_offset(c->bus,c->pc,&physical)!=JP_STEP_EXECUTED)',
+       '    return JP_STEP_UNRESOLVED;',
        '  switch(physical) {'
     ]
     for r in rows:
@@ -71,7 +79,12 @@ def main():
         rows=extract(fake)
         assert len(rows)==1 and rows[0]['physical']==31*8192
         generated=generate(rows)
-        assert 'physical=31u*8192u' in generated and '0xa9,0x007f' in generated
+        assert 'jp_bus_physical_offset(c->bus,c->pc,&physical)' in generated and '0xa9,0x007f' in generated
+        # Both 16KiB and 8KiB VRC6 physical aliases are legal at the
+        # matching CPU address, rather than assuming fixed bank30.
+        c000=('  case 0x3c000: // $C000 opcode $A9, HISTORICALLY_VERIFIED\n'
+              '   cpu.exec<Op::LDA,Mode::imm>(0x0001,0xC002);return StepResult::executed;')
+        assert extract(c000)[0]['pc']==0xc000
         print('PASS ROM-free physical mapper qualified fixed31 C11 codegen')
         return
     if not all((a.rom,a.asm,a.out)):p.error('--rom, --asm, --out required')

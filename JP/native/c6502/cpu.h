@@ -93,12 +93,14 @@ typedef struct {
 } JpDecoded;
 extern const JpDecoded jp_opcodes[256];
 typedef struct {
- /* Pointer to 262144 original-JP PRG bytes; caller owns/authenticates.
-    16 switchable 16K windows plus physical fixed banks 30 and 31. */
+ /* VRC6a mapper24: $8000-$BFFF selects a 16KiB bank,
+    $C000-$DFFF selects an independent 8KiB bank, $E000 fixed last 8KiB.
+    ROM is owned/authenticated by caller and never embedded in project. */
  const uint8_t *prg;
  size_t prg_size;
  uint8_t ram[2048];
- uint8_t bank;
+ uint8_t bank; /* VRC6 16KiB bank selector, masked to 4 bits */
+ uint8_t bank8; /* Independent $C000 8KiB bank selector, 5 bits */
 } JpBus;
 typedef struct JpCpu {
  JpBus *bus;
@@ -113,6 +115,9 @@ void jp_cpu_init(JpCpu *,JpBus *);
 JpStep jp_cpu_step(JpCpu *,JpCompiledStep);
 JpStep jp_cpu_exec(JpCpu *,uint8_t opcode,uint16_t argument,uint16_t next);
 JpStep jp_cpu_interpret_one(JpCpu *);
+/* One physical-offset resolver for interpreted reads and generated C.
+   Only PRG-ROM addresses are supported. Offset in 262144-byte PRG. */
+JpStep jp_bus_physical_offset(const JpBus *,uint16_t address,unsigned *physical);
 JpStep jp_bus_read(JpBus *,uint16_t address,uint8_t *value);
 JpStep jp_bus_write(JpBus *,uint16_t address,uint8_t value);
 #ifdef __cplusplus

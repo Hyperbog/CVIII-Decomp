@@ -1,6 +1,7 @@
-/* JP 0562 initial portable C11 2A03 semantics and interpreter fallback.
- * No synthetic PPU status, no fabricated controller, no non-$8000 mapper
- * writes. No APU/PPU/VRC6 or CPU cycle accuracy is asserted here.
+/* JP C11 2A03 semantics, exact VRC6a PRG-ROM addressing and fallback.
+ * $8000-$BFFF selects 16KiB, $C000-$DFFF independently selects 8KiB,
+ * $E000-$FFFF is the physical last 8KiB PRG bank.
+ * Other mapper, PPU, APU, DMA and cycle behavior still fail closed.
  */
 #include "cpu.h"
 #include <string.h>
@@ -9,23 +10,39 @@ void jp_cpu_init(JpCpu *c,JpBus *b) {
  memset(c,0,sizeof(*c));c->bus=b;c->s=0xfd;c->p=IF|UF;
  c->fault=JP_STEP_EXECUTED;
 }
-JpStep jp_bus_read(JpBus *b,uint16_t at,uint8_t *v) {
- if(!b || !v)return JP_STEP_UNSUPPORTED;
- if(at<0x2000) {*v=b->ram[at&0x7ff];return JP_STEP_EXECUTED;}
- if(at<0x8000 || !b->prg || b->prg_size!=262144)
+JpStep jp_bus_physical_offset(const JpBus *b,uint16_t at,unsigned *physical) {
+ if(!b || !physical || at<0x8000 || !b->prg || b->prg_size!=262144)
   return JP_STEP_UNSUPPORTED;
  if(at<0xc000) {
   if(b->bank>=16)return JP_STEP_UNSUPPORTED;
-  *v=b->prg[(unsigned)b->bank*16384u+at-0x8000u];
- } else if(at<0xe000)*v=b->prg[30u*8192u+at-0xc000u];
- else *v=b->prg[31u*8192u+at-0xe000u];
+  *physical=(unsigned)b->bank*16384u+(unsigned)(at-0x8000u);
+ } else if(at<0xe000) {
+  if(b->bank8>=32)return JP_STEP_UNSUPPORTED;
+  *physical=(unsigned)b->bank8*8192u+(unsigned)(at-0xc000u);
+ } else *physical=31u*8192u+(unsigned)(at-0xe000u);
+ return *physical<262144u?JP_STEP_EXECUTED:JP_STEP_UNSUPPORTED;
+}
+JpStep jp_bus_read(JpBus *b,uint16_t at,uint8_t *v) {
+ unsigned physical;
+ if(!b || !v)return JP_STEP_UNSUPPORTED;
+ if(at<0x2000) {*v=b->ram[at&0x7ff];return JP_STEP_EXECUTED;}
+ if(jp_bus_physical_offset(b,at,&physical)!=JP_STEP_EXECUTED)
+  return JP_STEP_UNSUPPORTED;
+ *v=b->prg[physical];
  return JP_STEP_EXECUTED;
 }
 JpStep jp_bus_write(JpBus *b,uint16_t at,uint8_t v) {
  if(!b)return JP_STEP_UNSUPPORTED;
  if(at<0x2000){b->ram[at&0x7ff]=v;return JP_STEP_EXECUTED;}
- if(at==0x8000 && v<16){b->bank=v;return JP_STEP_EXECUTED;}
- return JP_STEP_UNSUPPORTED;
+ /* VRC6a mirrors A2-A11 away; there are no PRG bus conflicts.
+    Other VRC6 audio/CHR/WRAM/IRQ register writes remain unsupported. */
+ switch(at&0xf003u) {
+ case 0x8000:case 0x8001:case 0x8002:case 0x8003:
+  b->bank=(uint8_t)(v&0x0fu);return JP_STEP_EXECUTED;
+ case 0xc000:case 0xc001:case 0xc002:case 0xc003:
+  b->bank8=(uint8_t)(v&0x1fu);return JP_STEP_EXECUTED;
+ default:return JP_STEP_UNSUPPORTED;
+ }
 }
 static void flag(JpCpu*c,unsigned mask,int yes) {
  c->p=(uint8_t)((yes?(c->p|mask):(c->p&~mask))|UF);
