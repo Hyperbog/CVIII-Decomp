@@ -65,6 +65,12 @@ fi
 # 0546: authenticated-ROM mode now executes all six 6502 foreign scripts
 # against independent native translations with zero callbacks; synthetic
 # ROM-free mode retains explicitly labeled ID3/ID4 fixtures.
+# 0547: original 6502 NMI inline-dispatch -> native integrated six-script path.
+python3 -m py_compile "$root/JP/tools/replay_nmi_dispatch_0547.py" "$root/JP/tools/test_nmi_dispatch_0547.py"
+python3 "$root/JP/tools/test_nmi_dispatch_0547.py" --smoke
+if [[ -n "$rom" ]]; then
+    python3 "$root/JP/tools/test_nmi_dispatch_0547.py" --rom "$rom" --out "$build/0547_nmi_dispatch" --cxx "$cxx"
+fi
 python3 -m py_compile "$root/JP/tools/replay_postdispatch_0543.py" "$root/JP/tools/test_postdispatch_0543.py"
 python3 "$root/JP/tools/test_postdispatch_0543.py" --smoke
 if command -v clang++ >/dev/null 2>&1; then

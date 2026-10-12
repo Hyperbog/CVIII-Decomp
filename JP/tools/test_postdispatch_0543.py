@@ -42,12 +42,13 @@ def fixtures():
     z[0x8929-0x8000:0x8929-0x8000+3]=bytes([0x13,0x24,0x35])
     return a,e,z
 
-def runner(exe:Path,a:bytes,e:bytes,z:bytes,flag='--post-dispatch',full:bytes|None=None):
+def runner(exe:Path,a:bytes,e:bytes,z:bytes,flag='--post-dispatch',full:bytes|None=None,nmi=False):
     with tempfile.TemporaryDirectory(prefix='0543-synthetic-') as t:
         d=Path(t);pa=d/'a';pe=d/'e';pz=d/'z';pa.write_bytes(a);pe.write_bytes(e);pz.write_bytes(z)
         cmd=[str(exe),str(pa),str(pe),flag,str(pz)]
         if full is not None:
             pf=d/'full';pf.write_bytes(full);cmd.append(str(pf))
+        if nmi:cmd.append('--nmi-stage')
         return subprocess.run(cmd,capture_output=True,text=True)
 
 def smoke(compiler='g++'):
@@ -143,6 +144,27 @@ def smoke(compiler='g++'):
         assert truncated.returncode!=0
         full_bad=bytearray(full);full_bad[0]^=1
         assert runner(exe,a,e,z,full=full_bad).returncode!=0
+        # 0547: native NMI dispatcher fixture uses a distinct synthetic fixed31
+        # bank; 16 original-prefix interpreter roots and this host replay are
+        # tested separately, never claimed as observed gameplay frames.
+        from test_nmi_dispatch_0547 import smoke_prg
+        scheduler,_=smoke_prg()
+        nmi_full=bytearray(full)
+        nmi_full[31*8192:32*8192]=scheduler[31*8192:32*8192]
+        nmi=runner(exe,a,e,z,full=nmi_full,nmi=True)
+        assert nmi.returncode==0,nmi.stderr
+        nmi_rows=[json.loads(line) for line in nmi.stdout.splitlines()]
+        assert len(nmi_rows)==1280
+        for row in nmi_rows:
+            assert row['nmi_dispatch']['target']==0xE526
+            assert row['nmi_dispatch']['state_index']==13
+            assert row['nmi_dispatch']['tick_1b']==(row['seed']*19+row['room_index']*31+1)&255
+            assert len(row['nmi_dispatch']['original_instruction_starts'])==18
+        for addr in (0xFFFA,0xE0BF,0xE7FB,0xE37D):
+            changed=bytearray(nmi_full)
+            changed[31*8192+addr-0xE000]=0
+            assert runner(exe,a,e,z,full=changed,nmi=True).returncode!=0
+        print('PASS',compiler,'1280 ROM-free synthetic NMI-stage + six-dispatch host cases; 4 native negative fixtures')
         print('PASS',compiler,'1280 ROM-free synthetic postloader (legacy 3/4 stubs) and original-ROM full implementation gate; negative fixtures')
 
 def main():

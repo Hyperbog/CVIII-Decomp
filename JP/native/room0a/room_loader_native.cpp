@@ -357,6 +357,40 @@ struct Room {
         ram[0x78]=sz8(unsigned(ram[0x6E])*8+8);
     }
 
+    void nmi_dispatch_prefix(const std::vector<uint8_t>& full_prg) {
+        // Independent fixed-bank translation of the original NMI
+        // E0BF JSR E35C, inline 16-entry dispatcher E363, E7FB helper.
+        // Only the conditional state-index-13 callsite is represented;
+        // the entire NMI prologue and live frame scheduling are not.
+        if(full_prg.size()!=262144)throw std::runtime_error("NMI stage needs complete original PRG");
+        const auto fixed=[&](unsigned addr)->unsigned {
+            if(addr<0xE000 || addr>=0x10000)throw std::runtime_error("NMI fixed address invalid");
+            return full_prg.at(31*8192+addr-0xE000);
+        };
+        constexpr std::array<std::array<unsigned,2>,18> kOpcodes{{
+            {{0xE35C,0xE6}},{{0xE35E,0xA5}},{{0xE360,0x20}},
+            {{0xE7FB,0x0A}},{{0xE7FC,0x84}},{{0xE7FE,0xA8}},
+            {{0xE7FF,0xC8}},{{0xE800,0x68}},{{0xE801,0x85}},
+            {{0xE803,0x68}},{{0xE804,0x85}},{{0xE806,0xB1}},
+            {{0xE808,0x85}},{{0xE80A,0xC8}},{{0xE80B,0xB1}},
+            {{0xE80D,0xA4}},{{0xE80F,0x85}},{{0xE811,0x6C}}
+        }};
+        for(const auto& pair:kOpcodes)
+            if(fixed(pair[0])!=pair[1])
+                throw std::runtime_error("NMI original-instruction opcode mismatch");
+        if(fixed(0xE0BF)!=0x20 || fixed(0xE0C0)!=0x5C || fixed(0xE0C1)!=0xE3 ||
+           fixed(0xFFFA)!=0x57 || fixed(0xFFFB)!=0xE0)
+            throw std::runtime_error("NMI handler callsite/vector mismatch");
+        if(fixed(0xE7FB)!=0x0A || fixed(0xE7FC)!=0x84 || fixed(0xE811)!=0x6C)
+            throw std::runtime_error("NMI indirect dispatcher instruction mismatch");
+        // $E35E LDA $18; $E7FB ASL A / TAY / INY reads two bytes
+        // at ($E362)+1+2*state. The JSR return is consumed, not RTS.
+        ram[0x18]=13;
+        const unsigned table=0xE363+unsigned(ram[0x18])*2;
+        const unsigned target=fixed(table)|(fixed(table+1)<<8);
+        if(target!=0xE526)throw std::runtime_error("NMI state13 did not reach E526");
+        ram[0x1B]=static_cast<uint8_t>(ram[0x1B]+1);
+    }
     void post_dispatch(const Image& bank0a,const Image& bank0e,const Image& bank00,
                        unsigned index,unsigned seed,const std::vector<uint8_t>* full_prg=nullptr) {
         // Translate $B6B4-$B6E7 and all six original B49A/FBBB
@@ -496,8 +530,14 @@ struct Room {
             throw std::runtime_error("state field mutated on sentinel loader path");
     }
 };
-void json_post(const Room& r,unsigned index,unsigned seed,unsigned step) {
-    std::cout<<"{\"step\":"<<step<<",\"room_index\":"<<index
+void json_post(const Room& r,unsigned index,unsigned seed,unsigned step,bool nmi=false) {
+    std::cout<<"{\"step\":"<<step;
+    if(nmi){
+        std::cout<<",\"nmi_dispatch\":{\"entry\":58204,\"state_index\":13,\"target\":58662,\"tick_1b\":"
+                 <<unsigned(r.ram[0x1B])
+                 <<",\"callsite\":57535,\"conditional\":true,\"original_instruction_starts\":[58204,58206,58208,59387,59388,59390,59391,59392,59393,59395,59396,59398,59400,59402,59403,59405,59407,59409]}";
+    }
+    std::cout<<",\"room_index\":"<<index
              <<",\"seed\":"<<seed
              <<",\"scope\":\""<<(r.complete_foreign?"conditional_6502_post_B6B4_native_host_with_no_stub_callbacks":"conditional_6502_post_B6B4_native_host_with_two_stub_callbacks")<<"\""
              <<",\"callbacks\":[";
@@ -670,20 +710,21 @@ void json_frame(const Room& r,unsigned index,unsigned seed,unsigned step,bool in
 }
 }
 int main(int argc,char**argv) {
-    if(argc!=3 && argc!=4 && argc!=5 && argc!=6){
+    if(argc!=3 && argc!=4 && argc!=5 && argc!=6 && argc!=7){
         std::cerr<<"usage: room_loader_native raw0a.bin raw0e.bin [--state-bridge|--state-gate|--post-dispatch raw00.bin]\n";return 2;
     }
     const bool gated=argc==4 && std::string(argv[3])=="--state-gate";
     const bool integrated=argc==4 && std::string(argv[3])=="--state-bridge";
-    const bool post=(argc==5 || argc==6) && std::string(argv[3])=="--post-dispatch";
-    if((argc==4 && !gated && !integrated) || ((argc==5 || argc==6) && !post))return 2;
+    const bool post=(argc==5 || argc==6 || argc==7) && std::string(argv[3])=="--post-dispatch";
+    const bool nmi=(argc==7 && std::string(argv[6])=="--nmi-stage");
+    if((argc==4 && !gated && !integrated) || ((argc==5 || argc==6 || argc==7) && !post) || (argc==7 && !nmi))return 2;
     try {
         const Image a(argv[1]),e(argv[2]);
         unsigned step=0;
         if(post) {
             const Image bank00(argv[4]);
             std::vector<uint8_t> full;
-            if(argc==6){
+            if(argc>=6){
                 std::ifstream input(argv[5],std::ios::binary);
                 full.assign(std::istreambuf_iterator<char>(input),std::istreambuf_iterator<char>());
                 if(full.size()!=262144)throw std::runtime_error("full PRG must be exactly 256KiB");
@@ -697,8 +738,12 @@ int main(int argc,char**argv) {
                 }
             }
             for(unsigned index=0;index<5;++index)for(unsigned seed=0;seed<256;++seed){
-                Room room;room.post_dispatch(a,e,bank00,index,seed,argc==6?&full:nullptr);
-                json_post(room,index,seed,step++);
+                Room room;room.post_dispatch(a,e,bank00,index,seed,argc>=6?&full:nullptr);
+                if(nmi){
+                    room.ram[0x1B]=static_cast<uint8_t>((seed*19+index*31)&255);
+                    room.nmi_dispatch_prefix(full);
+                }
+                json_post(room,index,seed,step++,nmi);
             }
             return 0;
         }
