@@ -1,0 +1,34 @@
+{
+  "authenticated_rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "candidate_bytes_promoted_to_strict": 0,
+  "compiled_code_bytes": 4144,
+  "compiled_physical_instruction_sites": 1904,
+  "dynamic_per_8k_bank": {
+    "24": 286,
+    "26": 723,
+    "31": 10731
+  },
+  "final_mapper_bank": 13,
+  "final_ram_sha256": "2c261b18c7442837ec94881c7fa73ab70c9af9fd2beb71c7febeff23c51d4698",
+  "first_nmi_return_pc": 57419,
+  "gameplay_frame_parity": false,
+  "historically_verified_fixed31_sites": 1564,
+  "native_frame_parity": false,
+  "native_gameplay_ready": false,
+  "nmi_injected_at_e04b": true,
+  "original_cpu_instructions": 11740,
+  "overlap_verified_and_boot": 63,
+  "physical_instruction_bytes": 848,
+  "ppu_status_scripted": true,
+  "schema": "JP0553-audited-fixed31-plus-scripted-boot-native/v2",
+  "scripted_boot_only_sites": 340,
+  "scripted_boot_sites": 403,
+  "strict_prg_new_bytes": 0,
+  "trace_executed_physical_instruction_sites": 403,
+  "uncompiled_code_or_data_bytes_prg31": 4777,
+  "unique_physical_8k_banks": [
+    24,
+    26,
+    31
+  ]
+}

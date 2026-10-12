@@ -21,10 +21,32 @@ struct Bus {
  std::array<uint8_t,2048> ram{};
  std::array<uint8_t,16384> bank0a{},bank0e{};
  uint8_t bank=10;
+ bool whole_prg=false;
+ std::array<uint8_t,262144> prg{};
+ std::array<uint8_t,65536> extra{};
+ unsigned status_polls=0, ppu_data_reads=0;
+ uint8_t controller_strobe=0;
+ std::vector<std::pair<uint16_t,uint8_t>> io_writes;
  std::vector<std::pair<uint16_t,uint8_t>> mapped_reads;
  std::vector<uint8_t> mapper_writes;
  uint8_t read(uint16_t at) {
   if(at<0x2000) return ram[at&0x7ff];
+  if(whole_prg) {
+   if(at<0x4000) {
+    uint16_t reg=uint16_t(0x2000+(at&7));
+    if(reg==0x2002)return (++status_polls>=2)?0x80:0;
+    if(reg==0x2007){++ppu_data_reads;return 0;}
+    return 0;
+   }
+   if(at==0x4016 || at==0x4017)return 0;
+   if(at<0x8000)return extra[at];
+   if(at<0xc000) {
+    if(bank>15)throw std::runtime_error("invalid VRC6 PRG bank");
+    return prg[unsigned(bank)*16384+(at-0x8000)];
+   }
+   if(at<0xe000)return prg[30*8192+(at-0xc000)];
+   return prg[31*8192+(at-0xe000)];
+  }
   if(at>=0x8000 && at<0xc000) {
    if(bank==14) return bank0e[at-0x8000];
    if(bank==10) return bank0a[at-0x8000];
@@ -34,6 +56,12 @@ struct Bus {
  }
  void write(uint16_t at,uint8_t value) {
   if(at<0x2000) {ram[at&0x7ff]=value;return;}
+  if(whole_prg) {
+   if(at==0x8000) {bank=value;mapper_writes.push_back(value);return;}
+   if(at==0x4016){controller_strobe=value;return;}
+   if((at>=0x2000 && at<0x6000) || at>=0x8000) {io_writes.emplace_back(at,value);return;}
+   extra[at]=value;return;
+  }
   if(at==0x8000 && (value==10 || value==14)) {
    bank=value;mapper_writes.push_back(value);return;
   }
@@ -53,6 +81,10 @@ struct Cpu {
  void nz(uint8_t v) {set(2,v==0);set(0x80,(v&128)!=0);}
  void push(uint8_t v) {bus.write(uint16_t(0x100|s),v);--s;}
  uint8_t pop() {return bus.read(uint16_t(0x100|uint8_t(++s)));}
+ void nmi() {
+  push(uint8_t(pc>>8));push(uint8_t(pc));push(uint8_t((p&~0x10)|0x20));
+  set(4,true);pc=bus.word(0xfffa);
+ }
  void rts() {uint16_t low=pop(),hi=pop();pc=uint16_t((hi<<8|low)+1);}
  uint16_t address(Mode m,uint16_t operand) {
   switch(m) {
