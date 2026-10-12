@@ -80,6 +80,9 @@ fi
 # ROM-free C++ compilation and fail-closed behavior; optional authenticated
 # original 6502 comparison of all 1280 room cases plus 135 selector cases.
 python3 -m py_compile "$root/JP/tools/static_recompile_bank0a.py" "$root/JP/tools/test_static_bank0a_0552.py"
+# 0562 source-driven C11 emitter. Public CI uses ROM-free fixture checks;
+# authenticated source-to-C output is generated locally only.
+python3 "$root/JP/tools/static_recompile_c_0562.py" --smoke
 python3 "$root/JP/tools/test_static_bank0a_0552.py" --smoke
 if [[ -n "$rom" ]]; then
   python3 "$root/JP/tools/test_static_bank0a_0552.py" --rom "$rom"

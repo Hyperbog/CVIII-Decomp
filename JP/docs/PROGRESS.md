@@ -505,3 +505,7 @@ The expanded independent [Stage 1 multi-branch suite](../SharedNES/0508_STAGE1_M
 ## 0561 — raw0A original $B8CC room-message selector to readable C++
 
 [0561 semantic source port](../analysis/0561_RAW0A_NATIVE_ROOM_MESSAGE.md) adds `native/bank0a/room_message_native_0561.hpp`: group predicate $07F6/$0781, 5 message stages per group, RAM $07A5 index, typed $FF terminal/next-offset contract. Ten original source message tables occupy 22 bytes; ROM-free corrupted-case tests and 10-entry original-ROM structural checks in the native bank0A driver. The external fixed-bank $EC47 renderer is *not* fabricated. VPP 27/100, strict 49,504/262,144, compiled 4,261 sites unchanged.
+
+## 0562 — C11 static recompilation ABI and dynamic interpreter fallback
+
+[Source-first C pivot](../analysis/0562_C11_STATIC_RECOMP_ARCHITECTURE.md) adds a portable C11 2A03 `JpCpu`/`JpBus` ABI, official-opcode semantic interpreter, physical VRC6 bank addressing, fail-closed unsupported hardware, ROM-free CTest and a generator that emits bank raw0A's 2,357 existing opcode sites as **local** C11 code from byte-exact authenticated ASM. Candidate code is off by default; fallback is opt-in and separately counted. The existing C++ hardware code and parity tests remain; this does **not** yet constitute a fully migrated game. Strict 49,504/262,144, 4,261 existing C++ sites and VPP 27/100 unchanged.

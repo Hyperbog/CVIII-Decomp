@@ -480,3 +480,7 @@ ROM-backed structural checks in `static_bank0a_driver.cpp`,
 and `analysis/0561_RAW0A_NATIVE_ROOM_MESSAGE.md`. Source data
 is loaded from a private ROM-derived bank at runtime, not embedded.
 VPP27, strict49,504, 4,261 sites, frontier0508/$FB96.
+
+## 0562 — transition to C11 recompilation
+
+New implementation under `JP/native/c6502/`: C11 CPU/Bus ABI and official-opcode semantics `cpu.c`, complete official opcode metadata `opcode_table.c`, synthetic fail-closed regression `test_cpu.c`. Generator `JP/tools/static_recompile_c_0562.py` uses authenticated private ROM+raw0A 0538 ASM to generate local `bank0a_compiled.c` with 2,357 existing opcode starts and opt-in candidate gates. No new original game binaries/assets in Git. Current C++ bank0A/bootstrap/hardware remain authoritative until C native replay and hardware integration are proven; no parity/coverage credit awarded. Phase 0562 report `JP/analysis/0562_C11_STATIC_RECOMP_ARCHITECTURE.md`.
