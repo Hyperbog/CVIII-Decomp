@@ -454,3 +454,16 @@ Shared `native/bank0a/static_6502.hpp` now uses `cpu_cycle_0554.hpp` to count of
 ## 0554 Phase 4F handoff — DMC DMA fetch only, not APU player
 
 `native/boot/dmc_dma_0554.hpp` and `native/boot/dmc_dma_test_0554.cpp` provide explicit CPU-read-boundary DMC sample fetch from $C000–$FFFF with 3/4-cycle halt, PPU and VRC6 clocks, and fail-closed OAM/DMC overlap. Caller invokes `Cpu::enable_dmc_dma(get_cycle_parity)`, requests `DmcFetchKind::load/reload`, then calls `service_dmc_dma_at_read_boundary()`. This does NOT implement APU $4015 scheduling, DMC output, frame IRQ, DMC sample loops or genuine game traces. Docs `analysis/0554_PHASE4F_DMC_DMA_FETCH.md`. VPP27, 49,504 strict, compiled4,261, checkpoint 0508/$FB96.
+
+## 0560 — semantic decompilation direction (no gameplay-recording prerequisite)
+
+The raw0A selector code at original CPU $801E–$8046 is now a native C++
+function (`native/bank0a/room_selector_native_0560.hpp`) accepting a
+privately supplied 16KiB bank and structural valid selector triples.
+`native/bank0a/static_bank0a_driver.cpp` cross-checks all 135 original
+statically compiled 6502 selector executions against native pointers.
+ROM-free test: `native/boot/room_selector_native_test_0560.cpp`;
+analysis `0560_RAW0A_NATIVE_ROOM_SELECTOR.md`. Original ROM-backed
+`test_static_bank0a_0552.py --rom` additionally compares against an
+independent 6502 interpreter. Other bank0A candidates and unresolved
+code/data remain gated, not falsely promoted. Coverage unchanged.

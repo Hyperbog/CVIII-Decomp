@@ -1,6 +1,7 @@
 // Original ROM binaries are loaded at runtime and never embedded or distributed.
 // Test CLI for native static-compiled bank0A instructions with a bounded FB96 helper.
 #include "static_6502.hpp"
+#include "room_selector_native_0560.hpp"
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -52,6 +53,7 @@ int main(int argc,char**argv){
   if(argc==4){
    std::ifstream input(argv[3]);
    if(!input)throw std::runtime_error("no bounded selector-case file");
+   const Room0aSelector0560 host_selector(a);
    int x,y,z;char comma1,comma2;
    int total=0;
    while(input>>x>>comma1>>y>>comma2>>z){
@@ -68,6 +70,15 @@ int main(int argc,char**argv){
         throw std::runtime_error("unknown conditional selector instruction");
     }
     if(!ok)throw std::runtime_error("conditional selector did not return");
+    // Compare real source-instruction execution against a separate direct
+    // C++ port of the three-level selector, for every bounded input.
+    const auto native=host_selector.select(unsigned(x),unsigned(y),unsigned(z));
+    const unsigned st=unsigned(b.ram[6])|(unsigned(b.ram[7])<<8);
+    const unsigned mid=unsigned(b.ram[4])|(unsigned(b.ram[5])<<8);
+    const unsigned leaf=unsigned(b.ram[0x95])|(unsigned(b.ram[0x96])<<8);
+    if(st!=native.stage_pointer || mid!=native.middle_pointer ||
+       leaf!=native.leaf_pointer)
+     throw std::runtime_error("direct-C++ raw0A room selector differs from original compiled 6502");
     std::cout<<x<<','<<y<<','<<z<<','<<int(b.ram[6]|b.ram[7]<<8)
      <<','<<int(b.ram[4]|b.ram[5]<<8)<<','<<int(b.ram[0x95]|b.ram[0x96]<<8)<<'\n';
     ++total;

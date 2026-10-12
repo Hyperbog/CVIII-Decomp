@@ -497,3 +497,7 @@ The expanded independent [Stage 1 multi-branch suite](../SharedNES/0508_STAGE1_M
 ## 0554 Phase 4F — bounded explicit DMC DMA sample fetch
 
 [ROM-free DMC fetch gate](../analysis/0554_PHASE4F_DMC_DMA_FETCH.md) adds a request-driven 3/4-cycle DMC sample fetch from fixed PRG $C000–$FFFF, with caller-authenticated CPU read boundary and get/put phase. CPU/PPU/VRC6 clocks continue during the stall; competing OAM DMA requests reject, rather than asserting unsupported overlap accuracy. No automatic $4015 playback timing, sample sequencing, DMC IRQ, or actual game-frame parity. Strict49,504/262,144, VPP27/100, native compiled4,261 unchanged.
+
+## 0560 — host-native C++ port of raw0A selector (source-first)
+
+[0560 source translation report](../analysis/0560_RAW0A_NATIVE_ROOM_SELECTOR.md) introduces `native/bank0a/room_selector_native_0560.hpp`, a readable C++ implementation of original $801E–$8046 three-level pointer selection, with 15 stage groups, 64 middle roots, 135 bounded leaf indexes and original structural data types. Existing ROM-backed 135-case native-CPU driver now independently compares the original statically compiled 6502 path with the host-native routine. Synthetic 135-case ROM-free unit test and corrupt-boundary gates added. No extra instruction sites or strict-certified PRG bytes; VPP27/100, 49,504/262,144, 4,261 compiled sites remain unchanged.
