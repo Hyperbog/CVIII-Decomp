@@ -21,6 +21,7 @@ execute_process(
 if(NOT JP_ROM_CHECK EQUAL 0)
  message(FATAL_ERROR "Unrecognized original-JP ROM: ${JP_ROM_CHECK_ERR}")
 endif()
+set(NESRECOMP_HEADLESS ${JP_CYCLE_HEADLESS} CACHE BOOL "Disable external SDL/UI when headless" FORCE)
 include("${NESRECOMP_EXTERNAL_ROOT}/runner/cyc/project.cmake")
 set(JP_CYCLE_OPTIONS "")
 if(JP_CYCLE_HEADLESS)

@@ -533,3 +533,7 @@ The expanded independent [Stage 1 multi-branch suite](../SharedNES/0508_STAGE1_M
 ## 0568 — optional cycle-accurate C11 VRC6 engine integration point
 
 [0568 external C11 runtime build](../analysis/0568_EXTERNAL_NESRECOMP_CYCLE_BACKEND.md) adds `native/nesrecomp_cycle/CMakeLists.txt` using NESRecomp's external cycle-generation `nesrecomp_add_cycle_game`, with private original-JP SHA/mapper24 validation, external PolyForm-NC license gate and a bounded headless 120-frame invocation/report command in `tools/nesrecomp_cycle_0568.py`. CI tests synthetic command-building and failure gates; **actual upstream retail game execution has not yet been attempted in CI**. All copied/generated original-code and upstream runtime source stay outside this repo. Legacy C++ evidence and independent 0562–0567 C11 backend retained; VPP27, strict49,504/262,144, sites4,261 unchanged.
+
+## 0569 — pinned upstream C11 mapper24 cycle test with synthetic cartridge
+
+[0569 cycle-runner smoke](../analysis/0569_NESRECOMP_SYNTHETIC_MAPPER24_SMOKE.md) adds a ROM-free public action `jp_nesrecomp_cycle_mapper24.yml` that checks out the external PolyForm-NC C engine at pinned commit, builds a synthetic mapper24 VRC6 256KiB PRG/128KiB CHR cartridge, generates and compiles upstream cycle C, and requests three native headless frames. The artificial ROM exercises PRG bank switches, PPU NMI, $4014 DMA, VRC6 IRQ and WRAM gating. Results are **a hardware integration smoke only**, not Japanese commercial ROM frame parity. Coverage remains 27/100 and 49,504/262,144; 4,261 prior sites.

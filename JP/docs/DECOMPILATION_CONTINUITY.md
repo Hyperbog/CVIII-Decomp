@@ -508,3 +508,7 @@ Current `mstan/nesrecomp` source `runner/cyc/hw_vrc6.inc` and `vrc6_test.inc` im
 ## 0568 — external NESRecomp VRC6 cycle hardware integration
 
 `native/nesrecomp_cycle/CMakeLists.txt` calls external upstream `nesrecomp_add_cycle_game` in a separate build tree. `tools/nesrecomp_cycle_0568.py --rom ORIGINAL_JP_ROM --engine /external/nesrecomp --out /tmp/jp-cycle --frames 120` authenticates original SHA-256/mapper24, checks separate PolyForm Noncommercial license, builds and runs bounded frames. No NESRecomp vendoring, no game ROM committed, no original-game frame parity claim. ROM-free policy tests: `tools/test_nesrecomp_cycle_0568.py`. Evidence `analysis/0568_EXTERNAL_NESRECOMP_CYCLE_BACKEND.md`; strict PRG 49,504, VPP27, C++ sites4,261 unchanged.
+
+## 0569 — pinned external cycle C11 integration CI
+
+New GitHub Action `.github/workflows/jp_nesrecomp_cycle_mapper24.yml` checks out **external** NESRecomp pinned at `2b4fcdb98c9e702be3fb365cfc645003c50b5fc1` under PolyForm Noncommercial 1.0.0, creates a wholly artificial mapper24 VRC6 ROM with `tools/test_cycle_synthetic_rom_0569.py`, builds the upstream C11 cycle backend and requests 3 headless frames. It does not copy upstream source or any original commercial ROM into the CVIII repo. Original-JP local run remains `nesrecomp_cycle_0568.py`; neither fake-ROM smoke nor bounded local process exit establishes Mesen game parity. Documentation: `analysis/0569_NESRECOMP_SYNTHETIC_MAPPER24_SMOKE.md`.

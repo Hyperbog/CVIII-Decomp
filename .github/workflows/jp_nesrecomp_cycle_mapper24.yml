@@ -1,0 +1,45 @@
+name: JP External NESRecomp C11 Cycle Mapper24 Smoke
+on:
+  push:
+    branches: [decompilation]
+    paths:
+      - "JP/tools/test_cycle_synthetic_rom_0569.py"
+      - "JP/native/nesrecomp_cycle/**"
+      - ".github/workflows/jp_nesrecomp_cycle_mapper24.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  mapper24-headless-cycle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout CVIII C11 integration
+        uses: actions/checkout@v4
+      - name: Checkout pinned external NESRecomp cycle engine (PolyForm Noncommercial 1.0.0)
+        uses: actions/checkout@v4
+        with:
+          repository: mstan/nesrecomp
+          ref: 2b4fcdb98c9e702be3fb365cfc645003c50b5fc1
+          path: _external_nesrecomp
+          persist-credentials: false
+      - name: Verify external noncommercial license and cycle interface
+        run: |
+          grep -q "PolyForm Noncommercial License 1.0.0" _external_nesrecomp/LICENSE
+          test -f _external_nesrecomp/runner/cyc/project.cmake
+          python3 JP/tools/test_cycle_synthetic_rom_0569.py --smoke
+      - name: Generate noncommercial synthetic mapper24 VRC6 ROM
+        run: python3 JP/tools/test_cycle_synthetic_rom_0569.py --out "${{ runner.temp }}/jp_mapper24_fixture.nes"
+      - name: Configure upstream C11 cycle runtime and generate opcode C
+        run: |
+          cmake -S _external_nesrecomp/runner/cyc/project \
+                -B "${{ runner.temp }}/jp-vrc6-cycle" -G Ninja \
+                -DCMAKE_BUILD_TYPE=Release \
+                -DNESRECOMP_ROM="${{ runner.temp }}/jp_mapper24_fixture.nes" \
+                -DNESRECOMP_HEADLESS=ON
+      - name: Compile upstream C11 cycle backend with VRC6
+        run: cmake --build "${{ runner.temp }}/jp-vrc6-cycle" --config Release --parallel 4
+      - name: Run synthetic mapper24 VRC6 CPU PPU DMA IRQ frames
+        run: |
+          "${{ runner.temp }}/jp-vrc6-cycle/nes_game" \
+             "${{ runner.temp }}/jp_mapper24_fixture.nes" --frames 3
