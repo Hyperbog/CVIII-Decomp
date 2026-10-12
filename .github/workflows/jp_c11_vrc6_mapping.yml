@@ -1,0 +1,38 @@
+name: JP C11 VRC6 PRG Runtime
+on:
+  push:
+    branches: [decompilation]
+    paths:
+      - 'JP/native/c6502/**'
+      - 'JP/tools/static_recompile_boot_c_0564.py'
+      - '.github/workflows/jp_c11_vrc6_mapping.yml'
+  pull_request:
+    paths:
+      - 'JP/native/c6502/**'
+      - 'JP/tools/static_recompile_boot_c_0564.py'
+      - '.github/workflows/jp_c11_vrc6_mapping.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  c11-prg-mapping:
+    name: Portable C11 VRC6 PRG mapping and code-generator contract
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-2022]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 12
+    steps:
+      - name: Checkout source (no commercial ROM)
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Configure C11-only runtime
+        run: cmake -S JP/native/c6502 -B build/jp-c11-only -DJP_C6502_HOST_ONLY=ON
+      - name: Compile C11 host CPU and mapper
+        run: cmake --build build/jp-c11-only --config Release --parallel 2
+      - name: Verify VRC6 mapper and official 6502 C semantics
+        run: ctest --test-dir build/jp-c11-only -C Release --output-on-failure
+      - name: Check physically qualified fixed-bank C emitter
+        run: python JP/tools/static_recompile_boot_c_0564.py --smoke
