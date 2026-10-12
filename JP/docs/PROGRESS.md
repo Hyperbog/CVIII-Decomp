@@ -517,3 +517,7 @@ The expanded independent [Stage 1 multi-branch suite](../SharedNES/0508_STAGE1_M
 ## 0564 — C11 generators span existing native 4,261 instruction starts
 
 [0564 full-current-site C11 source generation](../analysis/0564_C11_FIXED_AND_RAW0A_GENERATION.md) adds an original-JP C generator for 1,904 historical fixed31 + scripted reset/NMI physical instruction starts, and a `regen_c11_0564.py` local build command producing source-derived C11 for those and the prior 2,357 raw0A starts. C11 dispatcher admits bank-qualified fixed code; untrusted mapper aliases still reject. **Neither unproven candidate code nor synthetic scripted NMI counts as natural gameplay parity.** Existing C++ hardware remains, ROM-derived C artifacts are local-only, and coverage VPP27/100, 49,504/262,144 strict PRG remains unchanged.
+
+## 0565 — link generated original game C into C-only bounded host
+
+[0565 native-C executable](../analysis/0565_C11_NATIVE_HOST_LINK.md) adds `native/c6502/main.c` with private original-ROM load, reset-vector dispatch, fixed+raw0A generated C linkage, opt-in interpreter fallback, clear first-unsupported-PC diagnostic and bounded execution, plus `native/c6502/CMakeLists.txt` with explicit original-generated or host-only modes. Public ROM-free CI links and executes artificial C-generated fixture and rejects non-authenticated media. Does **not** implement real hardware frames, controller, PPU, APU, full VRC6 IRQ or gameplay yet. Strict PRG49,504, VPP27 and original 4,261 sites unchanged.

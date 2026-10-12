@@ -87,6 +87,8 @@ python3 "$root/JP/tools/static_recompile_c_0562.py" --smoke
 python3 "$root/JP/tools/test_c6502_regen_0563.py" --smoke
 # JP 0564: whole-current-native-site C11 codegen contract (ROM-free).
 python3 "$root/JP/tools/static_recompile_boot_c_0564.py" --smoke
+# 0565: fully linked ROM-free C-only host (synthetic compiled bank+fixed source).
+python3 "$root/JP/tools/test_c6502_native_host_0565.py" --smoke
 python3 -m py_compile "$root/JP/tools/regen_c11_0564.py"
 if [[ -n "$rom" ]]; then
   # Temporary source generation, C11 compile, independent 135-case 6502 replay.

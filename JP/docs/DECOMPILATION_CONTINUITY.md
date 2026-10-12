@@ -492,3 +492,7 @@ New implementation under `JP/native/c6502/`: C11 CPU/Bus ABI and official-opcode
 ## 0564 — C11 generator physical-bank coverage
 
 `tools/static_recompile_boot_c_0564.py` reads the existing fixed31+scripted boot original-source generator and translates its physically qualified 1,904 sites into locally generated C11. `tools/regen_c11_0564.py --rom ORIGINAL_JP_ROM --out /tmp/jp-c11-build` generates all existing 4,261 static sites across raw0A and fixed/boot and a provenance manifest. C11 `JpCpu` compiled dispatch accepts physically qualified CPU banks; the opt-in fallback is never counted as verified static code. ROM and generated source remain local; full C runtime/game loop and original gameplay parity are unproven. See `analysis/0564_C11_FIXED_AND_RAW0A_GENERATION.md`.
+
+## 0565 — runnable generated-C host skeleton
+
+`native/c6502/main.c` links both C11 generated bank0A and physical fixed/boot units from `regen_c11_0564.py`, loads the user-owned JP ROM, checks iNES shape/CRC32 and original reset vector, then executes a bounded host-native step loop. `--fallback` enables the explicit interpreter; unresolved hardware/PC returns a failing process status, never simulated as gameplay success. CMake project `JP/native/c6502/CMakeLists.txt` requires `-DJP_C6502_GEN_DIR=PRIVATE/gen` or `-DJP_C6502_HOST_ONLY=ON`. Synthetic CI `tools/test_c6502_native_host_0565.py --smoke`; detail `analysis/0565_C11_NATIVE_HOST_LINK.md`. Original SHA-256 is checked at generation, CRC32 at host runtime. No native game graphics/audio/PPU yet; existing C++ tests preserved.
