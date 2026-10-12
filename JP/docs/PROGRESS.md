@@ -481,3 +481,7 @@ The expanded independent [Stage 1 multi-branch suite](../SharedNES/0508_STAGE1_M
 ## 0554 Phase 4B — VRC6a IRQ device foundation (ROM-free)
 
 [IRQ counter report](../analysis/0554_PHASE4B_VRC6_IRQ_CLOCK.md) adds the standalone VRC6a $F000 latch/$F001 control/$F002 acknowledge register device. CPU-clocked counter offers cycle mode and scanline-approximation 114/114/113 prescaler; test checks IRQ overflow/reload, acknowledge/re-enable, disabled freeze, and register rejection. **Device remains disconnected from CPU/bus**; no source-derived gameplay timing or Mesen parity claim. Strict 49,504/262,144, VPP27/100, compiled starts 4,261, last semantic frontier 0508/$FB96 unchanged.
+
+## 0554 Phase 4C — opt-in VRC6 IRQ wired to static-native CPU
+
+[Integration proof](../analysis/0554_PHASE4C_VRC6_IRQ_INTEGRATION.md) wires the standalone VRC6a IRQ device to every native CPU cycle, final-cycle direct $F000/$F001/$F002 register stores and opt-in CPU interrupt priority. CTest covers overflow/ack, CPU cycle timestamps, NMI priority, indexed stores and fail-closed unknown addressing. 0553 scripted ROM boot is **not changed**. VPP 27/100, strict PRG 49,504/262144, 4,261 instruction sites; no original-frame or hardware-cycle parity claim.

@@ -438,3 +438,7 @@ Shared `native/bank0a/static_6502.hpp` now uses `cpu_cycle_0554.hpp` to count of
 ## 0554 Phase 4B handoff — standalone VRC6a IRQ counter
 
 `native/boot/vrc6_irq_0554.hpp` models VRC6a $F000/$F001/$F002 and 341/3 CPU prescaler, with ROM-free unit test `native/boot/vrc6_irq_test_0554.cpp`; report `analysis/0554_PHASE4B_VRC6_IRQ_CLOCK.md`. **This device is not yet wired into `Cpu::advance_cycles`, `Bus::write`, or the Phase 4A IRQ input**. Avoid credit for real game IRQ/frame parity. VPP 27, strict 49,504/262,144, 4,261 compiled sites, semantic checkpoint 0508/$FB96.
+
+## 0554 Phase 4C — VRC6 IRQ integration handoff
+
+`Cpu::enable_vrc6_irq()` attaches a VRC6a counter and clocks it on every native instruction cycle; direct absolute/indexed $F000-$F002 writes occur on the final CPU bus cycle. `service_interrupt_boundary()` now accepts VRC6 level IRQ as well as external IRQ, below PPU NMI. Test `native/boot/vrc6_integration_test_0554.cpp`; limitations `analysis/0554_PHASE4C_VRC6_IRQ_INTEGRATION.md`. Scripted 0553 driver remains on legacy bus policy. VPP27, 49,504/262144 strict, 4,261 compiled starts, semantic 0508/$FB96.

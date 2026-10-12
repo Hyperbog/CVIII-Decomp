@@ -11,6 +11,7 @@
 #include <type_traits>
 #include "../boot/ntsc_ppu_clock_0554.hpp"
 #include "../boot/ppu_register_bus_0554.hpp"
+#include "../boot/vrc6_irq_0554.hpp"
 
 namespace jpstatic {
 enum class Mode { imp, acc, imm, zp, zpx, zpy, abs, absx, absy, indx, indy, ind, rel };
@@ -32,6 +33,8 @@ struct Bus {
  unsigned status_polls=0, ppu_data_reads=0;
  uint8_t controller_strobe=0;
  ClockedPpuRegisters* timed_ppu_io=nullptr; // null: preserve 0553 scripted policy
+ Vrc6IrqCounter* timed_vrc6_irq=nullptr;
+ bool vrc6_write_armed=false;
  std::vector<std::pair<uint16_t,uint8_t>> io_writes;
  std::vector<std::pair<uint16_t,uint8_t>> mapped_reads;
  std::vector<uint8_t> mapper_writes;
@@ -63,6 +66,12 @@ struct Bus {
  }
  void write(uint16_t at,uint8_t value) {
   if(at<0x2000) {ram[at&0x7ff]=value;return;}
+  if(at>=0xf000 && at<=0xf002 && timed_vrc6_irq) {
+   if(!vrc6_write_armed)throw std::runtime_error("VRC6 IRQ register write lacks supported final CPU bus cycle");
+   timed_vrc6_irq->write(at,value);
+   io_writes.emplace_back(at,value);
+   return;
+  }
   if(at<0x4000 && timed_ppu_io) {
    timed_ppu_io->write(at,value);
    io_writes.emplace_back(at,value);
@@ -88,8 +97,18 @@ struct Cpu {
  Bus &bus;
  NtscPpuClock ppu_clock{};
  ClockedPpuRegisters ppu_io{ppu_clock};
+ Vrc6IrqCounter vrc6_irq{};
+ bool vrc6_irq_enabled_=false;
  void enable_timed_ppu_registers() {bus.timed_ppu_io=&ppu_io;}
- void advance_cycles(unsigned n) {cycles+=n;ppu_clock.advance_cpu_cycles(n);}
+ void enable_vrc6_irq(bool enabled=true) {
+  vrc6_irq_enabled_=enabled;
+  bus.timed_vrc6_irq=enabled?&vrc6_irq:nullptr;
+  bus.vrc6_write_armed=false;
+ }
+ void advance_cycles(unsigned n) {
+  cycles+=n;ppu_clock.advance_cpu_cycles(n);
+  if(vrc6_irq_enabled_)vrc6_irq.clock_cpu_cycles(n);
+ }
  uint64_t cycles=0;
  bool address_page_cross_=false;
  bool automatic_interrupts_=false, external_irq_line_=false;
@@ -130,7 +149,7 @@ struct Cpu {
   if(ppu_clock.take_nmi()) {
    nmi();skip_next_interrupt_poll_=true;return InterruptKind::nmi;
   }
-  if(external_irq_line_ && !mask) {
+  if((external_irq_line_ || (vrc6_irq_enabled_ && vrc6_irq.irq_line())) && !mask) {
    irq();skip_next_interrupt_poll_=true;return InterruptKind::irq;
   }
   return InterruptKind::none;
@@ -172,19 +191,24 @@ struct Cpu {
   // Other PPU addressing shapes fail closed until their bus phases are modeled.
   bool timed_final_access=false;
   unsigned cycles_before_access=0;
-  if(bus.timed_ppu_io) {
+  bool timed_vrc6_write=false;
+  if(bus.timed_ppu_io || bus.timed_vrc6_irq) {
    if constexpr(M==Mode::abs || M==Mode::absx || M==Mode::absy) {
     constexpr bool read_ppu=(O==Op::LDA || O==Op::LDX || O==Op::LDY || O==Op::BIT);
     constexpr bool write_ppu=(O==Op::STA || O==Op::STX || O==Op::STY);
     if constexpr(read_ppu || write_ppu) {
      const uint16_t eff=uint16_t(operand+
        (M==Mode::absx ? unsigned(x) : (M==Mode::absy ? unsigned(y) : 0u)));
-     if(eff>=0x2000 && eff<0x4000) {
+     const bool direct_ppu=bus.timed_ppu_io && eff>=0x2000 && eff<0x4000;
+     const bool direct_vrc6=bus.timed_vrc6_irq &&
+       eff>=0xf000 && eff<=0xf002 && write_ppu;
+     if((direct_ppu && (read_ppu || write_ppu)) || direct_vrc6) {
       const bool crossed=(operand&0xff00u)!=(eff&0xff00u);
       const unsigned penalty=indexed_read_penalty_0554<O,M>() && crossed ? 1u : 0u;
       cycles_before_access=base_cycles+penalty-1u;
       advance_cycles(cycles_before_access);
-      bus.timed_ppu_io->arm_final_cycle();
+      if(direct_ppu)bus.timed_ppu_io->arm_final_cycle();
+      if(direct_vrc6){bus.vrc6_write_armed=true;timed_vrc6_write=true;}
       timed_final_access=true;
      }
     }
@@ -194,8 +218,12 @@ struct Cpu {
   // access permission even if a modeled direct register operation rejects.
   struct PpuAccessCleanup {
    ClockedPpuRegisters* io;
-   ~PpuAccessCleanup(){if(io)io->disarm();}
-  } ppu_cleanup{timed_final_access ? bus.timed_ppu_io : nullptr};
+   Bus& bus;
+   ~PpuAccessCleanup(){
+    if(io)io->disarm();
+    bus.vrc6_write_armed=false;
+   }
+  } ppu_cleanup{timed_final_access ? bus.timed_ppu_io : nullptr,bus};
   if constexpr(O==Op::LDA){a=value(M,operand);nz(a);}
   else if constexpr(O==Op::LDX){x=value(M,operand);nz(x);}
   else if constexpr(O==Op::LDY){y=value(M,operand);nz(y);}
@@ -268,7 +296,8 @@ struct Cpu {
   const unsigned added=base_cycles+branch_penalty+
       ((indexed_read_penalty_0554<O,M>() && address_page_cross_)?1u:0u);
   if(timed_final_access) {
-   bus.timed_ppu_io->disarm();
+   if(bus.timed_ppu_io)bus.timed_ppu_io->disarm();
+   if(timed_vrc6_write)bus.vrc6_write_armed=false;
    if(added!=cycles_before_access+1u)
     throw std::runtime_error("timed PPU access cycle-accounting mismatch");
    advance_cycles(1);
