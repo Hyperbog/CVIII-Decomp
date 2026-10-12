@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <fstream>
 #include <iomanip>
+#include <iterator>
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -37,7 +38,9 @@ struct Room {
     std::vector<std::array<unsigned,2>> post_mapper_changes;
     std::vector<std::array<unsigned,3>> video_register_writes;
     std::vector<std::array<unsigned,2>> script0_mapper_changes;
+    std::vector<std::array<unsigned,2>> script3_mapper_changes;
     std::array<uint8_t,2048> ram{};
+    bool complete_foreign=false;
     uint8_t mapper=10;
     unsigned indirect_reads=0, mapper_writes=0;
     std::vector<std::array<unsigned,2>> mapped_accesses;
@@ -242,11 +245,125 @@ struct Room {
         for(unsigned i=0;i<pcs.size();++i)
             video_register_writes.push_back({pcs[i],addrs[i],ram[fields[i]]});
     }
+
+    // Two original fixed PRG30 routines, using original physical bank data.
+    // All PRG mapping is explicit; addresses $C000..$DFFF are fixed PRG30,
+    // $E000..$FFFF fixed PRG31, $8000..$BFFF is mapper-selected raw bank.
+    void dispatch_fixed_script3(const std::vector<uint8_t>& prg) {
+        const auto rd = [&](unsigned addr,unsigned bank)->uint8_t {
+            if(addr>=0x8000 && addr<0xC000 && bank<15)
+                return prg.at(bank*0x4000+addr-0x8000);
+            if(addr>=0xC000 && addr<0xE000)
+                return prg.at(30*0x2000+addr-0xC000);
+            if(addr>=0xE000 && addr<=0xFFFF)
+                return prg.at(31*0x2000+addr-0xE000);
+            throw std::runtime_error("script3 mapped pointer outside original PRG");
+        };
+        const auto word = [&](unsigned addr,unsigned bank)->unsigned {
+            if((addr&0xFFFFu)==0xFFFFu)throw std::runtime_error("script3 word crosses address space");
+            return unsigned(rd(addr,bank))|(unsigned(rd(addr+1,bank))<<8);
+        };
+        auto selected_bank = [&]()->unsigned {
+            unsigned y=ram[0x34];
+            if(y==0x0D) {
+                if(ram[0x35]==0 && ram[0x36]<=1)y=2;
+                else if((ram[0x35]==2 && ram[0x36]==2) ||
+                        (ram[0x35]==3 && ram[0x36]==0))y=5;
+            } else if(y==0x0E && ram[0x35]==0 && ram[0x36]==1) y=1;
+            if(y>=15)throw std::runtime_error("script3 bank selector exceeds original 15 words");
+            return unsigned(rd(0xC94B+y,0));
+        };
+        // C900 selects a bank before D03F, C905 re-selects after D449.
+        unsigned bank=unsigned(rd(0xC94B+ram[0x34],0));
+        if(bank>=15)throw std::runtime_error("script3 illegal first mapper selection");
+        ram[0x23]=static_cast<uint8_t>(bank);
+        script3_mapper_changes.push_back({0xE2D2,bank});
+        ram[0x70]=ram[0x65];
+        ram[0x0C]=static_cast<uint8_t>(ram[0x34]*2u);
+        unsigned ptr=word(0xD953+ram[0x0C],bank);
+        ram[8]=static_cast<uint8_t>(ptr);ram[9]=static_cast<uint8_t>(ptr>>8);
+        ram[0x0D]=static_cast<uint8_t>(ram[0x35]*2u);
+        unsigned child=word(ptr+ram[0x0D],bank);
+        ram[10]=static_cast<uint8_t>(child);ram[11]=static_cast<uint8_t>(child>>8);
+        ram[0x65]=rd(child+ram[0x36],bank);
+        // D449 resolves a second nested table, including a one-byte offset
+        // into the final child before storing the 16-bit $4D/$4E pointer.
+        ptr=word(0xD8F9+ram[0x0C],bank);
+        ram[8]=static_cast<uint8_t>(ptr);ram[9]=static_cast<uint8_t>(ptr>>8);
+        child=word(ptr+ram[0x0D],bank);
+        ram[10]=static_cast<uint8_t>(child);ram[11]=static_cast<uint8_t>(child>>8);
+        ram[0x0E]=static_cast<uint8_t>(ram[0x36]*2u);
+        const unsigned leaf=word(child+ram[0x0E]+1u,bank);
+        ram[0x4D]=static_cast<uint8_t>(leaf);ram[0x4E]=static_cast<uint8_t>(leaf>>8);
+        bank=selected_bank();
+        if(bank>=15)throw std::runtime_error("script3 illegal second mapper selection");
+        ram[0x23]=static_cast<uint8_t>(bank);
+        script3_mapper_changes.push_back({0xE2D2,bank});
+        ram[0x6E]=rd(leaf,bank);
+        // D074-D0CB special room header adjustment. Current five bounded
+        // source-room headers take the default branch; preserve the other
+        // explicitly decoded original conditional selectors as well.
+        unsigned y=ram[0x0C];
+        if(ram[0x34]==0x0D){
+            if(ram[0x35]==0 && ram[0x36]<=1)y=4;
+            else if((ram[0x35]==2 && ram[0x36]==2) ||
+                    (ram[0x35]==3 && ram[0x36]==0))y=10;
+        }else if(ram[0x34]==0x0E && ram[0x35]==0 && ram[0x36]==1) y=2;
+        const unsigned one=word(0xD917+y,bank);
+        const unsigned two=word(0xD935+y,bank);
+        ram[0x5A]=static_cast<uint8_t>(one);ram[0x5B]=static_cast<uint8_t>(one>>8);
+        ram[0x5C]=static_cast<uint8_t>(two);ram[0x5D]=static_cast<uint8_t>(two>>8);
+        // D094 RTS; original FBC9 trampoline restores raw bank 0A.
+    }
+
+    void dispatch_fixed_script4() {
+        // D0CD-D149 reads the $65/$6E room values produced by script3.
+        // Shift sequences have explicit 6502 carry propagation.
+        auto sz8 = [](unsigned v)->uint8_t{return static_cast<uint8_t>(v);};
+        unsigned acc=0;
+        if(ram[0x65]&0x80) {
+            const unsigned flags=unsigned(ram[0x520])|unsigned(ram[0x537]);
+            if(flags && !(ram[0x520]&0x80)) {
+                ram[0x54]=0;ram[0x53]=0;
+            } else {
+                ram[0x54]=flags && (ram[0x520]&0x80)?ram[0x6E]:((ram[0x65]&1)?0:ram[0x6E]);
+                ram[0x53]=((!flags && (ram[0x65]&1))?0:0x30);
+            }
+            ram[0x55]=0;ram[0]=ram[0x53];acc=ram[0x54];
+            bool carry=false;
+            for(int j=0;j<3;++j){
+                carry=(ram[0]&0x80)!=0;
+                ram[0]=sz8(unsigned(ram[0])<<1);
+                acc=sz8((acc<<1)|(carry?1:0));
+            }
+            acc=sz8(acc-1);ram[0x56]=sz8(acc);
+            ram[0x57]=sz8(acc+7);
+            return;
+        }
+        if(ram[0x54]&0x80) acc=0;
+        else if(ram[0x54]==ram[0x6E]) acc=sz8(unsigned(ram[0x6E])<<3);
+        else {
+            ram[0]=ram[0x54];acc=ram[0x53];
+            for(int j=0;j<3;++j){
+                const bool carry=(ram[0]&1)!=0;
+                ram[0]=sz8(ram[0]>>1);
+                acc=sz8((acc>>1)|(carry?0x80:0));
+            }
+            acc=sz8(acc>>2);
+        }
+        // SEC, SBC #02; CLC, ADC #0B; optional D133/$78 update.
+        acc=sz8(acc-2);ram[0x56]=sz8(acc);
+        ram[0x57]=sz8(acc+0x0B);
+        ram[0x78]=sz8(unsigned(ram[0x6E])*8+8);
+    }
+
     void post_dispatch(const Image& bank0a,const Image& bank0e,const Image& bank00,
-                       unsigned index,unsigned seed) {
-        // Translate the *entire caller* $B6B4-$B6E7 and its six original
-        // B49A/FBBB mapper trampolines. Two foreign callees remain controlled
-        // zero-effect test callbacks; scripts 3,4 remain unported.
+                       unsigned index,unsigned seed,const std::vector<uint8_t>* full_prg=nullptr) {
+        // Translate $B6B4-$B6E7 and all six original B49A/FBBB
+        // trampoline targets. With full_prg supplied, no callback is mocked.
+        // Without full_prg, ROM-free synthetic fixtures retain explicitly
+        // marked ID3/ID4 stubs; those fixtures are NOT original-game parity.
+        complete_foreign=(full_prg!=nullptr);
         state_bridge(bank0a,bank0e,index,seed);
         ram[0xFF]=0xB0;
         ram[0xFD]=0;
@@ -275,7 +392,7 @@ struct Room {
             mapper=bank;ram[0x23]=bank;
             post_mapper_changes.push_back({0xE2D2,bank});
             const unsigned target=static_cast<unsigned>(lo)|(static_cast<unsigned>(hi)<<8);
-            const bool stubbed=id==3 || id==4;
+            const bool stubbed=(id==3 || id==4) && full_prg==nullptr;
             dispatches.push_back({id,target,bank,lo,hi,bank,ram[0x3f],0xF5,stubbed});
             // This explicit boundary is the scope limit. No speculative
             // C++ behavior is supplied for original routines 3 and 4.
@@ -289,6 +406,8 @@ struct Room {
                 ram[0x38]=value;ram[0x39]=static_cast<uint8_t>(value+1);
             }
             if(id==2) dispatch_bank00_script2_video(bank00);
+            if(id==3 && full_prg) dispatch_fixed_script3(*full_prg);
+            if(id==4 && full_prg) dispatch_fixed_script4();
             if(id==6) {
                 // Authentic bank00 $8F3E-$8F46: two immediate ZP stores.
                 ram[0x3C]=0x40;ram[0x3F]=0x43;
@@ -380,7 +499,7 @@ struct Room {
 void json_post(const Room& r,unsigned index,unsigned seed,unsigned step) {
     std::cout<<"{\"step\":"<<step<<",\"room_index\":"<<index
              <<",\"seed\":"<<seed
-             <<",\"scope\":\"conditional_6502_post_B6B4_native_host_with_two_stub_callbacks\""
+             <<",\"scope\":\""<<(r.complete_foreign?"conditional_6502_post_B6B4_native_host_with_no_stub_callbacks":"conditional_6502_post_B6B4_native_host_with_two_stub_callbacks")<<"\""
              <<",\"callbacks\":[";
     for(std::size_t i=0;i<r.dispatches.size();++i) {
         if(i)std::cout<<',';
@@ -404,6 +523,11 @@ void json_post(const Room& r,unsigned index,unsigned seed,unsigned step) {
         if(i)std::cout<<',';
         const auto& w=r.script0_mapper_changes[i];
         std::cout<<'['<<w[0]<<','<<w[1]<<']';
+    }
+    std::cout<<"],\"script3_mapper_changes\":[";
+    for(std::size_t i=0;i<r.script3_mapper_changes.size();++i) {
+        if(i)std::cout<<',';
+        std::cout<<'['<<r.script3_mapper_changes[i][0]<<','<<r.script3_mapper_changes[i][1]<<']';
     }
     std::cout<<"],\"script0_command_buffer\":[";
     for(unsigned i=0x300;i<0x380;++i) {
@@ -444,7 +568,14 @@ void json_post(const Room& r,unsigned index,unsigned seed,unsigned step) {
              <<",\"ram_3c\":"<<unsigned(m[0x3c])
              <<",\"ram_38\":"<<unsigned(m[0x38])
              <<",\"ram_39\":"<<unsigned(m[0x39])
-             <<",\"ram_57\":"<<unsigned(m[0x57])
+             <<",\"script34_ram_fields\":[";
+    constexpr std::array<unsigned,22> kScriptFields{{0,8,9,10,11,12,13,14,0x4D,0x4E,
+         0x53,0x54,0x55,0x56,0x57,0x5A,0x5B,0x5C,0x5D,0x65,0x6E,0x78}};
+    for(unsigned i=0;i<kScriptFields.size();++i){
+        if(i)std::cout<<',';
+        std::cout<<unsigned(m[kScriptFields[i]]);
+    }
+    std::cout<<"]"<<",\"ram_57\":"<<unsigned(m[0x57])
              <<",\"ram_61\":"<<unsigned(m[0x61])
              <<",\"state_19\":"<<unsigned(m[0x19])
              <<",\"substate_68\":"<<unsigned(m[0x68])
@@ -539,20 +670,34 @@ void json_frame(const Room& r,unsigned index,unsigned seed,unsigned step,bool in
 }
 }
 int main(int argc,char**argv) {
-    if(argc!=3 && argc!=4 && argc!=5){
+    if(argc!=3 && argc!=4 && argc!=5 && argc!=6){
         std::cerr<<"usage: room_loader_native raw0a.bin raw0e.bin [--state-bridge|--state-gate|--post-dispatch raw00.bin]\n";return 2;
     }
     const bool gated=argc==4 && std::string(argv[3])=="--state-gate";
     const bool integrated=argc==4 && std::string(argv[3])=="--state-bridge";
-    const bool post=argc==5 && std::string(argv[3])=="--post-dispatch";
-    if((argc==4 && !gated && !integrated) || (argc==5 && !post))return 2;
+    const bool post=(argc==5 || argc==6) && std::string(argv[3])=="--post-dispatch";
+    if((argc==4 && !gated && !integrated) || ((argc==5 || argc==6) && !post))return 2;
     try {
         const Image a(argv[1]),e(argv[2]);
         unsigned step=0;
         if(post) {
             const Image bank00(argv[4]);
+            std::vector<uint8_t> full;
+            if(argc==6){
+                std::ifstream input(argv[5],std::ios::binary);
+                full.assign(std::istreambuf_iterator<char>(input),std::istreambuf_iterator<char>());
+                if(full.size()!=262144)throw std::runtime_error("full PRG must be exactly 256KiB");
+                // Refuse contradictory mapper images: local bank sources and
+                // full cartridge PRG must describe the same physical bytes.
+                for(unsigned i=0;i<16384;++i) {
+                    if(full[i]!=bank00.at(static_cast<uint16_t>(0x8000+i)) ||
+                       full[10*16384+i]!=a.at(static_cast<uint16_t>(0x8000+i)) ||
+                       full[14*16384+i]!=e.at(static_cast<uint16_t>(0x8000+i)))
+                        throw std::runtime_error("full PRG and bank source mismatch");
+                }
+            }
             for(unsigned index=0;index<5;++index)for(unsigned seed=0;seed<256;++seed){
-                Room room;room.post_dispatch(a,e,bank00,index,seed);
+                Room room;room.post_dispatch(a,e,bank00,index,seed,argc==6?&full:nullptr);
                 json_post(room,index,seed,step++);
             }
             return 0;

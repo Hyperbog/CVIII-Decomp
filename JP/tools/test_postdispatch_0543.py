@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """ROM-free native six-dispatch contract fixtures + authenticated original replay.
 
-Only callbacks 3 and 4 remain neutral test doubles; scripts 0,1,2,6 are native.
+Original-ROM mode executes all six real callees; ROM-free legacy fixtures intentionally leave scripts 3/4 neutral.
 Do not interpret this test as fully reproduced room initialization.
 """
 from __future__ import annotations
@@ -42,10 +42,13 @@ def fixtures():
     z[0x8929-0x8000:0x8929-0x8000+3]=bytes([0x13,0x24,0x35])
     return a,e,z
 
-def runner(exe:Path,a:bytes,e:bytes,z:bytes,flag='--post-dispatch'):
+def runner(exe:Path,a:bytes,e:bytes,z:bytes,flag='--post-dispatch',full:bytes|None=None):
     with tempfile.TemporaryDirectory(prefix='0543-synthetic-') as t:
         d=Path(t);pa=d/'a';pe=d/'e';pz=d/'z';pa.write_bytes(a);pe.write_bytes(e);pz.write_bytes(z)
-        return subprocess.run([str(exe),str(pa),str(pe),flag,str(pz)],capture_output=True,text=True)
+        cmd=[str(exe),str(pa),str(pe),flag,str(pz)]
+        if full is not None:
+            pf=d/'full';pf.write_bytes(full);cmd.append(str(pf))
+        return subprocess.run(cmd,capture_output=True,text=True)
 
 def smoke(compiler='g++'):
     with tempfile.TemporaryDirectory(prefix='0543-native-smoke-') as t:
@@ -61,12 +64,13 @@ def smoke(compiler='g++'):
             assert row['step']==idx*256+seed
             assert [x['id'] for x in row['callbacks']]==list(TARGET_IDS)
             assert [x['target'] for x in row['callbacks']]==[TARGETS[k] for k in TARGET_IDS]
-            assert [x['stubbed'] for x in row['callbacks']]==[k not in LEAVES_PROVEN for k in TARGET_IDS]
+            assert [x['stubbed'] for x in row['callbacks']]==[k in (3,4) for k in TARGET_IDS]
             assert [x['stack_pointer'] for x in row['callbacks']]==[0xF5]*6
             assert all(x['ram23']==0 and x['mapped_bank']==0 for x in row['callbacks'])
             assert row['mapper_changes']==expected_maps
             assert len(row['script0_mapper_changes'])==24
             assert all(event==[0xE2D2,0] for event in row['script0_mapper_changes'])
+            assert row['script3_mapper_changes']==[]
             assert len(row['script0_command_buffer'])==128
             assert len(row['script0_output_fields'])==32
             assert row['script0_command_buffer'][4:12]==[1,0,1,255,1,0,1,255]
@@ -102,7 +106,44 @@ def smoke(compiler='g++'):
         assert runner(exe,a,bad_e,z).returncode!=0
         assert runner(exe,a,e,z[:-1]).returncode!=0
         assert runner(exe,a,e,z,'--unsupported').returncode!=0
-        print('PASS',compiler,'1280 synthetic postloader with IDs0/2 native command/video implementations, 10 negative fixtures')
+        # Additional ROM-free mode: bank30 scripts 3 and 4 can execute against
+        # independently constructed physical-bank pointer/record fixtures.
+        full=bytearray(262144)
+        for bank,data in ((0,z),(10,a),(14,e)):
+            full[bank*16384:(bank+1)*16384]=data
+        def fixed_byte(cpu:int,value:int):
+            full[30*8192+cpu-0xC000]=value
+        def fixed_word(cpu:int,value:int):
+            fixed_byte(cpu,value&255);fixed_byte(cpu+1,value>>8)
+        fixed_byte(0xC94B+4,8)
+        fixed_word(0xD953+8,0xD800)
+        fixed_word(0xD800+2,0xA000)
+        fixed_word(0xD8F9+8,0xD810)
+        fixed_word(0xD810+2,0xA020)
+        fixed_word(0xD917+8,0xBEEF)
+        fixed_word(0xD935+8,0xCDA8)
+        full[8*0x4000+0xA000-0x8000+2]=0
+        ptr=8*0x4000+0xA020-0x8000+5
+        full[ptr:ptr+2]=(0xA040).to_bytes(2,'little')
+        full[8*0x4000+0xA040-0x8000]=7
+        # bank0A loader sets header nibbles to 4/1/2 only for idx0;
+        # exercise the complete script3/script4 path on this one case with
+        # a synthetic first-room snapshot by running normal 1280-host mode.
+        # All five synthetic rooms execute; zero-filled unrelated table cells are
+        # explicit fake data, never original-game or execution parity evidence.
+        good=runner(exe,a,e,z,full=full)
+        assert good.returncode==0,good.stderr
+        assembled=[json.loads(line) for line in good.stdout.splitlines()]
+        assert len(assembled)==1280
+        assert all(not cb["stubbed"] for row in assembled for cb in row["callbacks"])
+        assert assembled[0]["script3_mapper_changes"]==[[0xE2D2,8],[0xE2D2,8]]
+        assert assembled[0]["script34_ram_fields"][19]==0
+        assert assembled[0]["script34_ram_fields"][20]==7
+        truncated=runner(exe,a,e,z,full=full[:-1])
+        assert truncated.returncode!=0
+        full_bad=bytearray(full);full_bad[0]^=1
+        assert runner(exe,a,e,z,full=full_bad).returncode!=0
+        print('PASS',compiler,'1280 ROM-free synthetic postloader (legacy 3/4 stubs) and original-ROM full implementation gate; negative fixtures')
 
 def main():
     p=argparse.ArgumentParser();p.add_argument('--smoke',action='store_true')
