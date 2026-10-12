@@ -537,3 +537,7 @@ The expanded independent [Stage 1 multi-branch suite](../SharedNES/0508_STAGE1_M
 ## 0569 — pinned upstream C11 mapper24 cycle test with synthetic cartridge
 
 [0569 cycle-runner smoke](../analysis/0569_NESRECOMP_SYNTHETIC_MAPPER24_SMOKE.md) adds a ROM-free public action `jp_nesrecomp_cycle_mapper24.yml` that checks out the external PolyForm-NC C engine at pinned commit, builds a synthetic mapper24 VRC6 256KiB PRG/128KiB CHR cartridge, generates and compiles upstream cycle C, and requests three native headless frames. The artificial ROM exercises PRG bank switches, PPU NMI, $4014 DMA, VRC6 IRQ and WRAM gating. Results are **a hardware integration smoke only**, not Japanese commercial ROM frame parity. Coverage remains 27/100 and 49,504/262,144; 4,261 prior sites.
+
+## 0570 — synthetic VRC6 loop/IRQ code separation
+
+[0570 regression](../analysis/0570_SYNTHETIC_VRC6_LOOP_FIX.md) fixes a synthetic mapper24 fixture instruction collision: original synthetic $E02E JMP was overwritten by test IRQ code at $E030. IRQ/NMI moved to $E080/$E090; complete JMP, vectors and corruption rejection are tested. Earlier external 3-frame process success did **not** prove correct fixture execution. No original-game parity credit added.

@@ -512,3 +512,7 @@ Current `mstan/nesrecomp` source `runner/cyc/hw_vrc6.inc` and `vrc6_test.inc` im
 ## 0569 — pinned external cycle C11 integration CI
 
 New GitHub Action `.github/workflows/jp_nesrecomp_cycle_mapper24.yml` checks out **external** NESRecomp pinned at `2b4fcdb98c9e702be3fb365cfc645003c50b5fc1` under PolyForm Noncommercial 1.0.0, creates a wholly artificial mapper24 VRC6 ROM with `tools/test_cycle_synthetic_rom_0569.py`, builds the upstream C11 cycle backend and requests 3 headless frames. It does not copy upstream source or any original commercial ROM into the CVIII repo. Original-JP local run remains `nesrecomp_cycle_0568.py`; neither fake-ROM smoke nor bounded local process exit establishes Mesen game parity. Documentation: `analysis/0569_NESRECOMP_SYNTHETIC_MAPPER24_SMOKE.md`.
+
+## 0570 — synthetic mapper24 fixture correction
+
+`tools/test_cycle_synthetic_rom_0569.py` now keeps the main $E02E JMP distinct from handlers at $E080/$E090 and checks the complete JMP bytes, handler bytes and vectors. Earlier synthetic IRQ handler at $E030 overwrote the JMP operand despite a 0-exit 3-frame run. See `analysis/0570_SYNTHETIC_VRC6_LOOP_FIX.md`. CI reruns external cycle engine on corrected original-free data; not a claim of actual JP game playability.
