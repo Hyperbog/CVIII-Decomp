@@ -30,6 +30,7 @@ class RamOamDma {
   const std::vector<RamOamDmaByte>& last_bytes() const {return bytes_;}
   bool pending() const {return pending_;}
   uint8_t source_page() const {return source_page_;}
+  unsigned get_cycle_parity() const {return get_parity_;}
   uint64_t completed_transfers() const {return completed_transfers_;}
   unsigned last_stall_cycles() const {return last_stall_cycles_;}
   void request(uint8_t source_page) {

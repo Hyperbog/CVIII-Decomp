@@ -493,3 +493,7 @@ The expanded independent [Stage 1 multi-branch suite](../SharedNES/0508_STAGE1_M
 ## 0554 Phase 4E — OAM registers and DMA share memory
 
 [Bounded PPU OAM register integration](../analysis/0554_PHASE4E_OAM_REGISTERS.md) adds timed $2003 OAMADDR, $2004 OAMDATA read/write, 8-byte mirroring and shared OAM backing with internal-RAM $4014 DMA. During enabled visible/pre-render periods or without a DMA-backed OAM instance, OAM accesses reject rather than fabricating rendering-time corruption. Existing scripted 0553 reset/NMI driver is unchanged. VPP27, strict 49,504/262,144; compiled starts 4,261.
+
+## 0554 Phase 4F — bounded explicit DMC DMA sample fetch
+
+[ROM-free DMC fetch gate](../analysis/0554_PHASE4F_DMC_DMA_FETCH.md) adds a request-driven 3/4-cycle DMC sample fetch from fixed PRG $C000–$FFFF, with caller-authenticated CPU read boundary and get/put phase. CPU/PPU/VRC6 clocks continue during the stall; competing OAM DMA requests reject, rather than asserting unsupported overlap accuracy. No automatic $4015 playback timing, sample sequencing, DMC IRQ, or actual game-frame parity. Strict49,504/262,144, VPP27/100, native compiled4,261 unchanged.

@@ -13,6 +13,7 @@
 #include "../boot/ppu_register_bus_0554.hpp"
 #include "../boot/vrc6_irq_0554.hpp"
 #include "../boot/oam_dma_0554.hpp"
+#include "../boot/dmc_dma_0554.hpp"
 
 namespace jpstatic {
 enum class Mode { imp, acc, imm, zp, zpx, zpy, abs, absx, absy, indx, indy, ind, rel };
@@ -110,6 +111,8 @@ struct Cpu {
  bool vrc6_irq_enabled_=false;
  RamOamDma oam_dma{};
  bool oam_dma_enabled_=false;
+ DmcDmaSampler dmc_dma{};
+ bool dmc_dma_enabled_=false;
  void enable_timed_ppu_registers() {bus.timed_ppu_io=&ppu_io;}
  void enable_vrc6_irq(bool enabled=true) {
   vrc6_irq_enabled_=enabled;
@@ -117,10 +120,28 @@ struct Cpu {
   bus.vrc6_write_armed=false;
  }
  void enable_ram_oam_dma(unsigned get_cycle_parity) {
+  if(dmc_dma_enabled_ && dmc_dma.get_cycle_parity()!=get_cycle_parity)
+   throw std::runtime_error("OAM/DMC DMA get-cycle parity mismatch");
   oam_dma.set_get_cycle_parity(get_cycle_parity);
   oam_dma_enabled_=true;
   bus.timed_oam_dma=&oam_dma;
   ppu_io.attach_oam(&oam_dma);
+ }
+ void enable_dmc_dma(unsigned get_cycle_parity) {
+  if(oam_dma_enabled_ && oam_dma.get_cycle_parity()!=get_cycle_parity)
+   throw std::runtime_error("DMC/OAM DMA get-cycle parity mismatch");
+  dmc_dma.set_get_cycle_parity(get_cycle_parity);
+  dmc_dma_enabled_=true;
+ }
+ // The host must prove a CPU read boundary and supply the DMC fetch request.
+ // This is not the 2A03 APU's automatic $4015 playback scheduler.
+ unsigned service_dmc_dma_at_read_boundary() {
+  if(!dmc_dma_enabled_ || !dmc_dma.pending())return 0;
+  if(oam_dma_enabled_ && oam_dma.pending())
+   throw std::runtime_error("DMC/OAM DMA overlap needs cycle-granular arbitration");
+  return dmc_dma.service_at_read_boundary(cycles,
+   [this](uint16_t address){return bus.read(address);},
+   [this](unsigned n){advance_cycles(n);});
  }
  void advance_cycles(unsigned n) {
   cycles+=n;ppu_clock.advance_cpu_cycles(n);
@@ -326,8 +347,11 @@ struct Cpu {
   } else advance_cycles(added);
   // DMA halts after the $4014 write instruction's final CPU cycle.
   // No DMC overlap or CPU read-halt retries are modeled.
-  if(oam_dma_enabled_ && oam_dma.pending())
+  if(oam_dma_enabled_ && oam_dma.pending()) {
+   if(dmc_dma_enabled_ && dmc_dma.pending())
+    throw std::runtime_error("DMC/OAM concurrent DMA not yet modeled");
    oam_dma.complete(cycles,bus.ram,[this](unsigned count){advance_cycles(count);});
+  }
   if constexpr(O==Op::CLI || O==Op::SEI || O==Op::PLP) {
    // IRQ mask is sampled before these instructions change I.
    delayed_irq_mask_=old_irq_mask;

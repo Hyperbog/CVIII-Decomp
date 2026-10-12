@@ -450,3 +450,7 @@ Shared `native/bank0a/static_6502.hpp` now uses `cpu_cycle_0554.hpp` to count of
 ## 0554 Phase 4E handoff — OAM register and DMA unified state
 
 `ppu_register_bus_0554.hpp` and `oam_dma_0554.hpp` now share opt-in OAMADDR and OAMDATA register state, with timed direct $2003/$2004 accesses. ROM-free CTest `oam_register_test_0554.cpp`; docs `analysis/0554_PHASE4E_OAM_REGISTERS.md`. Rendering-time accesses fail closed, no sprite evaluation/corruption emulation or real frame parity. VPP27, strict 49,504/262,144, sites 4,261, frontier 0508/$FB96.
+
+## 0554 Phase 4F handoff — DMC DMA fetch only, not APU player
+
+`native/boot/dmc_dma_0554.hpp` and `native/boot/dmc_dma_test_0554.cpp` provide explicit CPU-read-boundary DMC sample fetch from $C000–$FFFF with 3/4-cycle halt, PPU and VRC6 clocks, and fail-closed OAM/DMC overlap. Caller invokes `Cpu::enable_dmc_dma(get_cycle_parity)`, requests `DmcFetchKind::load/reload`, then calls `service_dmc_dma_at_read_boundary()`. This does NOT implement APU $4015 scheduling, DMC output, frame IRQ, DMC sample loops or genuine game traces. Docs `analysis/0554_PHASE4F_DMC_DMA_FETCH.md`. VPP27, 49,504 strict, compiled4,261, checkpoint 0508/$FB96.
