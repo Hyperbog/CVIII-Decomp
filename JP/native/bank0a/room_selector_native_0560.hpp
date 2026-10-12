@@ -18,7 +18,7 @@ class Room0aSelector0560 {
   explicit Room0aSelector0560(const std::array<uint8_t,16384>& bank):bank_(bank) {
    // A known original hierarchical table is treated as DATA, never decoded
    // as instructions. Each bound below is independently source-derived.
-   for(unsigned i=0;i<15;++i)stage_roots_[i]=word(0x92ae+2*i);
+   for(unsigned i=0;i<15;++i)stage_roots_[i]=word(0x92ae + 2*i);
    unsigned count=0;
    for(unsigned i=0;i<15;++i) {
     const uint16_t lo=stage_roots_[i];

@@ -21,7 +21,7 @@ static std::array<uint8_t,16384> fixture(){
  unsigned lower=0x92cc,upper=0x9af4;
  for(unsigned st=0;st<15;++st){
   unsigned& cursor=st<9?lower:upper;
-  put(bank,0x92ae+2*st,cursor);
+  put(bank,0x92ae + 2*st,cursor);
   cursor+=mid_counts[st]*2;
  }
  need(lower==0x9320&&upper==0x9b20,"synthetic stage counts");
