@@ -488,3 +488,7 @@ New implementation under `JP/native/c6502/`: C11 CPU/Bus ABI and official-opcode
 ## 0563 — C11 original-ROM selector replay follow-up
 
 `tools/test_c6502_regen_0563.py --smoke` is a ROM-free generated C11 compilation gate; `--rom "$ORIGINAL_JP_ROM"` locally rebuilds the complete original ROM from source, compiles 2357 bank0A opcode starts as C11, runs 135 bounded selector triples through the native executable `native/c6502/raw0a_driver_0563.c`, and compares against independently interpreted original 6502. No automatic gameplay parity claim. The C runtime still lacks 2C02/APU/VRC6 hardware attachment. See `analysis/0563_C11_ORIGINAL_SELECTOR_REPLAY.md`.
+
+## 0564 — C11 generator physical-bank coverage
+
+`tools/static_recompile_boot_c_0564.py` reads the existing fixed31+scripted boot original-source generator and translates its physically qualified 1,904 sites into locally generated C11. `tools/regen_c11_0564.py --rom ORIGINAL_JP_ROM --out /tmp/jp-c11-build` generates all existing 4,261 static sites across raw0A and fixed/boot and a provenance manifest. C11 `JpCpu` compiled dispatch accepts physically qualified CPU banks; the opt-in fallback is never counted as verified static code. ROM and generated source remain local; full C runtime/game loop and original gameplay parity are unproven. See `analysis/0564_C11_FIXED_AND_RAW0A_GENERATION.md`.

@@ -85,6 +85,9 @@ python3 -m py_compile "$root/JP/tools/static_recompile_bank0a.py" "$root/JP/tool
 python3 "$root/JP/tools/static_recompile_c_0562.py" --smoke
 # JP 0563: compile actual C emitter fixture without copyrighted ROM.
 python3 "$root/JP/tools/test_c6502_regen_0563.py" --smoke
+# JP 0564: whole-current-native-site C11 codegen contract (ROM-free).
+python3 "$root/JP/tools/static_recompile_boot_c_0564.py" --smoke
+python3 -m py_compile "$root/JP/tools/regen_c11_0564.py"
 if [[ -n "$rom" ]]; then
   # Temporary source generation, C11 compile, independent 135-case 6502 replay.
   python3 "$root/JP/tools/test_c6502_regen_0563.py" --rom "$rom"

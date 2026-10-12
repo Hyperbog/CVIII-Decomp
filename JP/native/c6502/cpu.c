@@ -205,8 +205,7 @@ JpStep jp_cpu_interpret_one(JpCpu*c){
 JpStep jp_cpu_step(JpCpu*c,JpCompiledStep compiled) {
  if(!c || !c->bus)return JP_STEP_UNSUPPORTED;
  JpStep result=JP_STEP_UNRESOLVED;
- if(compiled && c->bus->bank==10 && c->pc>=0x8000 && c->pc<0xc000)
-  result=compiled(c);
+ if(compiled)result=compiled(c);
  if(result==JP_STEP_EXECUTED){++c->compiled_instructions;return result;}
  if(result==JP_STEP_UNSUPPORTED)return result;
  if(!c->allow_fallback)return result;

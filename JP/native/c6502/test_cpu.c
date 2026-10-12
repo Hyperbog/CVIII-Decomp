@@ -7,6 +7,7 @@ static JpStep example_static(JpCpu *c){
  switch(c->pc) {
  case 0x8000: return jp_cpu_exec(c,0xa9,0x0005,0x8002); /* LDA #5 */
  case 0x8002: return jp_cpu_exec(c,0x85,0x0010,0x8004); /* STA $10 */
+ case 0xe000: return jp_cpu_exec(c,0xa9,0x007f,0xe002); /* fixed31 LDA #$7F */
  case 0x8004:
   if(!c->allow_candidate_static)return JP_STEP_CANDIDATE;
   return jp_cpu_exec(c,0xa2,0x0009,0x8006); /* LDX #9 */
@@ -31,6 +32,9 @@ int main(void){
  CHECK(c.pc==0x8006);
  prg[10*16384+6]=0xe8; /* INX interpreted */
  CHECK(jp_cpu_step(&c,example_static)==JP_STEP_EXECUTED&&c.x==10);
+ c.pc=0xe000;
+ CHECK(jp_cpu_step(&c,example_static)==JP_STEP_EXECUTED&&c.a==0x7f &&
+       c.compiled_instructions==3);
  CHECK(jp_bus_write(&bus,0x8000,14)==JP_STEP_EXECUTED&&bus.bank==14);
  CHECK(jp_bus_read(&bus,0x8000,&v)==JP_STEP_EXECUTED);
  CHECK(jp_cpu_step(&c,example_static)==JP_STEP_UNSUPPORTED);

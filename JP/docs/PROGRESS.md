@@ -513,3 +513,7 @@ The expanded independent [Stage 1 multi-branch suite](../SharedNES/0508_STAGE1_M
 ## 0563 — C11 generated raw0A actual original-6502 replay gate
 
 [0563 source-native-C pipeline](../analysis/0563_C11_ORIGINAL_SELECTOR_REPLAY.md) adds a C original-bank driver (`native/c6502/raw0a_driver_0563.c`) and a generator/rebuild/original-CPU replay harness (`tools/test_c6502_regen_0563.py`). Privately supplied original JP ROM regenerates audited 0538 ASM, emits source-driven C11 instructions, compiles the result, executes all 135 bounded $801E selectors and independently compares stage/middle/leaf pointers with original 6502. Public CI compiles artificial generated C and rejects untrusted generator rows; **original-backed C results are local-only**, and no gameplay/strict-parity credit is added. Coverage unchanged.
+
+## 0564 — C11 generators span existing native 4,261 instruction starts
+
+[0564 full-current-site C11 source generation](../analysis/0564_C11_FIXED_AND_RAW0A_GENERATION.md) adds an original-JP C generator for 1,904 historical fixed31 + scripted reset/NMI physical instruction starts, and a `regen_c11_0564.py` local build command producing source-derived C11 for those and the prior 2,357 raw0A starts. C11 dispatcher admits bank-qualified fixed code; untrusted mapper aliases still reject. **Neither unproven candidate code nor synthetic scripted NMI counts as natural gameplay parity.** Existing C++ hardware remains, ROM-derived C artifacts are local-only, and coverage VPP27/100, 49,504/262,144 strict PRG remains unchanged.
