@@ -6,6 +6,7 @@
 #include <iostream>
 #include <iomanip>
 #include <cstring>
+#include <memory>
 using namespace jpstatic;
 namespace jpstatic { StepResult compiled_boot_step(Cpu&); }
 static uint64_t ramhash(const Bus& b) {
@@ -43,7 +44,7 @@ static void check_room(const std::array<uint8_t,393232>& image) {
 int main(int argc,char**argv){
  try {
   if(argc==2 && std::strcmp(argv[1],"--self-test")==0) {
-   Bus b; b.whole_prg=true; Cpu c(b);c.pc=0x8000;
+   auto b=std::make_unique<Bus>(); b->whole_prg=true; Cpu c(*b);c.pc=0x8000;
    if(compiled_boot_step(c)!=StepResult::unresolved)throw std::runtime_error("unknown boot code allowed");
    if(compiled_step(c)!=StepResult::unresolved)throw std::runtime_error("unknown room code allowed");
    std::cout<<"PASS native compiled-boot fail-closed dispatch\n";return 0;
@@ -52,39 +53,41 @@ int main(int argc,char**argv){
   if((!room_mode && argc!=2) || (room_mode && argc!=3))throw std::runtime_error("usage: native_boot [--room] original_jp_rom.nes");
   std::ifstream f(room_mode?argv[2]:argv[1],std::ios::binary);
   if(!f)throw std::runtime_error("original Japanese ROM file missing");
-  std::array<uint8_t,393232> image{};
-  f.read(reinterpret_cast<char*>(image.data()),image.size());
-  if(f.gcount()!=static_cast<std::streamsize>(image.size()) || f.peek()!=EOF)throw std::runtime_error("ROM length mismatch");
-  if(image[0]!='N'||image[1]!='E'||image[2]!='S'||image[3]!=0x1a)throw std::runtime_error("invalid iNES header");
-  if(room_mode){check_room(image);return 0;}
-  Bus bus;bus.whole_prg=true;bus.bank=0;
-  std::memcpy(bus.prg.data(),image.data()+16,bus.prg.size());
-  Cpu cpu(bus);cpu.p=0x24;cpu.s=0xfd;cpu.pc=bus.word(0xfffc);
+  // 1MiB Windows thread stack cannot contain multiple full ROM/Bus arrays.
+  // Keep original image and mapper bus storage on the heap on all platforms.
+  auto image=std::make_unique<std::array<uint8_t,393232>>();
+  f.read(reinterpret_cast<char*>(image->data()),image->size());
+  if(f.gcount()!=static_cast<std::streamsize>(image->size()) || f.peek()!=EOF)throw std::runtime_error("ROM length mismatch");
+  if((*image)[0]!='N'||(*image)[1]!='E'||(*image)[2]!='S'||(*image)[3]!=0x1a)throw std::runtime_error("invalid iNES header");
+  if(room_mode){check_room(*image);return 0;}
+  auto bus=std::make_unique<Bus>();bus->whole_prg=true;bus->bank=0;
+  std::memcpy(bus->prg.data(),image->data()+16,bus->prg.size());
+  Cpu cpu(*bus);cpu.p=0x24;cpu.s=0xfd;cpu.pc=bus->word(0xfffc);
   if(cpu.pc!=0xe00b)throw std::runtime_error("reset vector not at $E00B");
   bool injected=false,returned=false,prev_rti=false;
   unsigned steps=0;
   for(;steps<100000;){
    if(cpu.pc==0xe04b && !injected){cpu.nmi();injected=true;}
    if(cpu.pc==0xe04b && injected && prev_rti){returned=true;break;}
-   std::cout<<steps<<','<<cpu.pc<<','<<unsigned(bus.bank)<<','<<unsigned(cpu.a)<<','<<unsigned(cpu.x)
-            <<','<<unsigned(cpu.y)<<','<<unsigned(cpu.s)<<','<<unsigned(cpu.p)<<','<<bus.mapper_writes.size()
-            <<','<<bus.status_polls<<','<<unsigned(injected)<<','<<ramhash(bus)<<'\n';
+   std::cout<<steps<<','<<cpu.pc<<','<<unsigned(bus->bank)<<','<<unsigned(cpu.a)<<','<<unsigned(cpu.x)
+            <<','<<unsigned(cpu.y)<<','<<unsigned(cpu.s)<<','<<unsigned(cpu.p)<<','<<bus->mapper_writes.size()
+            <<','<<bus->status_polls<<','<<unsigned(injected)<<','<<ramhash(*bus)<<'\n';
    // "prev_rti" is determined from the ORIGINAL opcode at the current PC,
    // not a fabricated signal from a translated high-level routine.
-   bool rti=(bus.read(cpu.pc)==0x40);
+   bool rti=(bus->read(cpu.pc)==0x40);
    auto r=compiled_boot_step(cpu);
    if(r!=StepResult::executed)throw std::runtime_error("uncompiled physical instruction PC "+std::to_string(cpu.pc));
    prev_rti=rti;++steps;
   }
   if(!returned)throw std::runtime_error("original reset/NMI return not reached");
-  std::cout<<"FINAL,"<<steps<<','<<cpu.pc<<','<<unsigned(bus.bank)<<','<<unsigned(cpu.a)<<','<<unsigned(cpu.x)
-           <<','<<unsigned(cpu.y)<<','<<unsigned(cpu.s)<<','<<unsigned(cpu.p)<<','<<bus.mapper_writes.size()
-           <<','<<bus.status_polls<<'\n';
+  std::cout<<"FINAL,"<<steps<<','<<cpu.pc<<','<<unsigned(bus->bank)<<','<<unsigned(cpu.a)<<','<<unsigned(cpu.x)
+           <<','<<unsigned(cpu.y)<<','<<unsigned(cpu.s)<<','<<unsigned(cpu.p)<<','<<bus->mapper_writes.size()
+           <<','<<bus->status_polls<<'\n';
   std::cout<<"IO,";
-  for(auto [a,v]:bus.io_writes)std::cout<<a<<':'<<unsigned(v)<<';';
+  for(auto [a,v]:bus->io_writes)std::cout<<a<<':'<<unsigned(v)<<';';
   std::cout<<"\n";
   std::cout<<"RAM,";
-  for(uint8_t v:bus.ram)std::cout<<std::hex<<std::setfill('0')<<std::setw(2)<<unsigned(v);
+  for(uint8_t v:bus->ram)std::cout<<std::hex<<std::setfill('0')<<std::setw(2)<<unsigned(v);
   std::cout<<std::dec<<"\n";
   return 0;
  }catch(const std::exception& e){std::cerr<<"FAIL "<<e.what()<<'\n';return 2;}
