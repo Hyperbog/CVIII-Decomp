@@ -434,3 +434,7 @@ Shared `native/bank0a/static_6502.hpp` now uses `cpu_cycle_0554.hpp` to count of
 ## 0554 Phase 4A handoff — optional NMI / IRQ boundary arbitration
 
 `Cpu::enable_boundary_interrupts()` + `Cpu::set_external_irq_line(bool)` + `Cpu::service_interrupt_boundary()` (from `native/bank0a/static_6502.hpp`) provide explicit opt-in CPU boundary NMI/IRQ priority and entry; CTest `native/boot/interrupt_boundary_test_0554.cpp`, evidence `analysis/0554_PHASE4A_INTERRUPT_BOUNDARY.md`. Do not enable this in 0553 authentic reset/NMI replay until hardware timing and original Mesen traces are available. VRC6 IRQ device, DMA and bus-level interrupt polling are still unimplemented. VPP27, strict PRG 49,504/262,144, checkpoint 0508/$FB96.
+
+## 0554 Phase 4B handoff — standalone VRC6a IRQ counter
+
+`native/boot/vrc6_irq_0554.hpp` models VRC6a $F000/$F001/$F002 and 341/3 CPU prescaler, with ROM-free unit test `native/boot/vrc6_irq_test_0554.cpp`; report `analysis/0554_PHASE4B_VRC6_IRQ_CLOCK.md`. **This device is not yet wired into `Cpu::advance_cycles`, `Bus::write`, or the Phase 4A IRQ input**. Avoid credit for real game IRQ/frame parity. VPP 27, strict 49,504/262,144, 4,261 compiled sites, semantic checkpoint 0508/$FB96.

@@ -477,3 +477,7 @@ The expanded independent [Stage 1 multi-branch suite](../SharedNES/0508_STAGE1_M
 ## 0554 Phase 4A — bounded instruction-boundary NMI / external IRQ
 
 [Interrupt scheduler](../analysis/0554_PHASE4A_INTERRUPT_BOUNDARY.md) adds an opt-in native CPU `service_interrupt_boundary()`: PPU NMI edge first, external level IRQ only when unmasked, interrupt vectors/stack flags, seven-cycle entry, CLI/SEI/PLP old-I polling approximation and RTI immediate I behavior. ROM-free CTest exercises vectors, NMI-over-IRQ, level re-entry and opt-in isolation. **Original 0553 replay still uses synthetic PPU status and manual NMI**, with no VRC6 IRQ counter or precise CPU bus-phase/DMA scheduling. VPP27, strict PRG 49,504/262,144, 4,261 instruction sites and last semantic frontier 0508/$FB96 unchanged.
+
+## 0554 Phase 4B — VRC6a IRQ device foundation (ROM-free)
+
+[IRQ counter report](../analysis/0554_PHASE4B_VRC6_IRQ_CLOCK.md) adds the standalone VRC6a $F000 latch/$F001 control/$F002 acknowledge register device. CPU-clocked counter offers cycle mode and scanline-approximation 114/114/113 prescaler; test checks IRQ overflow/reload, acknowledge/re-enable, disabled freeze, and register rejection. **Device remains disconnected from CPU/bus**; no source-derived gameplay timing or Mesen parity claim. Strict 49,504/262,144, VPP27/100, compiled starts 4,261, last semantic frontier 0508/$FB96 unchanged.
