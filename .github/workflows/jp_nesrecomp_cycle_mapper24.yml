@@ -5,6 +5,7 @@ on:
     paths:
       - "JP/tools/test_cycle_synthetic_rom_0569.py"
       - "JP/tools/check_cycle_stats_0571.py"
+      - "JP/tools/validate_cycle_media_0576.py"
       - "JP/native/nesrecomp_cycle/**"
       - ".github/workflows/jp_nesrecomp_cycle_mapper24.yml"
   workflow_dispatch:
@@ -31,19 +32,22 @@ jobs:
           python3 JP/tools/test_cycle_synthetic_rom_0569.py --smoke
       - name: Generate noncommercial synthetic mapper24 VRC6 ROM
         run: python3 JP/tools/test_cycle_synthetic_rom_0569.py --out "${{ runner.temp }}/jp_mapper24_fixture.nes"
-      - name: Configure upstream C11 cycle runtime and generate opcode C
+      - name: Configure CVIII external C11 cycle wrapper with exact synthetic fixture
         run: |
-          cmake -S _external_nesrecomp/runner/cyc/project \
+          python3 JP/tools/validate_cycle_media_0576.py --smoke
+          cmake -S JP/native/nesrecomp_cycle \
                 -B "${{ runner.temp }}/jp-vrc6-cycle" -G Ninja \
                 -DCMAKE_BUILD_TYPE=Release \
-                -DNESRECOMP_ROM="${{ runner.temp }}/jp_mapper24_fixture.nes" \
-                -DNESRECOMP_HEADLESS=ON
+                -DJP_ORIGINAL_JP_ROM="${{ runner.temp }}/jp_mapper24_fixture.nes" \
+                -DNESRECOMP_EXTERNAL_ROOT="$PWD/_external_nesrecomp" \
+                -DJP_CYCLE_SYNTHETIC_MEDIA=ON \
+                -DJP_CYCLE_HEADLESS=ON
       - name: Compile upstream C11 cycle backend with VRC6
         run: cmake --build "${{ runner.temp }}/jp-vrc6-cycle" --config Release --parallel 4
       - name: Run and verify synthetic mapper24 native CPU cycles
         run: |
           set -eo pipefail
-          "${{ runner.temp }}/jp-vrc6-cycle/nes_game" \
+          "${{ runner.temp }}/jp-vrc6-cycle/jp_akumajou_densetsu" \
              "${{ runner.temp }}/jp_mapper24_fixture.nes" --frames 3 \
              | tee "${{ runner.temp }}/jp_cycle_stdout.log"
           python3 JP/tools/check_cycle_stats_0571.py \

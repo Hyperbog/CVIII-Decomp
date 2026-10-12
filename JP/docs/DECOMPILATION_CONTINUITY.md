@@ -536,3 +536,7 @@ Standalone `native/c6502/cpu.c` now models VRC6a $8000–$BFFF 16KiB PRG bank pl
 ## 0575 — direct retail-JP external C11 build command
 
 `tools/build_retail_cycle_0575.py --rom ORIGINAL_JP_ROM --out /outside/repo --frames 120` pins the external PolyForm-NC NESRecomp checkout to `2b4fcdb98c9e702be3fb365cfc645003c50b5fc1`, builds the original game using 0568/0572 and emits native/interpreted CPU-cycle metrics. `--plan`, `--offline`, and `--windowed` supported. C11 Windows/Linux contract CI is ROM-free. Sandbox outbound Github DNS unavailable; retail game executable not built/verified here. Document: `analysis/0575_C11_RETAIL_GAME_BUILD_BOOTSTRAP.md`.
+
+## 0576 — CMake wrapper integration gated by exact synthetic fixture
+
+`native/nesrecomp_cycle/CMakeLists.txt` default restricts to original Japanese SHA; CI-only `-DJP_CYCLE_SYNTHETIC_MEDIA=ON` additionally accepts only `test_cycle_synthetic_rom_0569.create()` exact bytes, rejected by default. `jp_nesrecomp_cycle_mapper24.yml` now configures this project's CMake wrapper and `jp_akumajou_densetsu` executable, not upstream example `nes_game`. Independent 3-frame compiled-cycle gate remains. See `analysis/0576_C11_EXTERNAL_CMAKE_WRAPPER_GATE.md`; retail original game has NOT been run through external runtime here.

@@ -561,3 +561,7 @@ The expanded independent [Stage 1 multi-branch suite](../SharedNES/0508_STAGE1_M
 ## 0575 — single-command pinned external retail-JP C11 build
 
 [0575 external original-game build](../analysis/0575_C11_RETAIL_GAME_BUILD_BOOTSTRAP.md) adds `tools/build_retail_cycle_0575.py --rom ORIGINAL.nes --out /private/jp-build --frames 120` to authenticate Japanese mapper24 ROM, clone exactly pinned PolyForm-NC NESRecomp outside Git, build C11 cycle game and report actual compiled/interpreted CPU cycles. Lightweight Windows/Linux C11 CI validates command safety, not ROM reconstruction. The full-game engine cannot be downloaded within this sandbox; original game playback remains unproven and VPP/strict PRG unchanged.
+
+## 0576 — test actual external CMake wrapper without commercial media
+
+[0576 exact-media C11 wrapper gate](../analysis/0576_C11_EXTERNAL_CMAKE_WRAPPER_GATE.md) switches the pinned external NESRecomp synthetic workflow to configure our **own** `native/nesrecomp_cycle/CMakeLists.txt` target, rather than upstream's example project. Adds default-OFF `JP_CYCLE_SYNTHETIC_MEDIA` option and SHA-exact synthetic fixture validation in `tools/validate_cycle_media_0576.py`; authenticated commercial ROM remains the only accepted production input. Targeted CI compiles and executes only synthetic mapper24 frames, with 0571 native-cycle and zero-interpreter assertions. No reconstruction tests/strict PRG/VPP claim.

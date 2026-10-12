@@ -5,6 +5,7 @@ project(JP_Akumajou_Densetsu_Cycle C)
 set(JP_ORIGINAL_JP_ROM "" CACHE FILEPATH "Privately supplied verified original Japanese ROM")
 set(NESRECOMP_EXTERNAL_ROOT "" CACHE PATH "External checkout of mstan/nesrecomp")
 option(JP_CYCLE_HEADLESS "Build a headless C11 cycle runtime" ON)
+option(JP_CYCLE_SYNTHETIC_MEDIA "Allow only the exact synthetic CI fixture" OFF)
 if(NOT EXISTS "${JP_ORIGINAL_JP_ROM}")
  message(FATAL_ERROR "JP_ORIGINAL_JP_ROM must name the privately owned original ROM")
 endif()
@@ -12,9 +13,13 @@ if(NOT EXISTS "${NESRECOMP_EXTERNAL_ROOT}/runner/cyc/project.cmake")
  message(FATAL_ERROR "NESRECOMP_EXTERNAL_ROOT must contain runner/cyc/project.cmake")
 endif()
 find_package(Python3 3.11 REQUIRED COMPONENTS Interpreter)
+set(JP_ROM_VALIDATION_EXTRA "")
+if(JP_CYCLE_SYNTHETIC_MEDIA)
+ list(APPEND JP_ROM_VALIDATION_EXTRA --allow-synthetic)
+endif()
 execute_process(
- COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_LIST_DIR}/../../tools/nesrecomp_cycle_0568.py"
-   --validate-rom "${JP_ORIGINAL_JP_ROM}"
+ COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_LIST_DIR}/../../tools/validate_cycle_media_0576.py"
+   --rom "${JP_ORIGINAL_JP_ROM}" ${JP_ROM_VALIDATION_EXTRA}
  RESULT_VARIABLE JP_ROM_CHECK
  OUTPUT_VARIABLE JP_ROM_CHECK_OUT
  ERROR_VARIABLE JP_ROM_CHECK_ERR)
