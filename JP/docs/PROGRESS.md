@@ -525,3 +525,7 @@ The expanded independent [Stage 1 multi-branch suite](../SharedNES/0508_STAGE1_M
 ## 0566 — independent upstream NESRecomp VRC6 source and licensing audit
 
 [0566 StarFox/NESRecomp compatibility audit](../analysis/0566_UPSTREAM_NESRECOMP_VRC6_AUDIT.md) confirms NESRecomp upstream cycle runtime has `runner/cyc/hw_vrc6.inc` and mapper24/26 tests, although published supported-game table does **not** certify mapper24 as playable. A fail-closed, non-vendoring local `tools/probe_nesrecomp_cycle_0566.py` authenticates the JP ROM then optionally invokes an external licensed `nesrecomp build --backend cycle` to identify generated C files; public CI exercises only ROM-free mapper and SHA rejection. NESRecomp is PolyForm Noncommercial 1.0.0, so direct code reuse requires license review; the current C11 implementation remains independently authored. VPP 27/100 and strict 49,504/262,144 unchanged.
+
+## 0567 — Windows native C host compiles/links in CMake
+
+[0567 Windows link gate](../analysis/0567_C11_NATIVE_HOST_WINDOWS_LINK.md) extends the existing boot CMake with a C-only `jp_c6502_host_link_0567` target. An **artificial** static-code fixture replaces local ROM-generated game code in public CI; this guarantees C11 `main.c`, native CPU and link ABI compile under Windows MSVC as well as Linux. Separate Linux tests execute a synthetic generated-C host and check the fail-closed original-ROM guard. No original gameplay/full-NES compatibility claimed; VPP27, strict49,504/262,144, existing sites4,261 unchanged.

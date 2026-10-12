@@ -500,3 +500,7 @@ New implementation under `JP/native/c6502/`: C11 CPU/Bus ABI and official-opcode
 ## 0566 — NESRecomp mapper24 upstream compatibility lead
 
 Current `mstan/nesrecomp` source `runner/cyc/hw_vrc6.inc` and `vrc6_test.inc` implement/test mapper24/26 VRC6 IRQ/audio/banking, despite published mapper qualification listing only 0/1/4/66. Its cycle recompiler models CPU bus phases and a generated interpreter; this may replace bespoke native hardware components after authentic JP validation. Source is PolyForm Noncommercial 1.0.0: no code copied into project. `tools/probe_nesrecomp_cycle_0566.py --rom JP_ROM --tool EXECUTABLE --out /tmp/jp-nesrecomp-probe` is a user-owned-ROM/externally-installed-CLI **compatibility probe only**, not evidence that the game runs. Details `analysis/0566_UPSTREAM_NESRECOMP_VRC6_AUDIT.md`.
+
+## 0567 — C-only main executable cross-platform CI gate
+
+`native/boot/CMakeLists.txt` builds `jp_c6502_host_link_0567` from authentic C-only `c6502/main.c` and a ROM-free artificial codegen substitute `c6502/host_link_fixture_0567.c`. Keeps C ABI available in Windows MSVC CI without checking in generated ROM code. Existing 0565 Linux host synthetic runtime tests remain, and original 0553 C++ parity path stays intact. See `analysis/0567_C11_NATIVE_HOST_WINDOWS_LINK.md`.

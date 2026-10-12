@@ -110,3 +110,14 @@ else()
  target_compile_options(jp_c6502_test_0562 PRIVATE -Wall -Wextra -Werror -pedantic)
 endif()
 add_test(NAME jp_c6502_runtime_0562 COMMAND jp_c6502_test_0562)
+
+# JP 0567: make the C-only host binary itself link on Windows and Linux,
+# against clearly synthetic generated-code fixtures (no retail ROM in CI).
+add_executable(jp_c6502_host_link_0567
+ ../c6502/main.c ../c6502/host_link_fixture_0567.c)
+target_link_libraries(jp_c6502_host_link_0567 PRIVATE jp_c6502_core_0562)
+if(MSVC)
+ target_compile_options(jp_c6502_host_link_0567 PRIVATE /W4 /WX)
+else()
+ target_compile_options(jp_c6502_host_link_0567 PRIVATE -Wall -Wextra -Werror -pedantic)
+endif()
