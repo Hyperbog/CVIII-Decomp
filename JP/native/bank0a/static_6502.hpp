@@ -157,6 +157,12 @@ struct Cpu {
     }
    }
   }
+  // Fail-closed PPU reads/writes can throw. Always clear the temporary
+  // access permission even if a modeled direct register operation rejects.
+  struct PpuAccessCleanup {
+   ClockedPpuRegisters* io;
+   ~PpuAccessCleanup(){if(io)io->disarm();}
+  } ppu_cleanup{timed_final_access ? bus.timed_ppu_io : nullptr};
   if constexpr(O==Op::LDA){a=value(M,operand);nz(a);}
   else if constexpr(O==Op::LDX){x=value(M,operand);nz(x);}
   else if constexpr(O==Op::LDY){y=value(M,operand);nz(y);}

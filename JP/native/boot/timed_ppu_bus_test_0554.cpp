@@ -60,6 +60,11 @@ static void verify_fail_closed() {
  try {c.exec<Op::LDA,Mode::abs>(0x2007,0x8006);}
  catch(const std::runtime_error&) {rejected=true;}
  require(rejected,"unmodeled $2007 must not be fabricated");
+ // A rejected direct operation must not leave the final-cycle latch armed.
+ rejected=false;
+ try {(void)b->read(0x2002);}
+ catch(const std::runtime_error&) {rejected=true;}
+ require(rejected,"failed direct PPU read left a stale authorized access");
  rejected=false;
  try {c.exec<Op::LDA,Mode::indy>(0x10,0x8008);}
  catch(const std::runtime_error&) {rejected=true;}
