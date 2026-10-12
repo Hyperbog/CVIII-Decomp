@@ -430,3 +430,7 @@ Shared `native/bank0a/static_6502.hpp` now uses `cpu_cycle_0554.hpp` to count of
 ## 0554 Phase 3 — timed PPU register opt-in handoff
 
 `native/boot/ppu_register_bus_0554.hpp` and CTest `timed_ppu_bus_test_0554.cpp` provide optional final-CPU-cycle timing for supported direct $2000/$2001 writes and $2002 reads, mirroring and event timestamps. `native/bank0a/static_6502.hpp` connects this only when `Cpu::enable_timed_ppu_registers()` is called; the 0553 synthetic original-ROM reset/NMI runner does not enable it. Full PPU bus micro-cycles, rendering, IRQ/DMA and natural Mesen parity are not implemented. Reproducer/limitations: `analysis/0554_PHASE3_TIMED_PPU_BUS.md`. Strict 49,504/262,144, VPP 27/100; semantic 0508/$FB96.
+
+## 0554 Phase 4A handoff — optional NMI / IRQ boundary arbitration
+
+`Cpu::enable_boundary_interrupts()` + `Cpu::set_external_irq_line(bool)` + `Cpu::service_interrupt_boundary()` (from `native/bank0a/static_6502.hpp`) provide explicit opt-in CPU boundary NMI/IRQ priority and entry; CTest `native/boot/interrupt_boundary_test_0554.cpp`, evidence `analysis/0554_PHASE4A_INTERRUPT_BOUNDARY.md`. Do not enable this in 0553 authentic reset/NMI replay until hardware timing and original Mesen traces are available. VRC6 IRQ device, DMA and bus-level interrupt polling are still unimplemented. VPP27, strict PRG 49,504/262,144, checkpoint 0508/$FB96.

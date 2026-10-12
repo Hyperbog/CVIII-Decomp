@@ -2,6 +2,7 @@
 // Native 6502 semantic core for a *statically emitted* instruction dispatch.
 // Bounded compiled 2A03 core. Optional direct PPU-register accesses are timed;
 // full CPU bus phases, PPU rendering, mapper IRQ, DMA and APU remain unresolved.
+// Optional PPU NMI and externally driven level IRQ arbitration is available.
 #include <array>
 #include <cstdint>
 #include <stdexcept>
@@ -82,6 +83,7 @@ struct Bus {
  uint16_t zpword(uint8_t p) {auto a=read(p);return uint16_t(a|(uint16_t(read(uint8_t(p+1)))<<8));}
 };
 template <Op O> struct UnhandledOpcode : std::false_type {};
+enum class InterruptKind { none, nmi, irq };
 struct Cpu {
  Bus &bus;
  NtscPpuClock ppu_clock{};
@@ -90,6 +92,9 @@ struct Cpu {
  void advance_cycles(unsigned n) {cycles+=n;ppu_clock.advance_cpu_cycles(n);}
  uint64_t cycles=0;
  bool address_page_cross_=false;
+ bool automatic_interrupts_=false, external_irq_line_=false;
+ bool delayed_irq_mask_valid_=false, delayed_irq_mask_=true;
+ bool skip_next_interrupt_poll_=false;
  uint16_t pc=0;
  uint8_t a=0,x=0,y=0,s=0xfd,p=0x20;
  explicit Cpu(Bus& b):bus(b){}
@@ -98,10 +103,37 @@ struct Cpu {
  void nz(uint8_t v) {set(2,v==0);set(0x80,(v&128)!=0);}
  void push(uint8_t v) {bus.write(uint16_t(0x100|s),v);--s;}
  uint8_t pop() {return bus.read(uint16_t(0x100|uint8_t(++s)));}
- void nmi() {
-  push(uint8_t(pc>>8));push(uint8_t(pc));push(uint8_t((p&~0x10)|0x20));
-  set(4,true);pc=bus.word(0xfffa);
-  advance_cycles(7); // NMOS 6502 interrupt entry; per-bus phase still unresolved.
+ void enter_interrupt(uint16_t vector) {
+  push(uint8_t(pc>>8));push(uint8_t(pc));
+  push(uint8_t((p&~0x10u)|0x20u)); // Hardware B=0; bit 5 stays set.
+  set(4,true);pc=bus.word(vector);
+  advance_cycles(7); // Entry cost only; bus micro-phases not modeled.
+ }
+ void nmi() {enter_interrupt(0xfffa);}
+ void irq() {enter_interrupt(0xfffe);}
+ // Explicit opt-in; shipped 0553 replay does not enable this scheduler.
+ void enable_boundary_interrupts(bool enabled=true) {
+  automatic_interrupts_=enabled;
+  delayed_irq_mask_valid_=false;
+  skip_next_interrupt_poll_=false;
+ }
+ void set_external_irq_line(bool asserted){external_irq_line_=asserted;}
+ // Call once immediately BEFORE each statically dispatched instruction.
+ // PPU NMI edge has priority; external IRQ is level-sensitive and I-masked.
+ // CLI/SEI/PLP use their previous I bit at the following boundary; RTI
+ // immediately restores the mask. This is NOT cycle-exact IRQ polling.
+ InterruptKind service_interrupt_boundary() {
+  if(!automatic_interrupts_)return InterruptKind::none;
+  const bool mask=delayed_irq_mask_valid_?delayed_irq_mask_:flag(4);
+  delayed_irq_mask_valid_=false;
+  if(skip_next_interrupt_poll_){skip_next_interrupt_poll_=false;return InterruptKind::none;}
+  if(ppu_clock.take_nmi()) {
+   nmi();skip_next_interrupt_poll_=true;return InterruptKind::nmi;
+  }
+  if(external_irq_line_ && !mask) {
+   irq();skip_next_interrupt_poll_=true;return InterruptKind::irq;
+  }
+  return InterruptKind::none;
  }
  void rts() {uint16_t low=pop(),hi=pop();pc=uint16_t((hi<<8|low)+1);}
  uint16_t address(Mode m,uint16_t operand) {
@@ -132,6 +164,7 @@ struct Cpu {
  template <Op O,Mode M> void exec(uint16_t operand,uint16_t next) {
   constexpr unsigned base_cycles=base_cpu_cycles_0554<O,M>();
   static_assert(base_cycles!=0,"unsupported original opcode/address-mode timing");
+  const bool old_irq_mask=flag(4);
   pc=next;
   address_page_cross_=false;
   unsigned branch_penalty=0;
@@ -240,6 +273,11 @@ struct Cpu {
     throw std::runtime_error("timed PPU access cycle-accounting mismatch");
    advance_cycles(1);
   } else advance_cycles(added);
+  if constexpr(O==Op::CLI || O==Op::SEI || O==Op::PLP) {
+   // IRQ mask is sampled before these instructions change I.
+   delayed_irq_mask_=old_irq_mask;
+   delayed_irq_mask_valid_=true;
+  }
  }
  // Fixed-$FB96 is independently bounded. Other cross-bank calls FAIL CLOSED.
  bool bounded_external() {
