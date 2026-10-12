@@ -7,6 +7,10 @@ add_executable(jp_native_boot boot_native_driver.cpp generated/boot_compiled.cpp
 target_include_directories(jp_native_boot PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 if(MSVC)
   target_compile_options(jp_native_boot PRIVATE /W4 /WX)
+  # MSVC C4702: template-generated 6502 BRK paths throw before a following
+  # dispatch return. Suppress ONLY in the generated bank0A translation unit.
+  set_source_files_properties(../bank0a/generated/bank0a_compiled.cpp
+    PROPERTIES COMPILE_OPTIONS "/wd4702")
 else()
   target_compile_options(jp_native_boot PRIVATE -Wall -Wextra -Werror -pedantic)
 endif()
