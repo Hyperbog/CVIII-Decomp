@@ -442,3 +442,7 @@ Shared `native/bank0a/static_6502.hpp` now uses `cpu_cycle_0554.hpp` to count of
 ## 0554 Phase 4C — VRC6 IRQ integration handoff
 
 `Cpu::enable_vrc6_irq()` attaches a VRC6a counter and clocks it on every native instruction cycle; direct absolute/indexed $F000-$F002 writes occur on the final CPU bus cycle. `service_interrupt_boundary()` now accepts VRC6 level IRQ as well as external IRQ, below PPU NMI. Test `native/boot/vrc6_integration_test_0554.cpp`; limitations `analysis/0554_PHASE4C_VRC6_IRQ_INTEGRATION.md`. Scripted 0553 driver remains on legacy bus policy. VPP27, 49,504/262144 strict, 4,261 compiled starts, semantic 0508/$FB96.
+
+## 0554 Phase 4D — opt-in bounded OAM DMA handoff
+
+`native/boot/oam_dma_0554.hpp`, wired via `Cpu::enable_ram_oam_dma(get_cycle_parity)` and direct instruction-final $4014 writes, implements 513/514 CPU stalls and OAM copy from mirrored internal RAM only. `native/boot/oam_dma_test_0554.cpp` exercises 256-byte data/timestamps, PPU NMI and VRC6 IRQ during DMA, and fail-closed dependencies. See `analysis/0554_PHASE4D_OAM_DMA_STALLS.md` for excluded DMC DMA, live $2003/$2004 and non-RAM sources. Existing 0553 script policy unchanged. VPP27, strict 49,504/262,144, 4,261 compiled sites, semantic 0508/$FB96.

@@ -12,6 +12,7 @@
 #include "../boot/ntsc_ppu_clock_0554.hpp"
 #include "../boot/ppu_register_bus_0554.hpp"
 #include "../boot/vrc6_irq_0554.hpp"
+#include "../boot/oam_dma_0554.hpp"
 
 namespace jpstatic {
 enum class Mode { imp, acc, imm, zp, zpx, zpy, abs, absx, absy, indx, indy, ind, rel };
@@ -35,6 +36,8 @@ struct Bus {
  ClockedPpuRegisters* timed_ppu_io=nullptr; // null: preserve 0553 scripted policy
  Vrc6IrqCounter* timed_vrc6_irq=nullptr;
  bool vrc6_write_armed=false;
+ RamOamDma* timed_oam_dma=nullptr;
+ bool oam_dma_write_armed=false;
  std::vector<std::pair<uint16_t,uint8_t>> io_writes;
  std::vector<std::pair<uint16_t,uint8_t>> mapped_reads;
  std::vector<uint8_t> mapper_writes;
@@ -66,6 +69,12 @@ struct Bus {
  }
  void write(uint16_t at,uint8_t value) {
   if(at<0x2000) {ram[at&0x7ff]=value;return;}
+  if(at==0x4014 && timed_oam_dma) {
+   if(!oam_dma_write_armed)throw std::runtime_error("OAMDMA $4014 lacks supported final CPU bus cycle");
+   timed_oam_dma->request(value);
+   io_writes.emplace_back(at,value);
+   return;
+  }
   if(at>=0xf000 && at<=0xf002 && timed_vrc6_irq) {
    if(!vrc6_write_armed)throw std::runtime_error("VRC6 IRQ register write lacks supported final CPU bus cycle");
    timed_vrc6_irq->write(at,value);
@@ -99,11 +108,18 @@ struct Cpu {
  ClockedPpuRegisters ppu_io{ppu_clock};
  Vrc6IrqCounter vrc6_irq{};
  bool vrc6_irq_enabled_=false;
+ RamOamDma oam_dma{};
+ bool oam_dma_enabled_=false;
  void enable_timed_ppu_registers() {bus.timed_ppu_io=&ppu_io;}
  void enable_vrc6_irq(bool enabled=true) {
   vrc6_irq_enabled_=enabled;
   bus.timed_vrc6_irq=enabled?&vrc6_irq:nullptr;
   bus.vrc6_write_armed=false;
+ }
+ void enable_ram_oam_dma(unsigned get_cycle_parity) {
+  oam_dma.set_get_cycle_parity(get_cycle_parity);
+  oam_dma_enabled_=true;
+  bus.timed_oam_dma=&oam_dma;
  }
  void advance_cycles(unsigned n) {
   cycles+=n;ppu_clock.advance_cpu_cycles(n);
@@ -192,7 +208,8 @@ struct Cpu {
   bool timed_final_access=false;
   unsigned cycles_before_access=0;
   bool timed_vrc6_write=false;
-  if(bus.timed_ppu_io || bus.timed_vrc6_irq) {
+  bool timed_oam_dma_write=false;
+  if(bus.timed_ppu_io || bus.timed_vrc6_irq || bus.timed_oam_dma) {
    if constexpr(M==Mode::abs || M==Mode::absx || M==Mode::absy) {
     constexpr bool read_ppu=(O==Op::LDA || O==Op::LDX || O==Op::LDY || O==Op::BIT);
     constexpr bool write_ppu=(O==Op::STA || O==Op::STX || O==Op::STY);
@@ -202,13 +219,15 @@ struct Cpu {
      const bool direct_ppu=bus.timed_ppu_io && eff>=0x2000 && eff<0x4000;
      const bool direct_vrc6=bus.timed_vrc6_irq &&
        eff>=0xf000 && eff<=0xf002 && write_ppu;
-     if((direct_ppu && (read_ppu || write_ppu)) || direct_vrc6) {
+     const bool direct_dma=bus.timed_oam_dma && eff==0x4014 && write_ppu;
+     if((direct_ppu && (read_ppu || write_ppu)) || direct_vrc6 || direct_dma) {
       const bool crossed=(operand&0xff00u)!=(eff&0xff00u);
       const unsigned penalty=indexed_read_penalty_0554<O,M>() && crossed ? 1u : 0u;
       cycles_before_access=base_cycles+penalty-1u;
       advance_cycles(cycles_before_access);
       if(direct_ppu)bus.timed_ppu_io->arm_final_cycle();
       if(direct_vrc6){bus.vrc6_write_armed=true;timed_vrc6_write=true;}
+      if(direct_dma){bus.oam_dma_write_armed=true;timed_oam_dma_write=true;}
       timed_final_access=true;
      }
     }
@@ -222,6 +241,7 @@ struct Cpu {
    ~PpuAccessCleanup(){
     if(io)io->disarm();
     bus.vrc6_write_armed=false;
+    bus.oam_dma_write_armed=false;
    }
   } ppu_cleanup{timed_final_access ? bus.timed_ppu_io : nullptr,bus};
   if constexpr(O==Op::LDA){a=value(M,operand);nz(a);}
@@ -298,10 +318,15 @@ struct Cpu {
   if(timed_final_access) {
    if(bus.timed_ppu_io)bus.timed_ppu_io->disarm();
    if(timed_vrc6_write)bus.vrc6_write_armed=false;
+   if(timed_oam_dma_write)bus.oam_dma_write_armed=false;
    if(added!=cycles_before_access+1u)
     throw std::runtime_error("timed PPU access cycle-accounting mismatch");
    advance_cycles(1);
   } else advance_cycles(added);
+  // DMA halts after the $4014 write instruction's final CPU cycle.
+  // No DMC overlap or CPU read-halt retries are modeled.
+  if(oam_dma_enabled_ && oam_dma.pending())
+   oam_dma.complete(cycles,bus.ram,[this](unsigned count){advance_cycles(count);});
   if constexpr(O==Op::CLI || O==Op::SEI || O==Op::PLP) {
    // IRQ mask is sampled before these instructions change I.
    delayed_irq_mask_=old_irq_mask;
