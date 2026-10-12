@@ -426,3 +426,7 @@ The [raw0A 16KiB whole-bank reconstruction](../analysis/0537_WHOLE_BANK_RAW0A_FI
 ## 0554 Phase 2 — Static native CPU cycle-accounting handoff
 
 Shared `native/bank0a/static_6502.hpp` now uses `cpu_cycle_0554.hpp` to count official per-instruction CPU cycles, conditional branches/indexed page crosses, 7-cycle NMI, and advances `NtscPpuClock` three dots per CPU cycle. CTest in `native/boot/cpu_cycle_test_0554.cpp`; source limitations and reproduction in `analysis/0554_PHASE2_CPU_CYCLE_ACCOUNTING.md`. The original 0553 boot CPU/ROM parity path has no new PPU bus timing or automatic interrupt arbitration: scripted $2002 responses and injected NMI stay in place. Strict PRG 49,504/262,144, VPP27, checkpoint 0508, fixed frontier FB96 unchanged.
+
+## 0554 Phase 3 — timed PPU register opt-in handoff
+
+`native/boot/ppu_register_bus_0554.hpp` and CTest `timed_ppu_bus_test_0554.cpp` provide optional final-CPU-cycle timing for supported direct $2000/$2001 writes and $2002 reads, mirroring and event timestamps. `native/bank0a/static_6502.hpp` connects this only when `Cpu::enable_timed_ppu_registers()` is called; the 0553 synthetic original-ROM reset/NMI runner does not enable it. Full PPU bus micro-cycles, rendering, IRQ/DMA and natural Mesen parity are not implemented. Reproducer/limitations: `analysis/0554_PHASE3_TIMED_PPU_BUS.md`. Strict 49,504/262,144, VPP 27/100; semantic 0508/$FB96.

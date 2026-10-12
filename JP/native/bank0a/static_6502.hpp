@@ -1,6 +1,7 @@
 #pragma once
 // Native 6502 semantic core for a *statically emitted* instruction dispatch.
-// This is not a game implementation, and does not model timing, PPU, IRQ or APU.
+// Bounded compiled 2A03 core. Optional direct PPU-register accesses are timed;
+// full CPU bus phases, PPU rendering, mapper IRQ, DMA and APU remain unresolved.
 #include <array>
 #include <cstdint>
 #include <stdexcept>
@@ -8,6 +9,7 @@
 #include <vector>
 #include <type_traits>
 #include "../boot/ntsc_ppu_clock_0554.hpp"
+#include "../boot/ppu_register_bus_0554.hpp"
 
 namespace jpstatic {
 enum class Mode { imp, acc, imm, zp, zpx, zpy, abs, absx, absy, indx, indy, ind, rel };
@@ -28,11 +30,13 @@ struct Bus {
  std::array<uint8_t,65536> extra{};
  unsigned status_polls=0, ppu_data_reads=0;
  uint8_t controller_strobe=0;
+ ClockedPpuRegisters* timed_ppu_io=nullptr; // null: preserve 0553 scripted policy
  std::vector<std::pair<uint16_t,uint8_t>> io_writes;
  std::vector<std::pair<uint16_t,uint8_t>> mapped_reads;
  std::vector<uint8_t> mapper_writes;
  uint8_t read(uint16_t at) {
   if(at<0x2000) return ram[at&0x7ff];
+  if(at<0x4000 && timed_ppu_io)return timed_ppu_io->read(at);
   if(whole_prg) {
    if(at<0x4000) {
     uint16_t reg=uint16_t(0x2000+(at&7));
@@ -58,6 +62,11 @@ struct Bus {
  }
  void write(uint16_t at,uint8_t value) {
   if(at<0x2000) {ram[at&0x7ff]=value;return;}
+  if(at<0x4000 && timed_ppu_io) {
+   timed_ppu_io->write(at,value);
+   io_writes.emplace_back(at,value);
+   return;
+  }
   if(whole_prg) {
    if(at==0x8000) {bank=value;mapper_writes.push_back(value);return;}
    if(at==0x4016){controller_strobe=value;return;}
@@ -75,7 +84,10 @@ struct Bus {
 template <Op O> struct UnhandledOpcode : std::false_type {};
 struct Cpu {
  Bus &bus;
- NtscPpuClock ppu_clock{};  // Observes instruction totals, not individual bus phases.
+ NtscPpuClock ppu_clock{};
+ ClockedPpuRegisters ppu_io{ppu_clock};
+ void enable_timed_ppu_registers() {bus.timed_ppu_io=&ppu_io;}
+ void advance_cycles(unsigned n) {cycles+=n;ppu_clock.advance_cpu_cycles(n);}
  uint64_t cycles=0;
  bool address_page_cross_=false;
  uint16_t pc=0;
@@ -89,7 +101,7 @@ struct Cpu {
  void nmi() {
   push(uint8_t(pc>>8));push(uint8_t(pc));push(uint8_t((p&~0x10)|0x20));
   set(4,true);pc=bus.word(0xfffa);
-  cycles+=7;ppu_clock.advance_cpu_cycles(7); // NMOS 6502 interrupt entry.
+  advance_cycles(7); // NMOS 6502 interrupt entry; per-bus phase still unresolved.
  }
  void rts() {uint16_t low=pop(),hi=pop();pc=uint16_t((hi<<8|low)+1);}
  uint16_t address(Mode m,uint16_t operand) {
@@ -123,6 +135,28 @@ struct Cpu {
   pc=next;
   address_page_cross_=false;
   unsigned branch_penalty=0;
+  // Opt-in final-access phase for direct absolute 2C02 memory operations.
+  // Other PPU addressing shapes fail closed until their bus phases are modeled.
+  bool timed_final_access=false;
+  unsigned cycles_before_access=0;
+  if(bus.timed_ppu_io) {
+   if constexpr(M==Mode::abs || M==Mode::absx || M==Mode::absy) {
+    constexpr bool read_ppu=(O==Op::LDA || O==Op::LDX || O==Op::LDY || O==Op::BIT);
+    constexpr bool write_ppu=(O==Op::STA || O==Op::STX || O==Op::STY);
+    if constexpr(read_ppu || write_ppu) {
+     const uint16_t eff=uint16_t(operand+
+       (M==Mode::absx ? unsigned(x) : (M==Mode::absy ? unsigned(y) : 0u)));
+     if(eff>=0x2000 && eff<0x4000) {
+      const bool crossed=(operand&0xff00u)!=(eff&0xff00u);
+      const unsigned penalty=indexed_read_penalty_0554<O,M>() && crossed ? 1u : 0u;
+      cycles_before_access=base_cycles+penalty-1u;
+      advance_cycles(cycles_before_access);
+      bus.timed_ppu_io->arm_final_cycle();
+      timed_final_access=true;
+     }
+    }
+   }
+  }
   if constexpr(O==Op::LDA){a=value(M,operand);nz(a);}
   else if constexpr(O==Op::LDX){x=value(M,operand);nz(x);}
   else if constexpr(O==Op::LDY){y=value(M,operand);nz(y);}
@@ -194,8 +228,12 @@ struct Cpu {
   else static_assert(UnhandledOpcode<O>::value,"unimplemented 6502 opcode");
   const unsigned added=base_cycles+branch_penalty+
       ((indexed_read_penalty_0554<O,M>() && address_page_cross_)?1u:0u);
-  cycles+=added;
-  ppu_clock.advance_cpu_cycles(added);
+  if(timed_final_access) {
+   bus.timed_ppu_io->disarm();
+   if(added!=cycles_before_access+1u)
+    throw std::runtime_error("timed PPU access cycle-accounting mismatch");
+   advance_cycles(1);
+  } else advance_cycles(added);
  }
  // Fixed-$FB96 is independently bounded. Other cross-bank calls FAIL CLOSED.
  bool bounded_external() {
