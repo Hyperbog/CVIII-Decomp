@@ -35,6 +35,7 @@ struct Room {
     };
     std::vector<DispatchEvent> dispatches;
     std::vector<std::array<unsigned,2>> post_mapper_changes;
+    std::vector<std::array<unsigned,3>> video_register_writes;
     std::array<uint8_t,2048> ram{};
     uint8_t mapper=10;
     unsigned indirect_reads=0, mapper_writes=0;
@@ -97,11 +98,52 @@ struct Room {
         if(mapper!=10 || mapper_writes!=2*indirect_reads)
             throw std::runtime_error("mapper restoration violation");
     }
+    void dispatch_bank00_script2_video(const Image& bank00) {
+        // Entire original bank00 $8013-$805E selector/table routine and
+        // fixed31 $E32B-$E35B VRC6 video-bank-register write helpers.
+        // $34/$35/$36 are producer-bound room header nibbles.
+        auto address_word = [&](unsigned addr)->unsigned {
+            if(addr<0x8000 || addr>=0xBFFF)
+                throw std::runtime_error("script2 indirect word outside bank00");
+            return static_cast<unsigned>(bank00.at(static_cast<uint16_t>(addr))) |
+                (static_cast<unsigned>(bank00.at(static_cast<uint16_t>(addr+1)))<<8);
+        };
+        auto selected = [&](unsigned ptr,unsigned y)->unsigned {
+            if(ptr<0x8000 || ptr+y>0xBFFF)
+                throw std::runtime_error("script2 table selector outside bank00");
+            return address_word(ptr+y);
+        };
+        unsigned y=(static_cast<unsigned>(ram[0x34])*2)&255;
+        const unsigned top=selected(0x805F,y);
+        ram[8]=static_cast<uint8_t>(top);ram[9]=static_cast<uint8_t>(top>>8);
+        y=(static_cast<unsigned>(ram[0x35])*4)&255;
+        unsigned branch=selected(top,y);
+        ram[10]=static_cast<uint8_t>(branch);ram[11]=static_cast<uint8_t>(branch>>8);
+        y=(static_cast<unsigned>(ram[0x36])*2)&255;
+        auto pair=selected(branch,y);
+        ram[0x3D]=static_cast<uint8_t>(pair);ram[0x3E]=static_cast<uint8_t>(pair>>8);
+        y=(static_cast<unsigned>(ram[0x35])*4+2)&255;
+        branch=selected(top,y);
+        ram[10]=static_cast<uint8_t>(branch);ram[11]=static_cast<uint8_t>(branch>>8);
+        y=(static_cast<unsigned>(ram[0x36])*2)&255;
+        pair=selected(branch,y);
+        ram[0x3A]=static_cast<uint8_t>(pair);ram[0x3B]=static_cast<uint8_t>(pair>>8);
+        // Actual original fixed $E32B calls E331 then JMP E33C;
+        // bank00 $805C JMP E347. Write hardware register in *CPU order*.
+        constexpr std::array<unsigned,8> pcs{{0xE333,0xE338,0xE33E,0xE343,
+                                               0xE349,0xE34E,0xE353,0xE358}};
+        constexpr std::array<unsigned,8> addrs{{0xD002,0xD003,0xD000,0xD001,
+                                                 0xE000,0xE003,0xE001,0xE002}};
+        constexpr std::array<unsigned,8> fields{{0x3A,0x3B,0x38,0x39,
+                                                  0x3C,0x3F,0x3D,0x3E}};
+        for(unsigned i=0;i<pcs.size();++i)
+            video_register_writes.push_back({pcs[i],addrs[i],ram[fields[i]]});
+    }
     void post_dispatch(const Image& bank0a,const Image& bank0e,const Image& bank00,
                        unsigned index,unsigned seed) {
         // Translate the *entire caller* $B6B4-$B6E7 and its six original
-        // B49A/FBBB mapper trampolines. Four foreign callees are controlled
-        // zero-effect test callbacks; they are NOT native game behavior.
+        // B49A/FBBB mapper trampolines. Three foreign callees remain controlled
+        // zero-effect test callbacks; scripts 0,3,4 remain unported.
         state_bridge(bank0a,bank0e,index,seed);
         ram[0xFF]=0xB0;
         ram[0xFD]=0;
@@ -130,7 +172,7 @@ struct Room {
             mapper=bank;ram[0x23]=bank;
             post_mapper_changes.push_back({0xE2D2,bank});
             const unsigned target=static_cast<unsigned>(lo)|(static_cast<unsigned>(hi)<<8);
-            const bool stubbed=id!=1 && id!=6;
+            const bool stubbed=id!=1 && id!=2 && id!=6;
             dispatches.push_back({id,target,bank,lo,hi,bank,ram[0x3f],0xF5,stubbed});
             // This explicit boundary is the scope limit. No speculative
             // C++ behavior is supplied for original routines 0,2,3,4.
@@ -142,6 +184,7 @@ struct Room {
                 const uint8_t value=bank00.at(static_cast<uint16_t>(0x800F+selector));
                 ram[0x38]=value;ram[0x39]=static_cast<uint8_t>(value+1);
             }
+            if(id==2) dispatch_bank00_script2_video(bank00);
             if(id==6) {
                 // Authentic bank00 $8F3E-$8F46: two immediate ZP stores.
                 ram[0x3C]=0x40;ram[0x3F]=0x43;
@@ -252,8 +295,18 @@ void json_post(const Room& r,unsigned index,unsigned seed,unsigned step) {
         const auto& w=r.post_mapper_changes[i];
         std::cout<<'['<<w[0]<<','<<w[1]<<']';
     }
+    std::cout<<"],\"video_register_writes\":[";
+    for(std::size_t i=0;i<r.video_register_writes.size();++i) {
+        if(i)std::cout<<',';
+        const auto& w=r.video_register_writes[i];
+        std::cout<<'['<<w[0]<<','<<w[1]<<','<<w[2]<<']';
+    }
     const auto& m=r.ram;
-    std::cout<<"],\"ram_00\":"<<unsigned(m[0])
+    std::cout<<"],\"ram_3a\":"<<unsigned(m[0x3a])
+             <<",\"ram_3b\":"<<unsigned(m[0x3b])
+             <<",\"ram_3d\":"<<unsigned(m[0x3d])
+             <<",\"ram_3e\":"<<unsigned(m[0x3e])
+             <<",\"ram_00\":"<<unsigned(m[0])
              <<",\"ram_16\":"<<unsigned(m[0x16])
              <<",\"ram_17\":"<<unsigned(m[0x17])
              <<",\"ram_23\":"<<unsigned(m[0x23])
