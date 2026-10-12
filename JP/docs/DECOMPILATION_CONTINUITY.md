@@ -524,3 +524,7 @@ New GitHub Action `.github/workflows/jp_nesrecomp_cycle_mapper24.yml` checks out
 ## 0572 — authenticated mapper24 execution counter evidence
 
 `tools/check_cycle_stats_0571.py` exports `parse(s,frames)` for neutral CPU/native/interpreter counts and `check(s,frames)` for strict corrected synthetic mapper24 threshold (≥99% compiled CPU cycles, zero fallbacks). `tools/nesrecomp_cycle_0568.py` captures external original-JP runner metrics as `cpu_execution` in private JSON, rather than treating exit 0 as proof of real gameplay/native coverage. It requires exactly requested frames in the report. See `analysis/0572_ORIGINAL_JP_NATIVE_CYCLE_METRICS.md`.
+
+## 0573 — authenticated original-ROM C11 compilation gate
+
+The uploaded Japanese mapper24 ROM SHA-256 matches `958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28`. A local GCC C11 binary compiled the **24 original** $801E–$8046 raw0A selector instruction starts and ran 135 bounded triples matching independent original-6502 semantics. Repo `tools/build_original_c11_0573.py --rom ORIGINAL_JP.nes --out /outside-git/build` wraps the previously established 2,357-site native-C code generator and persistent test executable, with source regeneration and original-ROM proof gates; CI smoke is ROM-free. The **full external NESRecomp cycle C11 runtime cannot be downloaded in the isolated local execution environment**; GitHub Actions synthetic VRC6 runs don't establish retail gameplay. See `analysis/0573_ORIGINAL_ROM_C11_SELECTOR_BUILD.md`. No VPP/strict coverage increment.

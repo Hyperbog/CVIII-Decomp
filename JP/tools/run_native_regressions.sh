@@ -95,6 +95,7 @@ python3 "$root/JP/tools/test_nesrecomp_cycle_0566.py"
 python3 "$root/JP/tools/test_nesrecomp_cycle_0568.py"
 python3 "$root/JP/tools/test_cycle_synthetic_rom_0569.py" --smoke
 python3 "$root/JP/tools/check_cycle_stats_0571.py" --smoke
+python3 "$root/JP/tools/build_original_c11_0573.py" --smoke
 python3 -m py_compile "$root/JP/tools/regen_c11_0564.py"
 if [[ -n "$rom" ]]; then
   # Temporary source generation, C11 compile, independent 135-case 6502 replay.

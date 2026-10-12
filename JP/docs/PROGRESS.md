@@ -549,3 +549,7 @@ The expanded independent [Stage 1 multi-branch suite](../SharedNES/0508_STAGE1_M
 ## 0572 — original-ROM C cycle-runner records interpreted fallbacks
 
 [0572 original-ROM metrics](../analysis/0572_ORIGINAL_JP_NATIVE_CYCLE_METRICS.md) splits upstream statistics handling into measurement-only `parse` and strict synthetic `check`. `nesrecomp_cycle_0568.py` now requires the actual requested number of completed frames and writes total/native CPU-cycle fraction plus ROM/RAM interpreter counts into its local JSON report. This prevents claiming a process success as 100% native code. Original-JP C cycle execution still needs an external licensed engine on the user's machine; no original gameplay/Mesen parity credit awarded.
+
+## 0573 — actual Japanese ROM native C11 selector build (local)
+
+[0573 real-ROM C compilation](../analysis/0573_ORIGINAL_ROM_C11_SELECTOR_BUILD.md) authenticated the user-uploaded Japanese mapper24 ROM and built a 24-instruction original-bank0A $801E selector into an executable with GCC C11. 135/135 bounded pointer results matched both authenticated ROM tables and an independent 6502 interpreter. `tools/build_original_c11_0573.py` now persists the existing source-generated **2,357-site bank0A C11 test** as a separate local executable/report, with synthetic smoke in CI. **This is not a full playable ROM build:** the external NESRecomp cycle source is unavailable in the local sandbox; no retail-game frames or new PRG/VPP coverage certified.
