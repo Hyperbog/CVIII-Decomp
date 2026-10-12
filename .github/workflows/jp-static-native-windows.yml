@@ -1,0 +1,44 @@
+name: JP Static Native Boot - Windows MSVC
+on:
+  push:
+    branches: [decompilation]
+    paths:
+      - 'JP/native/boot/**'
+      - 'JP/native/bank0a/**'
+      - '.github/workflows/jp-static-native-windows.yml'
+  pull_request:
+    paths:
+      - 'JP/native/boot/**'
+      - 'JP/native/bank0a/**'
+      - '.github/workflows/jp-static-native-windows.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-windows:
+    name: Compile original 6502 static-native source with MSVC (ROM-free)
+    runs-on: windows-2022
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Configure native 6502 instruction module
+        shell: pwsh
+        run: cmake -S JP/native/boot -B build/jp-boot -A x64
+      - name: Build real Windows native executable
+        shell: pwsh
+        run: cmake --build build/jp-boot --config Release --parallel 2
+      - name: Test mapped boot and room instruction fail-closed behavior
+        shell: pwsh
+        run: ctest --test-dir build/jp-boot -C Release --output-on-failure
+      - name: Upload native executable (no game ROM)
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cviii-jp-static-native-boot-windows-x64
+          path: build/jp-boot/Release/jp_native_boot.exe
+          if-no-files-found: error
+          retention-days: 14
