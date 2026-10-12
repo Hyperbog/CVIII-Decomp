@@ -11,22 +11,33 @@ from pathlib import Path
 SUMMARY=re.compile(r"mode=native\s+frames=(\d+)\s+cycles=(\d+)\s+native_cycles=(\d+)")
 FALLBACK=re.compile(r"interpreted:\s+ROM\s+(\d+)\s+\([^\n]*?RAM\s+(\d+)")
 
-def check(s:str, frames:int)->dict:
+def parse(s:str, frames:int)->dict:
+    """Read exact execution counters without assuming the original game is native."""
     m=SUMMARY.search(s)
     if not m:raise ValueError("external runner did not report a native cycle summary")
     actual,total,native=map(int,m.groups())
     if actual!=frames or not 1<=frames<=12000:
         raise ValueError(f"expected {frames} complete frames, runner reported {actual}")
-    if total<10000*frames or native>total or native*100<total*99:
-        raise ValueError(f"synthetic VRC6 ROM native coverage too low: {native}/{total}")
+    if total<frames or native>total:
+        raise ValueError("invalid CPU cycle counters from external runner")
     fallback=FALLBACK.search(s)
     if not fallback:raise ValueError("external interpreter counters absent")
     rom,ram=map(int,fallback.groups())
-    if rom or ram:raise ValueError(f"synthetic mapper24 test interpreted instructions: ROM={rom}, RAM={ram}")
     return {"frames":actual,"total_cpu_cycles":total,"native_cpu_cycles":native,
             "native_fraction":native/total,"interpreted_rom":rom,
-            "interpreted_ram":ram,"media":"synthetic mapper24 VRC6",
-            "original_gameplay_parity_verified":False}
+            "interpreted_ram":ram,"original_gameplay_parity_verified":False}
+
+def check(s:str, frames:int)->dict:
+    """Additional high-confidence rules ONLY for the synthetic mapper24 fixture."""
+    result=parse(s,frames)
+    native,total=result["native_cpu_cycles"],result["total_cpu_cycles"]
+    if total<10000*frames or native*100<total*99:
+        raise ValueError(f"synthetic VRC6 ROM native coverage too low: {native}/{total}")
+    if result["interpreted_rom"] or result["interpreted_ram"]:
+        raise ValueError(f"synthetic mapper24 test interpreted instructions: "
+                         f'ROM={result["interpreted_rom"]}, RAM={result["interpreted_ram"]}')
+    result["media"]="synthetic mapper24 VRC6"
+    return result
 
 def expect_fail(output:str):
     try:check(output,3)
@@ -46,6 +57,12 @@ def smoke():
     expect_fail(good.replace("RAM 0","RAM 1"))
     expect_fail(good.replace("cycles=86958","cycles=0"))
     expect_fail("process success without original native-cycle stats")
+    # Authentic original-game instrumentation is allowed to reveal fallback,
+    # but cannot be misreported as the high-confidence synthetic 99% gate.
+    partial=good.replace("native_cycles=86951","native_cycles=574").replace("ROM 0","ROM 5")
+    measured=parse(partial,3)
+    assert measured["native_cpu_cycles"]==574 and measured["interpreted_rom"]==5
+    expect_fail(partial)
     print("PASS JP0571 independent external native cycle/fallback metrics gate")
 
 def main():

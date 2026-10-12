@@ -79,11 +79,16 @@ def run(args)->dict:
     if proc.returncode:
         raise RuntimeError(f"External cycle runner exited {proc.returncode}; "
                            f"inspect {out/'headless_run.log'}")
-    report={"schema":"JP0568-external-cycle-run/v1","rom":rom_meta,
+    # Parse actual CPU recompilation coverage. A successful process exit is
+    # NOT proof of frame parity; interpreted code is reported, never hidden.
+    from check_cycle_stats_0571 import parse
+    metrics=parse(proc.stdout+"\n"+proc.stderr,args.frames)
+    report={"schema":"JP0568-external-cycle-run/v2","rom":rom_meta,
             "external_engine":str(engine),"headless":not args.windowed,
             "requested_frames":args.frames,"process_exited_zero":True,
             "runner":str(exe),"log":str(out/"headless_run.log"),
-            "logs":logs,"original_cpu_trace_compared":False,
+            "logs":logs,"cpu_execution":metrics,
+            "original_cpu_trace_compared":False,
             "mesen_frame_parity":False,"strict_prg_new_bytes":0,
             "new_vpp_points":0}
     (out/"jp_cycle_0568.json").write_text(json.dumps(report,indent=2,sort_keys=True)+"\n")

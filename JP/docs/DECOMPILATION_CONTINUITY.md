@@ -520,3 +520,7 @@ New GitHub Action `.github/workflows/jp_nesrecomp_cycle_mapper24.yml` checks out
 ## 0571 — external synthetic CPU-cycle metrics are now enforced
 
 `tools/check_cycle_stats_0571.py` parses the pinned upstream mapper24 C11 runner summary and rejects any 3-frame run with under 99% native CPU cycles or nonzero ROM/RAM interpreter execution. `jp_nesrecomp_cycle_mapper24.yml` pipes stdout to the parser, after 0570 IRQ/JMP overlap correction. Current **synthetic-only** baseline 86,951/86,958 native cycles (99.99195%), ROM/RAM fallback 0; neither gameplay, Mesen parity nor actual retail ROM's native percent has been measured. Report `analysis/0571_PINNED_VRC6_NATIVE_CYCLE_GATE.md`.
+
+## 0572 — authenticated mapper24 execution counter evidence
+
+`tools/check_cycle_stats_0571.py` exports `parse(s,frames)` for neutral CPU/native/interpreter counts and `check(s,frames)` for strict corrected synthetic mapper24 threshold (≥99% compiled CPU cycles, zero fallbacks). `tools/nesrecomp_cycle_0568.py` captures external original-JP runner metrics as `cpu_execution` in private JSON, rather than treating exit 0 as proof of real gameplay/native coverage. It requires exactly requested frames in the report. See `analysis/0572_ORIGINAL_JP_NATIVE_CYCLE_METRICS.md`.

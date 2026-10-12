@@ -545,3 +545,7 @@ The expanded independent [Stage 1 multi-branch suite](../SharedNES/0508_STAGE1_M
 ## 0571 — strict synthetic VRC6 99% native-cycle and zero-interpreter CI
 
 [0571 native-cycle proof](../analysis/0571_PINNED_VRC6_NATIVE_CYCLE_GATE.md) records corrected synthetic mapper24 test metrics: 86,951/86,958 CPU cycles executed by generated C11, zero ROM/RAM interpreter fallbacks in 3 headless frames. The external C11 runner workflow now parses stdout and REQUIRES ≥99% native-cycle share, exactly 3 frames, and no interpretation; process exit alone no longer counts. **These are synthetic test metrics, not Castlevania III retail gameplay parity.** No strict PRG/VPP progress credited.
+
+## 0572 — original-ROM C cycle-runner records interpreted fallbacks
+
+[0572 original-ROM metrics](../analysis/0572_ORIGINAL_JP_NATIVE_CYCLE_METRICS.md) splits upstream statistics handling into measurement-only `parse` and strict synthetic `check`. `nesrecomp_cycle_0568.py` now requires the actual requested number of completed frames and writes total/native CPU-cycle fraction plus ROM/RAM interpreter counts into its local JSON report. This prevents claiming a process success as 100% native code. Original-JP C cycle execution still needs an external licensed engine on the user's machine; no original gameplay/Mesen parity credit awarded.
