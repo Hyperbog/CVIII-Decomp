@@ -92,6 +92,7 @@ python3 "$root/JP/tools/test_c6502_native_host_0565.py" --smoke
 # 0566 optional upstream PolyForm-NC NESRecomp cycle backend audit/probe.
 python3 "$root/JP/tools/probe_nesrecomp_cycle_0566.py" --smoke
 python3 "$root/JP/tools/test_nesrecomp_cycle_0566.py"
+python3 "$root/JP/tools/test_nesrecomp_cycle_0568.py"
 python3 -m py_compile "$root/JP/tools/regen_c11_0564.py"
 if [[ -n "$rom" ]]; then
   # Temporary source generation, C11 compile, independent 135-case 6502 replay.

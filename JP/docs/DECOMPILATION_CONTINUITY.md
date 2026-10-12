@@ -504,3 +504,7 @@ Current `mstan/nesrecomp` source `runner/cyc/hw_vrc6.inc` and `vrc6_test.inc` im
 ## 0567 — C-only main executable cross-platform CI gate
 
 `native/boot/CMakeLists.txt` builds `jp_c6502_host_link_0567` from authentic C-only `c6502/main.c` and a ROM-free artificial codegen substitute `c6502/host_link_fixture_0567.c`. Keeps C ABI available in Windows MSVC CI without checking in generated ROM code. Existing 0565 Linux host synthetic runtime tests remain, and original 0553 C++ parity path stays intact. See `analysis/0567_C11_NATIVE_HOST_WINDOWS_LINK.md`.
+
+## 0568 — external NESRecomp VRC6 cycle hardware integration
+
+`native/nesrecomp_cycle/CMakeLists.txt` calls external upstream `nesrecomp_add_cycle_game` in a separate build tree. `tools/nesrecomp_cycle_0568.py --rom ORIGINAL_JP_ROM --engine /external/nesrecomp --out /tmp/jp-cycle --frames 120` authenticates original SHA-256/mapper24, checks separate PolyForm Noncommercial license, builds and runs bounded frames. No NESRecomp vendoring, no game ROM committed, no original-game frame parity claim. ROM-free policy tests: `tools/test_nesrecomp_cycle_0568.py`. Evidence `analysis/0568_EXTERNAL_NESRECOMP_CYCLE_BACKEND.md`; strict PRG 49,504, VPP27, C++ sites4,261 unchanged.

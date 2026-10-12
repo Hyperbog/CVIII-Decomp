@@ -529,3 +529,7 @@ The expanded independent [Stage 1 multi-branch suite](../SharedNES/0508_STAGE1_M
 ## 0567 — Windows native C host compiles/links in CMake
 
 [0567 Windows link gate](../analysis/0567_C11_NATIVE_HOST_WINDOWS_LINK.md) extends the existing boot CMake with a C-only `jp_c6502_host_link_0567` target. An **artificial** static-code fixture replaces local ROM-generated game code in public CI; this guarantees C11 `main.c`, native CPU and link ABI compile under Windows MSVC as well as Linux. Separate Linux tests execute a synthetic generated-C host and check the fail-closed original-ROM guard. No original gameplay/full-NES compatibility claimed; VPP27, strict49,504/262,144, existing sites4,261 unchanged.
+
+## 0568 — optional cycle-accurate C11 VRC6 engine integration point
+
+[0568 external C11 runtime build](../analysis/0568_EXTERNAL_NESRECOMP_CYCLE_BACKEND.md) adds `native/nesrecomp_cycle/CMakeLists.txt` using NESRecomp's external cycle-generation `nesrecomp_add_cycle_game`, with private original-JP SHA/mapper24 validation, external PolyForm-NC license gate and a bounded headless 120-frame invocation/report command in `tools/nesrecomp_cycle_0568.py`. CI tests synthetic command-building and failure gates; **actual upstream retail game execution has not yet been attempted in CI**. All copied/generated original-code and upstream runtime source stay outside this repo. Legacy C++ evidence and independent 0562–0567 C11 backend retained; VPP27, strict49,504/262,144, sites4,261 unchanged.
