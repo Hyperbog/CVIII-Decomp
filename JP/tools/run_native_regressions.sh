@@ -68,6 +68,10 @@ fi
 # 0549: fail-closed ROM-free parser and real-Mesen capture schema; no retail ROM in CI.
 python3 -m py_compile "$root/JP/tools/audit_mesen_state13_0549.py" "$root/JP/tools/test_mesen_state13_0549.py"
 python3 "$root/JP/tools/test_mesen_state13_0549.py"
+# 0550: deterministic natural-Mesen Stage-1 fork search; ROM-free evidence/plan only.
+python3 -m py_compile "$root/JP/tools/search_mesen_state13_0550.py" "$root/JP/tools/test_state13_search_0550.py"
+python3 "$root/JP/tools/test_state13_search_0550.py"
+python3 "$root/JP/tools/search_mesen_state13_0550.py" --plan > "$build/0550_state13_search_plan.json"
 # 0548: authenticated original CPU reset->first NMI, scripted external PPU/IRQ source.
 # CI runs ROM-free CPU and protocol checks; original ROM replay is opt-in.
 python3 -m py_compile "$root/JP/tools/replay_reset_0548.py" "$root/JP/tools/test_reset_0548.py"

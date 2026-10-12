@@ -31,7 +31,9 @@ def authenticate(rom:Path,emulator:Path|None=None):
 
 def field_map(line:str):
     match=PAT.fullmatch(line)
-    if not match:return None
+    if not match:
+        if line.startswith('CV0549 '):raise AuditError('Malformed CV0549 observer event')
+        return None
     out={}
     for token in match[1].split(' '):
         key,sep,val=token.partition('=')
@@ -43,6 +45,7 @@ def field_map(line:str):
 def scan(path:Path):
     try:lines=[json.loads(line) for line in path.read_text(encoding='utf-8').splitlines() if line.strip()]
     except (ValueError,UnicodeError) as exc:raise AuditError(f'Invalid JSONL: {exc}') from exc
+    if any(not isinstance(x,dict) for x in lines):raise AuditError('Non-object JSONL record')
     loaded=[x for x in lines if x.get('event')=='rom_loaded']
     summaries=[x for x in lines if x.get('event')=='summary']
     if len(loaded)!=1 or len(summaries)!=1:raise AuditError('Missing/duplicated Mesen run boundary')
@@ -59,6 +62,25 @@ def scan(path:Path):
             if rec.get('error_count',0):raise AuditError('Lua callback error')
             logs.extend(rec.get('text','').splitlines())
     events=[e for line in logs if (e:=field_map(line)) is not None]
+    # Protect provenance against malformed/out-of-order callback log entries.
+    # The observer starts frame=0; it increments only at endFrame.
+    prior_frame=0
+    for e in events:
+        if e['kind'] in {'ready','truncated'}:continue
+        if 'frame' not in e or not re.fullmatch(r'[0-9]+', e['frame']):
+            raise AuditError('Missing/nondecimal observer frame index')
+        idx=int(e['frame'])
+        if idx<prior_frame or idx>frames_expected:
+            raise AuditError('Out-of-order/out-of-range observer event frame')
+        prior_frame=idx
+        for field in ('state','sub','guard','room','slot','shadow','old','value'):
+            if field in e and not re.fullmatch(r'[0-9A-F]{2}',e[field]):
+                raise AuditError('Bad observer byte field: '+field)
+        if e['kind']=='exec':
+            if not re.fullmatch(r'[0-9A-F]{4}',e.get('pc','')):
+                raise AuditError('Bad execution CPU address')
+        if e['kind']=='write18' and not re.fullmatch(r'[0-9A-F]{4}',e.get('pc','')):
+            raise AuditError('Bad write-observer PC')
     ready=[e for e in events if e['kind']=='ready']
     if len(ready)!=1 or ready[0].get('schema')!='jp-state13-provenance-v2' or ready[0].get('passive')!='1':
         raise AuditError('Passive observer did not install exactly once with v2 schema')
