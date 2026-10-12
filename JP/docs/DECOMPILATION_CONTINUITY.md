@@ -532,3 +532,7 @@ The uploaded Japanese mapper24 ROM SHA-256 matches `958a4b5e95e80acb2c71a43e9ef2
 ## 0574 — fix standalone C11 mapper24 bank model
 
 Standalone `native/c6502/cpu.c` now models VRC6a $8000–$BFFF 16KiB PRG bank plus independent $C000–$DFFF 8KiB PRG bank and fixed $E000–$FFFF. `jp_bus_physical_offset` is reused by C11 interpreter reads and fixed physical-codegen output (`tools/static_recompile_boot_c_0564.py`). ROM-free CTest enforces actual VRC6 PRG decode and mirroring. Other console hardware still fails closed; external NESRecomp cycle engine remains the intended complete C runtime. Evidence `analysis/0574_C11_VRC6_INDEPENDENT_PRG_WINDOWS.md`.
+
+## 0575 — direct retail-JP external C11 build command
+
+`tools/build_retail_cycle_0575.py --rom ORIGINAL_JP_ROM --out /outside/repo --frames 120` pins the external PolyForm-NC NESRecomp checkout to `2b4fcdb98c9e702be3fb365cfc645003c50b5fc1`, builds the original game using 0568/0572 and emits native/interpreted CPU-cycle metrics. `--plan`, `--offline`, and `--windowed` supported. C11 Windows/Linux contract CI is ROM-free. Sandbox outbound Github DNS unavailable; retail game executable not built/verified here. Document: `analysis/0575_C11_RETAIL_GAME_BUILD_BOOTSTRAP.md`.

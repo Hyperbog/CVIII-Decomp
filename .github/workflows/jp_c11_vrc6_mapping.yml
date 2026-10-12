@@ -5,11 +5,13 @@ on:
     paths:
       - 'JP/native/c6502/**'
       - 'JP/tools/static_recompile_boot_c_0564.py'
+      - 'JP/tools/build_retail_cycle_0575.py'
       - '.github/workflows/jp_c11_vrc6_mapping.yml'
   pull_request:
     paths:
       - 'JP/native/c6502/**'
       - 'JP/tools/static_recompile_boot_c_0564.py'
+      - 'JP/tools/build_retail_cycle_0575.py'
       - '.github/workflows/jp_c11_vrc6_mapping.yml'
   workflow_dispatch:
 permissions:
@@ -36,3 +38,5 @@ jobs:
         run: ctest --test-dir build/jp-c11-only -C Release --output-on-failure
       - name: Check physically qualified fixed-bank C emitter
         run: python JP/tools/static_recompile_boot_c_0564.py --smoke
+      - name: Check original retail-JP pinned engine build command
+        run: python JP/tools/build_retail_cycle_0575.py --smoke

@@ -557,3 +557,7 @@ The expanded independent [Stage 1 multi-branch suite](../SharedNES/0508_STAGE1_M
 ## 0574 — independent VRC6a $C000 PRG bank mapping in C11
 
 [0574 VRC6a PRG correctness](../analysis/0574_C11_VRC6_INDEPENDENT_PRG_WINDOWS.md) corrects C11 ROM mapping: $8000–$BFFF selected 16 KiB, $C000–$DFFF **separately selected 8 KiB**, $E000–$FFFF fixed last 8 KiB, with $F003 address-register mirrors and a single common physical-offset resolver for native generated fixed code and interpreted reads. Focused tests cover selector independence and mirror behavior, not reconstruction census. External cycle backend still required for PPU/APU/VRC6 IRQ/audio/WRAM, and VPP27, strict49,504/262,144, 4,261 existing compiled sites unchanged.
+
+## 0575 — single-command pinned external retail-JP C11 build
+
+[0575 external original-game build](../analysis/0575_C11_RETAIL_GAME_BUILD_BOOTSTRAP.md) adds `tools/build_retail_cycle_0575.py --rom ORIGINAL.nes --out /private/jp-build --frames 120` to authenticate Japanese mapper24 ROM, clone exactly pinned PolyForm-NC NESRecomp outside Git, build C11 cycle game and report actual compiled/interpreted CPU cycles. Lightweight Windows/Linux C11 CI validates command safety, not ROM reconstruction. The full-game engine cannot be downloaded within this sandbox; original game playback remains unproven and VPP/strict PRG unchanged.
