@@ -489,3 +489,7 @@ The expanded independent [Stage 1 multi-branch suite](../SharedNES/0508_STAGE1_M
 ## 0554 Phase 4D — OAMDMA 513/514 CPU stalls for bounded internal-RAM pages
 
 [OAM DMA proof](../analysis/0554_PHASE4D_OAM_DMA_STALLS.md) adds opt-in $4014 RAM-page OAMDMA with explicit CPU get/put parity, 256 source read/OAM writes, 513/514 CPU stall cycles, per-byte bus-cycle timestamps and inherited PPU/VRC6 clocks during DMA. CTest covers RAM mirrors, OAM wrapping, NMI/IRQ emerging while DMA-halted, and fail-closed unsupported pages/bus phases. No DMC overlap, live $2003/$2004, PRG/I/O DMA sources or game-frame parity; the original 0553 scripted replay is untouched. VPP27/100, strict 49,504/262,144, 4,261 compiled sites unchanged.
+
+## 0554 Phase 4E — OAM registers and DMA share memory
+
+[Bounded PPU OAM register integration](../analysis/0554_PHASE4E_OAM_REGISTERS.md) adds timed $2003 OAMADDR, $2004 OAMDATA read/write, 8-byte mirroring and shared OAM backing with internal-RAM $4014 DMA. During enabled visible/pre-render periods or without a DMA-backed OAM instance, OAM accesses reject rather than fabricating rendering-time corruption. Existing scripted 0553 reset/NMI driver is unchanged. VPP27, strict 49,504/262,144; compiled starts 4,261.

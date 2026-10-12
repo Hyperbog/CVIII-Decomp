@@ -120,6 +120,7 @@ struct Cpu {
   oam_dma.set_get_cycle_parity(get_cycle_parity);
   oam_dma_enabled_=true;
   bus.timed_oam_dma=&oam_dma;
+  ppu_io.attach_oam(&oam_dma);
  }
  void advance_cycles(unsigned n) {
   cycles+=n;ppu_clock.advance_cpu_cycles(n);

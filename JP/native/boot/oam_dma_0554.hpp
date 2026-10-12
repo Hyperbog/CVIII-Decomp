@@ -20,8 +20,11 @@ class RamOamDma {
    get_parity_=parity;
    phase_known_=true;
   }
-  // Test/setup dependency: true OAMADDR ($2003) handling remains unmodeled.
   void set_oam_address_for_test(uint8_t address) {oam_address_=address;}
+  void write_oam_address(uint8_t address) {oam_address_=address;}
+  // OAMDATA direct access is allowed only by the PPU-side blanking gate.
+  uint8_t read_oam_data() const {return oam_[oam_address_];}
+  void write_oam_data(uint8_t value) {oam_[oam_address_++]=value;}
   uint8_t oam_address() const {return oam_address_;}
   const std::array<uint8_t,256>& oam() const {return oam_;}
   const std::vector<RamOamDmaByte>& last_bytes() const {return bytes_;}

@@ -20,6 +20,10 @@ class NtscPpuClock {
   uint64_t cpu_cycles() const { return cpu_cycles_; }
   bool odd_frame() const { return (frames_ & 1u) != 0; }
   bool vblank() const { return vblank_; }
+  bool rendering_enabled() const { return (mask_ & 0x18u) != 0; }
+  bool active_rendering() const {
+    return rendering_enabled() && (line_ < 240 || line_ == prerender_line);
+  }
   bool nmi_line() const { return vblank_ && (control_ & 0x80u); }
   bool nmi_pending() const { return pending_nmi_; }
 
