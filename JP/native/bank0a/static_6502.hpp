@@ -164,7 +164,7 @@ struct Cpu {
  template <Op O,Mode M> void exec(uint16_t operand,uint16_t next) {
   constexpr unsigned base_cycles=base_cpu_cycles_0554<O,M>();
   static_assert(base_cycles!=0,"unsupported original opcode/address-mode timing");
-  const bool old_irq_mask=flag(4);
+  [[maybe_unused]] const bool old_irq_mask=flag(4);
   pc=next;
   address_page_cross_=false;
   unsigned branch_penalty=0;
