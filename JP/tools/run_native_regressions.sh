@@ -83,6 +83,12 @@ python3 -m py_compile "$root/JP/tools/static_recompile_bank0a.py" "$root/JP/tool
 # 0562 source-driven C11 emitter. Public CI uses ROM-free fixture checks;
 # authenticated source-to-C output is generated locally only.
 python3 "$root/JP/tools/static_recompile_c_0562.py" --smoke
+# JP 0563: compile actual C emitter fixture without copyrighted ROM.
+python3 "$root/JP/tools/test_c6502_regen_0563.py" --smoke
+if [[ -n "$rom" ]]; then
+  # Temporary source generation, C11 compile, independent 135-case 6502 replay.
+  python3 "$root/JP/tools/test_c6502_regen_0563.py" --rom "$rom"
+fi
 python3 "$root/JP/tools/test_static_bank0a_0552.py" --smoke
 if [[ -n "$rom" ]]; then
   python3 "$root/JP/tools/test_static_bank0a_0552.py" --rom "$rom"

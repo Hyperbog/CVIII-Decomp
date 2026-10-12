@@ -509,3 +509,7 @@ The expanded independent [Stage 1 multi-branch suite](../SharedNES/0508_STAGE1_M
 ## 0562 — C11 static recompilation ABI and dynamic interpreter fallback
 
 [Source-first C pivot](../analysis/0562_C11_STATIC_RECOMP_ARCHITECTURE.md) adds a portable C11 2A03 `JpCpu`/`JpBus` ABI, official-opcode semantic interpreter, physical VRC6 bank addressing, fail-closed unsupported hardware, ROM-free CTest and a generator that emits bank raw0A's 2,357 existing opcode sites as **local** C11 code from byte-exact authenticated ASM. Candidate code is off by default; fallback is opt-in and separately counted. The existing C++ hardware code and parity tests remain; this does **not** yet constitute a fully migrated game. Strict 49,504/262,144, 4,261 existing C++ sites and VPP 27/100 unchanged.
+
+## 0563 — C11 generated raw0A actual original-6502 replay gate
+
+[0563 source-native-C pipeline](../analysis/0563_C11_ORIGINAL_SELECTOR_REPLAY.md) adds a C original-bank driver (`native/c6502/raw0a_driver_0563.c`) and a generator/rebuild/original-CPU replay harness (`tools/test_c6502_regen_0563.py`). Privately supplied original JP ROM regenerates audited 0538 ASM, emits source-driven C11 instructions, compiles the result, executes all 135 bounded $801E selectors and independently compares stage/middle/leaf pointers with original 6502. Public CI compiles artificial generated C and rejects untrusted generator rows; **original-backed C results are local-only**, and no gameplay/strict-parity credit is added. Coverage unchanged.
