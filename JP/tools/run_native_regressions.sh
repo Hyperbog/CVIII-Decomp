@@ -68,6 +68,14 @@ fi
 # 0551: native Windows Mesen headless transcript parser; strictly ROM-free in CI.
 python3 -m py_compile "$root/JP/tools/audit_mesen_windows_0551.py" "$root/JP/tools/test_mesen_windows_0551.py"
 python3 "$root/JP/tools/test_mesen_windows_0551.py"
+# 0552 full bank0A static native 6502 compilation (2357 instruction sites).
+# ROM-free C++ compilation and fail-closed behavior; optional authenticated
+# original 6502 comparison of all 1280 room cases plus 135 selector cases.
+python3 -m py_compile "$root/JP/tools/static_recompile_bank0a.py" "$root/JP/tools/test_static_bank0a_0552.py"
+python3 "$root/JP/tools/test_static_bank0a_0552.py" --smoke
+if [[ -n "$rom" ]]; then
+  python3 "$root/JP/tools/test_static_bank0a_0552.py" --rom "$rom"
+fi
 # 0549: fail-closed ROM-free parser and real-Mesen capture schema; no retail ROM in CI.
 python3 -m py_compile "$root/JP/tools/audit_mesen_state13_0549.py" "$root/JP/tools/test_mesen_state13_0549.py"
 python3 "$root/JP/tools/test_mesen_state13_0549.py"

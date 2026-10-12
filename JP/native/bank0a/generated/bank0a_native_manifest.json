@@ -1,0 +1,15 @@
+{
+  "audited_bytes": 2162,
+  "audited_instructions": 992,
+  "bank_sha256": "1460df577d44e114c64fdf34a8837629765f3f6a93d45796fdf81e5ffacb5ed8",
+  "candidate_bytes": 2910,
+  "candidate_code_certified": false,
+  "candidate_instructions": 1365,
+  "description": "Explicitly compiled, CPU-semantics lowering of already classified 6502 instruction sites. Other addresses fail closed.",
+  "instruction_sites": 2357,
+  "native_frame_parity": false,
+  "original_rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "raw_bank_bytes": 16384,
+  "schema": "JP-static-native-lift-bank0A/v1",
+  "unknown_and_data_bytes": 11312
+}
