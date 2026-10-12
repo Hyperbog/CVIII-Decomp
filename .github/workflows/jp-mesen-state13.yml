@@ -1,0 +1,45 @@
+name: JP Original Mesen state-transition evidence (ROM-free)
+
+on:
+  push:
+    branches: [decompilation]
+    paths:
+      - '.github/workflows/jp-mesen-state13.yml'
+      - 'JP/tools/*0549*'
+      - 'JP/analysis/0549_*'
+  pull_request:
+    paths:
+      - '.github/workflows/jp-mesen-state13.yml'
+      - 'JP/tools/*0549*'
+      - 'JP/analysis/0549_*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: jp-mesen-state13-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  passive-observer-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate passive Lua event schema and audit implementation
+        run: |
+          python3 -m py_compile JP/tools/audit_mesen_state13_0549.py JP/tools/test_mesen_state13_0549.py
+          python3 JP/tools/test_mesen_state13_0549.py
+      - name: Validate original 6502 reset interpreter (ROM-free only)
+        run: python3 JP/tools/test_reset_0548.py
+      - name: Assert no binary test media are bundled
+        run: |
+          test ! -e 'JP/Akumajou Densetsu (Japan).nes'
+          test ! -e 'MesenCore.so'
+          echo 'ROM-free CI passed; real emulator execution requires authenticated local original media.'
