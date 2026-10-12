@@ -2,8 +2,8 @@
 """Original JP bank-$0A post-loader *contract* replay against translated C++.
 
 The six original B49A/FBBB calls traverse the actual 6502 trampoline, mapped
-bank zero, real fixed-bank return shim, then B6E7->B597 return. Foreign IDs 0,3,4 remain deliberate neutral test callbacks. IDs 1,2,6
-execute original 6502 bytes. ID2 includes real fixed-bank VRC6 video
+bank zero, real fixed-bank return shim, then B6E7->B597 return. Only IDs 3,4 remain neutral test callbacks. IDs 0,1,2,6 execute original 6502 bytes,
+including ID0 command streams via original $EC54/$966F and $84A0-$8511. ID2 includes real fixed-bank VRC6 video
 register effects $D000..$D003 and $E000..$E003; not PPU frame parity.
 This isolates and tests the caller's complete state/mapping control flow.
 """
@@ -18,13 +18,13 @@ from workflow import trace_diff, atomic_json
 
 TARGET_IDS=(0,1,2,6,3,4)
 TABLE={0:(0x84A0,0),1:(0x8001,0),2:(0x8013,0),3:(0xD03C,0),4:(0xD0CD,0),5:(0xCDA8,0),6:(0x8F3E,0),7:(0xFBA5,0),8:(0xFBB0,0)}
-LEAVES_PROVEN=(1,2,6)
+LEAVES_PROVEN=(0,1,2,6)
 
 class PostCPU(StateCPU):
     def __init__(self,prg:bytes,index:int,seed:int):
         super().__init__(prg,index,seed)
         self.post_events=[];self.post_writes=[];self.post_visits=[]
-        self.post_calls=[];self.video_register_writes=[]
+        self.post_calls=[];self.video_register_writes=[];self.script0_mapper_changes=[];self.script0_instruction_sites=set();self.in_script0=False
     def read(self,addr:int)->int:
         addr&=0xFFFF
         if 0xC000<=addr<0xE000:
@@ -39,19 +39,28 @@ class PostCPU(StateCPU):
         if addr==0x8000:
             if val not in (0,10,14):raise EvidenceError('post-dispatch illegal mapper bank')
             self.bank=val;self.mapper_writes.append((self.pc,val))
-            self.post_writes.append([self.pc,val]);return
+            
+            if self.pc==0xE2D2 and self.in_script0:
+                self.script0_mapper_changes.append([self.pc,val])
+            else:
+                self.post_writes.append([self.pc,val])
+            return
         return super().write(addr,val)
     def complete(self):
         self.run()  # independently execute all actual pre-loader original opcodes
         if self.pc!=0xB6B4 or self.bank!=10 or self.sp!=0xF9:
             raise EvidenceError('post-loader prefix did not reach proven boundary')
         self.post_writes=[]  # exclude the preceding authenticated E526 and 0E reads
+        self.in_script0=False
         local_steps=0
         while self.pc!=0x9000:
             local_steps+=1
-            if local_steps>800:raise EvidenceError(f'postloader did not return: {self.bank:02X}:{self.pc:04X}')
+            if local_steps>30000:raise EvidenceError(f'postloader did not return: {self.bank:02X}:{self.pc:04X}')
             pc=self.pc;self.post_visits.append(pc)
-            if pc in (0x84A0,0xD03C,0xD0CD):
+            if pc==0x84A0:self.in_script0=True
+            if self.in_script0:self.script0_instruction_sites.add(pc)
+            if pc==0xFBC9 and self.in_script0:self.in_script0=False
+            if pc in (0xD03C,0xD0CD):
                 call_id=self.ram[0]
                 if (call_id not in TABLE or TABLE[call_id][0]!=pc or self.bank!=0
                     or call_id in LEAVES_PROVEN):
@@ -65,7 +74,7 @@ class PostCPU(StateCPU):
                 # neutral test callback via original 6502 RTS stack semantics.
                 self.pc=((self.pop()|(self.pop()<<8))+1)&0xffff
                 continue
-            if pc in (0x8001,0x8013,0x8F3E):
+            if pc in (0x84A0,0x8001,0x8013,0x8F3E):
                 call_id=self.ram[0]
                 if TABLE.get(call_id,(None,None))[0]!=pc or self.bank!=0:
                     raise EvidenceError('wrong bank at executable leaf')
@@ -81,29 +90,53 @@ class PostCPU(StateCPU):
             elif op==0xAC:self.y=self.read(word());self.nz(self.y);p=pc+3
             elif op==0xAD:self.a=self.read(word());self.nz(self.a);p=pc+3
             elif op==0xB9:self.a=self.read((word()+self.y)&0xffff);self.nz(self.a);p=pc+3
+            elif op==0xA4:self.y=self.read(v);self.nz(self.y);p=pc+2
+            elif op==0xA6:self.x=self.read(v);self.nz(self.x);p=pc+2
+            elif op==0xA0:self.y=v;self.nz(self.y);p=pc+2
+            elif op==0xA2:self.x=v;self.nz(self.x);p=pc+2
+            elif op==0x84:self.write(v,self.y);p=pc+2
+            elif op==0x86:self.write(v,self.x);p=pc+2
+            elif op==0x25:self.a &= self.read(v);self.nz(self.a);p=pc+2
             elif op==0x85:self.write(v,self.a);p=pc+2
             elif op==0xB1:
                 pointer=self.read(v)|(self.read((v+1)&255)<<8)
                 addr=(pointer+self.y)&0xffff
                 if self.bank!=0 or not 0x8000<=addr<0xC000:
-                    raise EvidenceError(f'foreign ID2 pointer outside original bank00: {addr:04X}')
+                    raise EvidenceError(f'bank00 indirect pointer outside original bank00: {addr:04X}')
                 self.a=self.read(addr);self.nz(self.a);p=pc+2
             elif op==0xC8:self.y=(self.y+1)&255;self.nz(self.y)
             elif op==0x8D:self.write(word(),self.a);p=pc+3
+            elif op==0x9D:self.write((word()+self.x)&0xffff,self.a);p=pc+3
+            elif op==0xC6:
+                t=(self.read(v)-1)&255;self.write(v,t);self.nz(t);p=pc+2
             elif op==0xE6:
                 t=(self.read(v)+1)&255;self.write(v,t);self.nz(t);p=pc+2
             elif op==0x0A:self.c=bool(self.a&128);self.a=(self.a<<1)&255;self.nz(self.a)
+            elif op==0x38:self.c=True
+            elif op==0xE9:
+                t=self.a-v-(0 if self.c else 1);self.c=t>=0;self.a=t&255;self.nz(self.a);p=pc+2
             elif op==0x18:self.c=False
             elif op==0x65:
                 w=self.a+self.read(v)+int(self.c);self.a=w&255;self.c=w>255;self.nz(self.a);p=pc+2
+            elif op==0x71:
+                ptr=self.read(v)|(self.read((v+1)&255)<<8)
+                addr=(ptr+self.y)&0xffff
+                if self.bank!=0 or not 0x8000<=addr<0xC000:
+                    raise EvidenceError(f'bank00 ADC indirect outside bank00: {addr:04X}')
+                w=self.a+self.read(addr)+int(self.c);self.a=w&255;self.c=w>255;self.nz(self.a);p=pc+2
             elif op==0x69:
                 w=self.a+v+int(self.c);self.a=w&255;self.c=w>255;self.nz(self.a);p=pc+2
             elif op==0xA8:self.y=self.a;self.nz(self.y)
+            elif op==0xE8:self.x=(self.x+1)&255;self.nz(self.x)
+            elif op==0xC0:self.c=self.y>=v;self.nz((self.y-v)&255);p=pc+2
+            elif op==0x90:
+                p=pc+2
+                if not self.c:p=(p+(v if v<128 else v-256))&0xffff
             elif op==0x48:self.push(self.a)
             elif op==0x68:self.a=self.pop();self.nz(self.a)
             elif op==0x20:
                 target=word()
-                if target not in (0xB49A,0xB4EE,0xE2D0,0xE32B,0xE331):
+                if target not in (0xB49A,0xB4EE,0xE2D0,0xE2CA,0xEC54,0xEC61,0xEC70,0xEC72,0xEC74,0x966F,0x8480,0x852F,0xE32B,0xE331):
                     raise EvidenceError(f'unexpected JSR {target:04X} from {pc:04X}')
                 self.push((pc+2)>>8);self.push((pc+2)&255);p=target
             elif op==0x60:p=(self.pop()|(self.pop()<<8))+1
@@ -113,6 +146,9 @@ class PostCPU(StateCPU):
                 if pc!=0xFBC6 or p not in [t for t,_ in TABLE.values()]:
                     raise EvidenceError('FBBB dispatch target unrecognized')
             elif op==0xC9:self.c=self.a>=v;self.nz((self.a-v)&255);p=pc+2
+            elif op==0xF0:
+                p=pc+2
+                if self.z:p=(p+(v if v<128 else v-256))&0xffff
             elif op==0xD0:
                 p=pc+2
                 if not self.z:p=(p+(v if v<128 else v-256))&0xffff
@@ -134,8 +170,15 @@ class PostCPU(StateCPU):
 def snapshot(cpu:PostCPU,idx:int,seed:int,step:int)->dict:
     r=cpu.ram
     return {'step':step,'room_index':idx,'seed':seed,
-            'scope':'conditional_6502_post_B6B4_native_host_with_four_stub_callbacks',
+            'scope':'conditional_6502_post_B6B4_native_host_with_two_stub_callbacks',
             'callbacks':cpu.post_events,'mapper_changes':cpu.post_writes,
+            'script0_mapper_changes':cpu.script0_mapper_changes,
+            'script0_command_buffer':list(cpu.ram[0x300:0x380]),
+            'script0_output_fields':list(cpu.ram[0x2e0:0x300]),
+            'script0_aux':{'cursor_1e':r[0x1e],'command_mask_02':r[2],
+                           'temporary_bank_24':r[0x24],'source_bank_ae':r[0xae],
+                           'pointer_low_08':r[8],'pointer_high_09':r[9],
+                           'selector_0e':r[0x0e]},
             'video_register_writes':cpu.video_register_writes,
             'ram_3a':r[0x3a],'ram_3b':r[0x3b],'ram_3d':r[0x3d],'ram_3e':r[0x3e],
             'ram_00':r[0],'ram_16':r[0x16],'ram_17':r[0x17],
@@ -177,8 +220,8 @@ def compare(rom:Path,out:Path,compiler:str='g++',case_limit:int=1280):
         native.write_text(result.stdout)
     report=trace_diff(ref,native)
     report.update({'scope':'B6B4_to_B5A2_six_original_mapper_trampolines',
-                   'cases':len(original),'real_original_script_bodies':[1,2,6],
-                   'opaque_mocked_script_bodies':[0,3,4],
+                   'cases':len(original),'real_original_script_bodies':[0,1,2,6],
+                   'opaque_mocked_script_bodies':[3,4],
                    'real_gameplay_liveness':False,'whole_subsystem_parity':False,
                    'original_rom_sha256':JP_SHA})
     atomic_json(out/'postdispatch_0543_report.json',report)

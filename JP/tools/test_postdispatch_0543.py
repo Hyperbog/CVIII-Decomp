@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """ROM-free native six-dispatch contract fixtures + authenticated original replay.
 
-Three callbacks (0,3,4) are neutral test doubles; scripts 1,2,6 are native.
+Only callbacks 3 and 4 remain neutral test doubles; scripts 0,1,2,6 are native.
 Do not interpret this test as fully reproduced room initialization.
 """
 from __future__ import annotations
@@ -31,6 +31,15 @@ def fixtures():
     word(0x805F+8,0x9000)
     word(0x9004,0x9100);word(0x9006,0x9200)
     word(0x9104,0xABCD);word(0x9204,0x1234)
+    # Script0 first-tier bank00 pointer and original $966F command vocabulary.
+    word(0x8541+2*4,0x9000)
+    for cmd,ptr in ((9,0xA000),(10,0xA010),(11,0xA020),
+                    (12,0xA030),(13,0xA040),(4,0xA050)):
+        word(0x96B9+2*cmd,ptr)
+        z[ptr-0x8000:ptr-0x8000+3]=bytes([0,1,0xFF])
+    z[0x853D-0x8000:0x8541-0x8000]=bytes([10,11,12,13])
+    z[0x86DF-0x8000:0x86DF-0x8000+9]=bytes(range(9))
+    z[0x8929-0x8000:0x8929-0x8000+3]=bytes([0x13,0x24,0x35])
     return a,e,z
 
 def runner(exe:Path,a:bytes,e:bytes,z:bytes,flag='--post-dispatch'):
@@ -56,6 +65,11 @@ def smoke(compiler='g++'):
             assert [x['stack_pointer'] for x in row['callbacks']]==[0xF5]*6
             assert all(x['ram23']==0 and x['mapped_bank']==0 for x in row['callbacks'])
             assert row['mapper_changes']==expected_maps
+            assert len(row['script0_mapper_changes'])==24
+            assert all(event==[0xE2D2,0] for event in row['script0_mapper_changes'])
+            assert len(row['script0_command_buffer'])==128
+            assert len(row['script0_output_fields'])==32
+            assert row['script0_command_buffer'][4:12]==[1,0,1,255,1,0,1,255]
             assert (row['mapper'],row['pc_after_state'],row['sp_after_state'])==(10,0x9000,0xFD)
             assert (row['state_19'],row['substate_68'],row['stream_state_7a6'])==(2,1,9)
             assert (row['ram_3f'],row['ram_3c'],row['ram_61'])==(0x37,0x40,8)
@@ -80,11 +94,15 @@ def smoke(compiler='g++'):
             assert q.returncode!=0,(name,q.stdout[:100])
         wrong_pointer=bytearray(z);wrong_pointer[0x805F-0x8000+9]=0
         assert runner(exe,a,e,wrong_pointer).returncode!=0
+        script0_ptr=bytearray(z);script0_ptr[0x96B9-0x8000+2*9+1]=0
+        assert runner(exe,a,e,script0_ptr).returncode!=0
+        script0_term=bytearray(z);script0_term[0xA000-0x8000:0xA300-0x8000]=bytes(0x300)
+        assert runner(exe,a,e,script0_term).returncode!=0
         bad_e=bytearray(e);bad_e[0xA000-0x8000+3]=5
         assert runner(exe,a,bad_e,z).returncode!=0
         assert runner(exe,a,e,z[:-1]).returncode!=0
         assert runner(exe,a,e,z,'--unsupported').returncode!=0
-        print('PASS',compiler,'1280 synthetic postloader with ID2 video-register implementation, 8 negative fixtures')
+        print('PASS',compiler,'1280 synthetic postloader with IDs0/2 native command/video implementations, 10 negative fixtures')
 
 def main():
     p=argparse.ArgumentParser();p.add_argument('--smoke',action='store_true')

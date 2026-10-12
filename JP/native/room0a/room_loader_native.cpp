@@ -36,6 +36,7 @@ struct Room {
     std::vector<DispatchEvent> dispatches;
     std::vector<std::array<unsigned,2>> post_mapper_changes;
     std::vector<std::array<unsigned,3>> video_register_writes;
+    std::vector<std::array<unsigned,2>> script0_mapper_changes;
     std::array<uint8_t,2048> ram{};
     uint8_t mapper=10;
     unsigned indirect_reads=0, mapper_writes=0;
@@ -98,6 +99,108 @@ struct Room {
         if(mapper!=10 || mapper_writes!=2*indirect_reads)
             throw std::runtime_error("mapper restoration violation");
     }
+
+    void dispatch_bank00_script0_commands(const Image& bank00) {
+        // Original raw00 $84A0-$8511, $8480-$849F, $852F-$853C,
+        // $966F-$96B8 and fixed31 EC54/EC61/EC70/EC72/EC74/E2CA/E62D.
+        // Execute the ROM-indexed command stream, not a hardcoded expected buffer.
+        auto checked_byte = [&](unsigned addr)->uint8_t {
+            if(addr<0x8000 || addr>=0xC000)
+                throw std::runtime_error("ID0 bank00 pointer outside 16KiB window");
+            return bank00.at(static_cast<uint16_t>(addr));
+        };
+        auto checked_word = [&](unsigned addr)->unsigned {
+            if(addr<0x8000 || addr>=0xBFFF)
+                throw std::runtime_error("ID0 pointer word outside 16KiB window");
+            return unsigned(checked_byte(addr)) | (unsigned(checked_byte(addr+1))<<8);
+        };
+        auto push_command = [&](unsigned val) {
+            if(ram[0x1E]>=0x80)throw std::runtime_error("ID0 $0300 command overflow");
+            ram[0x300+ram[0x1E]]=static_cast<uint8_t>(val);
+            ++ram[0x1E];
+        };
+        auto helper = [&](unsigned kind) {
+            // $EC54 saves mapped bank in $24 via $E2CA; $966F builds
+            // a FF/FE-delimited command into $0300,X; $E62D restores it.
+            ram[0x24]=ram[0x23];ram[0x23]=0;
+            script0_mapper_changes.push_back({0xE2D2,0});
+            ram[0xAE]=0;
+            const unsigned ptr=checked_word(0x96B9+((kind*2)&255));
+            ram[0]=static_cast<uint8_t>(ptr);ram[1]=static_cast<uint8_t>(ptr>>8);
+            ram[2]=static_cast<uint8_t>((kind&0x80)?0:0xFF);
+            unsigned y=0;unsigned iterations=0;
+            auto source_read = [&]() -> unsigned {
+                if(++iterations>200)throw std::runtime_error("ID0 command stream unbounded");
+                script0_mapper_changes.push_back({0xE2D2,ram[0xAE]});
+                const unsigned out=checked_byte(ptr+y);
+                script0_mapper_changes.push_back({0xE2D2,0});
+                return out;
+            };
+            for (;;) {
+                push_command(1);  // $9689 / $EC72 + $EC74
+                push_command(source_read());++y;
+                push_command(source_read());++y;
+                for (;;) {
+                    const unsigned v=source_read();++y;
+                    if(v==0xFF) {
+                        push_command(0xFF); // $96A4 JMP $EC70
+                        ram[0x23]=ram[0x24];
+                        script0_mapper_changes.push_back({0xE2D2,ram[0x23]});
+                        return;
+                    }
+                    if(v==0xFE) {push_command(0xFF);break;}
+                    push_command(v & ram[2]);
+                }
+            }
+        };
+        helper(9);
+        // Authentic $8480: two-level index based on room header nibbles.
+        unsigned y=(unsigned(ram[0x34])*2)&255;
+        const unsigned top=checked_word(0x8541+y);
+        ram[8]=static_cast<uint8_t>(top);ram[9]=static_cast<uint8_t>(top>>8);
+        y=(unsigned(ram[0x35])*4)&255;
+        unsigned child=checked_word(top+y);
+        ram[10]=static_cast<uint8_t>(child);ram[11]=static_cast<uint8_t>(child>>8);
+        ram[0x0E]=static_cast<uint8_t>(y+2);
+        unsigned value=checked_byte(child+ram[0x36]);
+        const bool second=value>=0x1C;
+        if(second)value-=0x1C;
+        ram[7]=static_cast<uint8_t>(second?1:0);
+        ram[0]=static_cast<uint8_t>(value);
+        y=(value*9)&255;
+        unsigned x=ram[0x1E];
+        if(x>0x70)throw std::runtime_error("ID0 command output index exceeds buffer");
+        // Three triplets, one alignment slot after each triplet. $1E is
+        // deliberately NOT incremented by the original $84CF-$84E0 loop.
+        for(unsigned j=0;j<3;++j) {
+            for(unsigned k=0;k<3;++k) {
+                const unsigned addr=(second?0x87DB:0x86DF)+y;
+                if(x+0x2F4>=0x800)throw std::runtime_error("ID0 output outside RAM");
+                ram[x+0x2F4]=checked_byte(addr);
+                y=(y+1)&255;++x;
+            }
+            ++x;
+        }
+        // $852F calls original EC54 for a room-specific command, then
+        // tailcalls EC54 with ID4. Both touch $0300,X and mapper $8000.
+        const unsigned selector=ram[0x54E];
+        if(selector>=4)throw std::runtime_error("ID0 command selector exceeds table");
+        helper(checked_byte(0x853D+selector));
+        helper(4);
+        y=ram[0x0E];
+        child=checked_word(top+y);
+        ram[10]=static_cast<uint8_t>(child);ram[11]=static_cast<uint8_t>(child>>8);
+        const unsigned ordinal=checked_byte(child+ram[0x36]);
+        y=(ordinal*3)&255;
+        x=ram[0x1E];
+        for(unsigned k=0;k<3;++k) {
+            if(x+0x2F0>=0x800)throw std::runtime_error("ID0 trailing output outside RAM");
+            ram[x+0x2F0]=checked_byte(0x8929+y);
+            ++x;y=(y+1)&255;
+        }
+        this->x=static_cast<uint8_t>(x);
+    }
+
     void dispatch_bank00_script2_video(const Image& bank00) {
         // Entire original bank00 $8013-$805E selector/table routine and
         // fixed31 $E32B-$E35B VRC6 video-bank-register write helpers.
@@ -142,8 +245,8 @@ struct Room {
     void post_dispatch(const Image& bank0a,const Image& bank0e,const Image& bank00,
                        unsigned index,unsigned seed) {
         // Translate the *entire caller* $B6B4-$B6E7 and its six original
-        // B49A/FBBB mapper trampolines. Three foreign callees remain controlled
-        // zero-effect test callbacks; scripts 0,3,4 remain unported.
+        // B49A/FBBB mapper trampolines. Two foreign callees remain controlled
+        // zero-effect test callbacks; scripts 3,4 remain unported.
         state_bridge(bank0a,bank0e,index,seed);
         ram[0xFF]=0xB0;
         ram[0xFD]=0;
@@ -172,10 +275,11 @@ struct Room {
             mapper=bank;ram[0x23]=bank;
             post_mapper_changes.push_back({0xE2D2,bank});
             const unsigned target=static_cast<unsigned>(lo)|(static_cast<unsigned>(hi)<<8);
-            const bool stubbed=id!=1 && id!=2 && id!=6;
+            const bool stubbed=id==3 || id==4;
             dispatches.push_back({id,target,bank,lo,hi,bank,ram[0x3f],0xF5,stubbed});
             // This explicit boundary is the scope limit. No speculative
-            // C++ behavior is supplied for original routines 0,2,3,4.
+            // C++ behavior is supplied for original routines 3 and 4.
+            if(id==0) dispatch_bank00_script0_commands(bank00);
             if(id==1) {
                 // Authentic bank00 $8001-$800E: LDY $054E; LDA $800F,Y;
                 // STA $38; CLC; ADC #1; STA $39; RTS.
@@ -276,7 +380,7 @@ struct Room {
 void json_post(const Room& r,unsigned index,unsigned seed,unsigned step) {
     std::cout<<"{\"step\":"<<step<<",\"room_index\":"<<index
              <<",\"seed\":"<<seed
-             <<",\"scope\":\"conditional_6502_post_B6B4_native_host_with_four_stub_callbacks\""
+             <<",\"scope\":\"conditional_6502_post_B6B4_native_host_with_two_stub_callbacks\""
              <<",\"callbacks\":[";
     for(std::size_t i=0;i<r.dispatches.size();++i) {
         if(i)std::cout<<',';
@@ -295,7 +399,30 @@ void json_post(const Room& r,unsigned index,unsigned seed,unsigned step) {
         const auto& w=r.post_mapper_changes[i];
         std::cout<<'['<<w[0]<<','<<w[1]<<']';
     }
-    std::cout<<"],\"video_register_writes\":[";
+    std::cout<<"],\"script0_mapper_changes\":[";
+    for(std::size_t i=0;i<r.script0_mapper_changes.size();++i) {
+        if(i)std::cout<<',';
+        const auto& w=r.script0_mapper_changes[i];
+        std::cout<<'['<<w[0]<<','<<w[1]<<']';
+    }
+    std::cout<<"],\"script0_command_buffer\":[";
+    for(unsigned i=0x300;i<0x380;++i) {
+        if(i>0x300)std::cout<<',';
+        std::cout<<unsigned(r.ram[i]);
+    }
+    std::cout<<"],\"script0_output_fields\":[";
+    for(unsigned i=0x2E0;i<0x300;++i) {
+        if(i>0x2E0)std::cout<<',';
+        std::cout<<unsigned(r.ram[i]);
+    }
+    std::cout<<"],\"script0_aux\":{\"cursor_1e\":"<<unsigned(r.ram[0x1e])
+             <<",\"command_mask_02\":"<<unsigned(r.ram[2])
+             <<",\"temporary_bank_24\":"<<unsigned(r.ram[0x24])
+             <<",\"source_bank_ae\":"<<unsigned(r.ram[0xae])
+             <<",\"pointer_low_08\":"<<unsigned(r.ram[8])
+             <<",\"pointer_high_09\":"<<unsigned(r.ram[9])
+             <<",\"selector_0e\":"<<unsigned(r.ram[0x0e])<<'}';
+    std::cout<<",\"video_register_writes\":[";
     for(std::size_t i=0;i<r.video_register_writes.size();++i) {
         if(i)std::cout<<',';
         const auto& w=r.video_register_writes[i];
