@@ -541,3 +541,7 @@ The expanded independent [Stage 1 multi-branch suite](../SharedNES/0508_STAGE1_M
 ## 0570 — synthetic VRC6 loop/IRQ code separation
 
 [0570 regression](../analysis/0570_SYNTHETIC_VRC6_LOOP_FIX.md) fixes a synthetic mapper24 fixture instruction collision: original synthetic $E02E JMP was overwritten by test IRQ code at $E030. IRQ/NMI moved to $E080/$E090; complete JMP, vectors and corruption rejection are tested. Earlier external 3-frame process success did **not** prove correct fixture execution. No original-game parity credit added.
+
+## 0571 — strict synthetic VRC6 99% native-cycle and zero-interpreter CI
+
+[0571 native-cycle proof](../analysis/0571_PINNED_VRC6_NATIVE_CYCLE_GATE.md) records corrected synthetic mapper24 test metrics: 86,951/86,958 CPU cycles executed by generated C11, zero ROM/RAM interpreter fallbacks in 3 headless frames. The external C11 runner workflow now parses stdout and REQUIRES ≥99% native-cycle share, exactly 3 frames, and no interpretation; process exit alone no longer counts. **These are synthetic test metrics, not Castlevania III retail gameplay parity.** No strict PRG/VPP progress credited.

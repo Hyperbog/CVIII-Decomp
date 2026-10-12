@@ -4,6 +4,7 @@ on:
     branches: [decompilation]
     paths:
       - "JP/tools/test_cycle_synthetic_rom_0569.py"
+      - "JP/tools/check_cycle_stats_0571.py"
       - "JP/native/nesrecomp_cycle/**"
       - ".github/workflows/jp_nesrecomp_cycle_mapper24.yml"
   workflow_dispatch:
@@ -39,7 +40,11 @@ jobs:
                 -DNESRECOMP_HEADLESS=ON
       - name: Compile upstream C11 cycle backend with VRC6
         run: cmake --build "${{ runner.temp }}/jp-vrc6-cycle" --config Release --parallel 4
-      - name: Run synthetic mapper24 VRC6 CPU PPU DMA IRQ frames
+      - name: Run and verify synthetic mapper24 native CPU cycles
         run: |
+          set -eo pipefail
           "${{ runner.temp }}/jp-vrc6-cycle/nes_game" \
-             "${{ runner.temp }}/jp_mapper24_fixture.nes" --frames 3
+             "${{ runner.temp }}/jp_mapper24_fixture.nes" --frames 3 \
+             | tee "${{ runner.temp }}/jp_cycle_stdout.log"
+          python3 JP/tools/check_cycle_stats_0571.py \
+             --log "${{ runner.temp }}/jp_cycle_stdout.log" --frames 3

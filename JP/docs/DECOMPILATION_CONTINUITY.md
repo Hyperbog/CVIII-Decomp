@@ -516,3 +516,7 @@ New GitHub Action `.github/workflows/jp_nesrecomp_cycle_mapper24.yml` checks out
 ## 0570 — synthetic mapper24 fixture correction
 
 `tools/test_cycle_synthetic_rom_0569.py` now keeps the main $E02E JMP distinct from handlers at $E080/$E090 and checks the complete JMP bytes, handler bytes and vectors. Earlier synthetic IRQ handler at $E030 overwrote the JMP operand despite a 0-exit 3-frame run. See `analysis/0570_SYNTHETIC_VRC6_LOOP_FIX.md`. CI reruns external cycle engine on corrected original-free data; not a claim of actual JP game playability.
+
+## 0571 — external synthetic CPU-cycle metrics are now enforced
+
+`tools/check_cycle_stats_0571.py` parses the pinned upstream mapper24 C11 runner summary and rejects any 3-frame run with under 99% native CPU cycles or nonzero ROM/RAM interpreter execution. `jp_nesrecomp_cycle_mapper24.yml` pipes stdout to the parser, after 0570 IRQ/JMP overlap correction. Current **synthetic-only** baseline 86,951/86,958 native cycles (99.99195%), ROM/RAM fallback 0; neither gameplay, Mesen parity nor actual retail ROM's native percent has been measured. Report `analysis/0571_PINNED_VRC6_NATIVE_CYCLE_GATE.md`.
