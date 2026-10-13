@@ -9,6 +9,7 @@
 #include "cviii_chr_index_0598.h"
 #include "cviii_chr_audit_0599.h"
 #include "cviii_chr_fetch_0600.h"
+#include "cviii_frame_evidence_0601.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -22,6 +23,7 @@ typedef struct {
     CviiiChrIndex assets; /* read-only imported physical CHR; presentation only */
     CviiiChrAudit audit; /* opt-in read-only per-frame bank audit */
     CviiiChrFetchAudit fetch; /* opt-in actual PPU pattern-read observation */
+    CviiiFrameEvidence frame_evidence; /* opt-in correlated PPU evidence */
     uint32_t presentation[CVIII_W * CVIII_H];
 } CviiiEdition;
 
@@ -98,6 +100,14 @@ static bool option(void *context, const char *name, const char *value)
         printf("CVIII: recording sampled actual VRC6 PPU CHR reads (no substitution)\n");
         return true;
     }
+    if (!strcmp(name, "--frame-evidence")) {
+        if (!value || !cviii_frame_evidence_open(&cviii.frame_evidence, value)) {
+            fprintf(stderr, "CVIII: cannot open read-only PPU frame evidence output\n");
+            return false;
+        }
+        printf("CVIII: recording sampled original PPU frame fingerprints\n");
+        return true;
+    }
     return false;
 }
 
@@ -130,6 +140,25 @@ static void frame_begin(void *context)
 static void frame_end(void *context)
 {
     CviiiEdition *settings = (CviiiEdition *)context;
+    if (settings->frame_evidence.output && settings->fetch.active) {
+        const CycLine *source_lines = cyc_frame_lines();
+        if (source_lines) {
+            uint8_t serialized_lines[CVIII_FRAME_LINES_BYTES];
+            for (unsigned y = 0; y < CVIII_FRAME_HEIGHT; ++y) {
+                const CycLine *line = &source_lines[y];
+                serialized_lines[y * 5u] = (uint8_t)line->v;
+                serialized_lines[y * 5u + 1u] = (uint8_t)(line->v >> 8);
+                serialized_lines[y * 5u + 2u] = line->fine_x;
+                serialized_lines[y * 5u + 3u] = line->ctrl;
+                serialized_lines[y * 5u + 4u] = line->mask;
+            }
+            (void)cviii_frame_evidence_sample(&settings->frame_evidence,
+                &settings->fetch, cyc_frame_index(),
+                cyc_frame_bg_opaque(), serialized_lines);
+        } else {
+            ++settings->frame_evidence.input_failures;
+        }
+    }
     cviii_chr_fetch_frame_end(&settings->fetch);
     if (!settings->audit.out || !settings->assets.raw || !settings->assets.pixels)
         return;
@@ -180,6 +209,8 @@ static const CycHostOption cviii_options[] = {
      "Developer CSV for sampled VRC6 CHR pages and palette (requires asset index)"},
     {"--chr-fetch-audit", true,
      "Read-only actual PPU CHR fetch vs cached ROM scanline CSV (requires asset index)"},
+    {"--frame-evidence", true,
+     "Original PPU 9-bit frame fingerprint CSV for same sampled fetch frames"},
 };
 
 static CycHostExtras cviii_extra = {

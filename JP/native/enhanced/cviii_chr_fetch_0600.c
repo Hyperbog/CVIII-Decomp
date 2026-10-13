@@ -98,6 +98,9 @@ void cviii_chr_fetch_frame_begin(CviiiChrFetchAudit *audit,
     ++audit->frames;
     if ((audit->frames - 1u) % 60u != 0u) return;
     audit->asset = asset;
+    audit->sample_start_reads = audit->total_reads;
+    audit->sample_start_bad = audit->total_bad;
+    audit->sample_start_invalid = audit->total_invalid;
     audit->active = 1;
     for (unsigned i = 0; i < CVIII_FETCH_LINES; ++i) {
         CviiiChrFetchLine *line = &audit->lines[i];

@@ -24,6 +24,7 @@ typedef struct {
     FILE *output;
     const CviiiChrIndex *asset;
     uint64_t frames, sample_frames, total_reads, total_bad, total_invalid;
+    uint64_t sample_start_reads, sample_start_bad, sample_start_invalid;
     CviiiChrFetchLine lines[CVIII_FETCH_LINES];
     unsigned active;
 } CviiiChrFetchAudit;

@@ -51,7 +51,8 @@ if(JP_EDITION_HOST_EXTRAS)
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_edition.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_chr_index_0598.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_chr_audit_0599.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_chr_fetch_0600.c")
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_chr_fetch_0600.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_frame_evidence_0601.c")
 endif()
 nesrecomp_add_cycle_game(jp_akumajou_densetsu
  ROM "${JP_ORIGINAL_JP_ROM}" ${JP_CYCLE_OPTIONS} ${JP_HOST_SOURCES})
@@ -184,3 +185,9 @@ add_executable(jp_chr_fetch_test_0600
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_chr_fetch_0600.c"
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_chr_fetch_test_0600.c")
 set_property(TARGET jp_chr_fetch_test_0600 PROPERTY C_STANDARD 11)
+
+# JP0601: standalone read-only sampled PPU frame evidence (ROM-free).
+add_executable(jp_frame_evidence_test_0601
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_frame_evidence_0601.c"
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_frame_evidence_test_0601.c")
+set_property(TARGET jp_frame_evidence_test_0601 PROPERTY C_STANDARD 11)
