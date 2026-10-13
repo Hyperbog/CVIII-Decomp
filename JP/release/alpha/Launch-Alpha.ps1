@@ -61,4 +61,17 @@ try {
  } elseif ($ChrAudit) { throw 'CHR mapping audit is developer-only for Enhanced' }
  & $game @gameArgs
  if ($LASTEXITCODE -ne 0) {throw "Native game exited with $LASTEXITCODE"}
+ if ($ChrAudit -and (Test-Path -LiteralPath $fetchAuditPath)) {
+  $summaryTool=Join-Path $PSScriptRoot 'jp_chr_fetch_report_0600.py'
+  $summaryJson=Join-Path $PSScriptRoot 'CVIII-CHR-Fetch.json'
+  if (Test-Path -LiteralPath $summaryTool) {
+   & python $summaryTool --csv $fetchAuditPath --json $summaryJson
+   if ($LASTEXITCODE -ne 0) { throw 'Invalid JP0600 CHR fetch CSV' }
+   $summary=Get-Content -LiteralPath $summaryJson -Raw | ConvertFrom-Json
+   Write-Host ('Sampled physical PPU CHR reads: '+$summary.pattern_fetches)
+   Write-Host ('Cache mismatches: '+$summary.cache_mismatches+'; invalid reads: '+$summary.invalid_fetches)
+   if (-not $summary.cache_parity_pass) { Write-Warning 'Observed CHR bytes do not all match the asset cache' }
+   Write-Host ('Local CHR analysis: '+$summaryJson)
+  }
+ }
 } finally {Pop-Location}

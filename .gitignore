@@ -4,3 +4,9 @@
 *.nsf
 *.cycstate
 CVIII-Assets.bin
+
+# Owner-local asset index and gameplay instrumentation
+CVIII-CHR-Index.dat
+CVIII-CHR-Audit.csv
+CVIII-CHR-Fetch.csv
+CVIII-CHR-Fetch.json
