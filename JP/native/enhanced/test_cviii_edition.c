@@ -27,6 +27,15 @@ void cviii_chr_fetch_set_hook(CviiiChrFetchHook hook) { capture_hook = hook; }
 static uint32_t native[256*240];
 static int capture_enabled, compose_calls, bg_reads;
 const uint32_t *cyc_frame_argb(void) { return native; }
+/* JP0601 pure read-only original PPU views for the isolated host test. */
+const uint16_t *cyc_frame_index(void) {
+    static uint16_t pixels[256*240];
+    return pixels;
+}
+const CycLine *cyc_frame_lines(void) {
+    static CycLine lines[240];
+    return lines;
+}
 const uint8_t *cyc_frame_bg_opaque(void) { static uint8_t mask[256*240]; return mask; }
 void cyc_render_capture_background(bool enabled) { capture_enabled=enabled; }
 bool cyc_render_background(uint32_t *out) {
