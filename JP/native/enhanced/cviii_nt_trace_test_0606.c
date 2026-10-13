@@ -36,6 +36,15 @@ int main(void)
         !strstr(line, "61,40,1,2,2,1,2,52,85,")) return 7;
     cviii_nt_begin(t, false, 62u);
     if (live || t->active) return 8;
+    cviii_nt_begin(t, true, 121u);
+    if (!live) return 9;
+    cviii_nt_end(t);
+    if (live || t->sample_frames != 2) return 10;
+    rewind(out);
+    int found_empty = 0;
+    while (fgets(line, sizeof(line), out))
+        if (strstr(line, "121,0,0,0,0,0,0,-1,-1,")) found_empty = 1;
+    if (!found_empty) return 11;
     fclose(out);
     t->output = NULL;
     free(t);

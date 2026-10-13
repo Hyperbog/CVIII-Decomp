@@ -30,6 +30,7 @@ def summarize(contents: str, frame_evidence: str | None = None) -> dict:
                                      "invalid": 0, "scanlines": 0})
     last = (0, -1)
     rows = 0
+    empty_frames: set[int] = set()
     for row in reader:
         if set(row) != set(FIELDS) or any(v is None or not v or v.strip() != v for v in row.values()):
             raise ValueError("Incomplete JP0606 nametable audit record")
@@ -45,8 +46,12 @@ def summarize(contents: str, frame_evidence: str | None = None) -> dict:
         if any(numbers[k] < 0 for k in ("tile_reads", "attribute_reads", "ciram_reads",
                                        "chrrom_reads", "invalid")):
             raise ValueError("Negative nametable audit counters")
-        if total != numbers["ciram_reads"] + numbers["chrrom_reads"] or not total and not numbers["invalid"]:
+        if total != numbers["ciram_reads"] + numbers["chrrom_reads"]:
             raise ValueError("Source counter mismatch in nametable PPU trace")
+        if not total and not numbers["invalid"]:
+            if line != 0:
+                raise ValueError("Empty PPU sample placeholder must be on scanline 0")
+            empty_frames.add(frame)
         if (not -1 <= numbers["first_tile"] <= 255 or
             not -1 <= numbers["first_attribute"] <= 255 or
             (numbers["first_tile"] == -1) != (numbers["tile_reads"] == 0) or
@@ -64,6 +69,8 @@ def summarize(contents: str, frame_evidence: str | None = None) -> dict:
     if not rows:
         raise ValueError("No sampled nametable or attribute reads")
     frames = sorted(frame_sums)
+    if any(frame_sums[f]["scanlines"] != 1 for f in empty_frames):
+        raise ValueError("Empty frame marker may not accompany actual PPU fetches")
     if frame_evidence is not None:
         from jp_frame_evidence_report_0601 import read_evidence
         ref_frames = [r["frame"] for r in read_evidence(frame_evidence)]
@@ -105,6 +112,11 @@ def encode(rows: list[dict[str, str]]) -> str:
 def smoke() -> None:
     good = encode([fixture(), fixture(61, 41, 1)])
     result = summarize(good)
+    empty = fixture(121, 0)
+    empty.update(tile_reads="0", attribute_reads="0",
+                 ciram_reads="0", chrrom_reads="0",
+                 first_tile="-1", first_attribute="-1")
+    assert summarize(encode([fixture(), empty]))["sampled_frames"] == 2
     assert result["sampled_frames"] == 2 and result["tile_reads"] == 6
     assert result["attribute_reads"] == 2 and result["chrrom_reads"] == 1
     assert not result["all_reads_from_ciram"] and not result["pixel_parity_proven"]
@@ -117,6 +129,8 @@ def smoke() -> None:
         encode([dict(fixture(), first_tile="256")]),
         encode([dict(fixture(), bus_fnv64="not-a-hash")]),
         encode([dict(fixture(), scanline="340")]),
+        encode([dict(empty, scanline="41")]),
+        encode([empty, fixture(121, 1)]),
         good.replace("chrrom_reads", "surprise_field", 1),
     )
     for text in broken:

@@ -103,13 +103,21 @@ void cviii_nt_end(CviiiNtTrace *trace)
     s_observer = NULL;
     trace->active = 0u;
     ++trace->sample_frames;
+    bool emitted = false;
     for (unsigned i = 0; i < CVIII_NT_LINES; ++i) {
         const CviiiNtLine *line = &trace->lines[i];
         if (!line->tiles && !line->attrs && !line->invalid) continue;
+        emitted = true;
         fprintf(trace->output, "%" PRIu64 ",%u,%u,%u,%u,%u,%u,%d,%d,%016" PRIx64 "\n",
                 trace->frames, i, line->tiles, line->attrs, line->ciram,
                 line->chr_rom, line->invalid, line->first_tile,
                 line->first_attr, line->rolling_hash);
     }
+    /* During title fades/rendering-off frames the original PPU performs no
+     * nametable fetches. Preserve one explicit empty sample so this trace
+     * still aligns with the simultaneous JP0601 frame fingerprint. */
+    if (!emitted)
+        fprintf(trace->output, "%" PRIu64 ",0,0,0,0,0,0,-1,-1,%016" PRIx64 "\n",
+                trace->frames, FNV_INIT);
     fflush(trace->output);
 }
