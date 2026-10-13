@@ -597,3 +597,7 @@ User-confirmed Windows native C11 progression now reaches **Stage 4-0A**, with *
 ## 0590 — Original renderer A/B backend for suspected shared background glitch
 
 [0590 renderer diagnostic](../analysis/0590_SHARED_BACKGROUND_RENDERER_AB.md) provides `--ppu-impl LLE|HLE` with **LLE default** through authenticated private C11 build and real CMake, retaining both original-JP gameplay paths while isolating background rendering differences. Focused option contract test, no unneeded reconstruction. Owner's Stage 3?/4 purple foreground complaint remains issue #1; no root cause or fix claimed. VPP/strict PRG unchanged.
+
+## 0591 — shared Original/Enhanced complete-machine save states with 10 slots
+
+[0591 save-slot design and implementation](../analysis/0591_SHARED_ORIGINAL_ENHANCED_SAVESTATES.md) extends NESRecomp's existing F8/F9 **whole-machine** quick-save path through a private-build SDL host overlay: **Ctrl+0–9 selects a slot**, F8 saves/F9 loads, with on-screen toasts. Slot0 keeps the existing Alpha filename; numbered slots use `.slot1`–`.slot9`, shared across Original and Enhanced presentation presets. The pinned third-party source remains unmodified; build-time CMake rejects patch drift and unexpected host source lists. Focused ROM-free parser and actual upstream patch contract CI only; real windowed compile and interactive usability still need validation. No reconstruction/coverage increase.

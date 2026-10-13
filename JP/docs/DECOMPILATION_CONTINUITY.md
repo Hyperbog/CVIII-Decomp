@@ -572,3 +572,7 @@ The owner reached Stage **4-0A**, recruited **Sypha** and successfully switched 
 ## 0590 — frame-render A/B Original PPU build modes
 
 `JP_PPU_IMPLEMENTATION=LLE` default in `native/nesrecomp_cycle/CMakeLists.txt`; `tools/build_retail_cycle_0575.py --ppu-impl HLE` generates a second separately built experimental PPU renderer for the exact same user ROM and input route. Per-frame hashes are already available from 0578 and report tags identify backend. No stage3/4 reproduction or validated correction yet. Focused smoke `tools/test_ppu_backend_0590.py`. See `analysis/0590_SHARED_BACKGROUND_RENDERER_AB.md`. No ROM reassembly/parity sweep.
+
+## 0591 — state slots in the same emulator for both editions
+
+The owner asks for save states shared by Original and Enhanced. Current Alpha already has F8/F9 single-slot upstream `cyc_state_save_file/load_file` with full CPU, PPU, APU, mapper, RAM and frame-counter state. New `JP/tools/patch_cyc_savestates_0591.py` emits an external-source sibling SDL overlay during private windowed CMake builds, enabling **Ctrl+0..9 slot selection** with toast and existing F8/F9 to save/load. Slot0 path remains unchanged. Presentation-only edition flags remain in config.ini, not in state; states are build-signature-specific, no guaranteed migration across recomp builds. The upstream licensed source file remains unchanged and untracked overlay stays in private engine checkout. See `analysis/0591_SHARED_ORIGINAL_ENHANCED_SAVESTATES.md`. Targeted checks only; no original-game decomp/ROM reconstruction.

@@ -56,6 +56,46 @@ if(JP_EDITION_HOST_EXTRAS)
  target_include_directories(jp_akumajou_densetsu PRIVATE
   "${NESRECOMP_EXTERNAL_ROOT}/runner/cyc")
 endif()
+# JP0591: multi-slot save states using upstream's *full machine* serializer.
+# Generate a local overlay alongside pinned external cyc_sdl.c; relative
+# ../../common/* includes remain correct, and the upstream file is untouched.
+# On headless builds the original CLI --save-state/--load-state is unchanged.
+option(JP_SAVE_STATE_SLOTS "Ten window quick-save slots, Ctrl+0..9, F8/F9" ON)
+if(NOT JP_CYCLE_HEADLESS AND JP_SAVE_STATE_SLOTS)
+ set(JP_UPSTREAM_SDL "${NESRECOMP_EXTERNAL_ROOT}/runner/cyc/cyc_sdl.c")
+ set(JP_SLOTS_OVERLAY "${NESRECOMP_EXTERNAL_ROOT}/runner/cyc/cviii_cyc_sdl_slots.c")
+ if(NOT EXISTS "${JP_UPSTREAM_SDL}")
+  message(FATAL_ERROR "Missing pinned cyc_sdl.c, cannot enable save slots")
+ endif()
+ execute_process(
+  COMMAND "${Python3_EXECUTABLE}"
+    "${CMAKE_CURRENT_LIST_DIR}/../../tools/patch_cyc_savestates_0591.py"
+    --source "${JP_UPSTREAM_SDL}" --out "${JP_SLOTS_OVERLAY}"
+  RESULT_VARIABLE JP_STATE_PATCH_RESULT
+  OUTPUT_VARIABLE JP_STATE_PATCH_LOG
+  ERROR_VARIABLE JP_STATE_PATCH_ERROR)
+ if(NOT JP_STATE_PATCH_RESULT EQUAL 0)
+  message(FATAL_ERROR "Save-slot overlay failed: ${JP_STATE_PATCH_ERROR}")
+ endif()
+ get_target_property(JP_GAME_SOURCES jp_akumajou_densetsu SOURCES)
+ set(JP_PATCHED_SOURCES "")
+ set(JP_SDL_REPLACEMENTS 0)
+ foreach(JP_FILE IN LISTS JP_GAME_SOURCES)
+  if(JP_FILE MATCHES "cyc_sdl\\.c$")
+   list(APPEND JP_PATCHED_SOURCES "${JP_SLOTS_OVERLAY}")
+   math(EXPR JP_SDL_REPLACEMENTS "${JP_SDL_REPLACEMENTS} + 1")
+  else()
+   list(APPEND JP_PATCHED_SOURCES "${JP_FILE}")
+  endif()
+ endforeach()
+ if(NOT JP_SDL_REPLACEMENTS EQUAL 1)
+  message(FATAL_ERROR
+   "Expected exactly one upstream cyc_sdl.c in the target, got ${JP_SDL_REPLACEMENTS}")
+ endif()
+ set_property(TARGET jp_akumajou_densetsu PROPERTY SOURCES "${JP_PATCHED_SOURCES}")
+ message(STATUS "CVIII: 10 quick-save slots enabled (Ctrl+0..9, F8/F9)")
+endif()
+
 # A headless-only executable is NOT a playable alpha. In windowed builds
 # NESRecomp may silently skip SDL when its dependency is unavailable.
 if(NOT JP_CYCLE_HEADLESS)

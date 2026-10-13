@@ -120,3 +120,15 @@ C11 test. The compositor is experimental and not yet validated on
 the owner's Windows build or on Stage 3/4. All other proposed Enhanced
 features remain unimplemented; do not treat this extension as a
 widescreen or completed flicker-removal release.
+
+## JP 0591 — save states, Original and Enhanced
+
+Both editions use the **same whole-machine emulator save state**:
+Original and Enhanced are runtime presentation/audio choices, not
+separate emulated cartridges. The owner's existing Alpha has F8/F9
+single-slot quick save/load. Next windowed builds add Ctrl+0..9
+selection with F8/F9 to save/load selected slot, with legacy slot0
+filename unchanged. The existing NESRecomp compiled-program/layout
+compatibility checks remain authoritative; saves are not guaranteed
+portable between independently rebuilt executables. See
+[save-state implementation](../analysis/0591_SHARED_ORIGINAL_ENHANCED_SAVESTATES.md).

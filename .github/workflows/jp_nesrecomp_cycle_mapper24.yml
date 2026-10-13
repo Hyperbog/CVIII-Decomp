@@ -8,6 +8,7 @@ on:
       - "JP/tools/validate_cycle_media_0576.py"
       - "JP/tools/validate_frame_artifacts_0578.py"
       - "JP/native/enhanced/**"
+      - "JP/tools/patch_cyc_savestates_0591.py"
       - "JP/tools/test_ppu_backend_0590.py"
       - "JP/tools/nesrecomp_cycle_0568.py"
       - "JP/tools/build_retail_cycle_0575.py"
@@ -37,6 +38,13 @@ jobs:
           python3 JP/tools/test_cycle_synthetic_rom_0569.py --smoke
       - name: Validate PPU diagnostic backend choice (no ROM)
         run: python3 JP/tools/test_ppu_backend_0590.py
+      - name: Verify Original/Enhanced ten-slot save state host patch (no ROM)
+        run: |
+          python3 JP/tools/patch_cyc_savestates_0591.py --smoke
+          python3 JP/tools/patch_cyc_savestates_0591.py \
+            --source _external_nesrecomp/runner/cyc/cyc_sdl.c \
+            --out _external_nesrecomp/runner/cyc/cviii_cyc_sdl_slots.c
+          test -f _external_nesrecomp/runner/cyc/cviii_cyc_sdl_slots.c
       - name: Test Original/Enhanced C11 presentation extension (no ROM)
         run: |
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
