@@ -116,6 +116,11 @@ jobs:
             # Only the ROM-free smoke assertion may reference this name.
             if ($kit -notmatch 'not in kit.namelist') { throw 'Original included in public kit' }
           }
+          $builder = Get-Content -LiteralPath 'JP/release/alpha/Build-Alpha.ps1' -Raw
+          if ($builder.IndexOf('Remove-Item -LiteralPath $obsolete') -lt 0 -or
+              $builder.IndexOf('Remove-Item -LiteralPath $obsolete') -gt $builder.IndexOf('Compress-Archive -Path')) {
+            throw 'Legacy public edition shortcuts must be removed BEFORE packaging'
+          }
           python JP/tools/package_alpha_builder_0580.py --smoke
           if ($LASTEXITCODE -ne 0) { throw 'Public Enhanced-only packaging test failed' }
       - name: Compile SDL2 windowed C11 alpha target

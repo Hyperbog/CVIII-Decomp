@@ -141,20 +141,20 @@ $manifest=[ordered]@{
  jp0602_renderer_parity_certified=$false
 }
 $manifest | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $stage 'ALPHA_BUILD.json') -Encoding UTF8
-# Local private ZIP includes game-derived compiled instructions. Do not upload to CI.
-$zip=Join-Path $outPath 'CVIII-Alpha-0.2.0-Windows-x64-PRIVATE.zip'
-if (Test-Path -LiteralPath $zip) { Remove-Item -LiteralPath $zip -Force }
-Compress-Archive -Path (Join-Path $stage '*') -DestinationPath $zip -CompressionLevel Optimal
-Write-Host ('Native C11 build successful: '+$program)
-Write-Host ('Private alpha candidate ZIP: '+$zip)
-Write-Host 'Original edition has owner playtest history. New Enhanced mode needs GUI QA.'
-Write-Host ('Launch using Launch-Alpha.ps1 -Rom "'+$romPath+'"')
 # Previous private candidates could retain obsolete public Original/Enhanced
 # shortcut files from earlier builds. Remove shortcuts only, never save states.
 foreach ($legacy in @('Play-Original.bat','Play-Enhanced.bat','Play-Alpha.bat')) {
  $obsolete=Join-Path $stage $legacy
  if (Test-Path -LiteralPath $obsolete) { Remove-Item -LiteralPath $obsolete -Force }
 }
+# Local private ZIP includes game-derived compiled instructions. Do not upload to CI.
+$zip=Join-Path $outPath 'CVIII-Alpha-0.2.0-Windows-x64-PRIVATE.zip'
+if (Test-Path -LiteralPath $zip) { Remove-Item -LiteralPath $zip -Force }
+Compress-Archive -Path (Join-Path $stage '*') -DestinationPath $zip -CompressionLevel Optimal
+Write-Host ('Native C11 build successful: '+$program)
+Write-Host ('Private alpha candidate ZIP: '+$zip)
+Write-Host 'Enhanced is the public edition; reference-only original PPU comparisons remain internal.'
+Write-Host ('Launch using Launch-Alpha.ps1 -Rom "'+$romPath+'"')
 if ($PlayAfterBuild) {
  & (Join-Path $stage 'Launch-Alpha.ps1') -Rom $romPath -Edition Enhanced
  if ($LASTEXITCODE -ne 0) { throw "Native game failed with exit $LASTEXITCODE" }
