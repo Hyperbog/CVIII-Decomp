@@ -247,3 +247,36 @@ real stages. The hook observes pattern reads, not all nametable
 accesses, pixel priority or complete rendered-frame equivalence.
 Neither Original nor Enhanced currently substitutes cached CHR data
 for the stock PPU image. F10/password stage testing is unchanged.
+
+## JP0601 — Synchronized original PPU frame evidence (diagnostic-only)
+
+The opt-in Enhanced `-ChrAudit` private launch now produces an additional
+**CVIII-Frame-Evidence.csv** aligned to the JP0600 1-in-60-frame pattern
+fetch capture. Each sampled original NES PPU frame records:
+
+- The sample frame number and the actual CHR read/mismatch/invalid counts
+- Observed CHR bank switches during sampled scanlines
+- Deterministic 64-bit checksums of the PPU's original 9-bit color indices
+  (color and emphasis), background-opaque mask, and 240 scanline scroll/mask
+  records serialized without C structure padding
+- Background opaque pixel count and number of scanlines with background or
+  sprite rendering enabled
+
+These hashes are **original PPU observations**, never graphics generated
+from the cache. Neither edition changes its default presentation or game
+state. The report joins source-byte observations and original PPU outcomes
+on the same sampled frames, rejecting missing frames, inconsistent read
+counts, bank switch totals or malformed fingerprints.
+
+When launched with `-Edition Enhanced -ChrAudit`, the private launcher
+generates **CVIII-Frame-Evidence.json** after the game exits and requires
+cache/PPU fetch-source-byte parity. To rerun the validation manually:
+
+    python jp_frame_evidence_report_0601.py --fetch CVIII-CHR-Fetch.csv --evidence CVIII-Frame-Evidence.csv --require-parity
+
+The original retail Japanese game still needs a local Windows GUI playtest
+spanning multiple stages and companion routes. Successful source-byte
+comparisons and original PPU fingerprints **do not establish independent
+cache-backed sprite/background framebuffer parity**. Enhanced still renders
+using the original PPU except for separately opted-in experimental effects.
+This diagnostic milestone does not increase strict PRG/VPP semantic coverage.
