@@ -76,3 +76,11 @@ No ROM patching, unproved RAM writes or gameplay state fabrication.
 The separate password picker still helps seed a stage from the title.
 This initial F10 implementation requires a new private Windows build
 and has not been owner-playtested.
+
+## JP0595 password clipboard controls
+
+The external `Debug-Stage-Companion.bat` window now has **Paste
+password** as well as Copy. Paste a 4x4 grid of W/R/H/. marks;
+the tool checks the original player name, checksum and companion-route
+legality before selecting its stage, companion and difficulty. This
+does not yet type a password into the NES game automatically.

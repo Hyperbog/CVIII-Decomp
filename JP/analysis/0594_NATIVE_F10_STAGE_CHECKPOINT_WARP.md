@@ -44,3 +44,13 @@ ROM-free anchor smoke plus pinned external synthetic Windows compile
 are the build gates. Original-JP GUI playtest remains pending. Strict
 PRG coverage = 49,504/262,144; VPP 27/100; recovery state 0508
 and PRG31 $FB96 frontier unchanged.
+
+## JP0595 clipboard stage resolution
+
+The ROM-authenticated password tool now normalizes 16-character
+password clipboard grids, rejects malformed text, verifies the
+name-bound digest and decodes stage/companion/difficulty. The external
+Windows picker has a Paste button that populates those controls.
+The next step is wiring clipboard resolution into the actual F10
+checkpoint selector; direct first-use ROM password initialization
+is still unverified.

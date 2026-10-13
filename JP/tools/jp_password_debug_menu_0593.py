@@ -8,6 +8,7 @@ from pathlib import Path
 
 from jp_password_stage_0593 import (
     EXPECTED, PARTNERS, STAGES, decode, encode, load_tables, valid_partner,
+    parse_password_grid,
 )
 
 # Visual order differs from the original game's encoded values.
@@ -63,6 +64,17 @@ def smoke() -> None:
                         rejected += 1
                     else:
                         raise AssertionError("Invalid route/partner allowed")
+    sample = password(Selection("TREVOR", 12, 2), EXPECTED)
+    parsed = parse_password_grid("\n".join(" ".join(row) for row in sample))
+    assert parsed == sample
+    assert decode("TREVOR", parsed, EXPECTED)["save_point"] == 12
+    assert decode("TREVOR", parsed, EXPECTED)["partner"] == 2
+    try:
+        parse_password_grid("bad password")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("Invalid clipboard accepted")
     assert count == 119 and rejected == 25
     for bad in (Selection("TREVOR", -1, 0),
                 Selection("TREVOR", len(STAGES), 0),
@@ -166,10 +178,31 @@ def show(rom: Path | None) -> None:
         root.update()
         status.set("Password grid copied to clipboard.")
 
+    def paste_grid() -> None:
+        try:
+            rows = parse_password_grid(root.clipboard_get())
+            decoded = decode(name.get(), rows, tables)
+        except (tk.TclError, ValueError) as error:
+            messagebox.showerror("Password paste rejected",
+                                 "Check the 16 marks and player name.\n" + str(error),
+                                 parent=root)
+            return
+        stage_box.current(decoded["save_point"])
+        partner_idx = next(i for i, (_, value) in enumerate(COMPANIONS)
+                           if value == decoded["partner"])
+        partner_box.current(partner_idx)
+        hard.set(bool(decoded["hard_mode"]))
+        toggle.set(decoded["toggle"])
+        refresh()
+        status.set("Clipboard password decoded and matched to stage/companion. "
+                   "For gameplay, enter it at the original password screen.")
+
     copy = ttk.Button(frame, text="Copy password", command=copy_grid)
     copy.grid(row=10, column=0, sticky="w", pady=12)
+    ttk.Button(frame, text="Paste password", command=paste_grid).grid(
+        row=10, column=1, sticky="w", pady=12)
     ttk.Button(frame, text="Close", command=root.destroy).grid(
-        row=10, column=1, sticky="e", pady=12)
+        row=11, column=1, sticky="e", pady=8)
     for field in vars:
         field.trace_add("write", refresh)
     stage_box.current(0)

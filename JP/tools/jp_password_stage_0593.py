@@ -13,6 +13,7 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+import re
 
 JP_SHA = "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28"
 # JP ROM offset is 16-byte iNES header + the 256 KiB PRG offset below.
@@ -152,6 +153,19 @@ def decode(name: str, matrix: tuple[str, ...], tables: dict[str, bytes]) -> dict
     return dict(save_point=save, partner=partner, hard_mode=mode, toggle=toggle)
 
 
+def parse_password_grid(pasted: str) -> tuple[str, ...]:
+    """Normalize a 4x4 password copied from text, preserving row order.
+
+    Accept dots, W (whip), R (rosary), H (heart), and separating
+    whitespace or commas. Reject any other characters, and wrong sizes.
+    This parses marks only; decode() must still validate the checksum and name.
+    """
+    compact = re.sub(r"[\s,|;]+", "", pasted.upper())
+    if len(compact) != 16 or any(c not in MARKS for c in compact):
+        raise ValueError("Clipboard must contain exactly 16 password symbols: ., W, R, H")
+    return tuple(compact[i:i + 4] for i in range(0, 16, 4))
+
+
 def self_test(tables: dict[str, bytes]) -> int:
     cases = 0
     for name in ("", "TREVOR", "RALPH", "SYMPHONY"):
@@ -166,6 +180,16 @@ def self_test(tables: dict[str, bytes]) -> int:
                         assert value == dict(save_point=stage, partner=partner, hard_mode=mode, toggle=toggle)
                         cases += 1
     matrix = encode("TREVOR", 13, 0, 0, 0, tables)
+    text = "\n".join(" ".join(row) for row in matrix)
+    assert parse_password_grid(text) == matrix
+    assert parse_password_grid("".join(matrix).lower()) == matrix
+    for bad in ("", "W R H", "W " * 16 + "X", "W" * 15, "W" * 17):
+        try:
+            parse_password_grid(bad)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError("Malformed pasted password accepted")
     try:
         decode("ALUCARD", matrix, tables)
     except ValueError:
