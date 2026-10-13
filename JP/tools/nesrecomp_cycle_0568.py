@@ -88,6 +88,13 @@ def run(args)->dict:
     if build_only:
         return compiled
     execute[0]=str(exe)
+    hash_file=out/"per_frame_hashes.txt"
+    screenshot=out/"final_frame.png"
+    execute.extend(["--hash-out",str(hash_file),"--screenshot",str(screenshot)])
+    input_script=getattr(args,"input_script",None)
+    if input_script is not None:
+        replay=Path(input_script).resolve(strict=True)
+        execute.extend(["--input",str(replay)])
     proc=subprocess.run(execute,capture_output=True,text=True,
                         timeout=max(120,min(1800,args.frames*3)))
     (out/"headless_run.log").write_text(proc.stdout+"\n"+proc.stderr,encoding="utf-8")
@@ -98,13 +105,16 @@ def run(args)->dict:
     # NOT proof of frame parity; interpreted code is reported, never hidden.
     from check_cycle_stats_0571 import parse
     metrics=parse(proc.stdout+"\n"+proc.stderr,args.frames)
-    report={"schema":"JP0568-external-cycle-run/v2","rom":rom_meta,
+    from validate_frame_artifacts_0578 import verify
+    frame_artifacts=verify(hash_file,screenshot,args.frames)
+    report={"schema":"JP0568-external-cycle-run/v3","rom":rom_meta,
             "external_engine":str(engine),"headless":not args.windowed,
             "requested_frames":args.frames,"process_exited_zero":True,
             "runner":str(exe),"runner_sha256":binary_sha,
             "compiled_binary_report":str(out/"jp_cycle_build.json"),
             "log":str(out/"headless_run.log"),
             "logs":logs,"cpu_execution":metrics,
+            "frame_artifacts":frame_artifacts,
             "original_cpu_trace_compared":False,
             "mesen_frame_parity":False,"strict_prg_new_bytes":0,
             "new_vpp_points":0}
@@ -123,6 +133,8 @@ def main():
     p.add_argument("--windowed",action="store_true")
     p.add_argument("--build-only",action="store_true",
                    help="Authenticate, generate and compile C11; do not run frames")
+    p.add_argument("--input-script",type=Path,
+                   help="Optional deterministic NESRecomp frame/button schedule")
     p.add_argument("--plan",action="store_true")
     a=p.parse_args()
     if a.validate_rom is not None:

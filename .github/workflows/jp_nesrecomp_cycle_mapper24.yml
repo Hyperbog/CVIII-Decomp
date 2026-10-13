@@ -6,6 +6,7 @@ on:
       - "JP/tools/test_cycle_synthetic_rom_0569.py"
       - "JP/tools/check_cycle_stats_0571.py"
       - "JP/tools/validate_cycle_media_0576.py"
+      - "JP/tools/validate_frame_artifacts_0578.py"
       - "JP/native/nesrecomp_cycle/**"
       - ".github/workflows/jp_nesrecomp_cycle_mapper24.yml"
   workflow_dispatch:
@@ -49,6 +50,11 @@ jobs:
           set -eo pipefail
           "${{ runner.temp }}/jp-vrc6-cycle/jp_akumajou_densetsu" \
              "${{ runner.temp }}/jp_mapper24_fixture.nes" --frames 3 \
+             --hash-out "${{ runner.temp }}/jp_vrc6_frame_hashes.txt" \
+             --screenshot "${{ runner.temp }}/jp_vrc6_final_frame.png" \
              | tee "${{ runner.temp }}/jp_cycle_stdout.log"
           python3 JP/tools/check_cycle_stats_0571.py \
              --log "${{ runner.temp }}/jp_cycle_stdout.log" --frames 3
+          python3 JP/tools/validate_frame_artifacts_0578.py \
+             --hash-out "${{ runner.temp }}/jp_vrc6_frame_hashes.txt" \
+             --screenshot "${{ runner.temp }}/jp_vrc6_final_frame.png" --frames 3

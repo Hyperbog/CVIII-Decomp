@@ -569,3 +569,7 @@ The expanded independent [Stage 1 multi-branch suite](../SharedNES/0508_STAGE1_M
 ## 0577 — original-JP C11 compile-only binary/report separate from gameplay
 
 [0577 C11 native build evidence](../analysis/0577_ORIGINAL_C11_BUILD_ONLY_AND_BINARY_IDENTITY.md) adds `--build-only` to both external cycle and one-command pinned boot scripts. Native binary SHA-256, original ROM identity and CMake compile logs are recorded as `jp_cycle_build.json` immediately after successful compile, *even if a later guest boot fails*. A narrowly scoped Windows/Linux mocked-build test checks artifact persistence, authentic binary-fingerprint reporting and no false gameplay success; no ROM reconstruction runs. Full original game compile is still blocked locally by unavailable separately licensed upstream engine source; VPP27 and strict PRG unchanged.
+
+## 0578 — C11 original-game headless frame hashes, screenshot, optional route
+
+[0578 frame evidence](../analysis/0578_C11_FRAME_HASH_PNG_AND_INPUT.md) adds frame-indexed observable CPU/memory/hardware hashes and final 256x240 PNG for *private original-ROM* headless runs, plus optional `--input-script` controller schedule (no gameplay recording required). Reports include file SHA256, final PC/cycles and frame count, without claiming parity. The pinned public synthetic VRC6 workflow exercises actual NESRecomp `--hash-out`/`--screenshot` outputs; targeted malformed-evidence checks only, no reconstruction sweep. VPP27 and strict PRG unchanged.

@@ -544,3 +544,7 @@ Standalone `native/c6502/cpu.c` now models VRC6a $8000–$BFFF 16KiB PRG bank pl
 ## 0577 — preserve native C11 build evidence independently of gameplay
 
 The private original-JP `tools/build_retail_cycle_0575.py --build-only` builds with pinned external NESRecomp and exits before guest frames. `tools/nesrecomp_cycle_0568.py` persists `jp_cycle_build.json` including C11 binary SHA-256 and logs before any guest execution; default full run still writes metrics only after successful original game frames. Focused ROM-free `tools/test_cycle_build_stages_0577.py` checks simulated compile success, run success, run failure without reconstruction. No gameplay parity credit; see `analysis/0577_ORIGINAL_C11_BUILD_ONLY_AND_BINARY_IDENTITY.md`.
+
+## 0578 — bounded original headless observables (without a gameplay movie)
+
+`nesrecomp_cycle_0568.py` now requests per-frame `--hash-out` and final PNG `--screenshot` on retail headless runs; `validate_frame_artifacts_0578.py` insists on exact number of structurally valid CPU/trace/mem/hw hash entries, increasing cycles and 256x240 PNG. `build_retail_cycle_0575.py --input-script ROUTE` accepts optional deterministic frame/button input. `jp_cycle_0568.json` includes hash/screenshot SHA256 and last PC/cycle metadata. Synthetic external C11 workflow validates the real external diagnostic interface. Original Japanese gameplay, visuals/audio and Mesen reference parity remain unverified; doc `analysis/0578_C11_FRAME_HASH_PNG_AND_INPUT.md`.

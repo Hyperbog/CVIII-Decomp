@@ -47,13 +47,13 @@ def plan(rom:Path,out:Path,frames:int,windowed:bool)->dict:
                 real_game_compiled=False,gameplay_parity_verified=False)
 
 def build(rom:Path,out:Path,frames:int,windowed:bool,offline:bool,
-          build_only:bool=False)->dict:
+          build_only:bool=False,input_script:Path|None=None)->dict:
     info=plan(rom,out,frames,windowed)
     folder=output_directory(out);folder.mkdir(parents=True,exist_ok=True)
     engine=pinned_engine(folder,offline)
     args=SimpleNamespace(rom=rom.resolve(strict=True),engine=engine,
                          out=folder/"build",frames=frames,build_only=build_only,
-                         windowed=windowed,plan=False)
+                         input_script=input_script,windowed=windowed,plan=False)
     result=run(args)
     result["external_engine_sha"]=PIN
     (folder/"jp0575_build_report.json").write_text(
@@ -80,6 +80,8 @@ def main():
     p.add_argument("--offline",action="store_true")
     p.add_argument("--build-only",action="store_true",
                    help="Build original game into native C11 executable without running")
+    p.add_argument("--input-script",type=Path,
+                   help="Optional deterministic frame/button schedule, no recording required")
     p.add_argument("--plan",action="store_true")
     p.add_argument("--smoke",action="store_true")
     a=p.parse_args()
@@ -90,8 +92,8 @@ def main():
     if a.plan:
         print(json.dumps(plan(a.rom,a.out,a.frames,a.windowed),indent=2,sort_keys=True))
     else:
-        print(json.dumps(build(a.rom,a.out,a.frames,a.windowed,a.offline,a.build_only),
-                         indent=2,sort_keys=True))
+        print(json.dumps(build(a.rom,a.out,a.frames,a.windowed,a.offline,
+                              a.build_only,a.input_script),indent=2,sort_keys=True))
 if __name__=="__main__":
     try:main()
     except (ValueError,OSError,subprocess.CalledProcessError,subprocess.TimeoutExpired) as e:

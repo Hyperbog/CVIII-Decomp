@@ -10,6 +10,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 import nesrecomp_cycle_0568 as cycle
+from validate_frame_artifacts_0578 import synthetic_png,fake_hash_lines
 
 FAKE_ROM=b"synthetic-rom-only"
 FAKE_BINARY=b"synthetic-c11-binary-fixture"
@@ -26,6 +27,11 @@ def fake_run_factory(output:Path,events:list[str],guest_error:bool=False):
                 (output/"jp_akumajou_densetsu").write_bytes(FAKE_BINARY)
             return SimpleNamespace(returncode=0,stdout="OK",stderr="")
         events.append("execute")
+        if "--hash-out" in command and "--screenshot" in command:
+            hashfile=Path(command[command.index("--hash-out")+1])
+            png=Path(command[command.index("--screenshot")+1])
+            hashfile.write_text(fake_hash_lines(3),encoding="ascii")
+            png.write_bytes(synthetic_png())
         return SimpleNamespace(returncode=1 if guest_error else 0,
                                stdout=NATIVE_STATS,stderr="guest error" if guest_error else "")
     return invoke
@@ -53,6 +59,7 @@ def verify():
              patch.object(cycle.subprocess,"run",side_effect=fake_run_factory(out,events)):
             executed=cycle.run(args)
         assert events==["configure","build","execute"] and executed["cpu_execution"]["frames"]==3
+        assert executed["frame_artifacts"]["frame_records"]==3
         assert executed["runner_sha256"]==report["runner_sha256"]
         assert (out/"jp_cycle_0568.json").exists()
         events.clear()
