@@ -6,7 +6,7 @@ source into this repository. The ROM and generated C stay on the user's
 machine; public CI uses only synthetic interface checks.
 """
 from __future__ import annotations
-import argparse,hashlib,json,os,subprocess,sys
+import argparse,hashlib,json,subprocess,sys
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[2]
@@ -50,11 +50,12 @@ def run(args)->dict:
     rom_meta=authenticated(rom)
     validate_engine(engine)
     configure,build,execute=commands(rom,engine,out,args.frames,not args.windowed)
+    build_only=bool(getattr(args,"build_only",False))
     if args.plan:
-        return {"schema":"JP0568-external-cycle-plan/v1","rom":rom_meta,
+        return {"schema":"JP0568-external-cycle-plan/v2","rom":rom_meta,
                 "external_engine":str(engine),"configure":configure,
-                "build":build,"execute":execute,"execution_confirmed":False,
-                "gameplay_parity":False}
+                "build":build,"execute":execute,"build_only":build_only,
+                "execution_confirmed":False,"gameplay_parity":False}
     out.mkdir(parents=True,exist_ok=True)
     logs={}
     for name,command in (("configure",configure),("build",build)):
@@ -72,6 +73,20 @@ def run(args)->dict:
     exe=next((p for p in exe_candidates if p.is_file()),None)
     if exe is None:
         raise RuntimeError("The external C11 cycle runner did not produce jp_akumajou_densetsu")
+    # Write successful build evidence BEFORE attempting guest execution.
+    # This survives an unsupported opcode, a bad original-game boot, or
+    # a cycle-timeout. Neither build success nor a binary hash proves parity.
+    binary_sha=hashlib.sha256(exe.read_bytes()).hexdigest()
+    compiled=dict(schema="JP0577-retail-C11-binary-build/v1",
+                  rom=rom_meta,external_engine=str(engine),
+                  runner=str(exe),runner_sha256=binary_sha,
+                  build_completed=True,frame_execution_attempted=False,
+                  gameplay_parity_verified=False,logs=logs,
+                  strict_prg_new_bytes=0,new_vpp_points=0)
+    (out/"jp_cycle_build.json").write_text(
+        json.dumps(compiled,indent=2,sort_keys=True)+"\n",encoding="utf-8")
+    if build_only:
+        return compiled
     execute[0]=str(exe)
     proc=subprocess.run(execute,capture_output=True,text=True,
                         timeout=max(120,min(1800,args.frames*3)))
@@ -86,7 +101,9 @@ def run(args)->dict:
     report={"schema":"JP0568-external-cycle-run/v2","rom":rom_meta,
             "external_engine":str(engine),"headless":not args.windowed,
             "requested_frames":args.frames,"process_exited_zero":True,
-            "runner":str(exe),"log":str(out/"headless_run.log"),
+            "runner":str(exe),"runner_sha256":binary_sha,
+            "compiled_binary_report":str(out/"jp_cycle_build.json"),
+            "log":str(out/"headless_run.log"),
             "logs":logs,"cpu_execution":metrics,
             "original_cpu_trace_compared":False,
             "mesen_frame_parity":False,"strict_prg_new_bytes":0,
@@ -104,6 +121,8 @@ def main():
     p.add_argument("--out",type=Path)
     p.add_argument("--frames",type=int,default=120)
     p.add_argument("--windowed",action="store_true")
+    p.add_argument("--build-only",action="store_true",
+                   help="Authenticate, generate and compile C11; do not run frames")
     p.add_argument("--plan",action="store_true")
     a=p.parse_args()
     if a.validate_rom is not None:

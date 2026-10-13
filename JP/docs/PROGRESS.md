@@ -565,3 +565,7 @@ The expanded independent [Stage 1 multi-branch suite](../SharedNES/0508_STAGE1_M
 ## 0576 — test actual external CMake wrapper without commercial media
 
 [0576 exact-media C11 wrapper gate](../analysis/0576_C11_EXTERNAL_CMAKE_WRAPPER_GATE.md) switches the pinned external NESRecomp synthetic workflow to configure our **own** `native/nesrecomp_cycle/CMakeLists.txt` target, rather than upstream's example project. Adds default-OFF `JP_CYCLE_SYNTHETIC_MEDIA` option and SHA-exact synthetic fixture validation in `tools/validate_cycle_media_0576.py`; authenticated commercial ROM remains the only accepted production input. Targeted CI compiles and executes only synthetic mapper24 frames, with 0571 native-cycle and zero-interpreter assertions. No reconstruction tests/strict PRG/VPP claim.
+
+## 0577 — original-JP C11 compile-only binary/report separate from gameplay
+
+[0577 C11 native build evidence](../analysis/0577_ORIGINAL_C11_BUILD_ONLY_AND_BINARY_IDENTITY.md) adds `--build-only` to both external cycle and one-command pinned boot scripts. Native binary SHA-256, original ROM identity and CMake compile logs are recorded as `jp_cycle_build.json` immediately after successful compile, *even if a later guest boot fails*. A narrowly scoped Windows/Linux mocked-build test checks artifact persistence, authentic binary-fingerprint reporting and no false gameplay success; no ROM reconstruction runs. Full original game compile is still blocked locally by unavailable separately licensed upstream engine source; VPP27 and strict PRG unchanged.

@@ -540,3 +540,7 @@ Standalone `native/c6502/cpu.c` now models VRC6a $8000–$BFFF 16KiB PRG bank pl
 ## 0576 — CMake wrapper integration gated by exact synthetic fixture
 
 `native/nesrecomp_cycle/CMakeLists.txt` default restricts to original Japanese SHA; CI-only `-DJP_CYCLE_SYNTHETIC_MEDIA=ON` additionally accepts only `test_cycle_synthetic_rom_0569.create()` exact bytes, rejected by default. `jp_nesrecomp_cycle_mapper24.yml` now configures this project's CMake wrapper and `jp_akumajou_densetsu` executable, not upstream example `nes_game`. Independent 3-frame compiled-cycle gate remains. See `analysis/0576_C11_EXTERNAL_CMAKE_WRAPPER_GATE.md`; retail original game has NOT been run through external runtime here.
+
+## 0577 — preserve native C11 build evidence independently of gameplay
+
+The private original-JP `tools/build_retail_cycle_0575.py --build-only` builds with pinned external NESRecomp and exits before guest frames. `tools/nesrecomp_cycle_0568.py` persists `jp_cycle_build.json` including C11 binary SHA-256 and logs before any guest execution; default full run still writes metrics only after successful original game frames. Focused ROM-free `tools/test_cycle_build_stages_0577.py` checks simulated compile success, run success, run failure without reconstruction. No gameplay parity credit; see `analysis/0577_ORIGINAL_C11_BUILD_ONLY_AND_BINARY_IDENTITY.md`.

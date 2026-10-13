@@ -6,12 +6,16 @@ on:
       - 'JP/native/c6502/**'
       - 'JP/tools/static_recompile_boot_c_0564.py'
       - 'JP/tools/build_retail_cycle_0575.py'
+      - 'JP/tools/nesrecomp_cycle_0568.py'
+      - 'JP/tools/test_cycle_build_stages_0577.py'
       - '.github/workflows/jp_c11_vrc6_mapping.yml'
   pull_request:
     paths:
       - 'JP/native/c6502/**'
       - 'JP/tools/static_recompile_boot_c_0564.py'
       - 'JP/tools/build_retail_cycle_0575.py'
+      - 'JP/tools/nesrecomp_cycle_0568.py'
+      - 'JP/tools/test_cycle_build_stages_0577.py'
       - '.github/workflows/jp_c11_vrc6_mapping.yml'
   workflow_dispatch:
 permissions:
@@ -40,3 +44,5 @@ jobs:
         run: python JP/tools/static_recompile_boot_c_0564.py --smoke
       - name: Check original retail-JP pinned engine build command
         run: python JP/tools/build_retail_cycle_0575.py --smoke
+      - name: Verify C11 binary-build evidence survives guest execution failure
+        run: python JP/tools/test_cycle_build_stages_0577.py
