@@ -186,3 +186,16 @@ whipping) require separately enabled Enhanced-only gameplay modules.
 The architecture, acceptance criteria and issue links are recorded in
 [Original and Enhanced editions](ORIGINAL_ENHANCED_EDITIONS.md).
 These enhancements are **not implemented** in the current Alpha.
+
+## Phase 0592 — playable Original baseline and new private Enhanced preview
+
+A real private Windows x64 native Alpha 0.2 has been compiled. The
+owner can launch **Original** (existing verified game behavior) or
+**Enhanced** (experimental flicker-free presentation from all OAM
+sprites). All original CPU/PPU simulation remains active. A focused
+authenticated 600-frame game-state comparison produced identical
+hashes across editions. This is a private preview, **not** an owner-
+approved Enhanced release; advanced options other than the sprite
+compositor remain roadmap, and the common Stage 2/3?/4 background
+glitch is not fixed. Public builder scripts now bundle per-edition
+launchers without game code or ROM. See Phase 0592 analysis.

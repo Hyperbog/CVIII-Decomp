@@ -605,3 +605,7 @@ User-confirmed Windows native C11 progression now reaches **Stage 4-0A**, with *
 ## 0591a — repair cross-edition save-state renderer-section mismatch
 
 Targeted Original-save/Enhanced-load CI exposed `cyc.background` aux-state length mismatch when capture was disabled in Original. The edition host now always captures presentation-only background data but only composites sprites when opted into Enhanced, so the same whole-machine state schema is valid in both. Original displayed pixels and CPU-visible NES state remain unchanged. Independent frame-hash comparison across editions is the acceptance gate; no reconstruction or PRG/VPP change.
+
+## 0592 — Original/Enhanced Windows private Alpha 0.2 candidate
+
+[0592 original-game Windows Alpha 0.2](../analysis/0592_ORIGINAL_ENHANCED_ALPHA_02_WINDOWS.md) is now cross-compiled from the owner-authenticated Japanese mapper24 ROM using C11/SDL2, with distinct Original and experimental Enhanced all-OAM sprite-compositor launchers. The private ZIP contains no ROM. Focused 600-frame CPU/PPU/memory hash logs are byte-identical between the two modes on the authentic game; Windows GUI Enhanced still needs owner testing. The public ROM-free builder kit was updated to 0.2.0-alpha.1 with separate launchers. Shared Stage 2/3?/4-0A background defect #1 remains unresolved. No reconstruction sweep or strict PRG/VPP credit.
