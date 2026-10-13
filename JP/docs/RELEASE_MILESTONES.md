@@ -9,9 +9,10 @@ user saves go into public GitHub releases.
 ## Alpha — Windows x64, actual game boots and responds to the player
 
 **Release candidate label:** `0.1.0-alpha.1`.
-**Current status: PRIVATE ALPHA CANDIDATE BUILT — original Japanese C11
-Windows x64 SDL2 executable now exists, and headless guest execution reaches
-Stage 1. Actual Windows window/audio/interactive controls remain unverified.**
+**Current status: OWNER-TESTED WINDOWS ALPHA — the owner reports that the
+original Japanese native C11 Windows build is playing flawlessly, with no
+issues reported in their initial interactive test. Full-game completion,
+all controls/audio/saves and individual routes remain unverified.**
 
 Required before labeling an artifact "playable alpha":
 
@@ -28,8 +29,10 @@ Required before labeling an artifact "playable alpha":
   exist; the actual native game executable derived from the user-owned
   ROM stays local unless distribution rights are established.
 
-**A private candidate is now available for the owner's Windows interactive
-verification, but it is NOT yet a publicly qualified playable Alpha.**
+**The private Alpha candidate has now passed an initial owner-reported Windows
+playability check.** This is sufficient to proceed to Beta validation, but
+is **not** evidence that the entire game or every route has been completed.
+No public redistributable executable is authorized by this observation.
 An artificial-ROM VRC6 CI test, a successful C11 compiler,
 an interpreted CPU fallback, or a command-line loop alone is not
 a playable release.
@@ -99,3 +102,35 @@ This supplies the owner a real-ROM Alpha candidate to test. The Stage 1
 CPU/scripted-input proof is headless on Linux, not a hands-on Windows QA
 result. No independent Mesen frame parity claim and no update to the
 historical 27/100 VPP or 49,504/262,144 strict PRG certificate.
+
+## Phase 0585 — first owner-reported live Windows Alpha playtest
+
+On 2026-10-12, after launching the private Windows x64 original-Japanese
+C11 Alpha candidate, the owner reported: "The game is playing flawlessly
+and it looks like I can probably play the whole game."
+
+**Verified by user report:** Native Windows build launches into playable
+game content and no defect was reported in the initial interactive session.
+This is distinct from the previously completed scripted/headless Stage 1
+checks and is the first reported real-machine interactive acceptance.
+
+**Not yet established:** Exactly which stages, endings, partners, save/load,
+controllers, audio devices, frame rates or alternative routes were tested.
+"Probably play the whole game" is a reasonable expectation, not a full
+playthrough result. Do not label Beta or Final complete yet.
+
+### Next release gate: Beta
+
+Use **natural playtests**, not wholesale reconstruction testing:
+
+1. Complete Stage 1 boss and its exit/route transition, if not already done.
+2. Continue into at least one later level, documenting the first abnormality.
+3. Test partner recruitment/switching when encountered, plus pause and audio.
+4. Verify any supported save/reset or resume workflow before claiming it.
+5. Keep a short list of reproducible Windows-specific issues and collect
+   logs/screenshots only if a defect occurs. No gameplay recording required.
+
+Full-game Final acceptance still requires multiple routes/endings, stable
+session behavior, visual/audio fidelity, packaging and legal review.
+These owner observations **do not change** independent Mesen parity/VPP
+metrics: 27/100 VPP, 49,504/262,144 strictly certified PRG bytes.

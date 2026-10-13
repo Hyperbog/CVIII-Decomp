@@ -577,3 +577,7 @@ The expanded independent [Stage 1 multi-branch suite](../SharedNES/0508_STAGE1_M
 ## 0584 — real Japanese original-ROM C11 Alpha candidate compiled
 
 [Release milestone status](RELEASE_MILESTONES.md) now reflects an authenticated original-JP mapper24 C11 game executable compiled for **Windows x64 with SDL2** and a private ROM-free archive/launcher. Local original game ran 600 seeded frames at 99.99996% native CPU cycles with 0 interpreted ROM/RAM and byte-identical per-frame observable hashes vs unseeded. A separate 3000-frame original-JP scripted-input route reached visible **Stage 1** at 96.8% native CPU cycles. Actual Windows interactive/controls/audio QA is **pending**. This is a privately shared Alpha *candidate*, not a qualified public release. No further reconstruction sweep or new VPP/strict PRG credit.
+
+## 0585 — owner's first Windows Alpha playtest: no issues reported
+
+The owner independently reported that the original Japanese native C11 Windows game is "playing flawlessly" and appears potentially playable through the whole game. Mark this **initial interactive Alpha acceptance** (reported, not independently reproduced here), not a completed full-game route or Beta/Final qualification. Next step is lightweight progression-based Beta checks: Stage 1 boss/exit, later stages, partners, pause/audio, saves if available. No reconstruction work or new strict PRG/VPP credit. [Release gates](RELEASE_MILESTONES.md).
