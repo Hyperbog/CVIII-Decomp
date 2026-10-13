@@ -37,6 +37,18 @@ Write-Host 'Controls: arrows=D-pad, Z=A, X=B, Enter=Start, Backslash=Select.'
 Write-Host 'F8/F9 save/load; builds supporting slots use Ctrl+0..9.'
 Push-Location $PSScriptRoot
 try {
- & $game $romPath --edition $Edition.ToLowerInvariant() --unlimited-sprites $sprites
+ $gameArgs=@($romPath,'--edition',$Edition.ToLowerInvariant(),'--unlimited-sprites',$sprites)
+ # Enhanced can opt into verified physical CHR asset metadata without ever
+ # replacing the original cartridge's timing, mapper or game framebuffer.
+ if ($Edition -eq 'Enhanced') {
+  $assetIndex=Join-Path $PSScriptRoot 'CVIII-CHR-Index.dat'
+  if (Test-Path -LiteralPath $assetIndex) {
+   $gameArgs+=@('--asset-index',$assetIndex)
+   Write-Host 'Loading authenticated read-only CHR asset index (no rendering changes).'
+  } else {
+   Write-Host 'No asset index found; Enhanced falls back to original ROM-driven graphics.'
+  }
+ }
+ & $game @gameArgs
  if ($LASTEXITCODE -ne 0) {throw "Native game exited with $LASTEXITCODE"}
 } finally {Pop-Location}

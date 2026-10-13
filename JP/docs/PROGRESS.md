@@ -657,3 +657,24 @@ stage-data decompilation, or a substitute ROM for NESRecomp.
 Background/sprite interpretation, metatiles, palettes, stage maps,
 animation, music, and text extraction remain open; no strict semantic
 PRG or VPP progress is claimed.
+
+## JP0598 — Read-only CHR cache loaded by Enhanced (first integration gate)
+
+The private Alpha builder now exports **CVIII-CHR-Index.dat** alongside
+CVIII-Assets.bin. On Enhanced launch only, the host loads this fixed-size
+(655,368-byte) cache through `--asset-index`. The standalone C11 index
+reader checks exact geometry, magic, the pinned Japanese CHR content
+identities and a complete **tile-by-tile 2bpp reconstruction**.
+The Python exporter also verifies the canonical SHA-256 of the original
+CHR and decoded tile index. Corrupt or wrong-ROM data fail closed.
+
+**No game rendering has been redirected.** The NESRecomp PPU remains
+authoritative for Original *and* Enhanced; no CPU, PPU, APU, VRC6 or
+game-state writes are made. This creates a validated in-process CHR
+source for later Enhanced rendering without assuming static graphics
+can replace the original hardware's changing bank/palette registers.
+
+Original launch does not request the cache. An Enhanced run with
+no cache falls back to unchanged ROM graphics. In the private Windows
+builder the cache is regenerated only when needed and remains local;
+public CI uses synthetic pixels, not copyrighted cartridges.

@@ -48,7 +48,8 @@ option(JP_EDITION_HOST_EXTRAS "Add Original/Enhanced native presentation extensi
 set(JP_HOST_SOURCES "")
 if(JP_EDITION_HOST_EXTRAS)
  list(APPEND JP_HOST_SOURCES HOST_EXTRAS
-  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_edition.c")
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_edition.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_chr_index_0598.c")
 endif()
 nesrecomp_add_cycle_game(jp_akumajou_densetsu
  ROM "${JP_ORIGINAL_JP_ROM}" ${JP_CYCLE_OPTIONS} ${JP_HOST_SOURCES})
@@ -134,3 +135,9 @@ if(NOT JP_CYCLE_HEADLESS)
  message(STATUS "Alpha: verified SDL2 video/input/audio target is enabled")
 endif()
 
+
+# JP0598: isolated host-independent C11 CHR reader gate; synthetic data only.
+add_executable(jp_chr_index_test_0598
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_chr_index_0598.c"
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_chr_index_test_0598.c")
+set_property(TARGET jp_chr_index_test_0598 PROPERTY C_STANDARD 11)

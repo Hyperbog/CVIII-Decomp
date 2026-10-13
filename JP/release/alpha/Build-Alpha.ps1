@@ -27,6 +27,10 @@ if ($ProjectRoot) {
  if (-not (Test-Path -LiteralPath $repoPath)) {
   Invoke-Checked 'git' @('clone','--branch','decompilation','--single-branch',
       'https://github.com/Hyperbog/CVIII-Decomp.git',$repoPath)
+ } else {
+  # This directory is managed by this builder; do not silently compile
+  # a stale branch when new asset/gameplay tooling has been committed.
+  Invoke-Checked 'git' @('-C',$repoPath,'pull','--ff-only','origin','decompilation')
  }
 }
 $buildScript=Join-Path $repoPath 'JP/tools/build_retail_cycle_0575.py'
@@ -64,6 +68,13 @@ $assetPack=Join-Path $stage 'CVIII-Assets.bin'
 Write-Host 'Verifying or creating private CVIII-Assets.bin...'
 Invoke-Checked 'python' @($assetBuilder,'--build','--rom',$romPath,'--out',$assetPack)
 if (-not (Test-Path -LiteralPath $assetPack)) { throw 'Asset cache was not created' }
+# JP0598: export verified 2bpp and indexed pixels into a fixed-size C11
+# reader format; private native code imports it without touching NES state.
+$assetIndexTool=Join-Path $repoPath 'JP/tools/jp_asset_runtime_0598.py'
+if (-not (Test-Path -LiteralPath $assetIndexTool)) { throw "Missing JP0598 runtime index exporter" }
+$assetIndex=Join-Path $stage 'CVIII-CHR-Index.dat'
+Invoke-Checked 'python' @($assetIndexTool,'--export','--assets',$assetPack,'--out',$assetIndex)
+if (-not (Test-Path -LiteralPath $assetIndex)) { throw 'CHR index export missing' }
 
 $launch=Join-Path $PSScriptRoot 'Launch-Alpha.ps1'
 if (-not (Test-Path -LiteralPath $launch)) {
@@ -80,7 +91,7 @@ foreach ($name in @('Play-Original.bat','Play-Enhanced.bat','Play-Alpha.bat','De
  if (-not (Test-Path -LiteralPath $src)) {throw "Missing alpha launcher: $src"}
  Copy-Item -LiteralPath $src -Destination $stage -Force
 }
-foreach ($name in @('jp_password_stage_0593.py','jp_password_debug_menu_0593.py','jp_asset_pack_0597.py')) {
+foreach ($name in @('jp_password_stage_0593.py','jp_password_debug_menu_0593.py','jp_asset_pack_0597.py','jp_asset_runtime_0598.py')) {
  $src=Join-Path $repoPath ('JP/tools/'+$name)
  if (-not (Test-Path -LiteralPath $src)) {throw "Missing debug password helper: $src"}
  Copy-Item -LiteralPath $src -Destination $stage -Force
@@ -115,6 +126,10 @@ $manifest=[ordered]@{
  assets_sha256=(Get-FileHash -LiteralPath $assetPack -Algorithm SHA256).Hash.ToLowerInvariant()
  asset_pack_contains_original_chr=$true
  asset_pack_loaded_by_runtime=$false
+ asset_chr_index_schema='CVIII-JP-native-chr-index/v1'
+ asset_chr_index_sha256=(Get-FileHash -LiteralPath $assetIndex -Algorithm SHA256).Hash.ToLowerInvariant()
+ enhanced_can_read_chr_index=$true
+ enhanced_uses_chr_index_for_rendering=$false
 }
 $manifest | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $stage 'ALPHA_BUILD.json') -Encoding UTF8
 # Local private ZIP includes game-derived compiled instructions. Do not upload to CI.

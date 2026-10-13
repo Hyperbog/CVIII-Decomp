@@ -7,6 +7,7 @@ on:
       - "JP/tools/package_alpha_builder_0580.py"
       - "JP/tools/jp_password_*0593.py"
       - "JP/tools/jp_asset_pack_0597.py"
+      - "JP/tools/jp_asset_runtime_0598.py"
       - "JP/tools/patch_cyc_stage_menu_0594.py"
       - "JP/tools/patch_cyc_stage_bootstrap_0596.py"
       - "JP/native/nesrecomp_cycle/**"
@@ -46,6 +47,8 @@ jobs:
         run: |
           python JP/tools/jp_asset_pack_0597.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "JP0597 asset pack contract failed" }
+          python JP/tools/jp_asset_runtime_0598.py --smoke
+          if ($LASTEXITCODE -ne 0) { throw "JP0598 native CHR index contract failed" }
       - name: Validate F10 stage menu overlay against pinned SDL host contract
         shell: pwsh
         run: |
@@ -66,6 +69,13 @@ jobs:
           $bin = Join-Path $build 'Release'
           if (!(Test-Path (Join-Path $bin 'jp_akumajou_densetsu.exe'))) { throw 'Windows executable missing' }
           if (!(Test-Path (Join-Path $bin 'SDL2.dll'))) { throw 'SDL2.dll missing: not playable' }
+      - name: Verify C11 read-only CHR index and synthetic content rejection
+        shell: pwsh
+        run: |
+          $test = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win/Release/jp_chr_index_test_0598.exe'
+          if (!(Test-Path $test)) { throw "C11 CHR index smoke executable missing" }
+          & $test
+          if ($LASTEXITCODE -ne 0) { throw "C11 CHR index reader check failed" }
       - name: Run bounded native C11 synthetic test with actual windowed-linked binary
         shell: pwsh
         run: |

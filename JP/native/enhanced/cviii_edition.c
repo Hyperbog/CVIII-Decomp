@@ -6,6 +6,7 @@
 #include "cyc_host_extras.h"
 #include "cyc_core.h"
 #include "cyc_render.h"
+#include "cviii_chr_index_0598.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -16,6 +17,7 @@
 typedef struct {
     int enhanced;
     int sprite_unlimited;
+    CviiiChrIndex assets; /* read-only imported physical CHR; presentation only */
     uint32_t presentation[CVIII_W * CVIII_H];
 } CviiiEdition;
 
@@ -68,6 +70,14 @@ static bool option(void *context, const char *name, const char *value)
     if (!strcmp(name, "--edition")) return value && set_edition(value);
     if (!strcmp(name, "--unlimited-sprites"))
         return value && parse_boolean(value, &cviii.sprite_unlimited);
+    if (!strcmp(name, "--asset-index")) {
+        if (!value || !cviii_chr_index_load(&cviii.assets, value)) {
+            fprintf(stderr, "CVIII: rejected missing, mismatched or damaged JP asset index\n");
+            return false;
+        }
+        printf("CVIII: loaded authenticated read-only JP CHR index (8192 tiles); PPU remains authoritative\n");
+        return true;
+    }
     return false;
 }
 
@@ -113,6 +123,8 @@ static const CycHostOption cviii_options[] = {
     {"--edition", true, "Original or Enhanced PC edition (Original default)"},
     {"--unlimited-sprites", true,
      "Enhanced experimental 64-OAM sprite compositor (0/1, default 0)"},
+    {"--asset-index", true,
+     "Private read-only 655368-byte JP CHR index (no renderer substitution)"},
 };
 
 static CycHostExtras cviii_extra = {
