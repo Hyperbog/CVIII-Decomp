@@ -1,4 +1,4 @@
-# Windows x64 0.1.0-alpha.1 PRIVATE native game compiler/packager.
+# Windows x64 0.2.0-alpha.1 PRIVATE Original/Enhanced compiler/packager.
 [CmdletBinding()]
 param(
  [Parameter(Mandatory=$true)][string]$Rom,
@@ -66,6 +66,11 @@ if (-not (Test-Path -LiteralPath $notes)) {
  $notes=Join-Path $repoPath 'JP/release/alpha/README_ALPHA.md'
 }
 Copy-Item -LiteralPath $notes -Destination $stage -Force
+foreach ($name in @('Play-Original.bat','Play-Enhanced.bat','Play-Alpha.bat')) {
+ $src=Join-Path $repoPath ('JP/release/alpha/'+$name)
+ if (-not (Test-Path -LiteralPath $src)) {throw "Missing alpha launcher: $src"}
+ Copy-Item -LiteralPath $src -Destination $stage -Force
+}
 $engine=Join-Path $privateOut '_external/nesrecomp'
 $licenses=Join-Path $stage 'licenses'
 [IO.Directory]::CreateDirectory($licenses) | Out-Null
@@ -77,25 +82,30 @@ if (-not (Test-Path -LiteralPath $upstreamLicense) -or -not (Test-Path -LiteralP
 Copy-Item -LiteralPath $upstreamLicense -Destination (Join-Path $licenses 'NESRecomp-LICENSE.txt') -Force
 Copy-Item -LiteralPath $sdlLicense -Destination (Join-Path $licenses 'SDL2-COPYING.txt') -Force
 $manifest=[ordered]@{
- schema='CVIII-windows-alpha-candidate/v1'
- version='0.1.0-alpha.1'
+ schema='CVIII-windows-alpha-candidate/v2'
+ version='0.2.0-alpha.1'
  runtime='generated native C11 2A03/VRC6 cycle backend'
  original_rom_sha256='958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28'
  game_exe_sha256=(Get-FileHash -LiteralPath (Join-Path $stage 'jp_akumajou_densetsu.exe') -Algorithm SHA256).Hash.ToLowerInvariant()
  gameplay_verified=$false
  playable_alpha_qualified=$false
+ original_enhanced_options=$true
+ extra_sprite_compositor_experimental=$true
+ shared_background_bug_fixed=$false
+ widescreen_implemented=$false
+ individual_audio_channels_implemented=$false
  original_rom_included=$false
 }
 $manifest | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $stage 'ALPHA_BUILD.json') -Encoding UTF8
 # Local private ZIP includes game-derived compiled instructions. Do not upload to CI.
-$zip=Join-Path $outPath 'CVIII-Alpha-Candidate-Windows-x64-PRIVATE.zip'
+$zip=Join-Path $outPath 'CVIII-Alpha-0.2.0-Windows-x64-PRIVATE.zip'
 if (Test-Path -LiteralPath $zip) { Remove-Item -LiteralPath $zip -Force }
 Compress-Archive -Path (Join-Path $stage '*') -DestinationPath $zip -CompressionLevel Optimal
 Write-Host ('Native C11 build successful: '+$program)
 Write-Host ('Private alpha candidate ZIP: '+$zip)
-Write-Host 'Playable status: pending actual title/input/Stage 1 verification.'
+Write-Host 'Original edition has owner playtest history. New Enhanced mode needs GUI QA.'
 Write-Host ('Launch using Launch-Alpha.ps1 -Rom "'+$romPath+'"')
 if ($PlayAfterBuild) {
- & (Join-Path $stage 'Launch-Alpha.ps1') -Rom $romPath
+ & (Join-Path $stage 'Launch-Alpha.ps1') -Rom $romPath -Edition Original
  if ($LASTEXITCODE -ne 0) { throw "Native game failed with exit $LASTEXITCODE" }
 }

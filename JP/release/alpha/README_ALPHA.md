@@ -1,43 +1,40 @@
-# CVIII Japanese Castlevania III — Windows Alpha Candidate
+# CVIII Japanese Castlevania III — private Original/Enhanced Alpha 0.2
 
-Version **0.1.0-alpha.1 (BUILD KIT)**. This is NOT a qualified playable
-release until the original game has been opened and controlled in Stage 1.
+Version 0.2.0-alpha.1. The original C11 Windows Alpha 0.1 was
+owner-tested through Stage 4-0A, including Sypha and character switching.
+The NEW experimental extra-sprite Enhanced renderer requires owner QA.
 
-### Windows x64 prerequisites
-
-Windows 10/11, Visual Studio 2022 Build Tools with **Desktop development
-with C++**, CMake 3.20+, Python 3.11+, Git and a privately owned
-unmodified "Akumajou Densetsu (Japan).nes".
-
-The external NESRecomp runtime is subject to PolyForm Noncommercial 1.0.0.
-Review this license before building or distributing a game.
-
-### Build a private native game
-
-Extract the builder ZIP and open PowerShell there. Run:
+Build privately on Windows (CMake, Visual Studio, Git, Python and the
+unmodified original Japanese Akumajou Densetsu ROM required):
 
     powershell -ExecutionPolicy Bypass -File .\Build-Alpha.ps1 -Rom "C:\Games\Akumajou Densetsu (Japan).nes"
 
-The script downloads CVIII and pinned NESRecomp, authenticates the ROM,
-generates original game instructions as C11, compiles the entire
-windowed VRC6 cycle runtime with SDL2 and creates a local private ZIP
-under %USERPROFILE%\CVIII-Alpha. Neither ROM nor compiled game code is
-included in this public build kit.
+The build kit downloads pinned NESRecomp PolyForm Noncommercial source
+to a separate private directory and compiles the original owner ROM into
+a local executable. The public build kit contains no ROM or game code.
 
-### Launch the candidate
+After build, double-click Play-Original.bat or Play-Enhanced.bat in the
+private AlphaCandidate directory. Play-Alpha.bat remains an Original alias.
+The launchers authenticate original Japanese mapper24 ROM SHA256 and
+prompt for the cartridge when not supplied.
 
-    powershell -ExecutionPolicy Bypass -File "$env:USERPROFILE\CVIII-Alpha\AlphaCandidate\Launch-Alpha.ps1" -Rom "C:\Games\Akumajou Densetsu (Japan).nes"
+Original: faithful PPU presentation and original gameplay.
+Enhanced: experimental all-primary-OAM sprite compositor intended to
+remove eight-sprites-per-scanline flicker. CPU/PPU-visible gameplay,
+sprite-0 hit, IRQ, DMA and collisions remain original. Sprite art can
+misrender if CHR banks switch mid-frame; fall back to Original as needed.
 
-Controls: arrows = D-pad, Z = A, X = B, Enter = Start,
-Backslash = Select. Gamepad mapping is available through NESRecomp.
+Default input: arrows=movement; Z=A; X=B; Enter=Start;
+Backslash=Select. The NESRecomp SDL host supports configurable
+keyboard/controller bindings. Builds with the 0591 slot extension
+support Ctrl+0..9 slot selection plus F8/F9 save/load.
 
-### Alpha release gate
+Not yet supported: true widescreen level geometry, individual channel
+gain, independent soundtrack/SFX voices, remastered audio or texture
+replacement, and optional new moves. The Stage 2/3?/4-0A shared
+background-layer artifacts remain an unresolved Original issue.
 
-This is a *candidate build*. Before the first PLAYABLE ALPHA is published
-we must verify the actual original Japanese game displays its title
-screen, accepts Start, and allows movement, jump, whip and pause in
-Stage 1 without crashing. Synthetic-VRC6 frame tests are not enough.
-
-Beta will expand Stage/character/route coverage. Final will require
-complete-game routes/endings, sound, graphics, input, save behavior
-and distribution-rights review. No commercial ROM is redistributed.
+Focused authentic-ROM validation: Original and Enhanced 600-frame
+headless CPU/PPU/memory hashes match byte-for-byte. This is not
+full-game/Windows Enhanced GUI certification. Do not distribute the
+copyrighted game EXE, ROM or third-party sound/assets publicly.

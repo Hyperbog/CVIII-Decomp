@@ -63,12 +63,12 @@ jobs:
       - name: Create ROM-free Windows alpha build kit
         shell: pwsh
         run: |
-          python JP/tools/package_alpha_builder_0580.py --out CVIII-Alpha-Builder-0.1.0-alpha.1.zip
+          python JP/tools/package_alpha_builder_0580.py --out CVIII-Alpha-Builder-0.2.0-alpha.1.zip
           if ($LASTEXITCODE -ne 0) { throw 'ROM-free packaging failed' }
       - name: Upload build kit, not commercial ROM or game executable
         uses: actions/upload-artifact@v4
         with:
-          name: CVIII-Alpha-Builder-0.1.0-alpha.1
-          path: CVIII-Alpha-Builder-0.1.0-alpha.1.zip
+          name: CVIII-Alpha-Builder-0.2.0-alpha.1
+          path: CVIII-Alpha-Builder-0.2.0-alpha.1.zip
           if-no-files-found: error
           retention-days: 30

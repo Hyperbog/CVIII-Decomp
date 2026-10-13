@@ -4,7 +4,8 @@ from __future__ import annotations
 import argparse,hashlib,json,tempfile,zipfile
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
-NAMES=("Build-Alpha.ps1","Launch-Alpha.ps1","README_ALPHA.md")
+NAMES=("Build-Alpha.ps1","Launch-Alpha.ps1","README_ALPHA.md",
+       "Play-Alpha.bat","Play-Original.bat","Play-Enhanced.bat")
 def make(out:Path)->dict:
     out=out.resolve()
     if out.suffix.lower()!=".zip":raise ValueError("Require ZIP output")
@@ -16,7 +17,7 @@ def make(out:Path)->dict:
         if sorted(names)!=sorted(NAMES):raise ValueError("Unexpected alpha kit file")
         if any(x.lower().endswith((".nes",".exe",".dll",".sav")) for x in names):
             raise ValueError("Refusing private game output in public artifact")
-    return {"version":"0.1.0-alpha.1","kind":"build-kit-not-playable",
+    return {"version":"0.2.0-alpha.1","kind":"build-kit-not-playable",
             "path":str(out),"sha256":hashlib.sha256(out.read_bytes()).hexdigest(),
             "includes_game_binary":False,"includes_commercial_rom":False}
 def main():
