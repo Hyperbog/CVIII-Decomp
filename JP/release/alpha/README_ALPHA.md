@@ -1,8 +1,19 @@
-# CVIII Japanese Castlevania III — private Original/Enhanced Alpha 0.2
+# CVIII Japanese Castlevania III — Enhanced Alpha 0.2
 
 Version 0.2.0-alpha.1. The original C11 Windows Alpha 0.1 was
 owner-tested through Stage 4-0A, including Sypha and character switching.
 The NEW experimental extra-sprite Enhanced renderer requires owner QA.
+
+
+**JP0605 product direction:** One public **Enhanced Edition**. Use
+`Play-CVIII.bat` (or `Build-And-Play.bat` for first-time setup).
+The historic Original/Enhanced dual-launcher descriptions below are
+development history only. Original PPU presentation remains an
+**internal reference path** (`Launch-Alpha.ps1 -Edition Original`),
+not a separate player-facing edition. Unverified improvements,
+including experimental unlimited sprites, are **off by default**.
+The shared Stage A-01 pixel corruption and the Stage 1 sprite
+overlap reports remain open; this launcher change does not fix either.
 
 ## First-run setup — JP0603
 
@@ -13,8 +24,7 @@ Extract the entire ZIP to a writable folder and double-click
 Akumajou Densetsu .nes ROM in the file picker. After the initial private
 C11/SDL2 Windows compilation, the original game will launch.
 
-You can also double-click **Play-Original.bat** or **Play-Enhanced.bat**
-directly; if this is the public kit rather than a private compiled
+You can also double-click **Play-CVIII.bat** directly; if this is the public kit rather than a private compiled
 candidate, they invoke the same first-run builder automatically.
 The setup validates the exact Japanese ROM and looks for Git, CMake,
 Python and Visual Studio 2022 MSVC x64 tools before building.
@@ -28,7 +38,7 @@ GitHub CI or in the public downloaded kit. Build logs live under
 launches reuse the private result without rebuilding (unless you run
 `Build-And-Play.ps1 -Rebuild`). A private
 `%USERPROFILE%\CVIII-Alpha\LastRomPath.txt` saves **only the original
-ROM path**, so Play Original/Enhanced no longer repeatedly opens a file
+ROM path**, so Play-CVIII no longer repeatedly opens a file
 dialog. If you move the ROM, delete that path hint to reselect it. The kit never downloads a DLL from
 an unrelated site. See the FIRST failing build-log entry if setup
 does not complete.
@@ -44,16 +54,20 @@ The build kit downloads pinned NESRecomp PolyForm Noncommercial source
 to a separate private directory and compiles the original owner ROM into
 a local executable. The public build kit contains no ROM or game code.
 
-After build, double-click Play-Original.bat or Play-Enhanced.bat in the
-private AlphaCandidate directory. Play-Alpha.bat remains an Original alias.
+After build, double-click Play-CVIII.bat in the
+private AlphaCandidate directory. For internal comparison only,
+developers can use Launch-Alpha.ps1 -Edition Original with the
+authenticated Japanese ROM. That is not a separate player product.
 The launchers authenticate original Japanese mapper24 ROM SHA256 and
 prompt for the cartridge when not supplied.
 
-Original: faithful PPU presentation and original gameplay.
-Enhanced: experimental all-primary-OAM sprite compositor intended to
-remove eight-sprites-per-scanline flicker. CPU/PPU-visible gameplay,
-sprite-0 hit, IRQ, DMA and collisions remain original. Sprite art can
-misrender if CHR banks switch mid-frame; fall back to Original as needed.
+Enhanced is the sole public launcher. Its initial graphics use the
+stock PPU output while the shared mapper/PPU defect remains under
+investigation. Optional all-primary-OAM sprite compositing is experimental
+and disabled by default; enabling it requires separate owner QA.
+CPU/PPU-visible gameplay, sprite-0 hit, IRQ, DMA and collisions remain
+original by default. The internal Original PPU path is reserved for
+technical A/B diagnosis, not presented as a product edition.
 
 Default input: arrows=movement; Z=A; X=B; Enter=Start;
 Backslash=Select. The NESRecomp SDL host supports configurable

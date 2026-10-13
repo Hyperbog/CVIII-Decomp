@@ -93,7 +93,7 @@ Copy-Item -LiteralPath $launch -Destination $stage -Force
 $notes=Join-Path $repoPath 'JP/release/alpha/README_ALPHA.md'
 if (-not (Test-Path -LiteralPath $notes)) { throw 'Current repo README missing' }
 Copy-Item -LiteralPath $notes -Destination $stage -Force
-foreach ($name in @('Play-Original.bat','Play-Enhanced.bat','Play-Alpha.bat','Debug-Stage-Companion.bat','Capture-QA-0602.ps1','Build-And-Play.ps1','Build-And-Play.bat')) {
+foreach ($name in @('Play-CVIII.bat','Debug-Stage-Companion.bat','Capture-QA-0602.ps1','Build-And-Play.ps1','Build-And-Play.bat')) {
  $src=Join-Path $repoPath ('JP/release/alpha/'+$name)
  if (-not (Test-Path -LiteralPath $src)) {throw "Missing alpha launcher: $src"}
  Copy-Item -LiteralPath $src -Destination $stage -Force
@@ -149,7 +149,13 @@ Write-Host ('Native C11 build successful: '+$program)
 Write-Host ('Private alpha candidate ZIP: '+$zip)
 Write-Host 'Original edition has owner playtest history. New Enhanced mode needs GUI QA.'
 Write-Host ('Launch using Launch-Alpha.ps1 -Rom "'+$romPath+'"')
+# Previous private candidates could retain obsolete public Original/Enhanced
+# shortcut files from earlier builds. Remove shortcuts only, never save states.
+foreach ($legacy in @('Play-Original.bat','Play-Enhanced.bat','Play-Alpha.bat')) {
+ $obsolete=Join-Path $stage $legacy
+ if (Test-Path -LiteralPath $obsolete) { Remove-Item -LiteralPath $obsolete -Force }
+}
 if ($PlayAfterBuild) {
- & (Join-Path $stage 'Launch-Alpha.ps1') -Rom $romPath -Edition Original
+ & (Join-Path $stage 'Launch-Alpha.ps1') -Rom $romPath -Edition Enhanced
  if ($LASTEXITCODE -ne 0) { throw "Native game failed with exit $LASTEXITCODE" }
 }

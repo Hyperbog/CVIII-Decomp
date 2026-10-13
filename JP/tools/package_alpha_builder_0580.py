@@ -5,7 +5,7 @@ import argparse,hashlib,json,tempfile,zipfile
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 NAMES=("Build-Alpha.ps1","Launch-Alpha.ps1","README_ALPHA.md",
-       "Play-Alpha.bat","Play-Original.bat","Play-Enhanced.bat",
+       "Play-CVIII.bat",
        "Debug-Stage-Companion.bat","Capture-QA-0602.ps1",
        "Build-And-Play.ps1","Build-And-Play.bat")
 def make(out:Path)->dict:
@@ -35,8 +35,10 @@ def main():
                 assert "Build-And-Play.bat" in kit.namelist()
                 assert "Build-And-Play.ps1" in kit.namelist()
                 assert "Capture-QA-0602.ps1" in kit.namelist()
-                launcher=kit.read("Play-Original.bat")
-                assert b"Build-And-Play.ps1" in launcher
+                assert "Play-Original.bat" not in kit.namelist()
+                assert "Play-Enhanced.bat" not in kit.namelist()
+                launcher=kit.read("Play-CVIII.bat")
+                assert b"Build-And-Play.ps1" in launcher and b"-Edition Enhanced" in launcher
                 assert not any(name.lower().endswith((".exe",".nes",".dll")) for name in kit.namelist())
             print("PASS first-run build-and-play ROM-free alpha kit contract")
     elif a.out:print(json.dumps(make(a.out),sort_keys=True))

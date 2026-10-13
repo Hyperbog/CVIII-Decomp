@@ -811,3 +811,20 @@ sampled across these routes here. Source CHR-byte matches and
 original-PPU fingerprints do not demonstrate independent cached
 renderer parity. Original's renderer, gameplay and F10 controls are
 unchanged; Universal NES Studio remains future work.
+
+
+## JP0605 — Single Enhanced Edition product decision
+
+The owner elected to release one user-facing native **Enhanced Edition**
+instead of two public "Original" and "Enhanced" choices. The authentic
+Japanese NES ROM/cartridge is the baseline experience; do not duplicate
+it as a separate public PC product. The former original renderer
+and original simulation/PPU paths remain in the code as **internal
+reference diagnostics** for Stage A-01 graphics parity and gameplay
+regressions, accessible via an explicit developer `-Edition Original`
+argument. Existing F10 debug tools stay private.
+The ROM-free Alpha kit and private Windows candidate now offer the
+single `Play-CVIII.bat` entry point, default to Enhanced, and keep
+unverified compositing switched off. This is a product/UI change, not
+a claim of Stage A-01 or sprite-layering bug fixes. The strict PRG
+49,504/262,144 and VPP 27/100 remain unchanged.

@@ -2,7 +2,7 @@
 [CmdletBinding()]
 param(
  [string]$Rom='',
- [ValidateSet('Original','Enhanced')][string]$Edition='Original',
+ [ValidateSet('Original','Enhanced')][string]$Edition='Enhanced',
  [switch]$UnlimitedSprites,
  [switch]$ChrAudit,
  [string]$AuditOutDir=''

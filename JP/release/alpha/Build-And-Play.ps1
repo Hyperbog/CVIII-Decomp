@@ -2,7 +2,7 @@
 # The public build kit contains no game EXE, DLL or commercial ROM.
 [CmdletBinding()]
 param(
- [ValidateSet('Original','Enhanced')][string]$Edition='Original',
+ [ValidateSet('Original','Enhanced')][string]$Edition='Enhanced',
  [string]$Rom='',
  [switch]$UnlimitedSprites,
  [switch]$Rebuild

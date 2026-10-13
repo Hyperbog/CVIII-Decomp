@@ -1,28 +1,38 @@
-# Japanese Castlevania III — Original and Enhanced editions
+# Castlevania III for PC — one Enhanced edition
 
-**Product decision (owner, 2026-10-12):** One native C11 game engine
-with two selectable editions: **Original** and **Enhanced**.
-The goal is a playable PC game that is not constrained by the NES's
-sprite and audio channel limits. Do NOT turn these PC enhancements
-into NES ROM patches, and do not change original game mechanics unless
-the player explicitly selects a gameplay modification in Enhanced.
+**Current product decision (owner, 2026-10-13):** Ship **one
+player-facing Enhanced edition**, not separate Original and Enhanced
+editions. Anyone wanting unmodified NES presentation can play the
+original cartridge or ROM using an emulator. The native PC project
+should provide meaningful PC-specific improvements.
 
-## Edition contracts
+**Internal reference is not a public edition.** Keep the existing
+`--edition original` reference presentation path in developer builds
+for frame/palette/PPU parity tests and bug isolation. Do not remove
+original gameplay simulation, NES state semantics, or diagnostic
+regressions: a separate "Original" menu choice or public batch
+shortcut is unnecessary.
 
-| Feature | Original | Enhanced |
-|---|---|---|
-| Game logic, enemy AI, physics, damage, collision, stages, routes | Original | **Identical by default** |
-| Display | Faithful 4:3 NES viewport | Optional true widescreen (extra scenery, not stretch); graceful 4:3 fallback |
-| Sprite evaluation | Original hardware behavior | Optional flicker-free compositing beyond 8 visible sprites per scanline |
-| Graphics | Original CHR/palettes | Optional high-resolution sprite / background texture packs |
-| Music / effects | Original 2A03 + VRC6 arbitration | Per-generator mixer, independent music/SFX virtual voices, remastered/alternate soundtracks |
-| Input | Original game inputs / reference mapping | Rebindable keyboard / controller profiles, conflicts and reset |
-| New mechanics | **Never enabled** | Explicit opt-in gameplay modules such as SCIV-inspired multidirectional whipping |
-| Save/profile configuration | Base-game-compatible state | Store edition and game-mod flags separately; preserve original saves where possible |
+## Single Enhanced gameplay contract
 
-**Do not use the word 'Enhanced' to imply all gameplay mods are enabled.**
-Enhanced presentation and audio must work with completely original
-attacks, health, character movement and enemy behavior.
+| Area | Public Enhanced behavior |
+|---|---|
+| Core game | Preserve original enemy AI, physics, collisions, level structure, bosses, partner routes and passwords by default |
+| Graphics | Fix the shared original PPU/mapper rendering defects first; offer improved sprites, flicker reduction, widescreen geometry and optional replacement art as each is verified |
+| Audio | Support enhanced mixing and optional soundtracks once original cue/driver behavior is verified; avoid changing original event timing |
+| Input | Configurable keyboard and gamepad bindings, including modern layouts |
+| Progress | Compatible saves where technically possible; track gameplay-mod flags to protect state compatibility |
+| Optional mods | New moves, changed difficulty, novel routes and expanded content are *opt-in*, never activated merely by starting Enhanced |
+| Debugging | Private internal reference PPU path and F10 stage/password tools remain available for QA and verification |
+
+**No false feature claim:** The current playable native build does not
+yet provide widescreen, HD textures or independent music/SFX voices,
+and sprite-limit removal remains experimental. Therefore the public
+Enhanced default keeps unverified visual features **off** until their
+scene-specific tests pass. The known Stage A-01 shared pixel corruption
+is **not** fixed by switching edition labels. The goal is a
+single Enhanced product with progressively validated improvements,
+not simply relabeling the present original renderer.
 
 ## Technical boundaries
 
@@ -65,12 +75,12 @@ mod-owned inputs/collision/animation state and **cannot** silently
 change original input semantics. If gameplay modifications affect
 save compatibility or replay parity, mark them in save/profile metadata.
 
-**Edition UI / config:** Original and Enhanced presets, separately
-toggled advanced features, per-feature versioned settings, and a
-clear "gameplay modified" marker. Switching back to Original restores
-the reference presentation and disables any new gameplay move without
-corrupting progress. Original should remain available for diagnosing
-any Enhanced-specific artifact.
+**Enhanced UI / config:** One player-facing Enhanced preset with
+separate advanced feature toggles and a clear "gameplay modified"
+marker. Keep `--edition original` as an undocumented/internal
+reference switch for parity diagnostics; no player-facing edition
+picker. Disabling an optional mod restores original gameplay behavior
+without corrupting progress.
 
 ## Release phases and acceptance
 
@@ -79,11 +89,11 @@ any Enhanced-specific artifact.
   The owner's ongoing natural playtest provides route coverage.
   Rendering defects are tracked independently, not confused with
   intentional NES constraints.
-- **Beta — Original:** Validate an extended playthrough, alternate
+- **Beta — Core parity:** Validate an extended playthrough, alternate
   branches/partners, music and save/reset behavior, fix reproducible
-  gameplay and priority bugs. No need for whole-ROM reconstruction
-  tests unless a specific failure requires them.
-- **Beta — Enhanced foundation:** Expose edition/config selection,
+  PPU/mapper priority defects. Compare against original reference mode
+  internally, not as a second public product.
+- **Beta — Enhanced foundation:** Expose optional feature/config selection,
   input remapping and reliable renderer/audio extension interfaces;
   implement enhancements incrementally behind feature flags. Provide
   builds whenever a feature is stable enough to test.
@@ -92,7 +102,7 @@ any Enhanced-specific artifact.
   verified scene-by-scene or with focused natural playtests. Optional
   new moves are **not** prerequisites for a graphics/audio release
   and are tested separately.
-- **Final:** Both editions, supported routes and endings, stable
+- **Final:** One Enhanced edition, supported routes and endings, stable
   controller/sound/video behavior, legal distribution, repeatable
   builds and release documentation.
 
