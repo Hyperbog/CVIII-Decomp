@@ -7,7 +7,7 @@ ROOT=Path(__file__).resolve().parents[2]
 NAMES=("Build-Alpha.ps1","Launch-Alpha.ps1","README_ALPHA.md",
        "Play-CVIII.bat",
        "Debug-Stage-Companion.bat","Capture-QA-0602.ps1",
-       "Build-And-Play.ps1","Build-And-Play.bat")
+       "Build-And-Play.ps1","Build-And-Play.bat","Resolve-Python.ps1")
 def make(out:Path)->dict:
     out=out.resolve()
     if out.suffix.lower()!=".zip":raise ValueError("Require ZIP output")
@@ -35,6 +35,8 @@ def main():
                 assert "Build-And-Play.bat" in kit.namelist()
                 assert "Build-And-Play.ps1" in kit.namelist()
                 assert "Capture-QA-0602.ps1" in kit.namelist()
+                assert "Resolve-Python.ps1" in kit.namelist()
+                assert b"Test-CviiiPython" in kit.read("Resolve-Python.ps1")
                 assert "Play-Original.bat" not in kit.namelist()
                 assert "Play-Enhanced.bat" not in kit.namelist()
                 launcher=kit.read("Play-CVIII.bat")

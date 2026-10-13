@@ -6,6 +6,7 @@ on:
       - "JP/release/alpha/**"
       - "JP/tools/package_alpha_builder_0580.py"
       - "JP/tools/test_alpha_arguments_0604.ps1"
+      - "JP/tools/test_alpha_python_0607.ps1"
       - "JP/tools/jp_password_*0593.py"
       - "JP/tools/jp_asset_pack_0597.py"
       - "JP/tools/jp_asset_runtime_0598.py"
@@ -108,6 +109,17 @@ jobs:
         run: |
           & JP/tools/test_alpha_arguments_0604.ps1
           if ($LASTEXITCODE -ne 0) { throw "Actual native builder argument forwarding failed" }
+      - name: Test actual Python3 discovery and reject Windows Store alias 9009
+        shell: pwsh
+        run: |
+          & JP/tools/test_alpha_python_0607.ps1
+          if ($LASTEXITCODE -ne 0) { throw 'JP0607 Python resolution regression' }
+          $builder = Get-Content -LiteralPath 'JP/release/alpha/Build-Alpha.ps1' -Raw
+          if ($builder -match "Invoke-Checked -Program 'python'" -or
+              $builder -notmatch 'Resolve-CviiiPython' -or
+              $builder -notmatch 'JP/release/alpha/Resolve-Python.ps1') {
+            throw 'Builder bypasses verified Python interpreter'
+          }
       - name: Verify single public Enhanced entry and internal reference isolation
         shell: pwsh
         run: |

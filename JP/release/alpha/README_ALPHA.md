@@ -412,3 +412,28 @@ Stage A-01 analysis and comparison against MesenCE.
 There is still **no** retested retail Stage A-01 screenshot proving a
 graphics fix; ROM-free CI only verifies the observer, bus report,
 private native build, and existing original-frame hash invariants.
+
+## JP0607 - Python not found / Microsoft Store App Execution Alias
+
+The private Windows builder now checks for a **working Python 3.10+
+interpreter**, rather than accepting Windows' built-in python.exe
+Microsoft Store alias as an installed Python. It tries py -3, python,
+and python3, actually executing a tiny validation script for each.
+An alias that exits with 9009 is rejected, with installation guidance.
+
+Official installer: https://www.python.org/downloads/windows/
+Enable the Python launcher or Add Python to PATH. Open a new
+PowerShell window after installation and run:
+
+    py -3 --version
+    python --version
+
+At least one should report a real Python 3.10 or newer. If Windows
+still redirects to the Store, disable python.exe / python3.exe under
+Windows Settings > Apps > Advanced app settings > App execution aliases.
+
+The builder loads the resolver from its freshly updated repository,
+so an older extracted kit can work by replacing just Build-Alpha.ps1
+with the current version. New kit ZIPs and compiled AlphaCandidate
+also package Resolve-Python.ps1 for development QA scripts.
+No ROM, game data or save files need to be deleted.
