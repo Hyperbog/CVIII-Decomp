@@ -54,3 +54,16 @@ Windows picker has a Paste button that populates those controls.
 The next step is wiring clipboard resolution into the actual F10
 checkpoint selector; direct first-use ROM password initialization
 is still unverified.
+
+## JP0595 — F10 password-to-checkpoint resolution
+
+With F10 open, Ctrl+V reads SDL clipboard text containing sixteen
+W/R/H/. marks, validates the original 3-chain scramble leader,
+nine selectors, payload and 8-bit checksum, and resolves a stage
+(0-17) and companion (0 none, 1 Sypha, 2 Grant, 3 Alucard).
+The C decoder updates the F10 cursor, NOT the running game state.
+The name-dependent hash and route partner validity are not checked
+here; the external 0593 Python password picker does check them.
+Enter still requires the selected state to have been captured.
+Direct first-visit stage startup remains unimplemented pending an
+independently replayed original-JP password/stage-init path.

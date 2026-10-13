@@ -84,3 +84,13 @@ password** as well as Copy. Paste a 4x4 grid of W/R/H/. marks;
 the tool checks the original player name, checksum and companion-route
 legality before selecting its stage, companion and difficulty. This
 does not yet type a password into the NES game automatically.
+
+## JP0595 in-game password clipboard shortcut
+
+Open F10 and press Ctrl+V to paste a 4x4 W/R/H/. password grid.
+The ROM-authenticated checksum and stage selector are decoded,
+and the current F10 stage and companion are selected accordingly.
+Press Enter to load the corresponding PREVIOUSLY CAPTURED checkpoint.
+No game CPU RAM, password entry or stage initialization is changed.
+F10 cannot yet start an uncaptured stage; the external Python
+password tool checks the name as well and can help seed it manually.

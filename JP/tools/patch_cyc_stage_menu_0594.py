@@ -34,6 +34,100 @@ static void cviii_stage_path(char *out, size_t size)
     snprintf(out, size, "%s.debug.stage%02u.partner%u.cycstate", base,
              cviii_stage_sel, cviii_partner_ids[cviii_partner_sel]);
 }
+/* JP0595: parse clipboard into *selection*, never mutate game RAM. */
+static unsigned cviii_pwd_pos(unsigned packed)
+{
+    return 4 * (packed >> 4) + (packed & 3);
+}
+static bool cviii_pwd_decode(const char *text, unsigned *stage, unsigned *partner)
+{
+    static const unsigned char chains[3][9] = {
+        {0x00,0x33,0x20,0x13,0x22,0x01,0x11,0x03,0x32},
+        {0x12,0x10,0x02,0x32,0x23,0x13,0x30,0x21,0x01},
+        {0x31,0x13,0x01,0x22,0x10,0x30,0x33,0x03,0x21}
+    };
+    static const unsigned char selectors[9] = {
+        0x01,0x1B,0x02,0x35,0x19,0x03,0x37,0x1A,0x36
+    };
+    unsigned char grid[16] = {0};
+    unsigned count = 0;
+    if (!text || !stage || !partner) return false;
+    for (const char *p = text; *p; ++p) {
+        unsigned char ch = (unsigned char)*p;
+        if (ch == ' ' || ch == '\n' || ch == '\r' || ch == '\t' ||
+            ch == ',' || ch == ';' || ch == '|') continue;
+        if (ch >= 'a' && ch <= 'z') ch = (unsigned char)(ch - 32);
+        unsigned val;
+        if (ch == '.') val = 0;
+        else if (ch == 'W') val = 1;
+        else if (ch == 'R') val = 2;
+        else if (ch == 'H') val = 3;
+        else return false;
+        if (count >= 16) return false;
+        grid[count++] = (unsigned char)val;
+    }
+    if (count != 16) return false;
+    int chain = -1;
+    for (int i = 0; i < 3; ++i)
+        if (grid[cviii_pwd_pos(chains[i][0])]) {
+            if (chain != -1) return false;
+            chain = i;
+        }
+    if (chain < 0) return false;
+    for (unsigned i = 0; i < 16; ++i) {
+        if (!grid[i]) continue;
+        bool used = false;
+        for (int j = 0; j < 9; ++j)
+            if (cviii_pwd_pos(chains[chain][j]) == i) used = true;
+        if (!used) return false;
+    }
+    unsigned first = chains[chain][0];
+    unsigned selector = (first & 0x30) | ((first & 3) << 2)
+        | grid[cviii_pwd_pos(first)];
+    int pair = -1;
+    for (int i = 0; i < 9; ++i)
+        if (selectors[i] == selector) pair = i;
+    if (pair < 0) return false;
+    unsigned payload = 0, digest = 0;
+    for (int i = 1; i < 9; ++i) {
+        unsigned v = grid[cviii_pwd_pos(chains[chain][i])];
+        payload |= ((v >> 1) & 1) << (i - 1);
+        digest |= (v & 1) << (i - 1);
+    }
+    unsigned checkpoint = 2u * (unsigned)pair + ((payload >> 4) & 1);
+    unsigned mask = (payload & 8) ? 0xAA : 0x55;
+    unsigned changed = payload ^ mask;
+    unsigned sum = ((((payload >> 4) + (payload & 15)) & 15) << 4)
+        | (((changed >> 4) + (changed & 15)) & 15);
+    if (checkpoint >= 18 || ((checkpoint + sum) & 255) != digest)
+        return false;
+    unsigned part = (payload >> 1) & 3;
+    unsigned ui = 0;
+    for (unsigned i = 0; i < 4; ++i)
+        if (cviii_partner_ids[i] == part) ui = i;
+    *stage = checkpoint;
+    *partner = ui;
+    return true;
+}
+static void cviii_pwd_paste(void)
+{
+    char *clipboard = SDL_GetClipboardText();
+    unsigned stage, partner;
+    bool ok = cviii_pwd_decode(clipboard, &stage, &partner);
+    SDL_free(clipboard);
+    if (!ok) {
+        snprintf(cviii_stage_status, sizeof(cviii_stage_status),
+                 "PASSWORD GRID / CHECKSUM INVALID");
+        note("PASSWORD REJECTED", "Need sixteen W/R/H/. marks");
+        return;
+    }
+    cviii_stage_sel = stage;
+    cviii_partner_sel = partner;
+    snprintf(cviii_stage_status, sizeof(cviii_stage_status),
+             "PASSWORD SELECTED (SAVED WARP)");
+    note("PASSWORD DECODED", "Enter loads checkpoint; no RAM changes");
+}
+
 static bool cviii_stage_key(const SDL_KeyboardEvent *key)
 {
     SDL_Scancode sc = key->keysym.scancode;
@@ -46,6 +140,10 @@ static bool cviii_stage_key(const SDL_KeyboardEvent *key)
         return true;
     }
     if (!cviii_stage_open) return false;
+    if (sc == SDL_SCANCODE_V && (key->keysym.mod & KMOD_CTRL)) {
+        cviii_pwd_paste();
+        return true;
+    }
     if (sc == SDL_SCANCODE_ESCAPE) { cviii_stage_open = false; return true; }
     if (sc == SDL_SCANCODE_UP) cviii_stage_sel = (cviii_stage_sel + 17) % 18;
     else if (sc == SDL_SCANCODE_DOWN) cviii_stage_sel = (cviii_stage_sel + 1) % 18;
@@ -108,9 +206,10 @@ static void cviii_stage_draw(void)
     cviii_stage_print(14, 160, partner);
     cviii_stage_print(14, 177, "ENTER = WARP TO SAVED CHECKPOINT");
     cviii_stage_print(14, 188, "F5 = CAPTURE CURRENT GAME HERE");
-    cviii_stage_print(14, 199, "ESC = CLOSE / KEEP PLAYING");
+    cviii_stage_print(14, 199, "CTRL+V = SELECT FROM PASSWORD");
+    cviii_stage_print(14, 210, "ESC = CLOSE / KEEP PLAYING");
     SDL_SetRenderDrawColor(s_ren, 238, 190, 88, 255);
-    cviii_stage_print(14, 217, cviii_stage_status);
+    cviii_stage_print(14, 222, cviii_stage_status);
     SDL_SetRenderDrawBlendMode(s_ren, SDL_BLENDMODE_NONE);
 }
 '''
@@ -155,6 +254,8 @@ def smoke() -> None:
     assert patched.count(MARKER) == 1
     assert "load_state_from(path, err, sizeof(err))" in patched
     assert "cviii_stage_draw();" in patched
+    assert "cviii_pwd_paste();" in patched
+    assert "SDL_GetClipboardText()" in patched
     for bad in (patched, stub.replace(KEY, "/* source changed */")):
         try: generate(bad)
         except ValueError: continue
