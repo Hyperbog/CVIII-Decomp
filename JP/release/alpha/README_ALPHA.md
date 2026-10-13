@@ -280,3 +280,45 @@ comparisons and original PPU fingerprints **do not establish independent
 cache-backed sprite/background framebuffer parity**. Enhanced still renders
 using the original PPU except for separately opted-in experimental effects.
 This diagnostic milestone does not increase strict PRG/VPP semantic coverage.
+
+
+## JP0602 — Private owner-only scene QA matrix
+
+The JP0600/0601 frame/fetch observations are now collected without
+overwriting earlier scenes. Use the new **Capture-QA-0602.ps1** in the
+private AlphaCandidate directory:
+
+    .\Capture-QA-0602.ps1 -Rom "C:\Games\Akumajou Densetsu (Japan).nes" -Scene village-entry -Area village -Character Trevor -Kind gameplay -Checkpoint 1-01
+
+This starts the real Japanese native game with Enhanced mode's **stock
+NES PPU presentation** and the read-only CHR diagnostics. Play the
+declared scene and close the game. A distinct folder under local QA/
+retains the five evidence CSV/JSON files and an authenticated
+capture.json including the owner's ROM fingerprint, current native
+EXE/CHR-index hashes and each evidence file's SHA256. Nothing is
+automatically uploaded. **Scene/stage labels are user-supplied
+annotations, not independent proof of which level was entered.**
+
+Other suggested -Area values: title, clock_tower, forest, ship,
+castle, boss and companion; set -Character to Trevor, Sypha, Grant
+or Alucard where appropriate. Capture at least 10 sampled frames
+per scene (about 600 emulated frames); one out of 60 frames is
+instrumented. A shorter capture is retained but reported as shallow.
+
+Then aggregate all local sessions:
+
+    python .\jp_qa_matrix_0602.py --root .\QA --json .\QA\CVIII-QA-Matrix.json
+
+Or pass --require-coverage to ask the checker to fail until all eight
+target scene areas have sufficiently sampled trace evidence.
+The checker verifies source-ROM declaration, per-file hashes, all
+JP0600/0601 original PPU and physical-read count consistency and
+stage/character scene coverage. Corrupt captures fail closed.
+Different native executable fingerprints are reported, not silently
+treated as same-build deterministic comparisons.
+
+**Still not proven:** The actual retail Japanese game has not been
+sampled across these routes here. Source CHR-byte matches and
+original-PPU fingerprints do not demonstrate independent cached
+renderer parity. Original's renderer, gameplay and F10 controls are
+unchanged; Universal NES Studio remains future work.

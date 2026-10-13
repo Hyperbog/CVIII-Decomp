@@ -4,7 +4,8 @@ param(
  [string]$Rom='',
  [ValidateSet('Original','Enhanced')][string]$Edition='Original',
  [switch]$UnlimitedSprites,
- [switch]$ChrAudit
+ [switch]$ChrAudit,
+ [string]$AuditOutDir=''
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
@@ -36,6 +37,9 @@ $sprites=if ($Edition -eq 'Enhanced' -and $UnlimitedSprites) {'1'} else {'0'}
 Write-Host "CVIII Alpha 0.2 $Edition (experimental extra-OAM sprites: $sprites)"
 Write-Host 'Controls: arrows=D-pad, Z=A, X=B, Enter=Start, Backslash=Select.'
 Write-Host 'F8/F9 save/load; builds supporting slots use Ctrl+0..9.'
+if ($AuditOutDir -and -not $ChrAudit) { throw '-AuditOutDir requires -ChrAudit' }
+$auditBase=if ($AuditOutDir) { [IO.Path]::GetFullPath($AuditOutDir) } else { $PSScriptRoot }
+if ($ChrAudit) { [IO.Directory]::CreateDirectory($auditBase) | Out-Null }
 Push-Location $PSScriptRoot
 try {
  $gameArgs=@($romPath,'--edition',$Edition.ToLowerInvariant(),'--unlimited-sprites',$sprites)
@@ -47,11 +51,11 @@ try {
    $gameArgs+=@('--asset-index',$assetIndex)
    Write-Host 'Loading authenticated read-only CHR asset index (no rendering changes).'
    if ($ChrAudit) {
-    $chrAuditPath=Join-Path $PSScriptRoot 'CVIII-CHR-Audit.csv'
+    $chrAuditPath=Join-Path $auditBase 'CVIII-CHR-Audit.csv'
     $gameArgs+=@('--chr-audit',$chrAuditPath)
-    $fetchAuditPath=Join-Path $PSScriptRoot 'CVIII-CHR-Fetch.csv'
+    $fetchAuditPath=Join-Path $auditBase 'CVIII-CHR-Fetch.csv'
     $gameArgs+=@('--chr-fetch-audit',$fetchAuditPath)
-    $frameEvidencePath=Join-Path $PSScriptRoot 'CVIII-Frame-Evidence.csv'
+    $frameEvidencePath=Join-Path $auditBase 'CVIII-Frame-Evidence.csv'
     $gameArgs+=@('--frame-evidence',$frameEvidencePath)
     Write-Host ('Recording original PPU fingerprints: '+$frameEvidencePath)
     Write-Host ('Recording sampled VRC6 mappings: '+$chrAuditPath)
@@ -66,7 +70,7 @@ try {
  if ($LASTEXITCODE -ne 0) {throw "Native game exited with $LASTEXITCODE"}
  if ($ChrAudit -and (Test-Path -LiteralPath $fetchAuditPath)) {
   $summaryTool=Join-Path $PSScriptRoot 'jp_chr_fetch_report_0600.py'
-  $summaryJson=Join-Path $PSScriptRoot 'CVIII-CHR-Fetch.json'
+  $summaryJson=Join-Path $auditBase 'CVIII-CHR-Fetch.json'
   if (Test-Path -LiteralPath $summaryTool) {
    & python $summaryTool --csv $fetchAuditPath --json $summaryJson
    if ($LASTEXITCODE -ne 0) { throw 'Invalid JP0600 CHR fetch CSV' }
@@ -77,7 +81,7 @@ try {
    Write-Host ('Local CHR analysis: '+$summaryJson)
   }
   $frameTool=Join-Path $PSScriptRoot 'jp_frame_evidence_report_0601.py'
-  $frameJson=Join-Path $PSScriptRoot 'CVIII-Frame-Evidence.json'
+  $frameJson=Join-Path $auditBase 'CVIII-Frame-Evidence.json'
   if ((Test-Path -LiteralPath $frameTool) -and
       (Test-Path -LiteralPath $frameEvidencePath)) {
    & python $frameTool --fetch $fetchAuditPath --evidence $frameEvidencePath --json $frameJson --require-parity

@@ -86,12 +86,12 @@ if (-not (Test-Path -LiteralPath $notes)) {
  $notes=Join-Path $repoPath 'JP/release/alpha/README_ALPHA.md'
 }
 Copy-Item -LiteralPath $notes -Destination $stage -Force
-foreach ($name in @('Play-Original.bat','Play-Enhanced.bat','Play-Alpha.bat','Debug-Stage-Companion.bat')) {
+foreach ($name in @('Play-Original.bat','Play-Enhanced.bat','Play-Alpha.bat','Debug-Stage-Companion.bat','Capture-QA-0602.ps1')) {
  $src=Join-Path $repoPath ('JP/release/alpha/'+$name)
  if (-not (Test-Path -LiteralPath $src)) {throw "Missing alpha launcher: $src"}
  Copy-Item -LiteralPath $src -Destination $stage -Force
 }
-foreach ($name in @('jp_password_stage_0593.py','jp_password_debug_menu_0593.py','jp_asset_pack_0597.py','jp_asset_runtime_0598.py','jp_chr_fetch_report_0600.py','jp_frame_evidence_report_0601.py')) {
+foreach ($name in @('jp_password_stage_0593.py','jp_password_debug_menu_0593.py','jp_asset_pack_0597.py','jp_asset_runtime_0598.py','jp_chr_fetch_report_0600.py','jp_frame_evidence_report_0601.py','jp_qa_matrix_0602.py')) {
  $src=Join-Path $repoPath ('JP/tools/'+$name)
  if (-not (Test-Path -LiteralPath $src)) {throw "Missing debug password helper: $src"}
  Copy-Item -LiteralPath $src -Destination $stage -Force
@@ -130,6 +130,8 @@ $manifest=[ordered]@{
  asset_chr_index_sha256=(Get-FileHash -LiteralPath $assetIndex -Algorithm SHA256).Hash.ToLowerInvariant()
  enhanced_can_read_chr_index=$true
  enhanced_uses_chr_index_for_rendering=$false
+ jp0602_owner_local_scene_qa=$true
+ jp0602_renderer_parity_certified=$false
 }
 $manifest | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $stage 'ALPHA_BUILD.json') -Encoding UTF8
 # Local private ZIP includes game-derived compiled instructions. Do not upload to CI.

@@ -14,3 +14,7 @@ CVIII-CHR-Fetch.json
 # JP0601 owner-local synchronized PPU frame evidence
 CVIII-Frame-Evidence.csv
 CVIII-Frame-Evidence.json
+
+# JP0602 private live scene QA captures and summary (not distributable)
+QA/
+CVIII-QA-Matrix.json
