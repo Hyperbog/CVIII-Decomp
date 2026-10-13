@@ -10,6 +10,8 @@ on:
       - "JP/native/enhanced/**"
       - "JP/tools/patch_cyc_savestates_0591.py"
       - "JP/tools/patch_cyc_chr_fetch_0600.py"
+      - "JP/tools/patch_cyc_ppu_nt_0606.py"
+      - "JP/tools/jp_nt_trace_report_0606.py"
       - "JP/tools/jp_chr_fetch_report_0600.py"
       - "JP/tools/jp_frame_evidence_report_0601.py"
       - "JP/tools/jp_qa_matrix_0602.py"
@@ -54,7 +56,7 @@ jobs:
         run: |
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
             -I _external_nesrecomp/runner/cyc \
-            JP/native/enhanced/cviii_edition.c JP/native/enhanced/cviii_chr_index_0598.c JP/native/enhanced/cviii_chr_audit_0599.c JP/native/enhanced/cviii_chr_fetch_0600.c JP/native/enhanced/cviii_frame_evidence_0601.c JP/native/enhanced/test_cviii_edition.c \
+            JP/native/enhanced/cviii_edition.c JP/native/enhanced/cviii_chr_index_0598.c JP/native/enhanced/cviii_chr_audit_0599.c JP/native/enhanced/cviii_chr_fetch_0600.c JP/native/enhanced/cviii_frame_evidence_0601.c JP/native/enhanced/cviii_nt_trace_0606.c JP/native/enhanced/test_cviii_edition.c \
             -o "${{ runner.temp }}/test_cviii_edition"
           "${{ runner.temp }}/test_cviii_edition"
       - name: Verify VRC6 CHR register mapping modes and physical offsets (ROM-free)
@@ -67,6 +69,8 @@ jobs:
       - name: Validate read-only PPU fetch patch and synthetic bank-timeline parser
         run: |
           python3 JP/tools/patch_cyc_chr_fetch_0600.py --smoke
+          python3 JP/tools/patch_cyc_ppu_nt_0606.py --smoke
+          python3 JP/tools/jp_nt_trace_report_0606.py --smoke
           python3 JP/tools/jp_chr_fetch_report_0600.py --smoke
           python3 JP/tools/jp_frame_evidence_report_0601.py --smoke
           python3 JP/tools/jp_mapper_audit_0602.py --smoke
@@ -81,6 +85,10 @@ jobs:
             JP/native/enhanced/cviii_frame_evidence_test_0601.c \
             -o "${{ runner.temp }}/test_frame_evidence_0601"
           "${{ runner.temp }}/test_frame_evidence_0601"
+      - name: Verify real PPU nametable fetch counters on invented bus data
+        run: |
+          cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic             JP/native/enhanced/cviii_nt_trace_0606.c             JP/native/enhanced/cviii_nt_trace_test_0606.c             -o "${{ runner.temp }}/test_nt_trace_0606"
+          "${{ runner.temp }}/test_nt_trace_0606"
       - name: Generate noncommercial synthetic mapper24 VRC6 ROM
         run: python3 JP/tools/test_cycle_synthetic_rom_0569.py --out "${{ runner.temp }}/jp_mapper24_fixture.nes"
       - name: Configure CVIII external C11 cycle wrapper with exact synthetic fixture

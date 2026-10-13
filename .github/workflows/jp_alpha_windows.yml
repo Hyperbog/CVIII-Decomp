@@ -12,6 +12,8 @@ on:
       - "JP/tools/patch_cyc_stage_menu_0594.py"
       - "JP/tools/patch_cyc_stage_bootstrap_0596.py"
       - "JP/tools/patch_cyc_chr_fetch_0600.py"
+      - "JP/tools/patch_cyc_ppu_nt_0606.py"
+      - "JP/tools/jp_nt_trace_report_0606.py"
       - "JP/tools/jp_chr_fetch_report_0600.py"
       - "JP/tools/jp_frame_evidence_report_0601.py"
       - "JP/tools/jp_qa_matrix_0602.py"
@@ -65,6 +67,10 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "F10 password bootstrap patch test failed" }
           python JP/tools/patch_cyc_chr_fetch_0600.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "PPU CHR observer anchor test failed" }
+          python JP/tools/patch_cyc_ppu_nt_0606.py --smoke
+          if ($LASTEXITCODE -ne 0) { throw "JP0606 PPU nametable observer contract failed" }
+          python JP/tools/jp_nt_trace_report_0606.py --smoke
+          if ($LASTEXITCODE -ne 0) { throw "JP0606 background bus report test failed" }
           python JP/tools/jp_chr_fetch_report_0600.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "Private PPU CHR CSV report parser test failed" }
           python JP/tools/jp_frame_evidence_report_0601.py --smoke
@@ -164,6 +170,13 @@ jobs:
           if (!(Test-Path $test)) { throw 'JP0601 PPU evidence test missing' }
           & $test
           if ($LASTEXITCODE -ne 0) { throw 'JP0601 PPU evidence contract failed' }
+      - name: Verify original PPU nametable / attribute fetch observer
+        shell: pwsh
+        run: |
+          $test = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win/Release/jp_nt_trace_test_0606.exe'
+          if (!(Test-Path -LiteralPath $test)) { throw "JP0606 PPU background test missing" }
+          & $test
+          if ($LASTEXITCODE -ne 0) { throw "JP0606 original PPU background fetch test failed" }
       - name: Run bounded native C11 synthetic test with actual windowed-linked binary
         shell: pwsh
         run: |

@@ -384,3 +384,31 @@ use the newest ROM-free Alpha Builder Kit. Extract/replace its
 Re-running the builder is safe: the original ROM stays unchanged and
 any existing private `CVIII-Alpha` output is reused or refreshed.
 Do not reinstall Git or download an SDL2.dll from an unrelated site.
+
+## JP0606 — Stage A-01 shared PPU background corruption investigation
+
+The first JP0606 slice adds **read-only actual nametable and attribute
+bus read tracing**, not a speculative rendering change. The pinned
+NESRecomp VRC6a mapper's common `$B003 = $20/$24/$28/$2C`
+mirroring logic is consistent with NESdev's documented mode-0
+behavior, so no hardware mapping is modified without gameplay
+evidence. The shared Stage A-01 pixel corruption remains an open
+defect in both reference/Enhanced rendering paths.
+
+Rebuild the private native Enhanced candidate and launch Stage A-01 with
+`Capture-QA-0602.ps1`. The captured scene folder contains an extra
+`CVIII-NT-Fetch.csv` and `CVIII-NT-Fetch.json` in addition to the
+preexisting QA-matrix evidence. Every sixtieth emulated frame the new
+hook observes actual PPU nametable tile and attribute bytes, their
+nametable/CIRAM-versus-cartridge source, timing and per-scanline hash.
+The report checks that these samples align with the original PPU
+frame fingerprints. Explicit empty samples represent frames with
+rendering disabled during title transitions.
+
+These extra JP0606 files do not alter the v1 QA manifest's expected
+five files, preserving backward compatibility with older owner
+captures. They remain in the same private scene directory for targeted
+Stage A-01 analysis and comparison against MesenCE.
+There is still **no** retested retail Stage A-01 screenshot proving a
+graphics fix; ROM-free CI only verifies the observer, bus report,
+private native build, and existing original-frame hash invariants.

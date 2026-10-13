@@ -97,6 +97,17 @@ try {
    Write-Host ('Original PPU sampled frames: '+$report.sampled_original_ppu_frames)
    Write-Host ('Validated paired fetches: '+$report.pattern_fetches)
    Write-Host ('Local PPU frame-evidence report: '+$frameJson)
+   $ntTool=Join-Path $PSScriptRoot 'jp_nt_trace_report_0606.py'
+   if ((Test-Path -LiteralPath $ntTool) -and (Test-Path -LiteralPath $ntAuditPath)) {
+    $ntJson=Join-Path $auditBase 'CVIII-NT-Fetch.json'
+    & python $ntTool --csv $ntAuditPath --evidence $frameEvidencePath --json $ntJson
+    if ($LASTEXITCODE -ne 0) { throw 'JP0606 PPU nametable and frame evidence disagree' }
+    $ntSummary=Get-Content -LiteralPath $ntJson -Raw | ConvertFrom-Json
+    Write-Host ('JP0606 tile fetches: '+$ntSummary.tile_reads+', attribute fetches: '+$ntSummary.attribute_reads)
+    Write-Host ('JP0606 CIRAM fetches: '+$ntSummary.ciram_reads+', CHR-ROM NT fetches: '+$ntSummary.chrrom_reads)
+    if (-not $ntSummary.no_invalid_bus_records) { Write-Warning 'JP0606 reported invalid nametable bus records' }
+    Write-Host ('Local nametable fetch report: '+$ntJson)
+   }
   }
  }
 } finally {Pop-Location}
