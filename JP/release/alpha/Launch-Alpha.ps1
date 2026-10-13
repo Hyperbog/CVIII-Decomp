@@ -29,9 +29,13 @@ $game=Join-Path $PSScriptRoot 'jp_akumajou_densetsu.exe'
 if (-not (Test-Path -LiteralPath $game)) {
  $game=Join-Path $PSScriptRoot 'CVIII_Alpha.exe'
 }
-if (-not (Test-Path -LiteralPath $game) -or
-    -not (Test-Path -LiteralPath (Join-Path $PSScriptRoot 'SDL2.dll'))) {
- throw 'Missing native Windows game executable or SDL2.dll.'
+$dll=Join-Path $PSScriptRoot 'SDL2.dll'
+if (-not (Test-Path -LiteralPath $game) -or -not (Test-Path -LiteralPath $dll)) {
+ throw ('The folder contains the ROM-free build kit, not the compiled private game. '+
+        'Run Build-And-Play.bat from the extracted kit to compile with your original JP ROM. '+
+        'The game EXE and SDL2.dll will be created together under '+
+        (Join-Path $env:USERPROFILE 'CVIII-Alpha\AlphaCandidate')+
+        '. Do not download an unrelated SDL2.dll.')
 }
 $sprites=if ($Edition -eq 'Enhanced' -and $UnlimitedSprites) {'1'} else {'0'}
 Write-Host "CVIII Alpha 0.2 $Edition (experimental extra-OAM sprites: $sprites)"

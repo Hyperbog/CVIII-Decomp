@@ -4,6 +4,34 @@ Version 0.2.0-alpha.1. The original C11 Windows Alpha 0.1 was
 owner-tested through Stage 4-0A, including Sypha and character switching.
 The NEW experimental extra-sprite Enhanced renderer requires owner QA.
 
+## First-run setup — JP0603
+
+The public ZIP contains **only a ROM-free build kit**. It is NOT a
+playable game download: there is deliberately no game EXE or SDL2.dll.
+Extract the entire ZIP to a writable folder and double-click
+**Build-And-Play.bat**. Select the unmodified original Japanese
+Akumajou Densetsu .nes ROM in the file picker. After the initial private
+C11/SDL2 Windows compilation, the original game will launch.
+
+You can also double-click **Play-Original.bat** or **Play-Enhanced.bat**
+directly; if this is the public kit rather than a private compiled
+candidate, they invoke the same first-run builder automatically.
+The setup validates the exact Japanese ROM and looks for Git, CMake,
+Python and Visual Studio 2022 MSVC x64 tools before building.
+It creates the private executable and SDL2.dll side by side at:
+
+    %USERPROFILE%\CVIII-Alpha\AlphaCandidate\
+
+The original game is compiled ONLY on your own Windows PC, not in
+GitHub CI or in the public downloaded kit. Build logs live under
+`%USERPROFILE%\CVIII-Alpha\logs\`. Once compiled, subsequent
+launches reuse the private result without rebuilding (unless you run
+`Build-And-Play.ps1 -Rebuild`). The kit never downloads a DLL from
+an unrelated site. See the FIRST failing build-log entry if setup
+does not complete.
+
+Manual alternative:
+
 Build privately on Windows (CMake, Visual Studio, Git, Python and the
 unmodified original Japanese Akumajou Densetsu ROM required):
 

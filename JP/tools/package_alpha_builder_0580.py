@@ -6,7 +6,8 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 NAMES=("Build-Alpha.ps1","Launch-Alpha.ps1","README_ALPHA.md",
        "Play-Alpha.bat","Play-Original.bat","Play-Enhanced.bat",
-       "Debug-Stage-Companion.bat")
+       "Debug-Stage-Companion.bat","Capture-QA-0602.ps1",
+       "Build-And-Play.ps1","Build-And-Play.bat")
 def make(out:Path)->dict:
     out=out.resolve()
     if out.suffix.lower()!=".zip":raise ValueError("Require ZIP output")
@@ -30,7 +31,14 @@ def main():
         with tempfile.TemporaryDirectory(prefix="jp0580-") as temp:
             report=make(Path(temp)/"kit.zip")
             assert not report["includes_game_binary"]
-            print("PASS ROM-free alpha builder ZIP contract")
+            with zipfile.ZipFile(report["path"]) as kit:
+                assert "Build-And-Play.bat" in kit.namelist()
+                assert "Build-And-Play.ps1" in kit.namelist()
+                assert "Capture-QA-0602.ps1" in kit.namelist()
+                launcher=kit.read("Play-Original.bat")
+                assert b"Build-And-Play.ps1" in launcher
+                assert not any(name.lower().endswith((".exe",".nes",".dll")) for name in kit.namelist())
+            print("PASS first-run build-and-play ROM-free alpha kit contract")
     elif a.out:print(json.dumps(make(a.out),sort_keys=True))
     else:p.error("--smoke or --out is required")
 if __name__=="__main__":main()

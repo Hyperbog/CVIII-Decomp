@@ -81,6 +81,21 @@ jobs:
             [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path -LiteralPath $file).Path,[ref]$tokens,[ref]$parseErrors) | Out-Null
             if ($parseErrors.Count -gt 0) { throw ("PowerShell syntax check failed: " + $file + ": " + ($parseErrors | Out-String)) }
           }
+      - name: Validate JP0603 ROM-free first-run builder and launcher contract
+        shell: pwsh
+        run: |
+          python JP/tools/package_alpha_builder_0580.py --smoke
+          if ($LASTEXITCODE -ne 0) { throw "ROM-free first-run build kit test failed" }
+          foreach ($file in @('JP/release/alpha/Build-And-Play.ps1','JP/release/alpha/Build-Alpha.ps1','JP/release/alpha/Launch-Alpha.ps1')) {
+            $tokens = $null
+            $errs = $null
+            [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $file).Path,[ref]$tokens,[ref]$errs) | Out-Null
+            if ($errs.Count -ne 0) { throw ("PowerShell syntax error: "+$file+": "+($errs | Out-String)) }
+          }
+          $source = Get-Content -LiteralPath 'JP/release/alpha/Build-And-Play.ps1' -Raw
+          if ($source -notmatch 'Get-FileHash' -or $source -notmatch 'Test-PrivateGame' -or $source -notmatch 'Build-Alpha.ps1') {
+            throw "Missing first-run original-ROM authentication and build fallback"
+          }
       - name: Compile SDL2 windowed C11 alpha target
         shell: pwsh
         run: |

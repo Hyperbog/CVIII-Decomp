@@ -1,4 +1,4 @@
 @echo off
 cd /d "%~dp0"
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0Launch-Alpha.ps1" -Edition Original
+powershell.exe -NoProfile -STA -ExecutionPolicy Bypass -File "%~dp0Build-And-Play.ps1" -Edition Original
 if errorlevel 1 pause

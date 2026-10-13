@@ -76,17 +76,15 @@ $assetIndex=Join-Path $stage 'CVIII-CHR-Index.dat'
 Invoke-Checked 'python' @($assetIndexTool,'--export','--assets',$assetPack,'--out',$assetIndex)
 if (-not (Test-Path -LiteralPath $assetIndex)) { throw 'CHR index export missing' }
 
-$launch=Join-Path $PSScriptRoot 'Launch-Alpha.ps1'
-if (-not (Test-Path -LiteralPath $launch)) {
- $launch=Join-Path $repoPath 'JP/release/alpha/Launch-Alpha.ps1'
-}
+# Always package the just-synchronized repo launcher; older kits must not
+# overwrite the current build's CLI with an obsolete copy.
+$launch=Join-Path $repoPath 'JP/release/alpha/Launch-Alpha.ps1'
+if (-not (Test-Path -LiteralPath $launch)) { throw 'Current repo launcher missing' }
 Copy-Item -LiteralPath $launch -Destination $stage -Force
-$notes=Join-Path $PSScriptRoot 'README_ALPHA.md'
-if (-not (Test-Path -LiteralPath $notes)) {
- $notes=Join-Path $repoPath 'JP/release/alpha/README_ALPHA.md'
-}
+$notes=Join-Path $repoPath 'JP/release/alpha/README_ALPHA.md'
+if (-not (Test-Path -LiteralPath $notes)) { throw 'Current repo README missing' }
 Copy-Item -LiteralPath $notes -Destination $stage -Force
-foreach ($name in @('Play-Original.bat','Play-Enhanced.bat','Play-Alpha.bat','Debug-Stage-Companion.bat','Capture-QA-0602.ps1')) {
+foreach ($name in @('Play-Original.bat','Play-Enhanced.bat','Play-Alpha.bat','Debug-Stage-Companion.bat','Capture-QA-0602.ps1','Build-And-Play.ps1','Build-And-Play.bat')) {
  $src=Join-Path $repoPath ('JP/release/alpha/'+$name)
  if (-not (Test-Path -LiteralPath $src)) {throw "Missing alpha launcher: $src"}
  Copy-Item -LiteralPath $src -Destination $stage -Force
