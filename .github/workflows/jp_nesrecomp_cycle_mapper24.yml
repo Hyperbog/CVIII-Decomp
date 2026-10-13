@@ -105,6 +105,7 @@ jobs:
           cmake -S JP/native/nesrecomp_cycle \
             -B "${{ runner.temp }}/jp-vrc6-window" -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
+            -DSDL2_DIR=/usr/lib/x86_64-linux-gnu/cmake/SDL2 \
             -DJP_ORIGINAL_JP_ROM="${{ runner.temp }}/jp_mapper24_fixture.nes" \
             -DNESRECOMP_EXTERNAL_ROOT="$PWD/_external_nesrecomp" \
             -DJP_CYCLE_SYNTHETIC_MEDIA=ON \
