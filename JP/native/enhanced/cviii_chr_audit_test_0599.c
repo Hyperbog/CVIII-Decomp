@@ -45,13 +45,15 @@ int main(void)
     probe(0x21,regs,mode1_pairs);
     probe(0x22,regs,mode2_pairs);
     probe(0x23,regs,mode2_pairs);
-    unsigned wrong[8]={2,4,6,8,10,11,12,13};
+    /* Snapshot offsets are physical BYTE offsets, not bank IDs. */
+    unsigned wrong[8]={2*1024,4*1024,6*1024,8*1024,
+                       10*1024,11*1024,12*1024,13*1024};
     FILE *f=make(0x22,regs,wrong);
     CviiiChrBanks b;
     assert(cviii_chr_banks_read(f,&b));
     assert(cviii_chr_banks_check(&b)); /* this one is actually correct */
     fclose(f);
-    wrong[4] = 12;
+    wrong[4] = 12*1024;
     f=make(0x22,regs,wrong);
     assert(cviii_chr_banks_read(f,&b));
     assert(!cviii_chr_banks_check(&b));
