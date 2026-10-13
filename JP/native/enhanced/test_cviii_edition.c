@@ -31,12 +31,12 @@ int main(void) {
     assert(e->option_count == 2);
     int w=0,h=0;
     e->power_on(e->ctx);
-    assert(!capture_enabled);
+    assert(capture_enabled);
     assert(e->present(e->ctx,&w,&h)==native && w==256 && h==240);
     assert(!compose_calls && !bg_reads);
     assert(e->option(e->ctx,"--unlimited-sprites","1"));
     e->power_on(e->ctx);
-    assert(!capture_enabled);
+    assert(capture_enabled);
     assert(e->present(e->ctx,&w,&h)==native);
     assert(e->option(e->ctx,"--edition","enhanced"));
     assert(!e->option(e->ctx,"--edition","unknown"));
@@ -47,7 +47,7 @@ int main(void) {
     assert(compose_calls==1 && bg_reads==1);
     e->load_setting(e->ctx,"UnlimitedSprites","0");
     e->power_on(e->ctx);
-    assert(!capture_enabled && e->present(e->ctx,&w,&h)==native);
+    assert(capture_enabled && e->present(e->ctx,&w,&h)==native);
     e->load_setting(e->ctx,"Edition","Original");
     assert(e->present(e->ctx,&w,&h)==native);
     FILE *f=tmpfile();assert(f);e->save_settings(e->ctx,f);rewind(f);

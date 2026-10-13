@@ -74,11 +74,20 @@ static bool option(void *context, const char *name, const char *value)
 static void power_on(void *context)
 {
     CviiiEdition *settings = (CviiiEdition *)context;
-    /* Capture background only in the opt-in enhanced renderer.
-     * Original PPU sprite evaluation and CPU-visible $2002 remain unchanged.
-     * Do not reenable capture in frame_begin: that resets capture every call.
+    /* Both editions must serialize the SAME optional presentation-state
+     * schema. NESRecomp registers the 'cyc.background' savestate hook ONLY
+     * while capture is enabled. Disabling it in Original makes Original
+     * snapshots incompatible with Enhanced snapshots, even though CPU/PPU
+     * machine state is otherwise identical.
+     *
+     * Always capture the presentation-only background history so load-state
+     * validation sees a stable auxiliary schema. Original still returns
+     * untouched hardware pixels in present(), without sprite recomposition.
+     * The capture does NOT affect sprite-0, overflow, IRQ, DMA or CPU state.
+     * Do not recapture in frame_begin: that clears the saved history.
      */
-    cyc_render_capture_background(settings->enhanced && settings->sprite_unlimited);
+    (void)settings;
+    cyc_render_capture_background(true);
 }
 
 static const uint32_t *present(void *context, int *width, int *height)

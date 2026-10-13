@@ -46,3 +46,21 @@ and real owner user-interface playtest are a separate release gate;
 this phase is not advertised as a new playable Alpha package yet.
 Do not run full ROM reconstruction for this host-only change.
 No VPP, PRG or decompilation score changes.
+
+## Fix 0591a — stable presentation state across editions
+
+The initial cross-edition replay gate correctly caught a genuine
+incompatibility: the pinned NESRecomp compositor registers a
+`cyc.background` save section only while background capture is enabled.
+An Original-mode state had an empty section, while Enhanced expected
+a full captured-frame payload and rejected load atomically.
+
+`native/enhanced/cviii_edition.c` now enables **presentation-only**
+background capture in both editions to stabilize the registered
+snapshot schema, while `present()` still returns the authentic
+PPU frame without compositing in Original. The extra capture is not
+gameplay or CPU/PPU/IRQ state. Enhanced still requires explicit opt-in
+for the 64-OAM presentation pass. CI tests Original save → Enhanced
+load with identical continuation hashes and the windowed SDL slot host
+remains the same. This does not claim save compatibility across
+different recompilation *versions*.

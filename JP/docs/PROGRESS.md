@@ -601,3 +601,7 @@ User-confirmed Windows native C11 progression now reaches **Stage 4-0A**, with *
 ## 0591 — shared Original/Enhanced complete-machine save states with 10 slots
 
 [0591 save-slot design and implementation](../analysis/0591_SHARED_ORIGINAL_ENHANCED_SAVESTATES.md) extends NESRecomp's existing F8/F9 **whole-machine** quick-save path through a private-build SDL host overlay: **Ctrl+0–9 selects a slot**, F8 saves/F9 loads, with on-screen toasts. Slot0 keeps the existing Alpha filename; numbered slots use `.slot1`–`.slot9`, shared across Original and Enhanced presentation presets. The pinned third-party source remains unmodified; build-time CMake rejects patch drift and unexpected host source lists. Focused ROM-free parser and actual upstream patch contract CI only; real windowed compile and interactive usability still need validation. No reconstruction/coverage increase.
+
+## 0591a — repair cross-edition save-state renderer-section mismatch
+
+Targeted Original-save/Enhanced-load CI exposed `cyc.background` aux-state length mismatch when capture was disabled in Original. The edition host now always captures presentation-only background data but only composites sprites when opted into Enhanced, so the same whole-machine state schema is valid in both. Original displayed pixels and CPU-visible NES state remain unchanged. Independent frame-hash comparison across editions is the acceptance gate; no reconstruction or PRG/VPP change.
