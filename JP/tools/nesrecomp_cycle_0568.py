@@ -32,13 +32,17 @@ def validate_engine(engine:Path)->None:
     if engine==ROOT or ROOT in engine.parents:
         raise ValueError("The external NESRecomp checkout must be outside the CVIII repository")
 
-def commands(rom:Path,engine:Path,out:Path,frames:int,headless:bool)->tuple[list[str],list[str],list[str]]:
+def commands(rom:Path,engine:Path,out:Path,frames:int,headless:bool,
+             ppu_impl:str="LLE")->tuple[list[str],list[str],list[str]]:
     if frames<1 or frames>12000:
         raise ValueError("Bounded frame count must be 1..12000")
+    if ppu_impl not in ("LLE","HLE"):
+        raise ValueError("PPU backend must be LLE or HLE")
     opts=["cmake","-S",str(ROOT/"JP/native/nesrecomp_cycle"),"-B",str(out),
           "-DNESRECOMP_EXTERNAL_ROOT="+str(engine),
           "-DJP_ORIGINAL_JP_ROM="+str(rom),
-          "-DJP_CYCLE_HEADLESS="+("ON" if headless else "OFF")]
+          "-DJP_CYCLE_HEADLESS="+("ON" if headless else "OFF"),
+          "-DJP_PPU_IMPLEMENTATION="+ppu_impl]
     build=["cmake","--build",str(out),"--config","Release","--parallel","4"]
     return opts,build,[str(out/"jp_akumajou_densetsu"),str(rom),"--frames",str(frames)]
 
@@ -49,12 +53,15 @@ def run(args)->dict:
         raise ValueError("Build output must be separate from source repositories")
     rom_meta=authenticated(rom)
     validate_engine(engine)
-    configure,build,execute=commands(rom,engine,out,args.frames,not args.windowed)
+    ppu_impl=getattr(args,"ppu_impl","LLE")
+    configure,build,execute=commands(
+        rom,engine,out,args.frames,not args.windowed,ppu_impl)
     build_only=bool(getattr(args,"build_only",False))
     if args.plan:
         return {"schema":"JP0568-external-cycle-plan/v2","rom":rom_meta,
                 "external_engine":str(engine),"configure":configure,
                 "build":build,"execute":execute,"build_only":build_only,
+                "ppu_implementation":ppu_impl,
                 "execution_confirmed":False,"gameplay_parity":False}
     out.mkdir(parents=True,exist_ok=True)
     logs={}
@@ -80,6 +87,7 @@ def run(args)->dict:
     compiled=dict(schema="JP0577-retail-C11-binary-build/v1",
                   rom=rom_meta,external_engine=str(engine),
                   runner=str(exe),runner_sha256=binary_sha,
+                  ppu_implementation=ppu_impl,
                   build_completed=True,frame_execution_attempted=False,
                   gameplay_parity_verified=False,logs=logs,
                   strict_prg_new_bytes=0,new_vpp_points=0)
@@ -109,6 +117,7 @@ def run(args)->dict:
     frame_artifacts=verify(hash_file,screenshot,args.frames)
     report={"schema":"JP0568-external-cycle-run/v3","rom":rom_meta,
             "external_engine":str(engine),"headless":not args.windowed,
+            "ppu_implementation":ppu_impl,
             "requested_frames":args.frames,"process_exited_zero":True,
             "runner":str(exe),"runner_sha256":binary_sha,
             "compiled_binary_report":str(out/"jp_cycle_build.json"),
@@ -131,6 +140,8 @@ def main():
     p.add_argument("--out",type=Path)
     p.add_argument("--frames",type=int,default=120)
     p.add_argument("--windowed",action="store_true")
+    p.add_argument("--ppu-impl",choices=("LLE","HLE"),default="LLE",
+                   help="PPU renderer build; Original defaults LLE, HLE only for diagnosis")
     p.add_argument("--build-only",action="store_true",
                    help="Authenticate, generate and compile C11; do not run frames")
     p.add_argument("--input-script",type=Path,

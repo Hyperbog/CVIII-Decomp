@@ -37,23 +37,28 @@ def pinned_engine(folder:Path,offline:bool)->Path:
     validate_engine(engine)
     return engine
 
-def plan(rom:Path,out:Path,frames:int,windowed:bool)->dict:
+def plan(rom:Path,out:Path,frames:int,windowed:bool,
+         ppu_impl:str="LLE")->dict:
     if frames<1 or frames>12000:raise ValueError("frames must be 1..12000")
+    if ppu_impl not in ("LLE","HLE"):raise ValueError("ppu_impl must be LLE or HLE")
     out=output_directory(out)
     return dict(schema="JP0575-retail-C11-build/v1",
                 rom=authenticated(rom.resolve(strict=True)),upstream=UPSTREAM,
                 pinned_sha=PIN,engine=str(out/"_external"/"nesrecomp"),
                 build_dir=str(out/"build"),frames=frames,headless=not windowed,
+                ppu_implementation=ppu_impl,
                 real_game_compiled=False,gameplay_parity_verified=False)
 
 def build(rom:Path,out:Path,frames:int,windowed:bool,offline:bool,
-          build_only:bool=False,input_script:Path|None=None)->dict:
-    info=plan(rom,out,frames,windowed)
+          build_only:bool=False,input_script:Path|None=None,
+          ppu_impl:str="LLE")->dict:
+    info=plan(rom,out,frames,windowed,ppu_impl)
     folder=output_directory(out);folder.mkdir(parents=True,exist_ok=True)
     engine=pinned_engine(folder,offline)
     args=SimpleNamespace(rom=rom.resolve(strict=True),engine=engine,
                          out=folder/"build",frames=frames,build_only=build_only,
-                         input_script=input_script,windowed=windowed,plan=False)
+                         input_script=input_script,windowed=windowed,
+                         ppu_impl=ppu_impl,plan=False)
     result=run(args)
     result["external_engine_sha"]=PIN
     (folder/"jp0575_build_report.json").write_text(
@@ -77,6 +82,8 @@ def main():
     p.add_argument("--rom",type=Path);p.add_argument("--out",type=Path)
     p.add_argument("--frames",type=int,default=120)
     p.add_argument("--windowed",action="store_true")
+    p.add_argument("--ppu-impl",choices=("LLE","HLE"),default="LLE",
+                   help="Original: LLE; HLE is a diagnostic A/B backend")
     p.add_argument("--offline",action="store_true")
     p.add_argument("--build-only",action="store_true",
                    help="Build original game into native C11 executable without running")
@@ -90,10 +97,12 @@ def main():
     if not shutil.which("git") or not shutil.which("cmake"):
         raise ValueError("git and cmake are required")
     if a.plan:
-        print(json.dumps(plan(a.rom,a.out,a.frames,a.windowed),indent=2,sort_keys=True))
+        print(json.dumps(plan(a.rom,a.out,a.frames,a.windowed,a.ppu_impl),
+                         indent=2,sort_keys=True))
     else:
         print(json.dumps(build(a.rom,a.out,a.frames,a.windowed,a.offline,
-                              a.build_only,a.input_script),indent=2,sort_keys=True))
+                              a.build_only,a.input_script,a.ppu_impl),
+                         indent=2,sort_keys=True))
 if __name__=="__main__":
     try:main()
     except (ValueError,OSError,subprocess.CalledProcessError,subprocess.TimeoutExpired) as e:

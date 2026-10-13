@@ -6,6 +6,16 @@ set(JP_ORIGINAL_JP_ROM "" CACHE FILEPATH "Privately supplied verified original J
 set(NESRECOMP_EXTERNAL_ROOT "" CACHE PATH "External checkout of mstan/nesrecomp")
 option(JP_CYCLE_HEADLESS "Build a headless C11 cycle runtime" ON)
 option(JP_CYCLE_SYNTHETIC_MEDIA "Allow only the exact synthetic CI fixture" OFF)
+# JP0590: compare LLE and experimental HLE PPU render backends on the
+# same deterministic input route. Original default remains LLE.
+set(JP_PPU_IMPLEMENTATION "LLE" CACHE STRING "NESRecomp PPU backend: LLE or HLE")
+set_property(CACHE JP_PPU_IMPLEMENTATION PROPERTY STRINGS LLE HLE)
+if(NOT JP_PPU_IMPLEMENTATION STREQUAL "LLE" AND
+   NOT JP_PPU_IMPLEMENTATION STREQUAL "HLE")
+ message(FATAL_ERROR "JP_PPU_IMPLEMENTATION must be LLE or HLE")
+endif()
+set(NESRECOMP_PPU_IMPL "${JP_PPU_IMPLEMENTATION}" CACHE STRING
+ "External NESRecomp compile-time PPU backend" FORCE)
 if(NOT EXISTS "${JP_ORIGINAL_JP_ROM}")
  message(FATAL_ERROR "JP_ORIGINAL_JP_ROM must name the privately owned original ROM")
 endif()

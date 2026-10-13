@@ -593,3 +593,7 @@ User-confirmed Windows native C11 progression now reaches **Stage 4-0A**, with *
 ## 0589 — executable Original/Enhanced C11 extension and experimental 64-OAM sprites
 
 [0589 C11 host extras](../analysis/0589_ORIGINAL_ENHANCED_HOST_RENDERER.md) adds original-by-default `--edition original|enhanced`, persisted `[Game]` settings and an **opt-in experimental** background+64-OAM sprite presentation mode to the real external NESRecomp game target. The emulator's $2002, sprite-0 hit, sprite overflow, DMA and mapper logic remain unchanged. Focused mocked C11 present-contract test plus actual synthetic VRC6 CI compile; **no evidence yet of production-stage flicker repair or Stage 3/4 background correctness**. Issue #1 broadened to suspected shared background/nametable/scroll issue. VPP and PRG coverage unchanged.
+
+## 0590 — Original renderer A/B backend for suspected shared background glitch
+
+[0590 renderer diagnostic](../analysis/0590_SHARED_BACKGROUND_RENDERER_AB.md) provides `--ppu-impl LLE|HLE` with **LLE default** through authenticated private C11 build and real CMake, retaining both original-JP gameplay paths while isolating background rendering differences. Focused option contract test, no unneeded reconstruction. Owner's Stage 3?/4 purple foreground complaint remains issue #1; no root cause or fix claimed. VPP/strict PRG unchanged.

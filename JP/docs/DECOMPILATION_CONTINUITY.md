@@ -568,3 +568,7 @@ The owner reached Stage **4-0A**, recruited **Sypha** and successfully switched 
 ## 0589 — native C11 edition presentation extension
 
 `native/enhanced/cviii_edition.c` hooks externally pinned NESRecomp `CycHostExtras` through `native/nesrecomp_cycle/CMakeLists.txt`. Default Original presentation pointer is unchanged; `[Game] Edition = Enhanced, UnlimitedSprites = 1` adds experimental presentation-only background capture and 64 OAM sprite compositor, without touching emulated PPU registers/timing. Mid-frame CHR bank switching may show incorrect pixels, so this is **not** a proven repair for owner-observed Stage 3/4 background defect; #1 now tracks shared layering/nametable suspicion. Targeted mock build `test_cviii_edition.c` and pinned CI. See `analysis/0589_ORIGINAL_ENHANCED_HOST_RENDERER.md`. No ROM reconstruction done.
+
+## 0590 — frame-render A/B Original PPU build modes
+
+`JP_PPU_IMPLEMENTATION=LLE` default in `native/nesrecomp_cycle/CMakeLists.txt`; `tools/build_retail_cycle_0575.py --ppu-impl HLE` generates a second separately built experimental PPU renderer for the exact same user ROM and input route. Per-frame hashes are already available from 0578 and report tags identify backend. No stage3/4 reproduction or validated correction yet. Focused smoke `tools/test_ppu_backend_0590.py`. See `analysis/0590_SHARED_BACKGROUND_RENDERER_AB.md`. No ROM reassembly/parity sweep.

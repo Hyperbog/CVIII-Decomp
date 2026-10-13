@@ -8,6 +8,9 @@ on:
       - "JP/tools/validate_cycle_media_0576.py"
       - "JP/tools/validate_frame_artifacts_0578.py"
       - "JP/native/enhanced/**"
+      - "JP/tools/test_ppu_backend_0590.py"
+      - "JP/tools/nesrecomp_cycle_0568.py"
+      - "JP/tools/build_retail_cycle_0575.py"
       - "JP/native/nesrecomp_cycle/**"
       - ".github/workflows/jp_nesrecomp_cycle_mapper24.yml"
   workflow_dispatch:
@@ -32,6 +35,8 @@ jobs:
           grep -q "PolyForm Noncommercial License 1.0.0" _external_nesrecomp/LICENSE
           test -f _external_nesrecomp/runner/cyc/project.cmake
           python3 JP/tools/test_cycle_synthetic_rom_0569.py --smoke
+      - name: Validate PPU diagnostic backend choice (no ROM)
+        run: python3 JP/tools/test_ppu_backend_0590.py
       - name: Test Original/Enhanced C11 presentation extension (no ROM)
         run: |
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
