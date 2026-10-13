@@ -42,7 +42,7 @@ int main(void)
     probe(0x21,regs,mode1_pairs);
     probe(0x22,regs,mode2_pairs);
     probe(0x23,regs,mode2_pairs);
-    unsigned wrong[8]={2,4,6,8,10,10,12,13};
+    unsigned wrong[8]={2,4,6,8,10,11,12,13};
     FILE *f=make(0x22,regs,wrong);
     CviiiChrBanks b;
     assert(cviii_chr_banks_read(f,&b));
