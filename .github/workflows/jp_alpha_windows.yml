@@ -12,6 +12,7 @@ on:
       - "JP/tools/patch_cyc_stage_bootstrap_0596.py"
       - "JP/tools/patch_cyc_chr_fetch_0600.py"
       - "JP/tools/jp_chr_fetch_report_0600.py"
+      - "JP/tools/jp_frame_evidence_report_0601.py"
       - "JP/native/nesrecomp_cycle/**"
       - "JP/native/enhanced/**"
       - ".github/workflows/jp_alpha_windows.yml"
@@ -63,6 +64,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "PPU CHR observer anchor test failed" }
           python JP/tools/jp_chr_fetch_report_0600.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "Private PPU CHR CSV report parser test failed" }
+          python JP/tools/jp_frame_evidence_report_0601.py --smoke
+          if ($LASTEXITCODE -ne 0) { throw "Paired original PPU/frame evidence report failed" }
       - name: Compile SDL2 windowed C11 alpha target
         shell: pwsh
         run: |
@@ -97,6 +100,13 @@ jobs:
           if (!(Test-Path $test)) { throw 'JP0600 CHR fetch test executable missing' }
           & $test
           if ($LASTEXITCODE -ne 0) { throw 'JP0600 physical CHR audit regression failed' }
+      - name: Verify synchronized original PPU frame evidence C11 contract
+        shell: pwsh
+        run: |
+          $test = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win/Release/jp_frame_evidence_test_0601.exe'
+          if (!(Test-Path $test)) { throw 'JP0601 PPU evidence test missing' }
+          & $test
+          if ($LASTEXITCODE -ne 0) { throw 'JP0601 PPU evidence contract failed' }
       - name: Run bounded native C11 synthetic test with actual windowed-linked binary
         shell: pwsh
         run: |

@@ -10,3 +10,7 @@ CVIII-CHR-Index.dat
 CVIII-CHR-Audit.csv
 CVIII-CHR-Fetch.csv
 CVIII-CHR-Fetch.json
+
+# JP0601 owner-local synchronized PPU frame evidence
+CVIII-Frame-Evidence.csv
+CVIII-Frame-Evidence.json

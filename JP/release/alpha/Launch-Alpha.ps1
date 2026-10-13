@@ -76,5 +76,16 @@ try {
    if (-not $summary.cache_parity_pass) { Write-Warning 'Observed CHR bytes do not all match the asset cache' }
    Write-Host ('Local CHR analysis: '+$summaryJson)
   }
+  $frameTool=Join-Path $PSScriptRoot 'jp_frame_evidence_report_0601.py'
+  $frameJson=Join-Path $PSScriptRoot 'CVIII-Frame-Evidence.json'
+  if ((Test-Path -LiteralPath $frameTool) -and
+      (Test-Path -LiteralPath $frameEvidencePath)) {
+   & python $frameTool --fetch $fetchAuditPath --evidence $frameEvidencePath --json $frameJson --require-parity
+   if ($LASTEXITCODE -ne 0) { throw 'JP0601 original PPU and CHR observations disagree' }
+   $report=Get-Content -LiteralPath $frameJson -Raw | ConvertFrom-Json
+   Write-Host ('Original PPU sampled frames: '+$report.sampled_original_ppu_frames)
+   Write-Host ('Validated paired fetches: '+$report.pattern_fetches)
+   Write-Host ('Local PPU frame-evidence report: '+$frameJson)
+  }
  }
 } finally {Pop-Location}
