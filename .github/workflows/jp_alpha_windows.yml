@@ -1,0 +1,74 @@
+name: CVIII Windows Alpha Candidate Builder
+on:
+  push:
+    branches: [decompilation]
+    paths:
+      - "JP/release/alpha/**"
+      - "JP/tools/package_alpha_builder_0580.py"
+      - "JP/native/nesrecomp_cycle/**"
+      - ".github/workflows/jp_alpha_windows.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  windowed-native-c11:
+    runs-on: windows-2022
+    timeout-minutes: 40
+    steps:
+      - name: Checkout CVIII source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Checkout pinned external NESRecomp PolyForm Noncommercial runtime
+        uses: actions/checkout@v4
+        with:
+          repository: mstan/nesrecomp
+          ref: 2b4fcdb98c9e702be3fb365cfc645003c50b5fc1
+          path: _external_nesrecomp
+          persist-credentials: false
+      - name: Check external license and create artificial mapper24 cartridge
+        shell: pwsh
+        run: |
+          if (!(Select-String -LiteralPath '_external_nesrecomp/LICENSE' -Pattern 'PolyForm Noncommercial License 1.0.0' -Quiet)) { throw 'Wrong upstream license' }
+          python JP/tools/test_cycle_synthetic_rom_0569.py --out "$env:RUNNER_TEMP\alpha-vrc6.nes"
+          if ($LASTEXITCODE -ne 0) { throw 'Synthetic VRC6 media generation failed' }
+      - name: Compile SDL2 windowed C11 alpha target
+        shell: pwsh
+        run: |
+          $build = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win'
+          $rom = Join-Path $env:RUNNER_TEMP 'alpha-vrc6.nes'
+          $engine = (Resolve-Path '_external_nesrecomp').Path
+          cmake -S JP/native/nesrecomp_cycle -B $build -G "Visual Studio 17 2022" -A x64 -DJP_ORIGINAL_JP_ROM="$rom" -DNESRECOMP_EXTERNAL_ROOT="$engine" -DJP_CYCLE_SYNTHETIC_MEDIA=ON -DJP_CYCLE_HEADLESS=OFF -DNESRECOMP_RECOMP_UI=OFF
+          if ($LASTEXITCODE -ne 0) { throw 'Windowed CMake generation failed' }
+          cmake --build $build --config Release --parallel 4
+          if ($LASTEXITCODE -ne 0) { throw 'Windows C11 cycle build failed' }
+          $bin = Join-Path $build 'Release'
+          if (!(Test-Path (Join-Path $bin 'jp_akumajou_densetsu.exe'))) { throw 'Windows executable missing' }
+          if (!(Test-Path (Join-Path $bin 'SDL2.dll'))) { throw 'SDL2.dll missing: not playable' }
+      - name: Run bounded native C11 synthetic test with actual windowed-linked binary
+        shell: pwsh
+        run: |
+          $build = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win'
+          $exe = Join-Path $build 'Release/jp_akumajou_densetsu.exe'
+          $rom = Join-Path $env:RUNNER_TEMP 'alpha-vrc6.nes'
+          $log = Join-Path $env:RUNNER_TEMP 'alpha-cycle.txt'
+          $hash = Join-Path $env:RUNNER_TEMP 'alpha-frames.txt'
+          $png = Join-Path $env:RUNNER_TEMP 'alpha-last.png'
+          & $exe $rom --frames 3 --hash-out $hash --screenshot $png | Tee-Object -FilePath $log
+          if ($LASTEXITCODE -ne 0) { throw 'Synthetic mapper24 game execution failed' }
+          python JP/tools/check_cycle_stats_0571.py --log $log --frames 3
+          if ($LASTEXITCODE -ne 0) { throw 'Native-cycle counts invalid' }
+          python JP/tools/validate_frame_artifacts_0578.py --hash-out $hash --screenshot $png --frames 3
+          if ($LASTEXITCODE -ne 0) { throw 'Frame hashes/PNG invalid' }
+      - name: Create ROM-free Windows alpha build kit
+        shell: pwsh
+        run: |
+          python JP/tools/package_alpha_builder_0580.py --out CVIII-Alpha-Builder-0.1.0-alpha.1.zip
+          if ($LASTEXITCODE -ne 0) { throw 'ROM-free packaging failed' }
+      - name: Upload build kit, not commercial ROM or game executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: CVIII-Alpha-Builder-0.1.0-alpha.1
+          path: CVIII-Alpha-Builder-0.1.0-alpha.1.zip
+          if-no-files-found: error
+          retention-days: 30
