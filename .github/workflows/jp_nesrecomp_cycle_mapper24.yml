@@ -79,3 +79,37 @@ jobs:
           python3 JP/tools/validate_frame_artifacts_0578.py \
              --hash-out "${{ runner.temp }}/jp_vrc6_frame_hashes.txt" \
              --screenshot "${{ runner.temp }}/jp_vrc6_final_frame.png" --frames 3
+      - name: Verify synthetic save/load resumes exact machine frame hashes
+        run: |
+          set -euo pipefail
+          exe="${{ runner.temp }}/jp-vrc6-cycle/jp_akumajou_densetsu"
+          rom="${{ runner.temp }}/jp_mapper24_fixture.nes"
+          state="${{ runner.temp }}/jp_mapper24_slot0.cycstate"
+          "$exe" "$rom" --frames 20 \
+            --save-state "8:$state" \
+            --hash-out "${{ runner.temp }}/jp_straight_20.txt" \
+            > "${{ runner.temp }}/jp_state_save.log"
+          "$exe" "$rom" --frames 20 \
+            --load-state "$state" \
+            --hash-out "${{ runner.temp }}/jp_resumed_20.txt" \
+            > "${{ runner.temp }}/jp_state_load.log"
+          tail -n +10 "${{ runner.temp }}/jp_straight_20.txt" > "${{ runner.temp }}/jp_expected_resume.txt"
+          cmp "${{ runner.temp }}/jp_expected_resume.txt" "${{ runner.temp }}/jp_resumed_20.txt"
+          echo "PASS: 11/11 synthetic frames identical after complete-machine save/load"
+      - name: Install SDL2 to compile actual windowed ten-slot UI host
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libsdl2-dev
+      - name: Configure real windowed C11 host with numbered save slots
+        run: |
+          cmake -S JP/native/nesrecomp_cycle \
+            -B "${{ runner.temp }}/jp-vrc6-window" -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DJP_ORIGINAL_JP_ROM="${{ runner.temp }}/jp_mapper24_fixture.nes" \
+            -DNESRECOMP_EXTERNAL_ROOT="$PWD/_external_nesrecomp" \
+            -DJP_CYCLE_SYNTHETIC_MEDIA=ON \
+            -DJP_CYCLE_HEADLESS=OFF \
+            -DJP_SAVE_STATE_SLOTS=ON \
+            -DNESRECOMP_RECOMP_UI=OFF
+      - name: Build executable with windowed SDL2 multi-slot quick saves
+        run: cmake --build "${{ runner.temp }}/jp-vrc6-window" --config Release --parallel 4
