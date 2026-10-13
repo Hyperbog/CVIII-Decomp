@@ -113,6 +113,10 @@ PolyForm Noncommercial 1.0.0 and requires license review.
 - [Prevent SFX from stealing music notes](https://github.com/Hyperbog/CVIII-Decomp/issues/3)
 - [Existing Stage 2/4-0A priority/rendering bugs](https://github.com/Hyperbog/CVIII-Decomp/issues/1)
 
-All features in this document are **design/roadmap**, not currently
-implemented in the Alpha, except the running original game and its
-already functioning base keyboard/gamepad input.
+Phase 0589 implements the **initial edition selection and presentation extension**:
+`[Game] Edition = Original/Enhanced` and optional
+`UnlimitedSprites = 1`, with a runtime native host hook and mock
+C11 test. The compositor is experimental and not yet validated on
+the owner's Windows build or on Stage 3/4. All other proposed Enhanced
+features remain unimplemented; do not treat this extension as a
+widescreen or completed flicker-removal release.

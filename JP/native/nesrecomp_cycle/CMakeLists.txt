@@ -32,8 +32,20 @@ set(JP_CYCLE_OPTIONS "")
 if(JP_CYCLE_HEADLESS)
  list(APPEND JP_CYCLE_OPTIONS HEADLESS)
 endif()
+# JP0589 native C11 edition extension, no external source vendored.
+# The original PPU engine continues to drive all CPU-visible NES state.
+option(JP_EDITION_HOST_EXTRAS "Add Original/Enhanced native presentation extension" ON)
+set(JP_HOST_SOURCES "")
+if(JP_EDITION_HOST_EXTRAS)
+ list(APPEND JP_HOST_SOURCES HOST_EXTRAS
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_edition.c")
+endif()
 nesrecomp_add_cycle_game(jp_akumajou_densetsu
- ROM "${JP_ORIGINAL_JP_ROM}" ${JP_CYCLE_OPTIONS})
+ ROM "${JP_ORIGINAL_JP_ROM}" ${JP_CYCLE_OPTIONS} ${JP_HOST_SOURCES})
+if(JP_EDITION_HOST_EXTRAS)
+ target_include_directories(jp_akumajou_densetsu PRIVATE
+  "${NESRECOMP_EXTERNAL_ROOT}/runner/cyc")
+endif()
 # A headless-only executable is NOT a playable alpha. In windowed builds
 # NESRecomp may silently skip SDL when its dependency is unavailable.
 if(NOT JP_CYCLE_HEADLESS)

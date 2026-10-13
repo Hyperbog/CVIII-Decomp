@@ -7,6 +7,7 @@ on:
       - "JP/tools/check_cycle_stats_0571.py"
       - "JP/tools/validate_cycle_media_0576.py"
       - "JP/tools/validate_frame_artifacts_0578.py"
+      - "JP/native/enhanced/**"
       - "JP/native/nesrecomp_cycle/**"
       - ".github/workflows/jp_nesrecomp_cycle_mapper24.yml"
   workflow_dispatch:
@@ -31,6 +32,13 @@ jobs:
           grep -q "PolyForm Noncommercial License 1.0.0" _external_nesrecomp/LICENSE
           test -f _external_nesrecomp/runner/cyc/project.cmake
           python3 JP/tools/test_cycle_synthetic_rom_0569.py --smoke
+      - name: Test Original/Enhanced C11 presentation extension (no ROM)
+        run: |
+          cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
+            -I _external_nesrecomp/runner/cyc \
+            JP/native/enhanced/cviii_edition.c JP/native/enhanced/test_cviii_edition.c \
+            -o "${{ runner.temp }}/test_cviii_edition"
+          "${{ runner.temp }}/test_cviii_edition"
       - name: Generate noncommercial synthetic mapper24 VRC6 ROM
         run: python3 JP/tools/test_cycle_synthetic_rom_0569.py --out "${{ runner.temp }}/jp_mapper24_fixture.nes"
       - name: Configure CVIII external C11 cycle wrapper with exact synthetic fixture
