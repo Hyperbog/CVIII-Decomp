@@ -54,3 +54,25 @@ may allow the combination but changes the game difficulty. This is
 an external test aid, not an in-game F10 debug menu, not mid-game warp
 or RAM-based companion injection. The Japanese live password path
 still needs acceptance testing on the original compiled game.
+
+## JP0594 F10 stage and companion checkpoint warp (new private build)
+
+Inside either Original or Enhanced gameplay, press **F10**. The game
+pauses. Up/Down chooses one of 18 stage checkpoints; Left/Right chooses
+None, Alucard, Sypha or Grant. **Enter** loads a previously captured
+whole-machine checkpoint for the selected stage and companion (true
+instant stage warp). **F5** captures the *currently running game*
+as the selected stage/companion checkpoint; **Esc/F10** resumes.
+
+Each checkpoint is a separate `saves/<ROM>.debug.stageNN.partnerN.cycstate`,
+compatible with the original full-machine F8/F9 serializer. Saving a
+checkpoint does NOT create or add a companion: capture when the selected
+companion is already actually in the game. Likewise, **a stage cannot
+warp before its compatible checkpoint exists.** One can reach it naturally
+or start with a valid password and capture once; subsequent stage jumps
+are immediate. Checkpoints are specific to the native executable build
+and may need recapturing after recompilation. Slot 0..9 saves are separate.
+No ROM patching, unproved RAM writes or gameplay state fabrication.
+The separate password picker still helps seed a stage from the title.
+This initial F10 implementation requires a new private Windows build
+and has not been owner-playtested.

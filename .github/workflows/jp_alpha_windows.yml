@@ -6,6 +6,7 @@ on:
       - "JP/release/alpha/**"
       - "JP/tools/package_alpha_builder_0580.py"
       - "JP/tools/jp_password_*0593.py"
+      - "JP/tools/patch_cyc_stage_menu_0594.py"
       - "JP/native/nesrecomp_cycle/**"
       - ".github/workflows/jp_alpha_windows.yml"
   workflow_dispatch:
@@ -38,6 +39,11 @@ jobs:
         run: |
           python JP/tools/jp_password_debug_menu_0593.py --self-test
           if ($LASTEXITCODE -ne 0) { throw "Stage/companion debug contract failed" }
+      - name: Validate F10 stage menu overlay against pinned SDL host contract
+        shell: pwsh
+        run: |
+          python JP/tools/patch_cyc_stage_menu_0594.py --smoke
+          if ($LASTEXITCODE -ne 0) { throw "F10 stage menu patch test failed" }
       - name: Compile SDL2 windowed C11 alpha target
         shell: pwsh
         run: |

@@ -77,12 +77,25 @@ if(NOT JP_CYCLE_HEADLESS AND JP_SAVE_STATE_SLOTS)
  if(NOT JP_STATE_PATCH_RESULT EQUAL 0)
   message(FATAL_ERROR "Save-slot overlay failed: ${JP_STATE_PATCH_ERROR}")
  endif()
+ # JP0594: layer a game-owned F10 stage/companion checkpoint menu on 0591.
+ # This writes another private overlay beside the pinned external SDL file;
+ # neither upstream code nor ROM bytes are committed.
+ set(JP_DEBUG_OVERLAY "${NESRECOMP_EXTERNAL_ROOT}/runner/cyc/cviii_cyc_sdl_debug.c")
+ execute_process(
+  COMMAND "${Python3_EXECUTABLE}"
+   "${CMAKE_CURRENT_LIST_DIR}/../../tools/patch_cyc_stage_menu_0594.py"
+   --source "${JP_SLOTS_OVERLAY}" --out "${JP_DEBUG_OVERLAY}"
+  RESULT_VARIABLE JP_STAGE_PATCH_RESULT
+  ERROR_VARIABLE JP_STAGE_PATCH_ERROR)
+ if(NOT JP_STAGE_PATCH_RESULT EQUAL 0)
+  message(FATAL_ERROR "Stage debug overlay failed: ${JP_STAGE_PATCH_ERROR}")
+ endif()
  get_target_property(JP_GAME_SOURCES jp_akumajou_densetsu SOURCES)
  set(JP_PATCHED_SOURCES "")
  set(JP_SDL_REPLACEMENTS 0)
  foreach(JP_FILE IN LISTS JP_GAME_SOURCES)
   if(JP_FILE MATCHES "cyc_sdl\\.c$")
-   list(APPEND JP_PATCHED_SOURCES "${JP_SLOTS_OVERLAY}")
+   list(APPEND JP_PATCHED_SOURCES "${JP_DEBUG_OVERLAY}")
    math(EXPR JP_SDL_REPLACEMENTS "${JP_SDL_REPLACEMENTS} + 1")
   else()
    list(APPEND JP_PATCHED_SOURCES "${JP_FILE}")
@@ -93,7 +106,7 @@ if(NOT JP_CYCLE_HEADLESS AND JP_SAVE_STATE_SLOTS)
    "Expected exactly one upstream cyc_sdl.c in the target, got ${JP_SDL_REPLACEMENTS}")
  endif()
  set_property(TARGET jp_akumajou_densetsu PROPERTY SOURCES "${JP_PATCHED_SOURCES}")
- message(STATUS "CVIII: 10 quick-save slots enabled (Ctrl+0..9, F8/F9)")
+ message(STATUS "CVIII: quick-save slots plus F10 stage/companion checkpoint menu enabled")
 endif()
 
 # A headless-only executable is NOT a playable alpha. In windowed builds

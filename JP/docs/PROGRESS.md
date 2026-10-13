@@ -609,3 +609,21 @@ Targeted Original-save/Enhanced-load CI exposed `cyc.background` aux-state lengt
 ## 0592 — Original/Enhanced Windows private Alpha 0.2 candidate
 
 [0592 original-game Windows Alpha 0.2](../analysis/0592_ORIGINAL_ENHANCED_ALPHA_02_WINDOWS.md) is now cross-compiled from the owner-authenticated Japanese mapper24 ROM using C11/SDL2, with distinct Original and experimental Enhanced all-OAM sprite-compositor launchers. The private ZIP contains no ROM. Focused 600-frame CPU/PPU/memory hash logs are byte-identical between the two modes on the authentic game; Windows GUI Enhanced still needs owner testing. The public ROM-free builder kit was updated to 0.2.0-alpha.1 with separate launchers. Shared Stage 2/3?/4-0A background defect #1 remains unresolved. No reconstruction sweep or strict PRG/VPP credit.
+
+## JP 0594 — F10 windowed stage / companion checkpoints
+
+A real windowed F10 stage menu is patched onto the privately built
+pinned NESRecomp SDL host *after* the 0591 ten-slot extension. It
+pauses emulation, offers 18 stage labels and None/Alucard/Sypha/Grant,
+captures the current **entire** machine state with F5 and loads the
+selected captured checkpoint with Enter. Capture does not change
+character inventory or stage; a checkpoint must already exist before
+warping there. This is a genuine in-game checkpoint warp, not a direct
+arbitrary-stage initializer or a decoded-password injection. It uses
+the existing state loader's atomic validation, frame-counter reset,
+session notification and netplay restriction. Debug overlays do not
+alter the guest framebuffer or CPU/PPU mapper state.
+
+Windowed synthetic-source compilation and owner GUI gameplay
+acceptance are separate gates. Strict PRG 49,504 / 262,144 and
+VPP 27 / 100 remain unchanged; semantic frontier PRG31 $FB96.
