@@ -34,3 +34,16 @@ if(JP_CYCLE_HEADLESS)
 endif()
 nesrecomp_add_cycle_game(jp_akumajou_densetsu
  ROM "${JP_ORIGINAL_JP_ROM}" ${JP_CYCLE_OPTIONS})
+# A headless-only executable is NOT a playable alpha. In windowed builds
+# NESRecomp may silently skip SDL when its dependency is unavailable.
+if(NOT JP_CYCLE_HEADLESS)
+ get_target_property(JP_ALPHA_HAS_SDL jp_akumajou_densetsu NESRECOMP_CYC_SDL)
+ if(NOT JP_ALPHA_HAS_SDL)
+  message(FATAL_ERROR
+   "Alpha requires an SDL2 window and controller input. "
+   "Install/restore the pinned NESRecomp runner/external/SDL2 SDK; "
+   "refusing to mislabel a headless build as playable.")
+ endif()
+ message(STATUS "Alpha: verified SDL2 video/input/audio target is enabled")
+endif()
+
