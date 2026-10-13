@@ -52,7 +52,8 @@ if(JP_EDITION_HOST_EXTRAS)
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_chr_index_0598.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_chr_audit_0599.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_chr_fetch_0600.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_frame_evidence_0601.c")
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_frame_evidence_0601.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_nt_trace_0606.c")
 endif()
 nesrecomp_add_cycle_game(jp_akumajou_densetsu
  ROM "${JP_ORIGINAL_JP_ROM}" ${JP_CYCLE_OPTIONS} ${JP_HOST_SOURCES})
@@ -191,3 +192,38 @@ add_executable(jp_frame_evidence_test_0601
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_frame_evidence_0601.c"
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_frame_evidence_test_0601.c")
 set_property(TARGET jp_frame_evidence_test_0601 PROPERTY C_STANDARD 11)
+
+# JP0606: private *actual PPU* nametable and attribute observation.
+# The pinned hw_ppu.c remains unchanged and all read values are preserved.
+set(JP_NT_PPU_SOURCE "${NESRECOMP_EXTERNAL_ROOT}/runner/cyc/hw_ppu.c")
+set(JP_NT_PPU_OVERLAY "${NESRECOMP_EXTERNAL_ROOT}/runner/cyc/cviii_hw_ppu_nt.c")
+execute_process(
+ COMMAND "${Python3_EXECUTABLE}"
+   "${CMAKE_CURRENT_LIST_DIR}/../../tools/patch_cyc_ppu_nt_0606.py"
+   --source "${JP_NT_PPU_SOURCE}" --out "${JP_NT_PPU_OVERLAY}"
+ RESULT_VARIABLE JP_NT_PATCH_RESULT
+ ERROR_VARIABLE JP_NT_PATCH_ERROR)
+if(NOT JP_NT_PATCH_RESULT EQUAL 0)
+ message(FATAL_ERROR "JP0606 PPU nametable observer generation failed: ${JP_NT_PATCH_ERROR}")
+endif()
+get_target_property(JP_NT_SOURCES jp_akumajou_densetsu SOURCES)
+set(JP_NT_PPU_PATCHED "")
+set(JP_NT_PPU_REPLACED 0)
+foreach(JP_FILE IN LISTS JP_NT_SOURCES)
+ if(JP_FILE MATCHES "hw_ppu\\.c$")
+  list(APPEND JP_NT_PPU_PATCHED "${JP_NT_PPU_OVERLAY}")
+  math(EXPR JP_NT_PPU_REPLACED "${JP_NT_PPU_REPLACED} + 1")
+ else()
+  list(APPEND JP_NT_PPU_PATCHED "${JP_FILE}")
+ endif()
+endforeach()
+if(NOT JP_NT_PPU_REPLACED EQUAL 1)
+ message(FATAL_ERROR "JP0606 requires exactly one original hw_ppu.c source, got ${JP_NT_PPU_REPLACED}")
+endif()
+set_property(TARGET jp_akumajou_densetsu PROPERTY SOURCES "${JP_NT_PPU_PATCHED}")
+message(STATUS "JP0606 read-only PPU nametable/attribute diagnostics installed")
+
+add_executable(jp_nt_trace_test_0606
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_nt_trace_0606.c"
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_nt_trace_test_0606.c")
+set_property(TARGET jp_nt_trace_test_0606 PROPERTY C_STANDARD 11)

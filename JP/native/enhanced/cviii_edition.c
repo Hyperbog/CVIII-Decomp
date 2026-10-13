@@ -10,6 +10,7 @@
 #include "cviii_chr_audit_0599.h"
 #include "cviii_chr_fetch_0600.h"
 #include "cviii_frame_evidence_0601.h"
+#include "cviii_nt_trace_0606.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -24,6 +25,7 @@ typedef struct {
     CviiiChrAudit audit; /* opt-in read-only per-frame bank audit */
     CviiiChrFetchAudit fetch; /* opt-in actual PPU pattern-read observation */
     CviiiFrameEvidence frame_evidence; /* opt-in correlated PPU evidence */
+    CviiiNtTrace nt_trace; /* opt-in real nametable and attribute reads */
     uint32_t presentation[CVIII_W * CVIII_H];
 } CviiiEdition;
 
@@ -108,6 +110,14 @@ static bool option(void *context, const char *name, const char *value)
         printf("CVIII: recording sampled original PPU frame fingerprints\n");
         return true;
     }
+    if (!strcmp(name, "--nt-fetch-audit")) {
+        if (!value || !cviii_nt_open(&cviii.nt_trace, value)) {
+            fprintf(stderr, "CVIII: cannot open PPU background tile and attribute audit\n");
+            return false;
+        }
+        printf("CVIII: sampling true PPU nametable/attribute reads, no rendering changes\n");
+        return true;
+    }
     return false;
 }
 
@@ -133,8 +143,11 @@ static void power_on(void *context)
 static void frame_begin(void *context)
 {
     CviiiEdition *settings = (CviiiEdition *)context;
-    if (settings->enhanced)
+    if (settings->enhanced) {
         cviii_chr_fetch_frame_begin(&settings->fetch, &settings->assets);
+        cviii_nt_begin(&settings->nt_trace, settings->fetch.active != 0,
+                       settings->fetch.frames);
+    }
 }
 
 static void frame_end(void *context)
@@ -159,6 +172,7 @@ static void frame_end(void *context)
             ++settings->frame_evidence.input_failures;
         }
     }
+    cviii_nt_end(&settings->nt_trace);
     cviii_chr_fetch_frame_end(&settings->fetch);
     if (!settings->audit.out || !settings->assets.raw || !settings->assets.pixels)
         return;
@@ -211,6 +225,8 @@ static const CycHostOption cviii_options[] = {
      "Read-only actual PPU CHR fetch vs cached ROM scanline CSV (requires asset index)"},
     {"--frame-evidence", true,
      "Original PPU 9-bit frame fingerprint CSV for same sampled fetch frames"},
+    {"--nt-fetch-audit", true,
+     "Read-only PPU nametable and attribute bus values for sampled frames"},
 };
 
 static CycHostExtras cviii_extra = {

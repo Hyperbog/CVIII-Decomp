@@ -61,6 +61,9 @@ try {
     $gameArgs+=@('--chr-fetch-audit',$fetchAuditPath)
     $frameEvidencePath=Join-Path $auditBase 'CVIII-Frame-Evidence.csv'
     $gameArgs+=@('--frame-evidence',$frameEvidencePath)
+    $ntAuditPath=Join-Path $auditBase 'CVIII-NT-Fetch.csv'
+    $gameArgs+=@('--nt-fetch-audit',$ntAuditPath)
+    Write-Host ('Recording actual PPU nametable/attribute values: '+$ntAuditPath)
     Write-Host ('Recording original PPU fingerprints: '+$frameEvidencePath)
     Write-Host ('Recording sampled VRC6 mappings: '+$chrAuditPath)
     Write-Host ('Recording physical PPU CHR reads: '+$fetchAuditPath)

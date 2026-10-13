@@ -3,6 +3,7 @@
 #include "cyc_core.h"
 #include "cyc_render.h"
 #include "cviii_chr_fetch_0600.h"
+#include "cviii_nt_trace_0606.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -24,6 +25,8 @@ void cyc_hw_state_dump(void *target) {
 
 static CviiiChrFetchHook capture_hook;
 void cviii_chr_fetch_set_hook(CviiiChrFetchHook hook) { capture_hook = hook; }
+static CviiiNtHook nt_hook;
+void cviii_nt_set_hook(CviiiNtHook hook) { nt_hook = hook; }
 static uint32_t native[256*240];
 static int capture_enabled, compose_calls, bg_reads;
 const uint32_t *cyc_frame_argb(void) { return native; }
@@ -54,7 +57,7 @@ void cyc_render_sprites(uint32_t *out,int w,int h,int x,const uint8_t *bg,
 int main(void) {
     const CycHostExtras *e=cyc_host_extras();
     assert(e && e->options && e->option && e->present);
-    assert(e->option_count == 6);
+    assert(e->option_count == 7);
     assert(!e->option(e->ctx,"--asset-index",(const char *)0));
     int w=0,h=0;
     e->power_on(e->ctx);
