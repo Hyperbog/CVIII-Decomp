@@ -8,9 +8,18 @@ param(
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
-function Invoke-Checked([string]$Program,[string[]]$Args) {
- & $Program @Args
- if ($LASTEXITCODE -ne 0) { throw "$Program failed (exit $LASTEXITCODE)" }
+# JP0604: Avoid PowerShell's automatic $Args variable. Always pass
+# a named array of command arguments, including Git clone subcommands.
+function Invoke-Checked {
+ param(
+  [Parameter(Mandatory=$true)][string]$Program,
+  [Parameter(Mandatory=$true)][string[]]$CommandArguments
+ )
+ if ($CommandArguments.Count -eq 0) { throw "No arguments supplied to $Program" }
+ & $Program @CommandArguments
+ if ($LASTEXITCODE -ne 0) {
+  throw "$Program failed (exit $LASTEXITCODE); args: $($CommandArguments -join ' ')"
+ }
 }
 foreach ($command in @('git','cmake','python')) {
  if (-not (Get-Command $command -ErrorAction SilentlyContinue)) {
@@ -25,12 +34,12 @@ if ($ProjectRoot) {
 } else {
  $repoPath=Join-Path $outPath '_cviisource'
  if (-not (Test-Path -LiteralPath $repoPath)) {
-  Invoke-Checked 'git' @('clone','--branch','decompilation','--single-branch',
+  Invoke-Checked -Program 'git' -CommandArguments @('clone','--branch','decompilation','--single-branch',
       'https://github.com/Hyperbog/CVIII-Decomp.git',$repoPath)
  } else {
   # This directory is managed by this builder; do not silently compile
   # a stale branch when new asset/gameplay tooling has been committed.
-  Invoke-Checked 'git' @('-C',$repoPath,'pull','--ff-only','origin','decompilation')
+  Invoke-Checked -Program 'git' -CommandArguments @('-C',$repoPath,'pull','--ff-only','origin','decompilation')
  }
 }
 $buildScript=Join-Path $repoPath 'JP/tools/build_retail_cycle_0575.py'
@@ -39,7 +48,7 @@ if (-not (Test-Path -LiteralPath $buildScript)) {
 }
 $privateOut=Join-Path $outPath '_private_original_rom_build'
 Write-Host 'Compiling the original Japanese game to native C11 with SDL2...'
-Invoke-Checked 'python' @($buildScript,'--rom',$romPath,'--out',$privateOut,'--windowed','--build-only')
+Invoke-Checked -Program 'python' -CommandArguments @($buildScript,'--rom',$romPath,'--out',$privateOut,'--windowed','--build-only')
 $reportPath=Join-Path $privateOut 'jp0575_build_report.json'
 if (-not (Test-Path -LiteralPath $reportPath)) {throw 'No compiler build report was produced.'}
 $report=Get-Content -LiteralPath $reportPath -Raw | ConvertFrom-Json
@@ -66,14 +75,14 @@ $assetBuilder=Join-Path $repoPath 'JP/tools/jp_asset_pack_0597.py'
 if (-not (Test-Path -LiteralPath $assetBuilder)) { throw "Missing JP0597 asset builder" }
 $assetPack=Join-Path $stage 'CVIII-Assets.bin'
 Write-Host 'Verifying or creating private CVIII-Assets.bin...'
-Invoke-Checked 'python' @($assetBuilder,'--build','--rom',$romPath,'--out',$assetPack)
+Invoke-Checked -Program 'python' -CommandArguments @($assetBuilder,'--build','--rom',$romPath,'--out',$assetPack)
 if (-not (Test-Path -LiteralPath $assetPack)) { throw 'Asset cache was not created' }
 # JP0598: export verified 2bpp and indexed pixels into a fixed-size C11
 # reader format; private native code imports it without touching NES state.
 $assetIndexTool=Join-Path $repoPath 'JP/tools/jp_asset_runtime_0598.py'
 if (-not (Test-Path -LiteralPath $assetIndexTool)) { throw "Missing JP0598 runtime index exporter" }
 $assetIndex=Join-Path $stage 'CVIII-CHR-Index.dat'
-Invoke-Checked 'python' @($assetIndexTool,'--export','--assets',$assetPack,'--out',$assetIndex)
+Invoke-Checked -Program 'python' -CommandArguments @($assetIndexTool,'--export','--assets',$assetPack,'--out',$assetIndex)
 if (-not (Test-Path -LiteralPath $assetIndex)) { throw 'CHR index export missing' }
 
 # Always package the just-synchronized repo launcher; older kits must not
