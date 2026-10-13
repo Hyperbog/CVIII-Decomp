@@ -5,6 +5,7 @@ on:
     paths:
       - "JP/release/alpha/**"
       - "JP/tools/package_alpha_builder_0580.py"
+      - "JP/tools/jp_password_*0593.py"
       - "JP/native/nesrecomp_cycle/**"
       - ".github/workflows/jp_alpha_windows.yml"
   workflow_dispatch:
@@ -32,6 +33,11 @@ jobs:
           if (!(Select-String -LiteralPath '_external_nesrecomp/LICENSE' -Pattern 'PolyForm Noncommercial License 1.0.0' -Quiet)) { throw 'Wrong upstream license' }
           python JP/tools/test_cycle_synthetic_rom_0569.py --out "$env:RUNNER_TEMP\alpha-vrc6.nes"
           if ($LASTEXITCODE -ne 0) { throw 'Synthetic VRC6 media generation failed' }
+      - name: Check stage and companion password debug selector
+        shell: pwsh
+        run: |
+          python JP/tools/jp_password_debug_menu_0593.py --self-test
+          if ($LASTEXITCODE -ne 0) { throw "Stage/companion debug contract failed" }
       - name: Compile SDL2 windowed C11 alpha target
         shell: pwsh
         run: |

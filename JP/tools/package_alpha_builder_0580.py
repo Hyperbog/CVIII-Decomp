@@ -5,7 +5,8 @@ import argparse,hashlib,json,tempfile,zipfile
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 NAMES=("Build-Alpha.ps1","Launch-Alpha.ps1","README_ALPHA.md",
-       "Play-Alpha.bat","Play-Original.bat","Play-Enhanced.bat")
+       "Play-Alpha.bat","Play-Original.bat","Play-Enhanced.bat",
+       "Debug-Stage-Companion.bat")
 def make(out:Path)->dict:
     out=out.resolve()
     if out.suffix.lower()!=".zip":raise ValueError("Require ZIP output")

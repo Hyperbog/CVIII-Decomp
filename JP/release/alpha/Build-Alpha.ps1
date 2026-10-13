@@ -66,9 +66,14 @@ if (-not (Test-Path -LiteralPath $notes)) {
  $notes=Join-Path $repoPath 'JP/release/alpha/README_ALPHA.md'
 }
 Copy-Item -LiteralPath $notes -Destination $stage -Force
-foreach ($name in @('Play-Original.bat','Play-Enhanced.bat','Play-Alpha.bat')) {
+foreach ($name in @('Play-Original.bat','Play-Enhanced.bat','Play-Alpha.bat','Debug-Stage-Companion.bat')) {
  $src=Join-Path $repoPath ('JP/release/alpha/'+$name)
  if (-not (Test-Path -LiteralPath $src)) {throw "Missing alpha launcher: $src"}
+ Copy-Item -LiteralPath $src -Destination $stage -Force
+}
+foreach ($name in @('jp_password_stage_0593.py','jp_password_debug_menu_0593.py')) {
+ $src=Join-Path $repoPath ('JP/tools/'+$name)
+ if (-not (Test-Path -LiteralPath $src)) {throw "Missing debug password helper: $src"}
  Copy-Item -LiteralPath $src -Destination $stage -Force
 }
 $engine=Join-Path $privateOut '_external/nesrecomp'
@@ -95,6 +100,8 @@ $manifest=[ordered]@{
  widescreen_implemented=$false
  individual_audio_channels_implemented=$false
  original_rom_included=$false
+ debug_stage_companion_password_picker=$true
+ debug_automatic_warp_implemented=$false
 }
 $manifest | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $stage 'ALPHA_BUILD.json') -Encoding UTF8
 # Local private ZIP includes game-derived compiled instructions. Do not upload to CI.

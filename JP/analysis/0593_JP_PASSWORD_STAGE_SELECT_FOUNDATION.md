@@ -31,3 +31,27 @@ The first implementation passed 952 internal round trips across four names, 18 c
 Trace the original JP password submission/confirmation and its transition into stage initialization using an independent reference emulator. Confirm `$0030`, partner/mode variables, valid stage/route load and post-load CPU/PPU/mapper/IRQ state. Add a paused, debug-only F10 stage picker in the private SDL host. Select a verified checkpoint, request the original game password path through an independently tested host hook, and compare against manually entered password save point by save point. Keep Original/Enhanced machine semantics identical; no hardcoded gameplay RAM pokes, no ROM copies, no false PRG/VPP promotion.
 
 Current strict PRG 49,504/262,144 and VPP 27/100 unchanged. Semantic checkpoint 0508 / frontier PRG31 $FB96 unchanged.
+
+## 0593b — external companion selection for the private Windows Alpha
+
+The user additionally requested a companion choice alongside the 18
+stage/password checkpoints. A Tkinter window in
+JP/tools/jp_password_debug_menu_0593.py now selects None, Alucard,
+Sypha or Grant, maps these labels to original password partner values
+0, 3, 1 and 2, and blocks invalid Normal-mode stage/partner combinations.
+Hard-mode combinations are available where the existing password rules
+permit them, with a prominent warning that this changes game difficulty.
+The tool authenticates the local Japanese ROM and roundtrip-verifies its
+generated password using JP/tools/jp_password_stage_0593.py.
+
+A ROM-free --self-test verifies 119 supported and 25 forbidden
+stage/companion/difficulty combinations using pinned JP table evidence.
+Windows Alpha builder now copies both Python tools and
+Debug-Stage-Companion.bat into its private candidate; Windows CI
+tests the headless contract and publishes only the ROM-free builder.
+
+This is a manual password-entry aid, NOT an in-game F10 warp and
+NOT a direct companion injection into a running game. Japanese original
+password submission/transition parity still requires a reference play
+trace. No strict PRG or VPP credit is claimed. Semantic state remains
+checkpoint 0508 / fixed bank31 frontier FB96.

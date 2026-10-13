@@ -38,3 +38,19 @@ Focused authentic-ROM validation: Original and Enhanced 600-frame
 headless CPU/PPU/memory hashes match byte-for-byte. This is not
 full-game/Windows Enhanced GUI certification. Do not distribute the
 copyrighted game EXE, ROM or third-party sound/assets publicly.
+
+## Private Windows stage and companion debug picker
+
+New AlphaCandidate private builds include Debug-Stage-Companion.bat.
+Double-click it (Python 3 with Tkinter required); choose a stage/checkpoint,
+None, Alucard, Sypha or Grant, and the same name used at game name-entry.
+Copy the displayed 4x4 password grid and enter its symbols manually
+on the game's password screen. Password symbol keys: W=whip,
+R=rosary/cross, H=heart, .=blank.
+
+The original game's Normal difficulty only supports some partners
+on each route. The picker rejects unavailable combinations. Hard mode
+may allow the combination but changes the game difficulty. This is
+an external test aid, not an in-game F10 debug menu, not mid-game warp
+or RAM-based companion injection. The Japanese live password path
+still needs acceptance testing on the original compiled game.
