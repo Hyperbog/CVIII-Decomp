@@ -581,3 +581,7 @@ The expanded independent [Stage 1 multi-branch suite](../SharedNES/0508_STAGE1_M
 ## 0585 — owner's first Windows Alpha playtest: no issues reported
 
 The owner independently reported that the original Japanese native C11 Windows game is "playing flawlessly" and appears potentially playable through the whole game. Mark this **initial interactive Alpha acceptance** (reported, not independently reproduced here), not a completed full-game route or Beta/Final qualification. Next step is lightweight progression-based Beta checks: Stage 1 boss/exit, later stages, partners, pause/audio, saves if available. No reconstruction work or new strict PRG/VPP credit. [Release gates](RELEASE_MILESTONES.md).
+
+## 0586 — user completes Stage 1 boss and enters lower Stage 2 route
+
+Owner of the private native-C Windows Alpha confirms Stage 1 boss defeat and successful Stage 1 exit/branch transition, reaching **the start of Stage 2 bottom/lower route**. No fault reported. First Beta progression gate satisfied, but Stage 2 completion, alternate routes, characters, saves and endings not yet observed. Play normally and report only concrete blockers; no ROM reconstruction or gameplay recording needed. [Release gates](RELEASE_MILESTONES.md).

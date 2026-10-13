@@ -556,3 +556,7 @@ The authenticated user-provided Japanese ROM was successfully compiled by the pi
 ## 0585 — owner-reported original Windows Alpha usability
 
 The user confirmed the private Japanese Castlevania III Windows x64 C11 Alpha "is playing flawlessly" during initial real-machine testing. This supersedes the prior release note "Windows gameplay unverified" for **initial interactive play only**. It does not certify a complete game, alternative routes/endings, sound/saves or independent Mesen parity. Alpha owner acceptance recorded; Beta gate next is Stage 1 boss/exit and subsequent natural gameplay coverage without unnecessary ROM reconstruction. Updated `docs/RELEASE_MILESTONES.md`.
+
+## 0586 — owner Beta-route progress beyond Stage 1
+
+The user's private original-JP native C11 Windows build has now progressed through Stage 1 boss, exit and selected **Stage 2 bottom route**, according to their hands-on confirmation. This is user-reported real gameplay and qualifies the first Beta progression gate, not a completed Beta release, upper route or whole-game proof. Do not rerun reconstruction tests absent failures; continue natural playtest through lower Stage 2. No VPP/strict PRG changes. See `docs/RELEASE_MILESTONES.md`.

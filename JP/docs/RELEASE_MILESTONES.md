@@ -134,3 +134,23 @@ Full-game Final acceptance still requires multiple routes/endings, stable
 session behavior, visual/audio fidelity, packaging and legal review.
 These owner observations **do not change** independent Mesen parity/VPP
 metrics: 27/100 VPP, 49,504/262,144 strictly certified PRG bytes.
+
+## Phase 0586 — owner confirms Stage 1 boss and lower Stage 2 entry
+
+Owner Windows x64 original-Japanese C11 Alpha follow-up on 2026-10-12:
+**Stage 1 boss defeated, Stage 1 exit and branch transition succeeded,
+and the owner has just started Stage 2 on the bottom/lower route.**
+The owner previously reported flawless interactive gameplay and has not
+reported a new fault in this follow-up.
+
+This satisfies the *first Beta route-progression gate* through Stage 1
+and entry into the lower Stage 2 branch. It **does not** verify that
+Stage 2 is complete, that upper route or alternate partners function,
+or that any later boss, ending, save operation or audio implementation
+has been exhaustively tested. Continue natural gameplay; ask for
+screenshots/logs/reconstruction tests only in response to a concrete
+problem. No user gameplay recordings are required.
+
+Alpha remains a private, user-tested build. Beta validation in progress;
+no Beta/Final release is claimed. Existing VPP27/100, strict PRG
+49,504/262,144 and prior compiled-site census remain unchanged.
