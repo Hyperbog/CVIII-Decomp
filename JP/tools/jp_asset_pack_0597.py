@@ -143,8 +143,13 @@ def read_pack(path: Path) -> tuple[dict, dict[str, bytes]]:
         if any(item.file_size > 1024 * 1024 for item in info.values()):
             raise ValueError("Asset entry exceeds package size limit")
         manifest = json.loads(z.read(MANIFEST_NAME))
-        if manifest.get("schema") != SCHEMA or manifest.get("rom_sha256") != JP_SHA:
-            raise ValueError("Wrong asset schema or original-Japanese-ROM fingerprint")
+        if (manifest.get("schema") != SCHEMA or
+            manifest.get("rom_sha256") != JP_SHA or
+            manifest.get("mapper") != 24 or
+            manifest.get("source_rom_size") != ROM_LENGTH or
+            manifest.get("prg_bytes") != PRG_LENGTH or
+            manifest.get("chr_bytes") != CHR_LENGTH):
+            raise ValueError("Wrong asset schema, ROM fingerprint or cartridge geometry")
         specs = manifest.get("entries", {})
         expected = {RAW_NAME, INDEXED_NAME} | {f"tables/password/{key}.bin" for key in JP_TABLES}
         if set(specs) != expected or set(names) != expected | {MANIFEST_NAME}:
@@ -185,7 +190,13 @@ def build(rom: Path, path: Path, rebuild: bool = False) -> dict:
     # Authentication is mandatory even if a cache already exists.
     chr_bytes, tables = authenticated_parts(rom)
     if output.exists() and not rebuild:
-        old, _ = read_pack(output)
+        old, cached = read_pack(output)
+        # A self-consistent archive is not necessarily from the owner's ROM.
+        # Compare all extracted source bytes before returning "reused".
+        if (cached[RAW_NAME] != chr_bytes or
+            any(cached[f"tables/password/{name}.bin"] != tables[name]
+                for name in JP_TABLES)):
+            raise ValueError("Cache differs from authenticated Japanese ROM; pass --rebuild")
         return {"result": "reused", "path": str(output), "sha256": sha(output.read_bytes()),
                 "rom_sha256": old["rom_sha256"], "tiles": TILE_COUNT, "pages": PAGE_COUNT}
     manifest, entries = make_contents(chr_bytes, tables, JP_SHA)
