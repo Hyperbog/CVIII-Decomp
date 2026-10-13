@@ -154,3 +154,35 @@ problem. No user gameplay recordings are required.
 Alpha remains a private, user-tested build. Beta validation in progress;
 no Beta/Final release is claimed. Existing VPP27/100, strict PRG
 49,504/262,144 and prior compiled-site census remain unchanged.
+
+## Phase 0587 — owner reaches Stage 4-0A, recruits Sypha, switching works
+
+On 2026-10-12, the owner reported that the private original-Japanese
+native C11 Windows Alpha reached **Stage 4-0A** following the lower
+route. **Sypha was recruited and switching player characters works.**
+The owner described the overall game as playing very well, with
+**minor sprite glitches in the purple area** of Stage 4-0A. A screenshot
+was supplied; the exact rendering/timing root cause has not been
+established. The earlier Stage 2 lower-route background pixels
+occluding Trevor remain separately described under the expanded
+[graphics issue #1](https://github.com/Hyperbog/CVIII-Decomp/issues/1).
+
+**Beta acceptance newly supported by owner report:** real-game
+multi-stage progression, Sypha recruitment and character switching.
+**Unverified:** successful Stage 4-0A boss/exit, other partners,
+alternate routes, endings, complete audio, saves and full enhanced
+features. Avoid unnecessary decomp/reconstruction/testing while the
+user plays normally.
+
+## Phase 0588 — dual-edition product specification
+
+The owner has defined **Original** and **Enhanced** builds on the same
+native C11 engine. Enhanced aims for true widescreen, separate sound
+channels and independent SFX/music, optional remastered/alternate
+soundtracks, freely remappable controls, sprite/texture packs and
+flicker-free graphics. **Underlying original gameplay is the default
+for both editions.** Optional new moves (e.g. SCIV-style directional
+whipping) require separately enabled Enhanced-only gameplay modules.
+The architecture, acceptance criteria and issue links are recorded in
+[Original and Enhanced editions](ORIGINAL_ENHANCED_EDITIONS.md).
+These enhancements are **not implemented** in the current Alpha.

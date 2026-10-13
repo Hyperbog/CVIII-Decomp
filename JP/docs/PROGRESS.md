@@ -585,3 +585,7 @@ The owner independently reported that the original Japanese native C11 Windows g
 ## 0586 — user completes Stage 1 boss and enters lower Stage 2 route
 
 Owner of the private native-C Windows Alpha confirms Stage 1 boss defeat and successful Stage 1 exit/branch transition, reaching **the start of Stage 2 bottom/lower route**. No fault reported. First Beta progression gate satisfied, but Stage 2 completion, alternate routes, characters, saves and endings not yet observed. Play normally and report only concrete blockers; no ROM reconstruction or gameplay recording needed. [Release gates](RELEASE_MILESTONES.md).
+
+## 0587–0588 — Stage 4-0A, Sypha and dual-edition plan
+
+User-confirmed Windows native C11 progression now reaches **Stage 4-0A**, with **Sypha recruited and character switching verified**; minor sprite artifacts reported in the purple area and tracked alongside distinct Stage 2 priority artifacts in [graphics issue #1](https://github.com/Hyperbog/CVIII-Decomp/issues/1). The user also defined two products on one engine: faithful **Original** and configurable **Enhanced**, including widescreen, sprite-limit removal, per-channel/music-SFX isolation, replacement music/graphics, rebindable input, and opt-in new moves that never silently change baseline mechanics. [Edition architecture and roadmap](ORIGINAL_ENHANCED_EDITIONS.md); issues #2–#9. No new code coverage, VPP or gameplay test claim.

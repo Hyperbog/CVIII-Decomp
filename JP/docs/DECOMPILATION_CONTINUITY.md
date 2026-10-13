@@ -560,3 +560,7 @@ The user confirmed the private Japanese Castlevania III Windows x64 C11 Alpha "i
 ## 0586 — owner Beta-route progress beyond Stage 1
 
 The user's private original-JP native C11 Windows build has now progressed through Stage 1 boss, exit and selected **Stage 2 bottom route**, according to their hands-on confirmation. This is user-reported real gameplay and qualifies the first Beta progression gate, not a completed Beta release, upper route or whole-game proof. Do not rerun reconstruction tests absent failures; continue natural playtest through lower Stage 2. No VPP/strict PRG changes. See `docs/RELEASE_MILESTONES.md`.
+
+## 0587–0588 — owner Beta playtest and Enhanced feature contract
+
+The owner reached Stage **4-0A**, recruited **Sypha** and successfully switched characters in the Windows original-JP native C11 Alpha. Minor purple-area sprite glitches were added to existing graphics [issue #1](https://github.com/Hyperbog/CVIII-Decomp/issues/1) separately from Stage 2 occlusion. No gameplay blocker reported. Product specification `docs/ORIGINAL_ENHANCED_EDITIONS.md`: Original matches base mechanics/PPU/APU presentation; Enhanced adds optional widescreen, flicker-free objects, per-channel audio and music/SFX separation, soundtrack replacement, sprites/texture packs and controller mapping. New SCIV-style directional whipping is optional Enhanced-only gameplay modification, never default. Filed architecture/feature issues #4–#9, existing #2–#3. These remain proposals, not Alpha features; avoid reconstruction tests absent a concrete defect.
