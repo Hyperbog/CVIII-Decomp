@@ -8,6 +8,7 @@
 #include "cyc_render.h"
 #include "cviii_chr_index_0598.h"
 #include "cviii_chr_audit_0599.h"
+#include "cviii_chr_fetch_0600.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -20,6 +21,7 @@ typedef struct {
     int sprite_unlimited;
     CviiiChrIndex assets; /* read-only imported physical CHR; presentation only */
     CviiiChrAudit audit; /* opt-in read-only per-frame bank audit */
+    CviiiChrFetchAudit fetch; /* opt-in actual PPU pattern-read observation */
     uint32_t presentation[CVIII_W * CVIII_H];
 } CviiiEdition;
 
@@ -88,6 +90,14 @@ static bool option(void *context, const char *name, const char *value)
         printf("CVIII: recording 1-in-60-frame read-only VRC6 bank/palette samples\n");
         return true;
     }
+    if (!strcmp(name, "--chr-fetch-audit")) {
+        if (!value || !cviii_chr_fetch_open(&cviii.fetch, value)) {
+            fprintf(stderr, "CVIII: cannot open requested CHR fetch audit output\n");
+            return false;
+        }
+        printf("CVIII: recording sampled actual VRC6 PPU CHR reads (no substitution)\n");
+        return true;
+    }
     return false;
 }
 
@@ -110,9 +120,17 @@ static void power_on(void *context)
     cyc_render_capture_background(true);
 }
 
+static void frame_begin(void *context)
+{
+    CviiiEdition *settings = (CviiiEdition *)context;
+    if (settings->enhanced)
+        cviii_chr_fetch_frame_begin(&settings->fetch, &settings->assets);
+}
+
 static void frame_end(void *context)
 {
     CviiiEdition *settings = (CviiiEdition *)context;
+    cviii_chr_fetch_frame_end(&settings->fetch);
     if (!settings->audit.out || !settings->assets.raw || !settings->assets.pixels)
         return;
     ++settings->audit.frames;
@@ -160,6 +178,8 @@ static const CycHostOption cviii_options[] = {
      "Private read-only 655368-byte JP CHR index (no renderer substitution)"},
     {"--chr-audit", true,
      "Developer CSV for sampled VRC6 CHR pages and palette (requires asset index)"},
+    {"--chr-fetch-audit", true,
+     "Read-only actual PPU CHR fetch vs cached ROM scanline CSV (requires asset index)"},
 };
 
 static CycHostExtras cviii_extra = {
@@ -168,6 +188,7 @@ static CycHostExtras cviii_extra = {
     .load_setting = load_setting,
     .save_settings = save_settings,
     .power_on = power_on,
+    .frame_begin = frame_begin,
     .frame_end = frame_end,
     .options = cviii_options,
     .option_count = sizeof(cviii_options) / sizeof(cviii_options[0]),

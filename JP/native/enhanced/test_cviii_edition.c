@@ -2,6 +2,7 @@
 #include "cyc_host_extras.h"
 #include "cyc_core.h"
 #include "cyc_render.h"
+#include "cviii_chr_fetch_0600.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -21,6 +22,8 @@ void cyc_hw_state_dump(void *target) {
         fprintf(out, "cart.chr_off[%u] %06X\n", i, i * 1024);
 }
 
+static CviiiChrFetchHook capture_hook;
+void cviii_chr_fetch_set_hook(CviiiChrFetchHook hook) { capture_hook = hook; }
 static uint32_t native[256*240];
 static int capture_enabled, compose_calls, bg_reads;
 const uint32_t *cyc_frame_argb(void) { return native; }
@@ -42,7 +45,7 @@ void cyc_render_sprites(uint32_t *out,int w,int h,int x,const uint8_t *bg,
 int main(void) {
     const CycHostExtras *e=cyc_host_extras();
     assert(e && e->options && e->option && e->present);
-    assert(e->option_count == 4);
+    assert(e->option_count == 5);
     assert(!e->option(e->ctx,"--asset-index",(const char *)0));
     int w=0,h=0;
     e->power_on(e->ctx);

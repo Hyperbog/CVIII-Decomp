@@ -50,13 +50,15 @@ if(JP_EDITION_HOST_EXTRAS)
  list(APPEND JP_HOST_SOURCES HOST_EXTRAS
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_edition.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_chr_index_0598.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_chr_audit_0599.c")
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_chr_audit_0599.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_chr_fetch_0600.c")
 endif()
 nesrecomp_add_cycle_game(jp_akumajou_densetsu
  ROM "${JP_ORIGINAL_JP_ROM}" ${JP_CYCLE_OPTIONS} ${JP_HOST_SOURCES})
 if(JP_EDITION_HOST_EXTRAS)
  target_include_directories(jp_akumajou_densetsu PRIVATE
-  "${NESRECOMP_EXTERNAL_ROOT}/runner/cyc")
+  "${NESRECOMP_EXTERNAL_ROOT}/runner/cyc"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced")
 endif()
 # JP0591: multi-slot save states using upstream's *full machine* serializer.
 # Generate a local overlay alongside pinned external cyc_sdl.c; relative
@@ -148,3 +150,37 @@ add_executable(jp_chr_audit_test_0599
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_chr_audit_0599.c"
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_chr_audit_test_0599.c")
 set_property(TARGET jp_chr_audit_test_0599 PROPERTY C_STANDARD 11)
+
+# JP0600: private physical PPU pattern-read observer. Stock runtime remains untouched.
+set(JP_MAPPER_ORIG "${NESRECOMP_EXTERNAL_ROOT}/runner/cyc/hw_mapper.c")
+set(JP_MAPPER_TAP "${NESRECOMP_EXTERNAL_ROOT}/runner/cyc/cviii_hw_mapper_fetch.c")
+execute_process(
+ COMMAND "${Python3_EXECUTABLE}"
+   "${CMAKE_CURRENT_LIST_DIR}/../../tools/patch_cyc_chr_fetch_0600.py"
+   --source "${JP_MAPPER_ORIG}" --out "${JP_MAPPER_TAP}"
+ RESULT_VARIABLE JP_MAPPER_TAP_RESULT
+ ERROR_VARIABLE JP_MAPPER_TAP_ERROR)
+if(NOT JP_MAPPER_TAP_RESULT EQUAL 0)
+ message(FATAL_ERROR "JP0600 private CHR observer generation failed: ${JP_MAPPER_TAP_ERROR}")
+endif()
+get_target_property(JP_FETCH_TARGET_SOURCES jp_akumajou_densetsu SOURCES)
+set(JP_FETCH_MODIFIED_SOURCES "")
+set(JP_FETCH_REPLACED_COUNT 0)
+foreach(JP_FILE IN LISTS JP_FETCH_TARGET_SOURCES)
+ if(JP_FILE MATCHES "hw_mapper\\.c$")
+  list(APPEND JP_FETCH_MODIFIED_SOURCES "${JP_MAPPER_TAP}")
+  math(EXPR JP_FETCH_REPLACED_COUNT "${JP_FETCH_REPLACED_COUNT} + 1")
+ else()
+  list(APPEND JP_FETCH_MODIFIED_SOURCES "${JP_FILE}")
+ endif()
+endforeach()
+if(NOT JP_FETCH_REPLACED_COUNT EQUAL 1)
+ message(FATAL_ERROR "JP0600 requires exactly one hw_mapper.c source, got ${JP_FETCH_REPLACED_COUNT}")
+endif()
+set_property(TARGET jp_akumajou_densetsu PROPERTY SOURCES "${JP_FETCH_MODIFIED_SOURCES}")
+message(STATUS "JP0600 read-only physical PPU CHR pattern tap available")
+
+add_executable(jp_chr_fetch_test_0600
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_chr_fetch_0600.c"
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_chr_fetch_test_0600.c")
+set_property(TARGET jp_chr_fetch_test_0600 PROPERTY C_STANDARD 11)

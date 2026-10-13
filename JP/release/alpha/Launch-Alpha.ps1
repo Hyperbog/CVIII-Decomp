@@ -49,7 +49,10 @@ try {
    if ($ChrAudit) {
     $chrAuditPath=Join-Path $PSScriptRoot 'CVIII-CHR-Audit.csv'
     $gameArgs+=@('--chr-audit',$chrAuditPath)
-    Write-Host ('Recording a sampled read-only VRC6 CHR mapping report: '+$chrAuditPath)
+    $fetchAuditPath=Join-Path $PSScriptRoot 'CVIII-CHR-Fetch.csv'
+    $gameArgs+=@('--chr-fetch-audit',$fetchAuditPath)
+    Write-Host ('Recording sampled VRC6 mappings: '+$chrAuditPath)
+    Write-Host ('Recording physical PPU CHR reads: '+$fetchAuditPath)
    }
   } else {
    if ($ChrAudit) { throw 'CHR mapping audit requires private CVIII-CHR-Index.dat' }
