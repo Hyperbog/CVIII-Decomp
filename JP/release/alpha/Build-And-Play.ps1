@@ -31,6 +31,15 @@ function Test-PrivateGame([string]$Directory) {
 }
 
 Write-Host 'CVIII — private Windows build and play'
+$homeBuild=Join-Path $env:USERPROFILE 'CVIII-Alpha'
+$romLocationFile=Join-Path $homeBuild 'LastRomPath.txt'
+if (-not $Rom -and (Test-Path -LiteralPath $romLocationFile -PathType Leaf)) {
+ $candidate=(Get-Content -LiteralPath $romLocationFile -Raw).Trim()
+ if ($candidate -and (Test-Path -LiteralPath $candidate -PathType Leaf)) {
+  $Rom=$candidate
+  Write-Host 'Using previous original-JP cartridge location.'
+ }
+}
 if (-not $Rom) { $Rom=Select-OwnerRom }
 $romPath=(Resolve-Path -LiteralPath $Rom -ErrorAction Stop).Path
 $expected='958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28'
@@ -39,7 +48,9 @@ if ($actual -ne $expected) {
  throw 'Wrong cartridge. The native JP build requires the original Japanese VRC6 ROM.'
 }
 
-$homeBuild=Join-Path $env:USERPROFILE 'CVIII-Alpha'
+[IO.Directory]::CreateDirectory($homeBuild) | Out-Null
+# Store only the user's local ROM path, never any ROM or asset bytes.
+Set-Content -LiteralPath $romLocationFile -Value $romPath -Encoding UTF8
 $privateCandidate=Join-Path $homeBuild 'AlphaCandidate'
 $localCandidate=$PSScriptRoot
 if ((Test-PrivateGame $localCandidate) -and -not $Rebuild) {
@@ -66,7 +77,10 @@ if ((Test-PrivateGame $localCandidate) -and -not $Rebuild) {
  }
  $builder=Join-Path $PSScriptRoot 'Build-Alpha.ps1'
  if (-not (Test-Path -LiteralPath $builder)) {
-  throw ('Missing Build-Alpha.ps1 next to this launcher. Extract the complete ROM-free Builder Kit.')
+  $builder=Join-Path $homeBuild '_cviisource\JP\release\alpha\Build-Alpha.ps1'
+ }
+ if (-not (Test-Path -LiteralPath $builder)) {
+  throw ('Missing Build-Alpha.ps1. Extract the complete ROM-free Builder Kit, then retry.')
  }
  [IO.Directory]::CreateDirectory($homeBuild) | Out-Null
  $logs=Join-Path $homeBuild 'logs'

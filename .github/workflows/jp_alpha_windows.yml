@@ -93,7 +93,7 @@ jobs:
             if ($errs.Count -ne 0) { throw ("PowerShell syntax error: "+$file+": "+($errs | Out-String)) }
           }
           $source = Get-Content -LiteralPath 'JP/release/alpha/Build-And-Play.ps1' -Raw
-          if ($source -notmatch 'Get-FileHash' -or $source -notmatch 'Test-PrivateGame' -or $source -notmatch 'Build-Alpha.ps1') {
+          if ($source -notmatch 'Get-FileHash' -or $source -notmatch 'Test-PrivateGame' -or $source -notmatch 'Build-Alpha.ps1' -or $source -notmatch 'LastRomPath.txt') {
             throw "Missing first-run original-ROM authentication and build fallback"
           }
       - name: Compile SDL2 windowed C11 alpha target

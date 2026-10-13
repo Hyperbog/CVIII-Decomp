@@ -26,7 +26,10 @@ The original game is compiled ONLY on your own Windows PC, not in
 GitHub CI or in the public downloaded kit. Build logs live under
 `%USERPROFILE%\CVIII-Alpha\logs\`. Once compiled, subsequent
 launches reuse the private result without rebuilding (unless you run
-`Build-And-Play.ps1 -Rebuild`). The kit never downloads a DLL from
+`Build-And-Play.ps1 -Rebuild`). A private
+`%USERPROFILE%\CVIII-Alpha\LastRomPath.txt` saves **only the original
+ROM path**, so Play Original/Enhanced no longer repeatedly opens a file
+dialog. If you move the ROM, delete that path hint to reselect it. The kit never downloads a DLL from
 an unrelated site. See the FIRST failing build-log entry if setup
 does not complete.
 
