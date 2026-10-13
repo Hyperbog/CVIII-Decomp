@@ -43,7 +43,15 @@ Write-Host 'Controls: arrows=D-pad, Z=A, X=B, Enter=Start, Backslash=Select.'
 Write-Host 'F8/F9 save/load; builds supporting slots use Ctrl+0..9.'
 if ($AuditOutDir -and -not $ChrAudit) { throw '-AuditOutDir requires -ChrAudit' }
 $auditBase=if ($AuditOutDir) { [IO.Path]::GetFullPath($AuditOutDir) } else { $PSScriptRoot }
-if ($ChrAudit) { [IO.Directory]::CreateDirectory($auditBase) | Out-Null }
+if ($ChrAudit) {
+ [IO.Directory]::CreateDirectory($auditBase) | Out-Null
+ $pythonResolver=Join-Path $PSScriptRoot 'Resolve-Python.ps1'
+ if (-not (Test-Path -LiteralPath $pythonResolver)) {
+  throw 'Private AlphaCandidate is missing Resolve-Python.ps1. Rebuild with the latest builder.'
+ }
+ . $pythonResolver
+ (Resolve-CviiiPython) | Out-Null
+}
 Push-Location $PSScriptRoot
 try {
  $gameArgs=@($romPath,'--edition',$Edition.ToLowerInvariant(),'--unlimited-sprites',$sprites)
@@ -79,7 +87,7 @@ try {
   $summaryTool=Join-Path $PSScriptRoot 'jp_chr_fetch_report_0600.py'
   $summaryJson=Join-Path $auditBase 'CVIII-CHR-Fetch.json'
   if (Test-Path -LiteralPath $summaryTool) {
-   & python $summaryTool --csv $fetchAuditPath --json $summaryJson
+   Invoke-CviiiPython -Script $summaryTool -Arguments @('--csv',$fetchAuditPath,'--json',$summaryJson)
    if ($LASTEXITCODE -ne 0) { throw 'Invalid JP0600 CHR fetch CSV' }
    $summary=Get-Content -LiteralPath $summaryJson -Raw | ConvertFrom-Json
    Write-Host ('Sampled physical PPU CHR reads: '+$summary.pattern_fetches)
@@ -91,7 +99,7 @@ try {
   $frameJson=Join-Path $auditBase 'CVIII-Frame-Evidence.json'
   if ((Test-Path -LiteralPath $frameTool) -and
       (Test-Path -LiteralPath $frameEvidencePath)) {
-   & python $frameTool --fetch $fetchAuditPath --evidence $frameEvidencePath --json $frameJson --require-parity
+   Invoke-CviiiPython -Script $frameTool -Arguments @('--fetch',$fetchAuditPath,'--evidence',$frameEvidencePath,'--json',$frameJson,'--require-parity')
    if ($LASTEXITCODE -ne 0) { throw 'JP0601 original PPU and CHR observations disagree' }
    $report=Get-Content -LiteralPath $frameJson -Raw | ConvertFrom-Json
    Write-Host ('Original PPU sampled frames: '+$report.sampled_original_ppu_frames)
@@ -100,7 +108,7 @@ try {
    $ntTool=Join-Path $PSScriptRoot 'jp_nt_trace_report_0606.py'
    if ((Test-Path -LiteralPath $ntTool) -and (Test-Path -LiteralPath $ntAuditPath)) {
     $ntJson=Join-Path $auditBase 'CVIII-NT-Fetch.json'
-    & python $ntTool --csv $ntAuditPath --evidence $frameEvidencePath --json $ntJson
+    Invoke-CviiiPython -Script $ntTool -Arguments @('--csv',$ntAuditPath,'--evidence',$frameEvidencePath,'--json',$ntJson)
     if ($LASTEXITCODE -ne 0) { throw 'JP0606 PPU nametable and frame evidence disagree' }
     $ntSummary=Get-Content -LiteralPath $ntJson -Raw | ConvertFrom-Json
     Write-Host ('JP0606 tile fetches: '+$ntSummary.tile_reads+', attribute fetches: '+$ntSummary.attribute_reads)

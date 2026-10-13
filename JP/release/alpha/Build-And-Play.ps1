@@ -59,12 +59,13 @@ if ((Test-PrivateGame $localCandidate) -and -not $Rebuild) {
  $runDir=$privateCandidate
 } else {
  $missing=@()
- foreach ($command in @('git','cmake','python')) {
+ foreach ($command in @('git','cmake')) {
   if (-not (Get-Command $command -ErrorAction SilentlyContinue)) { $missing+= $command }
  }
  if ($missing.Count -gt 0) {
   throw ('Missing required tools: '+($missing -join ', ')+
-   '. Install Git for Windows, Python 3, CMake, and Visual Studio 2022 Desktop development with C++; then retry.')
+   '. Install Git for Windows, CMake, and Visual Studio 2022 Desktop development with C++; then retry. '+
+   'The builder checks Python 3 independently and provides installation guidance.')
  }
  $programFilesX86=[Environment]::GetFolderPath('ProgramFilesX86')
  $vswhere=Join-Path $programFilesX86 'Microsoft Visual Studio\Installer\vswhere.exe'

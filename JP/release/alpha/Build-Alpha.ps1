@@ -21,7 +21,7 @@ function Invoke-Checked {
   throw "$Program failed (exit $LASTEXITCODE); args: $($CommandArguments -join ' ')"
  }
 }
-foreach ($command in @('git','cmake','python')) {
+foreach ($command in @('git','cmake')) {
  if (-not (Get-Command $command -ErrorAction SilentlyContinue)) {
   throw "Missing dependency $command. See README_ALPHA.md."
  }
@@ -42,13 +42,21 @@ if ($ProjectRoot) {
   Invoke-Checked -Program 'git' -CommandArguments @('-C',$repoPath,'pull','--ff-only','origin','decompilation')
  }
 }
+# Resolve AFTER refreshing Git; an older kit can use the current resolver.
+$pythonResolver=Join-Path $repoPath 'JP/release/alpha/Resolve-Python.ps1'
+if (-not (Test-Path -LiteralPath $pythonResolver)) {
+ throw "Python resolver missing from synchronized repository: $pythonResolver"
+}
+. $pythonResolver
+$pyCmd=Resolve-CviiiPython
+Write-Host ('Using verified Python interpreter: '+$pyCmd.Executable+' '+($pyCmd.Prefix -join ' '))
 $buildScript=Join-Path $repoPath 'JP/tools/build_retail_cycle_0575.py'
 if (-not (Test-Path -LiteralPath $buildScript)) {
  throw 'CVIII repository missing original-JP C11 compiler entry point.'
 }
 $privateOut=Join-Path $outPath '_private_original_rom_build'
 Write-Host 'Compiling the original Japanese game to native C11 with SDL2...'
-Invoke-Checked -Program 'python' -CommandArguments @($buildScript,'--rom',$romPath,'--out',$privateOut,'--windowed','--build-only')
+Invoke-Checked -Program $pyCmd.Executable -CommandArguments (@($pyCmd.Prefix) + @($buildScript,'--rom',$romPath,'--out',$privateOut,'--windowed','--build-only'))
 $reportPath=Join-Path $privateOut 'jp0575_build_report.json'
 if (-not (Test-Path -LiteralPath $reportPath)) {throw 'No compiler build report was produced.'}
 $report=Get-Content -LiteralPath $reportPath -Raw | ConvertFrom-Json
@@ -75,14 +83,14 @@ $assetBuilder=Join-Path $repoPath 'JP/tools/jp_asset_pack_0597.py'
 if (-not (Test-Path -LiteralPath $assetBuilder)) { throw "Missing JP0597 asset builder" }
 $assetPack=Join-Path $stage 'CVIII-Assets.bin'
 Write-Host 'Verifying or creating private CVIII-Assets.bin...'
-Invoke-Checked -Program 'python' -CommandArguments @($assetBuilder,'--build','--rom',$romPath,'--out',$assetPack)
+Invoke-Checked -Program $pyCmd.Executable -CommandArguments (@($pyCmd.Prefix) + @($assetBuilder,'--build','--rom',$romPath,'--out',$assetPack))
 if (-not (Test-Path -LiteralPath $assetPack)) { throw 'Asset cache was not created' }
 # JP0598: export verified 2bpp and indexed pixels into a fixed-size C11
 # reader format; private native code imports it without touching NES state.
 $assetIndexTool=Join-Path $repoPath 'JP/tools/jp_asset_runtime_0598.py'
 if (-not (Test-Path -LiteralPath $assetIndexTool)) { throw "Missing JP0598 runtime index exporter" }
 $assetIndex=Join-Path $stage 'CVIII-CHR-Index.dat'
-Invoke-Checked -Program 'python' -CommandArguments @($assetIndexTool,'--export','--assets',$assetPack,'--out',$assetIndex)
+Invoke-Checked -Program $pyCmd.Executable -CommandArguments (@($pyCmd.Prefix) + @($assetIndexTool,'--export','--assets',$assetPack,'--out',$assetIndex))
 if (-not (Test-Path -LiteralPath $assetIndex)) { throw 'CHR index export missing' }
 
 # Always package the just-synchronized repo launcher; older kits must not
@@ -93,7 +101,7 @@ Copy-Item -LiteralPath $launch -Destination $stage -Force
 $notes=Join-Path $repoPath 'JP/release/alpha/README_ALPHA.md'
 if (-not (Test-Path -LiteralPath $notes)) { throw 'Current repo README missing' }
 Copy-Item -LiteralPath $notes -Destination $stage -Force
-foreach ($name in @('Play-CVIII.bat','Debug-Stage-Companion.bat','Capture-QA-0602.ps1','Build-And-Play.ps1','Build-And-Play.bat')) {
+foreach ($name in @('Play-CVIII.bat','Debug-Stage-Companion.bat','Capture-QA-0602.ps1','Build-And-Play.ps1','Build-And-Play.bat','Resolve-Python.ps1')) {
  $src=Join-Path $repoPath ('JP/release/alpha/'+$name)
  if (-not (Test-Path -LiteralPath $src)) {throw "Missing alpha launcher: $src"}
  Copy-Item -LiteralPath $src -Destination $stage -Force

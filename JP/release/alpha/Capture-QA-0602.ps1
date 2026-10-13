@@ -72,10 +72,15 @@ $record=[ordered]@{
 }
 $manifest=Join-Path $folder 'capture.json'
 $record | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $manifest -Encoding UTF8
+$pythonResolver=Join-Path $PSScriptRoot 'Resolve-Python.ps1'
+if (-not (Test-Path -LiteralPath $pythonResolver)) {
+ throw 'Private AlphaCandidate is missing Resolve-Python.ps1. Rebuild with the latest builder.'
+}
+. $pythonResolver
 $tool=Join-Path $PSScriptRoot 'jp_qa_matrix_0602.py'
 if (Test-Path -LiteralPath $tool) {
  $report=Join-Path $root 'CVIII-QA-Matrix.json'
- & python $tool --root $root --json $report --min-frames 10
+ Invoke-CviiiPython -Script $tool -Arguments @('--root',$root,'--json',$report,'--min-frames','10')
  if ($LASTEXITCODE -ne 0) { Write-Warning 'QA matrix still has insufficient/corrupt evidence.' }
  else { Write-Host ('Private QA scene matrix: '+$report) }
 }
