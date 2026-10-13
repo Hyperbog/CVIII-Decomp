@@ -49,7 +49,7 @@ jobs:
         run: |
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
             -I _external_nesrecomp/runner/cyc \
-            JP/native/enhanced/cviii_edition.c JP/native/enhanced/test_cviii_edition.c \
+            JP/native/enhanced/cviii_edition.c JP/native/enhanced/cviii_chr_index_0598.c JP/native/enhanced/test_cviii_edition.c \
             -o "${{ runner.temp }}/test_cviii_edition"
           "${{ runner.temp }}/test_cviii_edition"
       - name: Generate noncommercial synthetic mapper24 VRC6 ROM
