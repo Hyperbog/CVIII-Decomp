@@ -1,0 +1,6 @@
+# Commercial cartridges, private native states and generated ROM asset cache.
+# Keep all owner-ROM-derived binary media out of public source/CI.
+*.nes
+*.nsf
+*.cycstate
+CVIII-Assets.bin

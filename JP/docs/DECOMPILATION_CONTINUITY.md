@@ -605,3 +605,22 @@ a JP-authenticated password from its name when no stage checkpoint exists.
 Original JP decoder still owns difficulty/companion/level initialization;
 manual confirm required. Windows synthetic compile and original retail GUI
 QA are separate; do not increase strict PRG or VPP metrics.
+
+
+## JP0597 — ROM-authenticated private offline asset pack
+
+The first asset-package slice extracts **complete physical CHR ROM**
+(128 * 1 KiB pages; 8,192 planar NES tiles) and deterministic decoded
+8x8 palette-index pixels. It also records all six original-JP password
+tables at their authenticated physical 8 KiB PRG bank offsets.
+Per-entry SHA256, per-page SHA256, a complete versioned manifest and
+exact 2bpp-to-indices-to-2bpp reconstruction are checked. A later build
+reuses a cache only after full verification; malformed or stale archives
+fail closed. Private Windows Alpha builders create an owner-local
+CVIII-Assets.bin, explicitly omitted from public CI artifacts.
+
+This is **an offline cache**, not a rewritten graphics renderer, a
+stage-data decompilation, or a substitute ROM for NESRecomp.
+Background/sprite interpretation, metatiles, palettes, stage maps,
+animation, music, and text extraction remain open; no strict semantic
+PRG or VPP progress is claimed.

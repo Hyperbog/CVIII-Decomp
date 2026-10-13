@@ -56,6 +56,15 @@ $stage=Join-Path $outPath 'AlphaCandidate'
 [IO.Directory]::CreateDirectory($stage) | Out-Null
 Copy-Item -LiteralPath $program -Destination (Join-Path $stage 'jp_akumajou_densetsu.exe') -Force
 Copy-Item -LiteralPath $sdl -Destination $stage -Force
+# JP0597: generate/cache an authenticated, local ROM-derived CHR asset
+# archive once per private candidate. Neither public CI nor Git sees it.
+$assetBuilder=Join-Path $repoPath 'JP/tools/jp_asset_pack_0597.py'
+if (-not (Test-Path -LiteralPath $assetBuilder)) { throw "Missing JP0597 asset builder" }
+$assetPack=Join-Path $stage 'CVIII-Assets.bin'
+Write-Host 'Verifying or creating private CVIII-Assets.bin...'
+Invoke-Checked 'python' @($assetBuilder,'--build','--rom',$romPath,'--out',$assetPack)
+if (-not (Test-Path -LiteralPath $assetPack)) { throw 'Asset cache was not created' }
+
 $launch=Join-Path $PSScriptRoot 'Launch-Alpha.ps1'
 if (-not (Test-Path -LiteralPath $launch)) {
  $launch=Join-Path $repoPath 'JP/release/alpha/Launch-Alpha.ps1'
@@ -71,7 +80,7 @@ foreach ($name in @('Play-Original.bat','Play-Enhanced.bat','Play-Alpha.bat','De
  if (-not (Test-Path -LiteralPath $src)) {throw "Missing alpha launcher: $src"}
  Copy-Item -LiteralPath $src -Destination $stage -Force
 }
-foreach ($name in @('jp_password_stage_0593.py','jp_password_debug_menu_0593.py')) {
+foreach ($name in @('jp_password_stage_0593.py','jp_password_debug_menu_0593.py','jp_asset_pack_0597.py')) {
  $src=Join-Path $repoPath ('JP/tools/'+$name)
  if (-not (Test-Path -LiteralPath $src)) {throw "Missing debug password helper: $src"}
  Copy-Item -LiteralPath $src -Destination $stage -Force
@@ -102,6 +111,10 @@ $manifest=[ordered]@{
  original_rom_included=$false
  debug_stage_companion_password_picker=$true
  debug_automatic_warp_implemented=$false
+ assets_schema='cviii.jp.assets/v1'
+ assets_sha256=(Get-FileHash -LiteralPath $assetPack -Algorithm SHA256).Hash.ToLowerInvariant()
+ asset_pack_contains_original_chr=$true
+ asset_pack_loaded_by_runtime=$false
 }
 $manifest | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $stage 'ALPHA_BUILD.json') -Encoding UTF8
 # Local private ZIP includes game-derived compiled instructions. Do not upload to CI.

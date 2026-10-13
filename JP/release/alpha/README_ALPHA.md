@@ -133,3 +133,38 @@ not establish real JP password acceptance or the first successful
 transition. The exact $0019 state, active password UI and subsequent
 stage initialization require owner/private Windows or independent Mesen
 frame tracing. Treat this as a development test feature until confirmed.
+
+
+## JP0597 private versioned ROM asset package
+
+Build-Alpha.ps1 now generates or verifies a local **CVIII-Assets.bin**
+under AlphaCandidate. It is derived from your authenticated Japanese
+mapper24 ROM and included ONLY in the private output/ZIP. The package
+is a deterministic ZIP-format archive with a JSON manifest, SHA256 of
+every entry, all **128 physical 1 KiB CHR pages (8,192 tiles)**,
+all 524,288 decoded CHR palette-index pixels, and the six ROM-confirmed
+password tables with physical bank addresses. These are raw physical
+CHR tile indices, not final colored sprites or decoded room backgrounds.
+The archive preserves every raw CHR byte and tests lossless re-encoding.
+
+To regenerate independently, run (from an up-to-date repo checkout):
+
+    python JP/tools/jp_asset_pack_0597.py --build --rom "C:\Games\Akumajou Densetsu (Japan).nes" --out "C:\Games\CVIII-Assets.bin"
+
+To validate a cached package without reopening the retail ROM:
+
+    python JP/tools/jp_asset_pack_0597.py --verify --out "C:\Games\CVIII-Assets.bin"
+
+A repeated private build reuses an intact package. On a corrupt,
+outdated or incompatible archive it fails closed: run the same
+--build command with --rebuild to regenerate it from the authenticated
+original cartridge. Original-JP assets remain copyrighted and local;
+never publish or attach CVIII-Assets.bin to public Git or CI.
+
+**Phase boundary:** The current Original/Enhanced native executable
+still executes the original game's ROM-derived native code and requires
+the authenticated ROM at private compilation/launch. Neither edition
+reads CVIII-Assets.bin yet. Substituting it for the ROM or claiming
+renderer parity would be premature. Future stages will identify CHR
+bank/register changes and game level/animation structures, then
+switch only verified Enhanced presentation reads to the package.
