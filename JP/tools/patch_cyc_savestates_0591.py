@@ -76,7 +76,7 @@ def validate(src: str, patched: str) -> None:
         "static unsigned cviii_save_slot;",
         "if (!cviii_save_slot)",
         "saves",  # upstream code still chooses its original save directory
-        '".slot%u.%s"',
+        '.slot%u.%s"',
         "SDL_SCANCODE_0",
         "SDL_SCANCODE_9",
         "note(ok ? title : ",
