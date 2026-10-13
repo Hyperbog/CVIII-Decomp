@@ -110,8 +110,8 @@ jobs:
           $entry = Get-Content -LiteralPath 'JP/release/alpha/Build-And-Play.ps1' -Raw
           $script = Get-Content -LiteralPath 'JP/release/alpha/Launch-Alpha.ps1' -Raw
           if ($launcher -notmatch 'Edition Enhanced') { throw 'Main Play shortcut must be Enhanced' }
-          if ($entry -notmatch "\$Edition='Enhanced'") { throw 'First-run default must be Enhanced' }
-          if ($script -notmatch "\$Edition='Enhanced'") { throw 'Private launcher default must be Enhanced' }
+          if ($entry -notmatch '\$Edition=''Enhanced''') { throw 'First-run default must be Enhanced' }
+          if ($script -notmatch '\$Edition=''Enhanced''') { throw 'Private launcher default must be Enhanced' }
           if ($kit -match 'Play-Original.bat') {
             # Only the ROM-free smoke assertion may reference this name.
             if ($kit -notmatch 'not in kit.namelist') { throw 'Original included in public kit' }
