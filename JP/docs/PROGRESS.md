@@ -700,3 +700,39 @@ presentation; Enhanced does not yet draw from this cache.
 and out during a scanline. This is not yet proof of pixel/scene
 rendering parity. No user gameplay modifications are enabled by
 the diagnostic. The editor remains a deferred future product.
+
+
+## JP0600 — Actual PPU pattern-fetch cache parity, no renderer substitution
+
+With a privately built Japanese Alpha, use the existing opt-in
+**-ChrAudit** parameter on **Launch-Alpha.ps1** with **-Edition Enhanced**.
+This now produces two separate owner-local reports:
+- **CVIII-CHR-Audit.csv** — JP0599 end-of-frame VRC6 CHR bank selection
+  and palette RAM every 60 emulated frames.
+- **CVIII-CHR-Fetch.csv** — JP0600 sampled *actual PPU pattern reads*
+  with the physical CHR-ROM page, cached 2bpp byte/indexed-pixel
+  reconstruction parity, and observed CHR bank changes **within each
+  scanline**. The native host only observes one out of 60 frames.
+
+Example (run in your private AlphaCandidate directory):
+
+    powershell -ExecutionPolicy Bypass -File .\Launch-Alpha.ps1 -Rom "C:\Games\Akumajou Densetsu (Japan).nes" -Edition Enhanced -ChrAudit
+
+Validate/summarize the fetch log (Python tool is in JP/tools in the
+repository, and requires no ROM for this analysis):
+
+    python JP/tools/jp_chr_fetch_report_0600.py --csv "C:\Games\CVIII-CHR-Fetch.csv" --require-parity
+
+The report lists total sampled pattern reads, bad cached bytes,
+invalid mapped addresses, encountered physical CHR pages per PPU
+window, and within-line bank changes. A nonzero exit from
+--require-parity means that at least one observed read disagreed
+with the loaded cache or had an invalid mapping.
+
+**Limitations:** Synthetic CI establishes the instrumentation
+interface and checks trace rules, but a privately observed Japanese
+retail gameplay trace is still needed to establish acceptance in
+real stages. The hook observes pattern reads, not all nametable
+accesses, pixel priority or complete rendered-frame equivalence.
+Neither Original nor Enhanced currently substitutes cached CHR data
+for the stock PPU image. F10/password stage testing is unchanged.
