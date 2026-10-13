@@ -85,17 +85,19 @@ jobs:
           exe="${{ runner.temp }}/jp-vrc6-cycle/jp_akumajou_densetsu"
           rom="${{ runner.temp }}/jp_mapper24_fixture.nes"
           state="${{ runner.temp }}/jp_mapper24_slot0.cycstate"
-          "$exe" "$rom" --frames 20 \
+          "$exe" "$rom" --frames 20 --edition original \
             --save-state "8:$state" \
             --hash-out "${{ runner.temp }}/jp_straight_20.txt" \
             > "${{ runner.temp }}/jp_state_save.log"
-          "$exe" "$rom" --frames 20 \
+          # Load the identical whole-machine snapshot using Enhanced
+          # presentation. Edition toggles cannot change CPU/PPU state.
+          "$exe" "$rom" --frames 20 --edition enhanced --unlimited-sprites 1 \
             --load-state "$state" \
             --hash-out "${{ runner.temp }}/jp_resumed_20.txt" \
             > "${{ runner.temp }}/jp_state_load.log"
           tail -n +10 "${{ runner.temp }}/jp_straight_20.txt" > "${{ runner.temp }}/jp_expected_resume.txt"
           cmp "${{ runner.temp }}/jp_expected_resume.txt" "${{ runner.temp }}/jp_resumed_20.txt"
-          echo "PASS: 11/11 synthetic frames identical after complete-machine save/load"
+          echo "PASS: 11/11 synthetic frames identical after Original save / Enhanced load"
       - name: Install SDL2 to compile actual windowed ten-slot UI host
         run: |
           sudo apt-get update -qq
