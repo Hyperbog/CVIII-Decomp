@@ -573,3 +573,7 @@ The expanded independent [Stage 1 multi-branch suite](../SharedNES/0508_STAGE1_M
 ## 0578 — C11 original-game headless frame hashes, screenshot, optional route
 
 [0578 frame evidence](../analysis/0578_C11_FRAME_HASH_PNG_AND_INPUT.md) adds frame-indexed observable CPU/memory/hardware hashes and final 256x240 PNG for *private original-ROM* headless runs, plus optional `--input-script` controller schedule (no gameplay recording required). Reports include file SHA256, final PC/cycles and frame count, without claiming parity. The pinned public synthetic VRC6 workflow exercises actual NESRecomp `--hash-out`/`--screenshot` outputs; targeted malformed-evidence checks only, no reconstruction sweep. VPP27 and strict PRG unchanged.
+
+## 0584 — real Japanese original-ROM C11 Alpha candidate compiled
+
+[Release milestone status](RELEASE_MILESTONES.md) now reflects an authenticated original-JP mapper24 C11 game executable compiled for **Windows x64 with SDL2** and a private ROM-free archive/launcher. Local original game ran 600 seeded frames at 99.99996% native CPU cycles with 0 interpreted ROM/RAM and byte-identical per-frame observable hashes vs unseeded. A separate 3000-frame original-JP scripted-input route reached visible **Stage 1** at 96.8% native CPU cycles. Actual Windows interactive/controls/audio QA is **pending**. This is a privately shared Alpha *candidate*, not a qualified public release. No further reconstruction sweep or new VPP/strict PRG credit.

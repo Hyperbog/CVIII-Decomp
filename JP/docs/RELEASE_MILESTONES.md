@@ -9,8 +9,9 @@ user saves go into public GitHub releases.
 ## Alpha — Windows x64, actual game boots and responds to the player
 
 **Release candidate label:** `0.1.0-alpha.1`.
-**Current status: BLOCKED — original retail-JP cycle game has not
-been built and played in a Windows SDL window.**
+**Current status: PRIVATE ALPHA CANDIDATE BUILT — original Japanese C11
+Windows x64 SDL2 executable now exists, and headless guest execution reaches
+Stage 1. Actual Windows window/audio/interactive controls remain unverified.**
 
 Required before labeling an artifact "playable alpha":
 
@@ -27,7 +28,8 @@ Required before labeling an artifact "playable alpha":
   exist; the actual native game executable derived from the user-owned
   ROM stays local unless distribution rights are established.
 
-**Do not ask the user to playtest before these conditions pass.**
+**A private candidate is now available for the owner's Windows interactive
+verification, but it is NOT yet a publicly qualified playable Alpha.**
 An artificial-ROM VRC6 CI test, a successful C11 compiler,
 an interpreted CPU fallback, or a command-line loop alone is not
 a playable release.
@@ -64,3 +66,36 @@ a playable release.
 
 Independent C11 compiler tests should be rerun only when relevant
 source, mapper or release-toolchain changes require them.
+
+## Phase 0584 — authenticated original-game native Alpha candidate
+
+The owner-supplied original Japanese ROM was compiled with the pinned
+NESRecomp 2A03/VRC6 C11 cycle backend and a windowed **Windows x64 SDL2
+executable** was cross-linked using Zig 0.13.0. The owner's private alpha
+ZIP includes the PE32+ executable, SDL2.dll, launcher, PolyForm-NC/SDL2
+license notices, alpha metadata, and a Stage 1 PNG. It excludes the ROM
+and is not committed or published as a public release.
+
+Real-original-ROM checkpoints (different from synthetic CI):
+
+- Unseeded 600 frames: 17,865,917 CPU cycles; 62.3% native.
+- Seeded 600 frames: **17,865,910/17,865,917 native cycles**,
+  **zero ROM/RAM interpreter fallbacks**. All 600 frame hashes and the
+  final screenshot are **byte-for-byte identical** to the unseeded run.
+- 1800 frames without input: title screen, opening castle and intro text
+  were rendered.
+- 2100 frames with deterministic Start input: original 'ENTER YOUR NAME'
+  screen displayed.
+- 3000 frames with scripted Start/A/right/B input: original **Stage 1**
+  visible (SCORE/TIME/BLK, Trevor sprite and enemies), 86,450,376 /
+  89,339,119 native CPU cycles (96.8%). Later stages have not been tested.
+- Windows native executable: SHA-256
+  `1ad5fdd6d7ed05ea9abb47c50c5b489392899405492db69d1682441b221e3024`.
+  PE32+ x86-64, links SDL2.dll; GUI run/audio/controller verification
+  still **pending**. The cross-linked binary is not evidence by itself
+  of an interactive Windows pass.
+
+This supplies the owner a real-ROM Alpha candidate to test. The Stage 1
+CPU/scripted-input proof is headless on Linux, not a hands-on Windows QA
+result. No independent Mesen frame parity claim and no update to the
+historical 27/100 VPP or 49,504/262,144 strict PRG certificate.
