@@ -15,21 +15,9 @@ jobs:
       - name: Fetch pinned Zig compiler for local Windows C11 cross-builds
         run: |
           set -euo pipefail
-          curl --fail --location --retry 3 \
-             'https://ziglang.org/download/0.13.0/zig-linux-x86_64-0.13.0.tar.xz' \
-             -o zig-linux-x86_64-0.13.0.tar.xz
+          curl --fail --location --retry 3 'https://ziglang.org/download/0.13.0/zig-linux-x86_64-0.13.0.tar.xz' -o zig-linux-x86_64-0.13.0.tar.xz
           tar -tJf zig-linux-x86_64-0.13.0.tar.xz > zig-file-list.txt
-          grep -q 'LICENSE
-          sha256sum zig-linux-x86_64-0.13.0.tar.xz
-          test -s zig-linux-x86_64-0.13.0.tar.xz
-      - name: Retain toolchain tar with upstream license (no ROM, no game)
-        uses: actions/upload-artifact@v4
-        with:
-          name: zig-0.13.0-linux-x86_64
-          path: zig-linux-x86_64-0.13.0.tar.xz
-          retention-days: 2
-          if-no-files-found: error
- zig-file-list.txt
+          grep -q LICENSE zig-file-list.txt
           sha256sum zig-linux-x86_64-0.13.0.tar.xz
           test -s zig-linux-x86_64-0.13.0.tar.xz
       - name: Retain toolchain tar with upstream license (no ROM, no game)
