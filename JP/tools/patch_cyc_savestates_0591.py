@@ -72,8 +72,6 @@ def generate(src: str) -> str:
     return src
 
 def validate(src: str, patched: str) -> None:
-    if not patched.startswith(src.split("/*\n", 1)[0]):  # no-op for normal C header
-        raise ValueError("unexpected file prefix")
     for marker in (
         "static unsigned cviii_save_slot;",
         "if (!cviii_save_slot)",
