@@ -14,6 +14,7 @@ on:
       - "JP/tools/jp_chr_fetch_report_0600.py"
       - "JP/tools/jp_frame_evidence_report_0601.py"
       - "JP/tools/jp_qa_matrix_0602.py"
+      - "JP/tools/jp_mapper_audit_0602.py"
       - "JP/native/nesrecomp_cycle/**"
       - "JP/native/enhanced/**"
       - ".github/workflows/jp_alpha_windows.yml"
@@ -67,6 +68,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "Private PPU CHR CSV report parser test failed" }
           python JP/tools/jp_frame_evidence_report_0601.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "Paired original PPU/frame evidence report failed" }
+          python JP/tools/jp_mapper_audit_0602.py --smoke
+          if ($LASTEXITCODE -ne 0) { throw "JP0602 mapper/palette alignment smoke failed" }
           python JP/tools/jp_qa_matrix_0602.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "Owner-local gameplay QA matrix contract failed" }
       - name: Validate private QA capture and build launcher PowerShell syntax

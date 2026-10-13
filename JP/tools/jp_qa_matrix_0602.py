@@ -15,7 +15,8 @@ import re
 import tempfile
 from pathlib import Path
 from jp_chr_fetch_report_0600 import FIELDS as FETCH_FIELDS, invented_row, summarize as summarize_fetch
-from jp_frame_evidence_report_0601 import EVIDENCE_FIELDS, analyze
+from jp_frame_evidence_report_0601 import EVIDENCE_FIELDS, analyze, read_evidence
+from jp_mapper_audit_0602 import FIELDS as MAPPER_FIELDS, inspect_csv as inspect_mapper
 
 ROM_SHA = "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28"
 SCHEMA = "CVIII-JP-QA-capture/v1"
@@ -83,9 +84,9 @@ def read_scene(folder: Path) -> dict:
                    ("sampled_frames", "sampled_fetch_frames")):
         if summary.get(f) != paired[src]:
             raise ValueError("Saved fetch summary disagrees with actual read trace")
-    if not bodies["CVIII-CHR-Audit.csv"].startswith(
-        "sample,frame,mode,ctrl,bank0,bank1,bank2,bank3,"):
-        raise ValueError("Missing VRC6 mapper/palette audit schema")
+    samples = read_evidence(bodies["CVIII-Frame-Evidence.csv"])
+    mapper = inspect_mapper(bodies["CVIII-CHR-Audit.csv"],
+                            [record["frame"] for record in samples])
     return {
         "capture_id": data["capture_id"], "scene": data["scene"],
         "area": data["area"], "kind": data["kind"],
@@ -97,6 +98,10 @@ def read_scene(folder: Path) -> dict:
         "invalid_reads": paired["invalid_fetches"],
         "bank_changes": paired["bank_transitions"],
         "source_byte_parity": paired["fetch_source_byte_parity"],
+        "mapper_parity": mapper["mapper_parity_observed"],
+        "mapper_mismatch_samples": mapper["mapper_mismatch_samples"],
+        "mapper_samples": mapper["mapper_samples"],
+        "end_of_frame_chr_pages": mapper["distinct_end_of_frame_chr_pages"],
     }
 
 
@@ -116,7 +121,8 @@ def build_matrix(root: Path, minimum: int = 10) -> dict:
                 raise ValueError("Repeated capture ID")
             ids.add(scene["capture_id"])
             scene["folder"] = str(path.parent.relative_to(root))
-            scene["quality"] = ("cache_mismatch" if not scene["source_byte_parity"]
+            scene["quality"] = ("mapper_mismatch" if not scene["mapper_parity"]
+                else "cache_mismatch" if not scene["source_byte_parity"]
                 else "insufficient_samples" if scene["sampled_frames"] < minimum
                 else "no_observed_fetches" if not scene["fetches"]
                 else "observed_source_byte_parity")
@@ -136,6 +142,7 @@ def build_matrix(root: Path, minimum: int = 10) -> dict:
         "sampled_frames": sum(s["sampled_frames"] for s in sessions),
         "physical_chr_reads": sum(s["fetches"] for s in sessions),
         "cache_mismatches": sum(s["mismatches"] for s in sessions),
+        "mapper_mismatch_samples": sum(s["mapper_mismatch_samples"] for s in sessions),
         "invalid_reads": sum(s["invalid_reads"] for s in sessions),
         "rendering_parity_proven": False,
         "authentic_gameplay_playtested_by_this_tool": False,
@@ -158,7 +165,11 @@ def smoke() -> None:
         "nonzero_bg_pixels":"2", "visible_bg_lines":"1", "visible_sprite_lines":"1"
     }])
     entries = {
-        "CVIII-CHR-Audit.csv": "sample,frame,mode,ctrl,bank0,bank1,bank2,bank3,bank4,bank5,bank6,bank7,palette32,mapper_match\n",
+        "CVIII-CHR-Audit.csv": csv_rows(MAPPER_FIELDS, [{
+            **{"sample": "1", "frame": "1", "mode": "2", "ctrl": "22"},
+            **{f"bank{i}": str(i+1) for i in range(8)},
+            "palette32": "1A" * 32, "mapper_match": "PASS"
+        }]),
         "CVIII-CHR-Fetch.csv": fetch, "CVIII-Frame-Evidence.csv": frame,
         "CVIII-CHR-Fetch.json": json.dumps(summarize_fetch(io.StringIO(fetch))),
         "CVIII-Frame-Evidence.json": json.dumps(analyze(fetch, frame))
@@ -181,7 +192,24 @@ def smoke() -> None:
         good = build_matrix(root, 1)
         assert good["captures"] == 1 and good["areas_observed"] == ["village"]
         assert good["physical_chr_reads"] == 4 and not good["rendering_parity_proven"]
+        assert good["sessions"][0]["mapper_samples"] == 1
+        assert good["sessions"][0]["mapper_parity"]
         assert build_matrix(root, 10)["shallow_or_failed_sessions"] == 1
+        mapper_path = folder / "CVIII-CHR-Audit.csv"
+        mapper_original = mapper_path.read_text(encoding="utf-8")
+        mapper_path.write_text(mapper_original.replace(",PASS\n", ",FAIL\n"), encoding="utf-8")
+        hashes[mapper_path.name] = {"bytes":mapper_path.stat().st_size, "sha256":sha_file(mapper_path)}
+        (folder/"capture.json").write_text(json.dumps(meta), encoding="utf-8")
+        wrong_map = build_matrix(root, 1)
+        assert wrong_map["sessions"][0]["quality"] == "mapper_mismatch"
+        assert not wrong_map["areas_observed"] and wrong_map["mapper_mismatch_samples"] == 1
+        mapper_path.write_text(mapper_original.replace(",1,2,3,", ",130,2,3,"), encoding="utf-8")
+        hashes[mapper_path.name] = {"bytes":mapper_path.stat().st_size, "sha256":sha_file(mapper_path)}
+        (folder/"capture.json").write_text(json.dumps(meta), encoding="utf-8")
+        assert len(build_matrix(root)["invalid_captures"]) == 1
+        mapper_path.write_text(mapper_original, encoding="utf-8")
+        hashes[mapper_path.name] = {"bytes":mapper_path.stat().st_size, "sha256":sha_file(mapper_path)}
+        (folder/"capture.json").write_text(json.dumps(meta), encoding="utf-8")
         with (folder/"CVIII-CHR-Fetch.csv").open("a") as f: f.write("tamper\n")
         assert len(build_matrix(root)["invalid_captures"]) == 1
         (folder/"CVIII-CHR-Fetch.csv").write_text(fetch, encoding="utf-8")

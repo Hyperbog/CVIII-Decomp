@@ -52,3 +52,14 @@ do not enable substitution before that test.
 
 No PRG semantic reconstruction change. Strict PRG 49,504/262,144,
 VPP 27/100 and the PRG31 $FB96 frontier remain unchanged.
+
+## JP0602 mapper evidence gate
+
+The JP0602 matrix now parses and validates every JP0599 mapper/palette
+sample against the exact original-PPU frame-evidence sample IDs. It
+requires sequential samples at frames 1, 61, 121, etc., valid VRC6
+control/mode, eight physical CHR banks, and a 32-byte palette field.
+Out-of-range banks, missing samples and altered fields fail closed.
+Actual mapper FAIL samples become a mapper_mismatch quality state and
+do not satisfy area or character coverage, even if CHR source bytes
+match. This is observational integrity, not independent pixel parity.

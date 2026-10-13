@@ -91,7 +91,7 @@ foreach ($name in @('Play-Original.bat','Play-Enhanced.bat','Play-Alpha.bat','De
  if (-not (Test-Path -LiteralPath $src)) {throw "Missing alpha launcher: $src"}
  Copy-Item -LiteralPath $src -Destination $stage -Force
 }
-foreach ($name in @('jp_password_stage_0593.py','jp_password_debug_menu_0593.py','jp_asset_pack_0597.py','jp_asset_runtime_0598.py','jp_chr_fetch_report_0600.py','jp_frame_evidence_report_0601.py','jp_qa_matrix_0602.py')) {
+foreach ($name in @('jp_password_stage_0593.py','jp_password_debug_menu_0593.py','jp_asset_pack_0597.py','jp_asset_runtime_0598.py','jp_chr_fetch_report_0600.py','jp_frame_evidence_report_0601.py','jp_qa_matrix_0602.py','jp_mapper_audit_0602.py')) {
  $src=Join-Path $repoPath ('JP/tools/'+$name)
  if (-not (Test-Path -LiteralPath $src)) {throw "Missing debug password helper: $src"}
  Copy-Item -LiteralPath $src -Destination $stage -Force
