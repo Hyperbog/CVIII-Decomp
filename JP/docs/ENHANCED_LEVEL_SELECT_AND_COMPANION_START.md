@@ -81,3 +81,14 @@ compilation and interface contracts only, not real retail acceptance.
 
 Strict semantic PRG 49,504/262,144 and VPP 27/100; historical
 checkpoint 0508 and PRG31 FB96 frontier unchanged by this design.
+
+## JP0596 implementation note
+
+Direct stage testing now has a middle path between one checkpoint per
+stage and a fully automatic stage initializer: capture **one** genuine
+password-entry machine state (F10+F6), then select stage/companion/Normal
+or Hard and use F10+Enter to prefill the original password. The user
+confirms normally; this preserves password play and original loader logic.
+This is not the normal Enhanced New Game settings screen, nor the future
+selectable-companion-as-protagonist feature. Authentic JP runtime
+acceptance and automated confirmation are still pending.

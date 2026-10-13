@@ -90,12 +90,24 @@ if(NOT JP_CYCLE_HEADLESS AND JP_SAVE_STATE_SLOTS)
  if(NOT JP_STAGE_PATCH_RESULT EQUAL 0)
   message(FATAL_ERROR "Stage debug overlay failed: ${JP_STAGE_PATCH_ERROR}")
  endif()
+ # JP0596: stage startup from a single original password-screen checkpoint.
+ # Generated code is private and preserves the game's password decoder.
+ set(JP_BOOTSTRAP_OVERLAY "${NESRECOMP_EXTERNAL_ROOT}/runner/cyc/cviii_cyc_sdl_stage_bootstrap.c")
+ execute_process(
+  COMMAND "${Python3_EXECUTABLE}"
+    "${CMAKE_CURRENT_LIST_DIR}/../../tools/patch_cyc_stage_bootstrap_0596.py"
+    --source "${JP_DEBUG_OVERLAY}" --out "${JP_BOOTSTRAP_OVERLAY}"
+  RESULT_VARIABLE JP_BOOTSTRAP_PATCH_RESULT
+  ERROR_VARIABLE JP_BOOTSTRAP_PATCH_ERROR)
+ if(NOT JP_BOOTSTRAP_PATCH_RESULT EQUAL 0)
+  message(FATAL_ERROR "F10 password bootstrap overlay failed: ${JP_BOOTSTRAP_PATCH_ERROR}")
+ endif()
  get_target_property(JP_GAME_SOURCES jp_akumajou_densetsu SOURCES)
  set(JP_PATCHED_SOURCES "")
  set(JP_SDL_REPLACEMENTS 0)
  foreach(JP_FILE IN LISTS JP_GAME_SOURCES)
   if(JP_FILE MATCHES "cyc_sdl\\.c$")
-   list(APPEND JP_PATCHED_SOURCES "${JP_DEBUG_OVERLAY}")
+   list(APPEND JP_PATCHED_SOURCES "${JP_BOOTSTRAP_OVERLAY}")
    math(EXPR JP_SDL_REPLACEMENTS "${JP_SDL_REPLACEMENTS} + 1")
   else()
    list(APPEND JP_PATCHED_SOURCES "${JP_FILE}")
@@ -106,7 +118,7 @@ if(NOT JP_CYCLE_HEADLESS AND JP_SAVE_STATE_SLOTS)
    "Expected exactly one upstream cyc_sdl.c in the target, got ${JP_SDL_REPLACEMENTS}")
  endif()
  set_property(TARGET jp_akumajou_densetsu PROPERTY SOURCES "${JP_PATCHED_SOURCES}")
- message(STATUS "CVIII: quick-save slots plus F10 stage/companion checkpoint menu enabled")
+ message(STATUS "CVIII: quick-saves, F10 stage/companion and password bootstrap enabled")
 endif()
 
 # A headless-only executable is NOT a playable alpha. In windowed builds

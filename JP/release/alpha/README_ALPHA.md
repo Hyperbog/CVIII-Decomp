@@ -94,3 +94,42 @@ Press Enter to load the corresponding PREVIOUSLY CAPTURED checkpoint.
 No game CPU RAM, password entry or stage initialization is changed.
 F10 cannot yet start an uncaptured stage; the external Python
 password tool checks the name as well and can help seed it manually.
+
+## JP0596 one-time password-screen bootstrap (Windows private Alpha)
+
+This is a substantial improvement for testing multiple unvisited stages.
+Preserve the original Japanese password system and ordinary New Game paths.
+
+**Once per compatible native executable:** From the original title menu,
+open the game's Password feature, enter your test player name and reach
+the 4x4 password-entry screen. Press **F10**, then **F6** to capture that
+original screen as a reusable whole-machine bootstrap checkpoint. F6
+refuses to capture when the original game's $0019 menu state is not $08.
+
+After that, at any point in gameplay press **F10**, use Up/Down for the
+18 checkpoints, Left/Right for None/Alucard/Sypha/Grant, and **Tab** to
+select Normal/Hard difficulty. Press **Enter**:
+- If the corresponding stage/partner/difficulty snapshot already exists,
+  it loads instantly (unchanged 0594 behavior).
+- Otherwise the engine loads the single original password-screen snapshot,
+  encodes a new stage password using the name in that actual saved screen,
+  and fills original Japanese password RAM $0790..$079F. **Confirm the
+  password using the game's normal confirm control** to begin the level.
+
+The original JP password decoder performs the real game-state and route
+initialization; F10 does not pretend it can jump directly to arbitrary
+stage code. Normal mode still rejects route-impossible companions; Hard
+can admit additional combinations but changes game difficulty. Ctrl+V
+inside F10 still selects a checkpoint from a pasted password, and the
+external Python picker still supports full password copy/paste.
+
+The bootstrap loading path backs up the current entire machine and rolls
+back on a wrong menu state or any RAM-write failure. The existing saves
+are preserved; Hard-mode checkpoints use a distinct file suffix. Both
+Original and Enhanced can use the **development-only** F10 tool.
+
+**Validation status:** GitHub Windows synthetic UI/C11 compilation does
+not establish real JP password acceptance or the first successful
+transition. The exact $0019 state, active password UI and subsequent
+stage initialization require owner/private Windows or independent Mesen
+frame tracing. Treat this as a development test feature until confirmed.

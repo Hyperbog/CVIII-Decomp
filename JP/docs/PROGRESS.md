@@ -627,3 +627,14 @@ alter the guest framebuffer or CPU/PPU mapper state.
 Windowed synthetic-source compilation and owner GUI gameplay
 acceptance are separate gates. Strict PRG 49,504 / 262,144 and
 VPP 27 / 100 remain unchanged; semantic frontier PRG31 $FB96.
+
+## JP0596 stage bootstrap
+
+F10 now has a one-time password-entry bootstrap path, so test stages can
+be requested without reaching/capturing every checkpoint individually.
+On a stage snapshot miss, a valid captured password-entry machine is
+loaded, the corresponding name-bound password filled at $0790..$079F,
+and the **original game's password confirmation** performs stage init.
+Normal/Hard (Tab) and companion route validation are supported.
+Needs private real-JP GUI acceptance; semantic frontier and PRG/VPP
+coverage are unchanged.

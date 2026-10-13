@@ -598,3 +598,10 @@ alter the guest framebuffer or CPU/PPU mapper state.
 Windowed synthetic-source compilation and owner GUI gameplay
 acceptance are separate gates. Strict PRG 49,504 / 262,144 and
 VPP 27 / 100 remain unchanged; semantic frontier PRG31 $FB96.
+
+JP0596 developer stage-loading aid: original password-entry screen captured once
+under F10+F6; F10 Enter falls back to that saved machine state and generates
+a JP-authenticated password from its name when no stage checkpoint exists.
+Original JP decoder still owns difficulty/companion/level initialization;
+manual confirm required. Windows synthetic compile and original retail GUI
+QA are separate; do not increase strict PRG or VPP metrics.
