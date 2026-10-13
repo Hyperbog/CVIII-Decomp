@@ -63,3 +63,17 @@ Out-of-range banks, missing samples and altered fields fail closed.
 Actual mapper FAIL samples become a mapper_mismatch quality state and
 do not satisfy area or character coverage, even if CHR source bytes
 match. This is observational integrity, not independent pixel parity.
+
+## JP0604 — First-run Git CLI recovery
+
+Owner-provided Windows screenshot confirmed that the previous
+`Build-Alpha.ps1` executed `git` with no subcommand. Its
+PowerShell function named an external argv parameter `$Args`,
+which is also an automatic PowerShell variable. The builder now
+calls Git and Python with an explicitly named `-CommandArguments`
+array, and CI tests the actual wrapper against a local synthetic
+clone and pull (including spaces in repository paths). The
+downloadable public build kit still contains no game or ROM data.
+
+This build fix changes no gameplay or graphics renderer; strict
+semantic PRG/CHR documentation metrics remain unchanged.

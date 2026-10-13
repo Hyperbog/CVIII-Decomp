@@ -5,6 +5,7 @@ on:
     paths:
       - "JP/release/alpha/**"
       - "JP/tools/package_alpha_builder_0580.py"
+      - "JP/tools/test_alpha_arguments_0604.ps1"
       - "JP/tools/jp_password_*0593.py"
       - "JP/tools/jp_asset_pack_0597.py"
       - "JP/tools/jp_asset_runtime_0598.py"
@@ -96,6 +97,11 @@ jobs:
           if ($source -notmatch 'Get-FileHash' -or $source -notmatch 'Test-PrivateGame' -or $source -notmatch 'Build-Alpha.ps1' -or $source -notmatch 'LastRomPath.txt') {
             throw "Missing first-run original-ROM authentication and build fallback"
           }
+      - name: Verify JP0604 real Git clone/pull argument forwarding
+        shell: pwsh
+        run: |
+          & JP/tools/test_alpha_arguments_0604.ps1
+          if ($LASTEXITCODE -ne 0) { throw "Actual native builder argument forwarding failed" }
       - name: Compile SDL2 windowed C11 alpha target
         shell: pwsh
         run: |

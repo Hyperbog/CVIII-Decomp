@@ -353,3 +353,20 @@ sampled across these routes here. Source CHR-byte matches and
 original-PPU fingerprints do not demonstrate independent cached
 renderer parity. Original's renderer, gameplay and F10 controls are
 unchanged; Universal NES Studio remains future work.
+
+## JP0604 — Git command invocation fix
+
+The earlier first-run builder accidentally invoked bare Git without
+the requested `clone` arguments. The cause was using PowerShell's
+automatic `$Args` variable as a command-argument parameter.
+The builder now supplies `-CommandArguments` explicitly for every
+Git and Python subprocess. Windows CI extracts the **actual function**
+from `Build-Alpha.ps1` and performs a real Git clone and pull using
+a synthetic local repository with spaces in both paths.
+
+**If your build showed Git's general help instead of cloning:**
+use the newest ROM-free Alpha Builder Kit. Extract/replace its
+`Build-Alpha.ps1` in the folder you run `Build-And-Play.bat` from.
+Re-running the builder is safe: the original ROM stays unchanged and
+any existing private `CVIII-Alpha` output is reused or refreshed.
+Do not reinstall Git or download an SDL2.dll from an unrelated site.
