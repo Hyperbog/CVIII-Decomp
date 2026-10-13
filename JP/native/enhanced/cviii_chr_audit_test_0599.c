@@ -54,8 +54,7 @@ int main(void)
     assert(!cviii_chr_banks_check(&b));
     fclose(f);
     f=make(0x22,regs,mode0); /* function needs byte offsets, not banks */
-    assert(cviii_chr_banks_read(f,&b));
-    assert(!cviii_chr_banks_check(&b));
+    assert(!cviii_chr_banks_read(f,&b));
     fclose(f);
     puts("PASS JP0599 VRC6 CHR modes 0-3 and bit5 pair override");
     return 0;

@@ -84,8 +84,6 @@ void cviii_chr_audit_frame(CviiiChrAudit *audit, const CviiiChrIndex *index,
 {
     if (!audit || !audit->out || !index || !index->raw || !index->pixels ||
         !snapshot || !palette) return;
-    ++audit->frames;
-    if ((audit->frames - 1) % audit->interval != 0) return;
     CviiiChrBanks banks;
     bool parsed = cviii_chr_banks_read(snapshot, &banks);
     bool matched = parsed && cviii_chr_banks_check(&banks);
