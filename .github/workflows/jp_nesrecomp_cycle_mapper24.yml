@@ -52,6 +52,13 @@ jobs:
             JP/native/enhanced/cviii_edition.c JP/native/enhanced/cviii_chr_index_0598.c JP/native/enhanced/cviii_chr_audit_0599.c JP/native/enhanced/test_cviii_edition.c \
             -o "${{ runner.temp }}/test_cviii_edition"
           "${{ runner.temp }}/test_cviii_edition"
+      - name: Verify VRC6 CHR register mapping modes and physical offsets (ROM-free)
+        run: |
+          cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
+            JP/native/enhanced/cviii_chr_audit_0599.c \
+            JP/native/enhanced/cviii_chr_audit_test_0599.c \
+            -o "${{ runner.temp }}/test_chr_banks_0599"
+          "${{ runner.temp }}/test_chr_banks_0599"
       - name: Generate noncommercial synthetic mapper24 VRC6 ROM
         run: python3 JP/tools/test_cycle_synthetic_rom_0569.py --out "${{ runner.temp }}/jp_mapper24_fixture.nes"
       - name: Configure CVIII external C11 cycle wrapper with exact synthetic fixture

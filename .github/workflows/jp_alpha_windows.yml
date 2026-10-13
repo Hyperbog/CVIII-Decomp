@@ -11,6 +11,7 @@ on:
       - "JP/tools/patch_cyc_stage_menu_0594.py"
       - "JP/tools/patch_cyc_stage_bootstrap_0596.py"
       - "JP/native/nesrecomp_cycle/**"
+      - "JP/native/enhanced/**"
       - ".github/workflows/jp_alpha_windows.yml"
   workflow_dispatch:
 permissions:
