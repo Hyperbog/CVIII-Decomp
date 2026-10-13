@@ -10,6 +10,8 @@ on:
       - "JP/tools/jp_asset_runtime_0598.py"
       - "JP/tools/patch_cyc_stage_menu_0594.py"
       - "JP/tools/patch_cyc_stage_bootstrap_0596.py"
+      - "JP/tools/patch_cyc_chr_fetch_0600.py"
+      - "JP/tools/jp_chr_fetch_report_0600.py"
       - "JP/native/nesrecomp_cycle/**"
       - "JP/native/enhanced/**"
       - ".github/workflows/jp_alpha_windows.yml"
@@ -57,6 +59,10 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "F10 stage menu patch test failed" }
           python JP/tools/patch_cyc_stage_bootstrap_0596.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "F10 password bootstrap patch test failed" }
+          python JP/tools/patch_cyc_chr_fetch_0600.py --smoke
+          if ($LASTEXITCODE -ne 0) { throw "PPU CHR observer anchor test failed" }
+          python JP/tools/jp_chr_fetch_report_0600.py --smoke
+          if ($LASTEXITCODE -ne 0) { throw "Private PPU CHR CSV report parser test failed" }
       - name: Compile SDL2 windowed C11 alpha target
         shell: pwsh
         run: |
@@ -84,6 +90,13 @@ jobs:
           if (!(Test-Path $test)) { throw "VRC6 CHR mapper audit test missing" }
           & $test
           if ($LASTEXITCODE -ne 0) { throw "VRC6 CHR mapper page logic failed" }
+      - name: Verify actual PPU fetch accounting and within-line CHR switches
+        shell: pwsh
+        run: |
+          $test = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win/Release/jp_chr_fetch_test_0600.exe'
+          if (!(Test-Path $test)) { throw 'JP0600 CHR fetch test executable missing' }
+          & $test
+          if ($LASTEXITCODE -ne 0) { throw 'JP0600 physical CHR audit regression failed' }
       - name: Run bounded native C11 synthetic test with actual windowed-linked binary
         shell: pwsh
         run: |
