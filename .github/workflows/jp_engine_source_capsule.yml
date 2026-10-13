@@ -1,0 +1,36 @@
+name: CVIII Pinned NESRecomp Source Capsule
+on:
+  push:
+    branches: [decompilation]
+    paths:
+      - '.github/workflows/jp_engine_source_capsule.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  pinned-engine-archive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Obtain pinned noncommercial NESRecomp source
+        uses: actions/checkout@v4
+        with:
+          repository: mstan/nesrecomp
+          ref: 2b4fcdb98c9e702be3fb365cfc645003c50b5fc1
+          path: nesrecomp
+          persist-credentials: false
+      - name: Package pinned upstream original source and license, no ROM
+        run: |
+          set -euo pipefail
+          test "$(git -C nesrecomp rev-parse HEAD)" = 2b4fcdb98c9e702be3fb365cfc645003c50b5fc1
+          grep -q 'PolyForm Noncommercial License 1.0.0' nesrecomp/LICENSE
+          git -C nesrecomp archive --format=tar HEAD | gzip -9 > nesrecomp-pinned-source.tar.gz
+          sha256sum nesrecomp-pinned-source.tar.gz
+          test -s nesrecomp-pinned-source.tar.gz
+      - name: Store external source capsule for private noncommercial build verification
+        uses: actions/upload-artifact@v4
+        with:
+          name: nesrecomp-pinned-source-capsule
+          path: nesrecomp-pinned-source.tar.gz
+          if-no-files-found: error
+          retention-days: 3
