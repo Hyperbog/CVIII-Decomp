@@ -6,6 +6,20 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+/* Read-only JP0599 debug interface mocks for isolated host extension test. */
+const uint8_t *cyc_ppu_palette(void) {
+    static uint8_t palette[32];
+    return palette;
+}
+void cyc_hw_state_dump(void *target) {
+    FILE *out = (FILE *)target;
+    if (!out) return;
+    fprintf(out, "cart.ctrl 20\n");
+    for (unsigned i = 0; i < 8; ++i)
+        fprintf(out, "cart.vrc_chr[%u] %03X\n", i, i);
+    for (unsigned i = 0; i < 8; ++i)
+        fprintf(out, "cart.chr_off[%u] %06X\n", i, i * 1024);
+}
 
 static uint32_t native[256*240];
 static int capture_enabled, compose_calls, bg_reads;

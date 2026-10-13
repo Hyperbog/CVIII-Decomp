@@ -1,5 +1,8 @@
 /* JP0599 ROM-free pinned mapper-dump parse and mapping tests. */
 #include "cviii_chr_audit_0599.h"
+#ifdef NDEBUG
+#undef NDEBUG
+#endif
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>

@@ -678,3 +678,25 @@ Original launch does not request the cache. An Enhanced run with
 no cache falls back to unchanged ROM graphics. In the private Windows
 builder the cache is regenerated only when needed and remains local;
 public CI uses synthetic pixels, not copyrighted cartridges.
+
+
+## JP0599 — Optional VRC6 CHR mapping audit
+
+JP0598 gave Enhanced a verified read-only cache of every original JP
+CHR tile. JP0599 now observes which physical bank each of the eight
+PPU pattern windows selects at **sampled frame boundaries**, plus
+the current PPU palette RAM. To generate a private CSV:
+
+    powershell -ExecutionPolicy Bypass -File .\Launch-Alpha.ps1 -Rom "C:\Games\Akumajou Densetsu (Japan).nes" -Edition Enhanced -ChrAudit
+
+The opt-in **CVIII-CHR-Audit.csv** is created beside the private EXE.
+It records one sample per 60 emulated frames: VRC6 mode/control,
+eight physical 1-KiB bank IDs, current 32 PPU palette bytes, and
+PASS/FAIL of an independent bank-map calculation against NESRecomp's
+reported CHR offsets. Original retains its existing unmodified PPU
+presentation; Enhanced does not yet draw from this cache.
+
+**Scope limit:** A frame-end sample cannot see a bank switched in
+and out during a scanline. This is not yet proof of pixel/scene
+rendering parity. No user gameplay modifications are enabled by
+the diagnostic. The editor remains a deferred future product.
