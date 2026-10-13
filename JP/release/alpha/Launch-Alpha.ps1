@@ -3,7 +3,8 @@
 param(
  [string]$Rom='',
  [ValidateSet('Original','Enhanced')][string]$Edition='Original',
- [switch]$UnlimitedSprites
+ [switch]$UnlimitedSprites,
+ [switch]$ChrAudit
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
@@ -45,10 +46,16 @@ try {
   if (Test-Path -LiteralPath $assetIndex) {
    $gameArgs+=@('--asset-index',$assetIndex)
    Write-Host 'Loading authenticated read-only CHR asset index (no rendering changes).'
+   if ($ChrAudit) {
+    $chrAuditPath=Join-Path $PSScriptRoot 'CVIII-CHR-Audit.csv'
+    $gameArgs+=@('--chr-audit',$chrAuditPath)
+    Write-Host ('Recording a sampled read-only VRC6 CHR mapping report: '+$chrAuditPath)
+   }
   } else {
+   if ($ChrAudit) { throw 'CHR mapping audit requires private CVIII-CHR-Index.dat' }
    Write-Host 'No asset index found; Enhanced falls back to original ROM-driven graphics.'
   }
- }
+ } elseif ($ChrAudit) { throw 'CHR mapping audit is developer-only for Enhanced' }
  & $game @gameArgs
  if ($LASTEXITCODE -ne 0) {throw "Native game exited with $LASTEXITCODE"}
 } finally {Pop-Location}

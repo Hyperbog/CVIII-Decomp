@@ -76,6 +76,13 @@ jobs:
           if (!(Test-Path $test)) { throw "C11 CHR index smoke executable missing" }
           & $test
           if ($LASTEXITCODE -ne 0) { throw "C11 CHR index reader check failed" }
+      - name: Check read-only VRC6 CHR bank mapping C11 mode contracts
+        shell: pwsh
+        run: |
+          $test = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win/Release/jp_chr_audit_test_0599.exe'
+          if (!(Test-Path $test)) { throw "VRC6 CHR mapper audit test missing" }
+          & $test
+          if ($LASTEXITCODE -ne 0) { throw "VRC6 CHR mapper page logic failed" }
       - name: Run bounded native C11 synthetic test with actual windowed-linked binary
         shell: pwsh
         run: |

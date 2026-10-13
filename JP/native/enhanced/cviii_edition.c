@@ -7,6 +7,7 @@
 #include "cyc_core.h"
 #include "cyc_render.h"
 #include "cviii_chr_index_0598.h"
+#include "cviii_chr_audit_0599.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -18,6 +19,7 @@ typedef struct {
     int enhanced;
     int sprite_unlimited;
     CviiiChrIndex assets; /* read-only imported physical CHR; presentation only */
+    CviiiChrAudit audit; /* opt-in read-only per-frame bank audit */
     uint32_t presentation[CVIII_W * CVIII_H];
 } CviiiEdition;
 
@@ -78,6 +80,14 @@ static bool option(void *context, const char *name, const char *value)
         printf("CVIII: loaded authenticated read-only JP CHR index (8192 tiles); PPU remains authoritative\n");
         return true;
     }
+    if (!strcmp(name, "--chr-audit")) {
+        if (!value || !cviii_chr_audit_open(&cviii.audit, value)) {
+            fprintf(stderr, "CVIII: cannot open requested CHR audit output\n");
+            return false;
+        }
+        printf("CVIII: recording 1-in-60-frame read-only VRC6 bank/palette samples\n");
+        return true;
+    }
     return false;
 }
 
@@ -98,6 +108,29 @@ static void power_on(void *context)
      */
     (void)settings;
     cyc_render_capture_background(true);
+}
+
+static void frame_end(void *context)
+{
+    CviiiEdition *settings = (CviiiEdition *)context;
+    if (!settings->audit.out || !settings->assets.raw || !settings->assets.pixels)
+        return;
+    ++settings->audit.frames;
+    if ((settings->audit.frames - 1) % settings->audit.interval != 0) return;
+    /* This is a read-only snapshot of the mapper and palette AFTER frame
+     * execution. Mid-scanline changes are not observable at this cadence.
+     * NESRecomp's existing public state-dump API avoids including any
+     * internal mapper structures in our game-owned host source. */
+    FILE *snapshot = tmpfile();
+    if (!snapshot) {
+        fprintf(stderr, "CVIII CHR audit: temporary mapper snapshot unavailable\n");
+        ++settings->audit.mismatch;
+        return;
+    }
+    cyc_hw_state_dump(snapshot);
+    cviii_chr_audit_frame(&settings->audit, &settings->assets,
+                          snapshot, cyc_ppu_palette());
+    fclose(snapshot);
 }
 
 static const uint32_t *present(void *context, int *width, int *height)
@@ -125,6 +158,8 @@ static const CycHostOption cviii_options[] = {
      "Enhanced experimental 64-OAM sprite compositor (0/1, default 0)"},
     {"--asset-index", true,
      "Private read-only 655368-byte JP CHR index (no renderer substitution)"},
+    {"--chr-audit", true,
+     "Developer CSV for sampled VRC6 CHR pages and palette (requires asset index)"},
 };
 
 static CycHostExtras cviii_extra = {
@@ -133,6 +168,7 @@ static CycHostExtras cviii_extra = {
     .load_setting = load_setting,
     .save_settings = save_settings,
     .power_on = power_on,
+    .frame_end = frame_end,
     .options = cviii_options,
     .option_count = sizeof(cviii_options) / sizeof(cviii_options[0]),
     .option = option,
