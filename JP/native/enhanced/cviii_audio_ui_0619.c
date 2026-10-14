@@ -72,9 +72,10 @@ static void meter(uint32_t *dst,const unsigned char *chr,
         }
     }
 }
-bool cviii_audio_ui_render(uint32_t *pixels,unsigned width,unsigned height,
-                           const CviiiChrIndex *assets,
-                           const CviiiAudioLevels *volumes,unsigned selected)
+bool cviii_audio_ui_render_mode(uint32_t *pixels,unsigned width,unsigned height,
+                                const CviiiChrIndex *assets,
+                                const CviiiAudioLevels *volumes,unsigned selected,
+                                bool interactive)
 {
     if (!pixels || width!=CVIII_AUDIO_UI_W || height!=CVIII_AUDIO_UI_H ||
         !assets || !assets->pixels || !volumes || selected>2u) return false;
@@ -92,6 +93,16 @@ bool cviii_audio_ui_render(uint32_t *pixels,unsigned width,unsigned height,
         meter(pixels,chr,y,values[row]);
         number(pixels,chr,y,values[row],row==selected);
     }
-    print(pixels,chr,56u,181u,"AUDIO PREVIEW",0);
+    print(pixels,chr,interactive ? 64u : 56u,181u,
+          interactive ? "F6 ESC CLOSE" : "AUDIO PREVIEW",0);
     return true;
+}
+
+/* JP0619 preview entrypoint preserved for previously compiled callers. */
+bool cviii_audio_ui_render(uint32_t *pixels,unsigned width,unsigned height,
+                           const CviiiChrIndex *assets,
+                           const CviiiAudioLevels *volumes,unsigned selected)
+{
+    return cviii_audio_ui_render_mode(pixels,width,height,assets,volumes,
+                                      selected,false);
 }
