@@ -17,6 +17,7 @@
 #include "cviii_sound_requests_0612.h"
 #include "cviii_audio_session_0614.h"
 #include "cviii_audio_levels_0618.h"
+#include "cviii_audio_ui_0619.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -34,6 +35,7 @@ typedef struct {
     CviiiSoundRequests sound_requests; /* original fixed $E249 ingress only */
     CviiiAudioSession audio_session; /* extra-CPU row-count epoch markers */
     CviiiAudioLevels volume; /* enhanced host gains, never emulated RAM */
+    int audio_ui_preview; /* opt-in read-only CHR overlay, not player menu */
     char audio_session_id[33]; /* launcher-supplied private session GUID */
     uint8_t layer_masks[CVIII_LAYER_H];
     CviiiChrIndex assets; /* read-only imported physical CHR; presentation only */
@@ -102,6 +104,8 @@ static bool option(void *context, const char *name, const char *value)
         return value && parse_boolean(value, &cviii.stable_sprites);
     /* Developer overrides only; final interface will use HUD-art sliders.
      * Music/SFX levels persist but do not yet affect the unsplit PCM bus. */
+    if (!strcmp(name,"--audio-ui-preview"))
+        return value && parse_boolean(value,&cviii.audio_ui_preview);
     if (!strcmp(name,"--master-volume") ||
         !strcmp(name,"--music-volume") ||
         !strcmp(name,"--sfx-volume")) {
@@ -310,7 +314,7 @@ static void frame_end(void *context)
     fclose(snapshot);
 }
 
-static const uint32_t *present(void *context, int *width, int *height)
+static const uint32_t *present_game(void *context, int *width, int *height)
 {
     CviiiEdition *settings = (CviiiEdition *)context;
     *width = CVIII_W;
@@ -338,6 +342,22 @@ static const uint32_t *present(void *context, int *width, int *height)
 
 /* Audio hook only changes presentation PCM, not APU registers or CPU state.
  * Legacy original debug mode is kept unscaled for behavioral A/B checks. */
+/* JP0619: developer preview composes owner-verified CHR pixels at the
+ * presentation boundary only, after the unaltered gameplay picture. */
+static const uint32_t *present(void *context,int *width,int *height)
+{
+    CviiiEdition *settings=(CviiiEdition *)context;
+    const uint32_t *frame=present_game(context,width,height);
+    if (!settings->enhanced || !settings->audio_ui_preview ||
+        !settings->assets.pixels || *width!=CVIII_W || *height!=CVIII_H)
+        return frame;
+    if (frame!=settings->presentation)
+        memcpy(settings->presentation,frame,sizeof settings->presentation);
+    if (!cviii_audio_ui_render(settings->presentation,CVIII_W,CVIII_H,
+                               &settings->assets,&settings->volume,0u))
+        return frame;
+    return settings->presentation;
+}
 static void audio_mix(void *context,int16_t *samples,size_t count)
 {
     const CviiiEdition *settings=(const CviiiEdition *)context;
@@ -353,6 +373,7 @@ static const CycHostOption cviii_options[] = {
      "EXPERIMENTAL logical sprite-object layer order with 1-frame history (0/1, default 0)"},
     {"--sprite-object-trace", true,
      "Developer owner-local per-frame 28 object fields and 64 hardware OAM entries"},
+    {"--audio-ui-preview", true, "Developer only: draw noninteractive authentic health-bar UI"},
     {"--master-volume", true, "Enhanced master PCM gain, 0..100 (1% increments)"},
     {"--music-volume", true, "Reserved persistent music gain, requires separate bus"},
     {"--sfx-volume", true, "Reserved persistent SFX gain, requires separate bus"},
