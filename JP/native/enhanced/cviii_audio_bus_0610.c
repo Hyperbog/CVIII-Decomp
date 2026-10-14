@@ -28,7 +28,7 @@ static Channel classify(uint16_t addr)
                    region==9 && reg==3 ? "control" : names[region-9u]};
         return c;
     }
-    Channel bad={32u,NULL,NULL};
+    Channel bad={40u,NULL,NULL};
     return bad;
 }
 int cviii_audio_bus_open(CviiiAudioBus *bus, const char *path)
@@ -56,7 +56,7 @@ void cviii_audio_bus_observe(uint64_t cycle,uint16_t addr,uint8_t value)
     CviiiAudioBus *bus=s_bus;
     if(!bus || !bus->output)return;
     Channel channel=classify(addr);
-    if(channel.id >= 32u)return;
+    if(channel.id >= 40u)return;
     if(bus->writes >= UINT64_C(1000000)){++bus->dropped;return;}
     unsigned id=channel.id;
     uint64_t delta=bus->seen[id] && cycle>=bus->last_cycle[id]

@@ -10,8 +10,8 @@
 typedef struct {
     FILE *output;
     uint64_t writes, rapid_rewrites, dropped;
-    uint64_t last_cycle[32];
-    uint8_t last_value[32], seen[32];
+    uint64_t last_cycle[40];
+    uint8_t last_value[40], seen[40];
 } CviiiAudioBus;
 int cviii_audio_bus_open(CviiiAudioBus *bus, const char *path);
 void cviii_audio_bus_close(CviiiAudioBus *bus);
