@@ -35,6 +35,17 @@ def git_blob_sha(data: bytes) -> str:
     return hashlib.sha1(b"blob " + str(len(data)).encode("ascii") +
                         b"\0" + data).hexdigest()
 
+def canonical_checkout_bytes(raw: bytes) -> bytes:
+    """Only normalize Git's optional checkout LF->CRLF translation.
+
+    Any lone CR, invalid bytes, BOM, or altered source content still fails the
+    exact committed Git-blob identity check.
+    """
+    normalized = raw.replace(b"\r\n", b"\n")
+    if b"\r" in normalized:
+        raise ValueError("JP0621 unexpected bare CR in pinned SDL checkout")
+    return normalized
+
 def require(condition: bool, message: str) -> None:
     if not condition:
         raise ValueError("JP0621 " + message)
@@ -120,6 +131,14 @@ def chain(src: str, patches=None):
 def smoke() -> None:
     assert git_blob_sha(b"test") == "30d74d258442c7c65512eafab474568dd706c430"
     assert git_blob_sha(b"") == "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    assert canonical_checkout_bytes(b"a\r\nb\r\n") == b"a\nb\n"
+    assert canonical_checkout_bytes(b"a\nb\n") == b"a\nb\n"
+    for wrong in (b"a\rb", b"a\r\nb\r"):
+        try:
+            canonical_checkout_bytes(wrong)
+        except ValueError:
+            continue
+        raise AssertionError("Malformed checkout newline accepted")
     patches = [module(TOOLS / filename) for _, filename in STAGES]
     for script in patches:
         script.smoke()
@@ -154,7 +173,7 @@ def main() -> None:
         return
     if a.source is None:
         p.error("--source is required (real pinned SDL checkout)")
-    data = a.source.read_bytes()
+    data = canonical_checkout_bytes(a.source.read_bytes())
     actual_sha = git_blob_sha(data)
     require(actual_sha == PINNED_SDL_GIT_BLOB,
             f"upstream drift: got Git blob {actual_sha}")
