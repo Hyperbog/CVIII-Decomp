@@ -10,6 +10,7 @@ on:
       - "JP/native/enhanced/**"
       - "JP/tools/patch_cyc_savestates_0591.py"
       - "JP/tools/patch_cyc_audio_menu_0620.py"
+      - "JP/tools/jp_audio_menu_pinned_gate_0621.py"
       - "JP/tools/patch_cyc_chr_fetch_0600.py"
       - "JP/tools/patch_cyc_ppu_nt_0606.py"
       - "JP/tools/jp_nt_trace_report_0606.py"
@@ -63,6 +64,9 @@ jobs:
         run: |
           python3 JP/tools/patch_cyc_savestates_0591.py --smoke
           python3 JP/tools/patch_cyc_audio_menu_0620.py --smoke
+          python3 JP/tools/jp_audio_menu_pinned_gate_0621.py --smoke
+          python3 JP/tools/jp_audio_menu_pinned_gate_0621.py \
+            --source _external_nesrecomp/runner/cyc/cyc_sdl.c
           python3 JP/tools/patch_cyc_savestates_0591.py \
             --source _external_nesrecomp/runner/cyc/cyc_sdl.c \
             --out _external_nesrecomp/runner/cyc/cviii_cyc_sdl_slots.c
