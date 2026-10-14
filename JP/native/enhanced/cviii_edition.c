@@ -16,6 +16,7 @@
 #include "cviii_audio_bus_0610.h"
 #include "cviii_sound_requests_0612.h"
 #include "cviii_audio_session_0614.h"
+#include "cviii_audio_levels_0618.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -32,6 +33,7 @@ typedef struct {
     CviiiAudioBus audio_bus; /* opt-in nonmutating 2A03/VRC6 sound writes */
     CviiiSoundRequests sound_requests; /* original fixed $E249 ingress only */
     CviiiAudioSession audio_session; /* extra-CPU row-count epoch markers */
+    CviiiAudioLevels volume; /* enhanced host gains, never emulated RAM */
     char audio_session_id[33]; /* launcher-supplied private session GUID */
     uint8_t layer_masks[CVIII_LAYER_H];
     CviiiChrIndex assets; /* read-only imported physical CHR; presentation only */
@@ -42,7 +44,7 @@ typedef struct {
     uint32_t presentation[CVIII_W * CVIII_H];
 } CviiiEdition;
 
-static CviiiEdition cviii;
+static CviiiEdition cviii = { .volume = CVIII_AUDIO_LEVELS_DEFAULT };
 
 static int parse_boolean(const char *text, int *value)
 {
@@ -78,6 +80,7 @@ static void load_setting(void *context, const char *key, const char *value)
         (void)parse_boolean(value, &cviii.sprite_unlimited);
     else if (!strcmp(key, "StableSprites"))
         (void)parse_boolean(value, &cviii.stable_sprites);
+    else (void)cviii_audio_levels_load(&cviii.volume,key,value);
 }
 
 static void save_settings(void *context, FILE *file)
@@ -86,6 +89,7 @@ static void save_settings(void *context, FILE *file)
     fprintf(file, "Edition = %s\nUnlimitedSprites = %d\nStableSprites = %d\n",
             cviii.enhanced ? "Enhanced" : "Original",
             cviii.sprite_unlimited, cviii.stable_sprites);
+    cviii_audio_levels_save(&cviii.volume,file);
 }
 
 static bool option(void *context, const char *name, const char *value)
@@ -96,6 +100,18 @@ static bool option(void *context, const char *name, const char *value)
         return value && parse_boolean(value, &cviii.sprite_unlimited);
     if (!strcmp(name, "--stable-sprites"))
         return value && parse_boolean(value, &cviii.stable_sprites);
+    /* Developer overrides only; final interface will use HUD-art sliders.
+     * Music/SFX levels persist but do not yet affect the unsplit PCM bus. */
+    if (!strcmp(name,"--master-volume") ||
+        !strcmp(name,"--music-volume") ||
+        !strcmp(name,"--sfx-volume")) {
+        uint8_t percent;
+        if (!cviii_audio_levels_parse(value,&percent)) return false;
+        CviiiVolumeChannel channel =
+            !strcmp(name,"--master-volume") ? CVIII_VOLUME_MASTER :
+            !strcmp(name,"--music-volume") ? CVIII_VOLUME_MUSIC : CVIII_VOLUME_SFX;
+        return cviii_audio_levels_set(&cviii.volume,channel,(int)percent)!=0;
+    }
     if (!strcmp(name, "--audio-reg-trace")) {
         if (!value || !cviii_audio_bus_open(&cviii.audio_bus, value)) {
             fprintf(stderr, "CVIII: cannot open private 2A03/VRC6 audio register log\n");
@@ -320,6 +336,15 @@ static const uint32_t *present(void *context, int *width, int *height)
     return settings->presentation;
 }
 
+/* Audio hook only changes presentation PCM, not APU registers or CPU state.
+ * Legacy original debug mode is kept unscaled for behavioral A/B checks. */
+static void audio_mix(void *context,int16_t *samples,size_t count)
+{
+    const CviiiEdition *settings=(const CviiiEdition *)context;
+    if (settings->enhanced)
+        cviii_audio_levels_master_pcm(&settings->volume,samples,count);
+}
+
 static const CycHostOption cviii_options[] = {
     {"--edition", true, "Original or Enhanced PC edition (Original default)"},
     {"--unlimited-sprites", true,
@@ -328,6 +353,9 @@ static const CycHostOption cviii_options[] = {
      "EXPERIMENTAL logical sprite-object layer order with 1-frame history (0/1, default 0)"},
     {"--sprite-object-trace", true,
      "Developer owner-local per-frame 28 object fields and 64 hardware OAM entries"},
+    {"--master-volume", true, "Enhanced master PCM gain, 0..100 (1% increments)"},
+    {"--music-volume", true, "Reserved persistent music gain, requires separate bus"},
+    {"--sfx-volume", true, "Reserved persistent SFX gain, requires separate bus"},
     {"--audio-reg-trace", true,
      "Read-only 2A03/VRC6 audio register traffic for source separation research"},
     {"--sound-request-trace", true,
@@ -355,6 +383,7 @@ static CycHostExtras cviii_extra = {
     .frame_begin = frame_begin,
     .frame_end = frame_end,
     .state_loaded = state_loaded,
+    .audio_mix = audio_mix,
     .options = cviii_options,
     .option_count = sizeof(cviii_options) / sizeof(cviii_options[0]),
     .option = option,
