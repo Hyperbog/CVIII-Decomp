@@ -22,14 +22,23 @@ local function on_entry()
   if pending~=nil then fault('nested_dispatch'); return end
   local command=byte(0xEF)
   pending={id=next_id,command=command,low=byte(0x0109),
-           priority=byte(0x019E),counter=byte(0x06DD)}
+           priority=byte(0x019E),counter=byte(0x06DD),meta=false}
   log(string.format('JP0617_ENTRY %d 8852 %02X %02X %02X %02X',
       pending.id,command,pending.low,pending.priority,pending.counter))
   next_id=next_id+1
 end
+local function on_meta()
+  if pending==nil or pending.meta or pending.command<0x50 or pending.command>=0x6F then
+    fault('unexpected_metadata_reset')
+    return
+  end
+  pending.meta=true
+  log(string.format('JP0617_META %d 885D',pending.id))
+end
 local function on_terminal(which,pc)
   if pending==nil then fault('orphan_terminal'); return end
   local p=pending
+  if (which=='meta_install')~=p.meta then fault('metadata_exit_mismatch'); return end
   log(string.format('JP0617_EXIT %d %s %04X %02X %02X %02X %02X',
       p.id,which,pc,byte(0xEF),byte(0x0109),byte(0x019E),byte(0x06DD)))
   pending=nil
@@ -44,8 +53,10 @@ end
 tap(0x8852,on_entry) -- after the original STA $EF at $8850
 -- These are mutually exclusive decision boundaries for one $8852 entry.
 tap(0x884F,function() on_terminal('low_return',0x884F) end)
-tap(0x8860,function() on_terminal('low_install',0x8860) end)
-tap(0x885D,function() on_terminal('meta_reset',0x885D) end)
+tap(0x8860,function()
+  on_terminal(pending~=nil and pending.meta and 'meta_install' or 'low_install',0x8860)
+end)
+tap(0x885D,on_meta)
 tap(0x8922,function() on_terminal('dmc_return',0x8922) end)
 tap(0x8928,function() on_terminal('dmc_program',0x8928) end)
 
