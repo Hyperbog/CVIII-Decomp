@@ -143,3 +143,7 @@ See [JP0611 original ROM sound-request census](../analysis/0611_SOUND_REQUEST_EN
 ## JP0612 — R-007 original sound-request runtime ingress instrumentation
 
 The [JP0612 implementation and limits](../analysis/0612_SOUND_REQUEST_RUNTIME_TRACE.md) observe real fixed $E249 instruction fetches, rather than accepting the 0611 physical pattern candidates as executable callers. Paired private request/register CSV outputs have not been collected and independently checked against original MesenCE audio timing. The event producers *before* $E249, any scheduler-dropped effects and music-versus-SFX voice allocation remain unknown. R-007 is OPEN; no original runtime/gameplay or native audio parity is certified.
+
+## JP0615 — R-007 independent audio ingress parity still needs source captures
+
+[JP0615](../analysis/0615_MESEN_SOUND_REQUEST_REFERENCE_GATE.md) prepares a hash-pinned original-Japanese-ROM Mesen2 execute callback for $E249 and a strict single-epoch JP0614 comparison. Three source-byte producer candidates ($B0C8/$06, $B1CE/$6A, $B58C/$6B) are authenticated; only $B58C has a historical conditional 6502 execution proof. No independent Mesen2 reference was actually executed in JP0615. Real matched controller inputs, original trace origin, request timing, game-side suppression and sound register ownership remain OPEN (R-007); unchanged strict PRG 49,504 and VPP27.
