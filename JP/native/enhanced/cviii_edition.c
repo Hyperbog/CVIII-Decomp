@@ -15,6 +15,7 @@
 #include "cviii_object_oam_trace_0609.h"
 #include "cviii_audio_bus_0610.h"
 #include "cviii_sound_requests_0612.h"
+#include "cviii_audio_session_0614.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -30,6 +31,8 @@ typedef struct {
     CviiiObjectOamTrace object_trace; /* read-only JP PRG26 object/OAM correlation */
     CviiiAudioBus audio_bus; /* opt-in nonmutating 2A03/VRC6 sound writes */
     CviiiSoundRequests sound_requests; /* original fixed $E249 ingress only */
+    CviiiAudioSession audio_session; /* extra-CPU row-count epoch markers */
+    char audio_session_id[33]; /* launcher-supplied private session GUID */
     uint8_t layer_masks[CVIII_LAYER_H];
     CviiiChrIndex assets; /* read-only imported physical CHR; presentation only */
     CviiiChrAudit audit; /* opt-in read-only per-frame bank audit */
@@ -109,6 +112,20 @@ static bool option(void *context, const char *name, const char *value)
         printf("CVIII: read-only original $E249 request entries; no sound changes\n");
         return true;
     }
+    if (!strcmp(name, "--audio-session-id")) {
+        if (!value || strlen(value)!=32 || strspn(value,"0123456789abcdef")!=32)
+            return false;
+        memcpy(cviii.audio_session_id,value,33);
+        return true;
+    }
+    if (!strcmp(name, "--audio-epoch-trace")) {
+        if (!value || !cviii_audio_session_open(&cviii.audio_session,
+                                               value,cviii.audio_session_id)) {
+            fprintf(stderr,"CVIII: private audio epoch manifest open failed\n");
+            return false;
+        }
+        return true;
+    }
     if (!strcmp(name, "--sprite-object-trace")) {
         if (!value || !cviii_object_oam_trace_open(&cviii.object_trace, value)) {
             fprintf(stderr, "CVIII: cannot open owner-local object/OAM trace output\n");
@@ -177,6 +194,9 @@ static void power_on(void *context)
      */
     cviii_layers_reset(&settings->sprite_layers);
     cyc_render_capture_background(true);
+    cviii_audio_session_mark(&settings->audio_session,"power_on",
+        cyc_cycle_count(),settings->sound_requests.requests,settings->audio_bus.writes,
+        settings->sound_requests.output,settings->audio_bus.output);
 }
 
 static uint8_t layer_read_chr(void *user, uint16_t address)
@@ -195,6 +215,9 @@ static void state_loaded(void *context)
 {
     CviiiEdition *settings = (CviiiEdition *)context;
     cviii_layers_reset(&settings->sprite_layers);
+    cviii_audio_session_mark(&settings->audio_session,"state_loaded",
+        cyc_cycle_count(),settings->sound_requests.requests,settings->audio_bus.writes,
+        settings->sound_requests.output,settings->audio_bus.output);
 }
 
 static void frame_begin(void *context)
@@ -309,6 +332,8 @@ static const CycHostOption cviii_options[] = {
      "Read-only 2A03/VRC6 audio register traffic for source separation research"},
     {"--sound-request-trace", true,
      "Original JP fixed $E249 sound request entry register/stack snapshots"},
+    {"--audio-session-id", true, "Owner-local GUID binding both audio traces"},
+    {"--audio-epoch-trace", true, "Owner-local power-on/load epoch row boundaries"},
     {"--asset-index", true,
      "Private read-only 655368-byte JP CHR index (no renderer substitution)"},
     {"--chr-audit", true,
