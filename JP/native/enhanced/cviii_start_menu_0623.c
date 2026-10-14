@@ -29,7 +29,8 @@ int cviii_start_register(CviiiStartMenu *menu,const CviiiStartEntry *entry)
        entry->action<=CVIII_START_NONE||entry->action>CVIII_START_EXTENSION||
        cviii_start_find(menu,entry->id))return 0;
     /* Only builtin defaults may register protected core.* names. */
-    if(!strncmp(entry->id,"core.",5))return 0;
+    if(!strncmp(entry->id,"core.",5) ||
+       entry->action!=CVIII_START_EXTENSION)return 0;
     menu->entries[menu->count++]=*entry;
     return 1;
 }
