@@ -5,6 +5,7 @@ param(
  [ValidateSet('Original','Enhanced')][string]$Edition='Enhanced',
  [switch]$UnlimitedSprites,
  [switch]$StableSprites,
+ [switch]$SpriteTrace,
  [switch]$ChrAudit,
  [string]$AuditOutDir=''
 )
@@ -43,9 +44,9 @@ $stable=if ($Edition -eq 'Enhanced' -and $StableSprites) {'1'} else {'0'}
 Write-Host "CVIII Enhanced (extra-OAM $sprites; experimental stable sprite layers $stable)"
 Write-Host 'Controls: arrows=D-pad, Z=A, X=B, Enter=Start, Backslash=Select.'
 Write-Host 'F8/F9 save/load; builds supporting slots use Ctrl+0..9.'
-if ($AuditOutDir -and -not $ChrAudit) { throw '-AuditOutDir requires -ChrAudit' }
+if ($AuditOutDir -and -not ($ChrAudit -or $SpriteTrace)) { throw '-AuditOutDir requires -ChrAudit or -SpriteTrace' }
 $auditBase=if ($AuditOutDir) { [IO.Path]::GetFullPath($AuditOutDir) } else { $PSScriptRoot }
-if ($ChrAudit) {
+if ($ChrAudit -or $SpriteTrace) {
  [IO.Directory]::CreateDirectory($auditBase) | Out-Null
  $pythonResolver=Join-Path $PSScriptRoot 'Resolve-Python.ps1'
  if (-not (Test-Path -LiteralPath $pythonResolver)) {
@@ -57,6 +58,11 @@ if ($ChrAudit) {
 Push-Location $PSScriptRoot
 try {
  $gameArgs=@($romPath,'--edition',$Edition.ToLowerInvariant(),'--unlimited-sprites',$sprites,'--stable-sprites',$stable)
+ if ($SpriteTrace) {
+  $spriteLog=Join-Path $auditBase 'CVIII-Sprite-Objects.csv'
+  $gameArgs+=@('--sprite-object-trace',$spriteLog)
+  Write-Host ('JP0609 actual 28 objects / rotated hardware OAM trace: '+$spriteLog)
+ }
  # Enhanced can opt into verified physical CHR asset metadata without ever
  # replacing the original cartridge's timing, mapper or game framebuffer.
  if ($Edition -eq 'Enhanced') {

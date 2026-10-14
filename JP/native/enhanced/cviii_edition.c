@@ -12,6 +12,7 @@
 #include "cviii_frame_evidence_0601.h"
 #include "cviii_nt_trace_0606.h"
 #include "cviii_sprite_layers_0608.h"
+#include "cviii_object_oam_trace_0609.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -24,6 +25,7 @@ typedef struct {
     int sprite_unlimited;
     int stable_sprites; /* optional host-only temporal presentation; off by default */
     CviiiSpriteLayers sprite_layers;
+    CviiiObjectOamTrace object_trace; /* read-only JP PRG26 object/OAM correlation */
     uint8_t layer_masks[CVIII_LAYER_H];
     CviiiChrIndex assets; /* read-only imported physical CHR; presentation only */
     CviiiChrAudit audit; /* opt-in read-only per-frame bank audit */
@@ -87,6 +89,14 @@ static bool option(void *context, const char *name, const char *value)
         return value && parse_boolean(value, &cviii.sprite_unlimited);
     if (!strcmp(name, "--stable-sprites"))
         return value && parse_boolean(value, &cviii.stable_sprites);
+    if (!strcmp(name, "--sprite-object-trace")) {
+        if (!value || !cviii_object_oam_trace_open(&cviii.object_trace, value)) {
+            fprintf(stderr, "CVIII: cannot open owner-local object/OAM trace output\n");
+            return false;
+        }
+        printf("CVIII: recording actual game-object and hardware OAM per frame\n");
+        return true;
+    }
     if (!strcmp(name, "--asset-index")) {
         if (!value || !cviii_chr_index_load(&cviii.assets, value)) {
             fprintf(stderr, "CVIII: rejected missing, mismatched or damaged JP asset index\n");
@@ -180,6 +190,9 @@ static void frame_begin(void *context)
 static void frame_end(void *context)
 {
     CviiiEdition *settings = (CviiiEdition *)context;
+    if (settings->object_trace.out)
+        cviii_object_oam_trace_frame(&settings->object_trace,
+                                    cyc_cpu_ram(), cyc_ppu_oam());
     if (settings->enhanced && settings->stable_sprites) {
         uint8_t tall[CVIII_LAYER_H];
         uint16_t tables[CVIII_LAYER_H];
@@ -269,7 +282,9 @@ static const CycHostOption cviii_options[] = {
     {"--unlimited-sprites", true,
      "Enhanced experimental 64-OAM sprite compositor (0/1, default 0)"},
     {"--stable-sprites", true,
-     "EXPERIMENTAL independent sprite layers with 1-frame OAM history (0/1, default 0)"},
+     "EXPERIMENTAL logical sprite-object layer order with 1-frame history (0/1, default 0)"},
+    {"--sprite-object-trace", true,
+     "Developer owner-local per-frame 28 object fields and 64 hardware OAM entries"},
     {"--asset-index", true,
      "Private read-only 655368-byte JP CHR index (no renderer substitution)"},
     {"--chr-audit", true,

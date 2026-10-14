@@ -11,6 +11,7 @@ param(
  [ValidateSet('title','gameplay','boss','cutscene','recruitment')][string]$Kind='gameplay',
  [string]$Checkpoint='',
  [string]$Notes='',
+ [switch]$SpriteTrace,
  [string]$OutRoot=(Join-Path $PSScriptRoot 'QA')
 )
 Set-StrictMode -Version Latest
@@ -37,7 +38,7 @@ if (Test-Path -LiteralPath $folder) { throw 'Refusing to overwrite prior QA capt
 Write-Host ('Capturing owner-private retail session: '+$folder)
 Write-Host 'Play the chosen scene, then close the game to save/validate this sample.'
 try {
- & $launcher -Rom $romPath -Edition Enhanced -ChrAudit -AuditOutDir $folder
+ & $launcher -Rom $romPath -Edition Enhanced -ChrAudit -SpriteTrace:$SpriteTrace -AuditOutDir $folder
 } catch {
  Write-Warning ('Session failed; raw diagnostic files preserved at '+$folder)
  throw

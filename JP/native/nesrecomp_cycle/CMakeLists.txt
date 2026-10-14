@@ -54,7 +54,8 @@ if(JP_EDITION_HOST_EXTRAS)
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_chr_fetch_0600.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_frame_evidence_0601.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_nt_trace_0606.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_sprite_layers_0608.c")
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_sprite_layers_0608.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_object_oam_trace_0609.c")
 endif()
 nesrecomp_add_cycle_game(jp_akumajou_densetsu
  ROM "${JP_ORIGINAL_JP_ROM}" ${JP_CYCLE_OPTIONS} ${JP_HOST_SOURCES})
@@ -235,3 +236,9 @@ add_executable(jp_sprite_layers_test_0608
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_sprite_layers_0608.c"
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_sprite_layers_test_0608.c")
 set_property(TARGET jp_sprite_layers_test_0608 PROPERTY C_STANDARD 11)
+
+# JP0609: ROM-free dynamic object/OAM rotation capture unit test.
+add_executable(jp_object_oam_test_0609
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_object_oam_trace_0609.c"
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_object_oam_trace_test_0609.c")
+set_property(TARGET jp_object_oam_test_0609 PROPERTY C_STANDARD 11)
