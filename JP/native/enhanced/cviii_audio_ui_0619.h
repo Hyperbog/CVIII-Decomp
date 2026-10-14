@@ -15,4 +15,9 @@
 bool cviii_audio_ui_render(uint32_t *pixels, unsigned width, unsigned height,
                            const CviiiChrIndex *assets,
                            const CviiiAudioLevels *volumes, unsigned selected);
+/* Interactive modal version; retains original authentic CHR shapes. */
+bool cviii_audio_ui_render_mode(uint32_t *pixels,unsigned width,unsigned height,
+                                const CviiiChrIndex *assets,
+                                const CviiiAudioLevels *volumes,
+                                unsigned selected,bool interactive);
 #endif
