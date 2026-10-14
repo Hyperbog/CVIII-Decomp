@@ -97,6 +97,15 @@ try {
  } elseif ($ChrAudit) { throw 'CHR mapping audit is developer-only for Enhanced' }
  & $game @gameArgs
  if ($LASTEXITCODE -ne 0) {throw "Native game exited with $LASTEXITCODE"}
+ if ($AudioTrace -and (Test-Path -LiteralPath $audioLog)) {
+  $audioTool=Join-Path $PSScriptRoot 'jp_audio_bus_report_0610.py'
+  if (!(Test-Path -LiteralPath $audioTool)) {
+   throw 'JP0610 audio trace analyzer missing from the private build'
+  }
+  $audioSummary=Join-Path $auditBase 'CVIII-Audio-Registers.json'
+  Invoke-CviiiPython -Script $audioTool -Arguments @('--csv',$audioLog,'--json',$audioSummary)
+  Write-Host ('JP0610 2A03/VRC6 sound-register report: '+$audioSummary)
+ }
  if ($SpriteTrace -and (Test-Path -LiteralPath $spriteLog)) {
   $oamTool=Join-Path $PSScriptRoot 'jp_object_oam_report_0609.py'
   if (!(Test-Path -LiteralPath $oamTool)) {

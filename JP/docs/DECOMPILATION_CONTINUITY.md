@@ -848,3 +848,42 @@ animated sprites, and frame-end CHR mapping still may not reflect
 mid-scanline CHR bank switches. Experimental and off by default.
 Retail-Japanese Trevor/torch and doorway validation is outstanding.
 Stage A-01 background corruption is unrelated and still unresolved.
+
+
+## JP0610 — Music/SFX conflict research (no audio changes yet)
+
+The owner reports effects muting or cancelling other effects and
+requests true independently mixed music and SFX. Current original
+hardware has 2A03 pulse1/pulse2/triangle/noise/DMC plus VRC6
+pulse1/pulse2/saw voices, with one shared register state per voice.
+The Japanese PRG bank0C sound scheduler/metadata is partially
+authenticated (JP0533/0534) but NOT semantically separated into
+independent music-versus-effects producers. An SDL volume slider
+or two outputs from the same mixed hardware signal would NOT fix
+source-level cancellation.
+
+JP0610 adds *read-only* original 2A03/VRC6 CPU audio register
+write instrumentation to the private native runtime (two overlays
+over the pinned external NESRecomp hardware sources). It logs
+address, value, old register value, CPU cycle, voice, and fast
+reprogramming events without modifying CPU, sound registers,
+VRC6 voices, mixer output, or game timing. The log is limited to
+1,000,000 rows and flushed periodically. These are hardware writes
+only: effects discarded by the game before register writes are
+invisible to this trace. Classification of actual music/SFX callers
+and the separate polyphonic synthesizer remain future milestones.
+
+After rebuilding your private Windows AlphaCandidate, run:
+
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Launch-Alpha.ps1 -Edition Enhanced -AudioTrace
+
+Cause two effects to overlap, then close the game. Owner-only
+`CVIII-Audio-Registers.csv` and `.json` are written alongside the
+launcher. Compare the report with original Japanese-game audio; do
+not commit original sound samples, NSF or generated ROM-derived data.
+
+Next audio build after this baseline: identify per-event sound
+requests, track their scheduling/cancellation priority in the
+original bank0C driver, and re-synthesize music and SFX as separate
+independent host voices. Only then can separate volume, reverb
+and spatial effects be added without silently dropping notes.

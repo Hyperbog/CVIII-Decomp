@@ -16,6 +16,8 @@ on:
       - "JP/tools/patch_cyc_ppu_nt_0606.py"
       - "JP/tools/jp_nt_trace_report_0606.py"
       - "JP/tools/jp_object_oam_report_0609.py"
+      - "JP/tools/patch_cyc_audio_bus_0610.py"
+      - "JP/tools/jp_audio_bus_report_0610.py"
       - "JP/tools/jp_chr_fetch_report_0600.py"
       - "JP/tools/jp_frame_evidence_report_0601.py"
       - "JP/tools/jp_qa_matrix_0602.py"
@@ -75,6 +77,10 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "JP0606 background bus report test failed" }
           python JP/tools/jp_object_oam_report_0609.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "JP0609 logical OAM-priority inversion report failed" }
+          python JP/tools/patch_cyc_audio_bus_0610.py --smoke
+          if ($LASTEXITCODE -ne 0) { throw "JP0610 audio backend observer patch rejected" }
+          python JP/tools/jp_audio_bus_report_0610.py --smoke
+          if ($LASTEXITCODE -ne 0) { throw "JP0610 audio traffic report failed" }
           python JP/tools/jp_chr_fetch_report_0600.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "Private PPU CHR CSV report parser test failed" }
           python JP/tools/jp_frame_evidence_report_0601.py --smoke
@@ -206,6 +212,13 @@ jobs:
           if (!(Test-Path -LiteralPath $test)) { throw 'JP0609 original object/OAM test missing' }
           & $test
           if ($LASTEXITCODE -ne 0) { throw 'JP0609 object to OAM shadow regression failed' }
+      - name: Verify original APU + VRC6 audio traffic isolation (ROM-free)
+        shell: pwsh
+        run: |
+          $test = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win/Release/jp_audio_bus_test_0610.exe'
+          if (!(Test-Path -LiteralPath $test)) { throw 'JP0610 audio diagnostic test missing' }
+          & $test
+          if ($LASTEXITCODE -ne 0) { throw 'JP0610 original audio write integrity test failed' }
       - name: Run bounded native C11 synthetic test with actual windowed-linked binary
         shell: pwsh
         run: |
