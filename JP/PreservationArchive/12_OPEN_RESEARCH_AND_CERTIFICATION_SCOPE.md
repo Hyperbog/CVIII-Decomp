@@ -159,3 +159,7 @@ The [unified JP0617 observer and parser](../analysis/0617_UNIFIED_SOUND_DISPATCH
 ## JP0618 — Enhanced shipping goal with gameplay fidelity
 
 [JP0618 audio preferences](../analysis/0618_ENHANCED_AUDIO_LEVELS.md): The single player-facing product is Enhanced, while original Japanese gameplay and timing remain the reference baseline. Master/Music/SFX preferences are persisted as 0–100 in 1% increments, with an implemented enhanced-only Master PCM gain. Music/SFX separation and the health-bar-art/in-game-font slider interface remain pending, and original-Mesen source decisions are still relevant to reconstructing correctly independent buses. No semantic PRG/VPP promotion; native Windows/UI validation not claimed.
+
+## JP0619 — Authentic interface asset proof, playable audio menu pending
+
+[JP0619](../analysis/0619_AUTHENTIC_AUDIO_SLIDER_ART.md) locates and SHA-authenticates original JP CHR font numerals $1041–$104A, letters $1050–$1069, and filled/empty life-meter segments $1093/$1085. The native host has an opt-in, read-only, noninteractive 3-row slider preview from original CHR pixels; preview colors are not independently PPU-palette certified. Input isolation, menu pause, actual separate music/SFX buses and compiled Windows GUI QA remain pending, so no audio ownership or game-playback advancement is claimed. PRG 49,504/262,144 and VPP27 unchanged.
