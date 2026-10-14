@@ -872,3 +872,7 @@ The [JP0612 trace design](../analysis/0612_SOUND_REQUEST_RUNTIME_TRACE.md) and [
 ## JP0614 — Sound trace provenance without runtime audio changes
 
 [JP0614 private capture integrity](../analysis/0614_AUDIO_SESSION_EPOCH_PROVENANCE.md) ties the existing sound request and APU/VRC6 write CSVs to a new power-on/load epoch CSV by owner-local GUID, exact SHA-256 hashes and cumulative event-row boundaries. A save-state CPU clock rewind is therefore separated, not silently combined. Strict C11 and Python synthetic tests pass locally; current Windows native Alpha/MesenCE replay and CI results are not claimed. No original sound-driver source ownership or semantic PRG proof promoted: 49,504/262,144, VPP 27/100, certified checkpoint 0508, fixed FB96.
+
+## JP0615 — Independent reference sound-request comparison prepared
+
+[JP0615](../analysis/0615_MESEN_SOUND_REQUEST_REFERENCE_GATE.md) adds an original MesenCE/Mesen2 E249 Lua execute observer and a strict JP0614 native-to-reference request register/stack/command comparator, with independently pinned JP-ROM and reference executable SHA-256 requirements. Three physical PRG21 raw-$0A command producer patterns ($06/$6A/$6B) were individually verified; only $6B is separately conditionally executed in 0508 Phase 11. A ROM-free synthetic comparison passes; real original Mesen/Windows owner-trace parity, actual accepted SFX, audio output and source provenance remain OPEN. No ledger increment: strict 49,504/262,144, VPP 27/100, certified semantic 0508, fixed frontier FB96.
