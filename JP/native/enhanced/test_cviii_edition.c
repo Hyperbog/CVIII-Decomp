@@ -71,7 +71,8 @@ void cyc_render_sprites(uint32_t *out,int w,int h,int x,const uint8_t *bg,
 int main(void) {
     const CycHostExtras *e=cyc_host_extras();
     assert(e && e->options && e->option && e->present);
-    assert(e->option_count == 13);
+    assert(e->option_count == 16);
+    assert(e->audio_mix != NULL);
     assert(!e->option(e->ctx,"--asset-index",(const char *)0));
     int w=0,h=0;
     e->power_on(e->ctx);
@@ -95,9 +96,33 @@ int main(void) {
     assert(capture_enabled && e->present(e->ctx,&w,&h)==native);
     e->load_setting(e->ctx,"Edition","Original");
     assert(e->present(e->ctx,&w,&h)==native);
+    assert(e->option(e->ctx,"--master-volume","50"));
+    assert(e->option(e->ctx,"--music-volume","28"));
+    assert(e->option(e->ctx,"--sfx-volume","64"));
+    assert(!e->option(e->ctx,"--master-volume","101"));
+    assert(!e->option(e->ctx,"--music-volume","-1"));
+    assert(!e->option(e->ctx,"--sfx-volume","99x"));
+    int16_t pcm[]={10000,-10000,100,-100};
+    /* The internal original diagnostic mode does not scale its sound. */
+    e->audio_mix(e->ctx,pcm,4);
+    assert(pcm[0]==10000 && pcm[1]==-10000);
+    assert(e->option(e->ctx,"--edition","enhanced"));
+    e->audio_mix(e->ctx,pcm,4);
+    assert(pcm[0]==5000 && pcm[1]==-5000 && pcm[2]==50 && pcm[3]==-50);
+    assert(e->option(e->ctx,"--edition","original"));
+    e->load_setting(e->ctx,"MasterVolume","1");
+    assert(e->option(e->ctx,"--edition","enhanced"));
+    int16_t one[]={10000};
+    e->audio_mix(e->ctx,one,1);
+    assert(one[0]==100);
+    assert(e->option(e->ctx,"--edition","original"));
+    e->load_setting(e->ctx,"MasterVolume","50");
     FILE *f=tmpfile();assert(f);e->save_settings(e->ctx,f);rewind(f);
-    char text[128]={0};size_t n=fread(text,1,sizeof(text)-1,f);assert(n>0);fclose(f);
+    char text[256]={0};size_t n=fread(text,1,sizeof(text)-1,f);assert(n>0);fclose(f);
     assert(strstr(text,"Edition = Original") && strstr(text,"UnlimitedSprites = 0"));
+    assert(strstr(text,"MasterVolume = 50"));
+    assert(strstr(text,"MusicVolume = 28"));
+    assert(strstr(text,"SoundEffectsVolume = 64"));
     puts("PASS CVIII Original fallback / Enhanced compositor / persisted settings");
     return 0;
 }
