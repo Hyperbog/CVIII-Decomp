@@ -139,3 +139,7 @@ Independent Mesen2 original-JP Stage 1 route reaches playable BLK 1-02 in additi
 ## JP0611 — R-007 sound-event boundary (research only)
 
 See [JP0611 original ROM sound-request census](../analysis/0611_SOUND_REQUEST_ENTRY_CENSUS.md) and [self-contained ROM audit](../tools/jp_sound_request_census_0611.py). Fixed $E249's bank-$0C wrapper and three sound-command dispatch classes are ROM-byte verified, but 131 physical JSR/JMP patterns are **not** a live caller census. Required next: CPU-cycle-aligned E249 entry trace with A, mapper, caller stack context and hardware bus writes; independent reference validation of accepted versus suppressed requests. Do not claim independent music/SFX virtual voices, modify the hardware mixer, change strict PRG 49,504/262,144 or advance VPP 27/100. R-007 stays OPEN.
+
+## JP0612 — R-007 original sound-request runtime ingress instrumentation
+
+The [JP0612 implementation and limits](../analysis/0612_SOUND_REQUEST_RUNTIME_TRACE.md) observe real fixed $E249 instruction fetches, rather than accepting the 0611 physical pattern candidates as executable callers. Paired private request/register CSV outputs have not been collected and independently checked against original MesenCE audio timing. The event producers *before* $E249, any scheduler-dropped effects and music-versus-SFX voice allocation remain unknown. R-007 is OPEN; no original runtime/gameplay or native audio parity is certified.
