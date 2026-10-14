@@ -13,6 +13,8 @@ on:
       - "JP/tools/patch_cyc_stage_menu_0594.py"
       - "JP/tools/patch_cyc_stage_bootstrap_0596.py"
       - "JP/tools/patch_cyc_audio_menu_0620.py"
+      - "JP/tools/patch_cyc_start_menu_0623.py"
+      - "JP/tools/jp_start_menu_pinned_gate_0623.py"
       - "JP/tools/jp_audio_menu_pinned_gate_0621.py"
       - "JP/tools/patch_cyc_chr_fetch_0600.py"
       - "JP/tools/patch_cyc_ppu_nt_0606.py"
@@ -87,6 +89,10 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "JP0621 layered audio menu source smoke failed" }
           python JP/tools/jp_audio_menu_pinned_gate_0621.py --source _external_nesrecomp/runner/cyc/cyc_sdl.c
           if ($LASTEXITCODE -ne 0) { throw "JP0621 pinned SDL four-overlay source contract failed" }
+          python JP/tools/jp_start_menu_pinned_gate_0623.py --smoke
+          if ($LASTEXITCODE -ne 0) { throw "JP0623 Start/Pause patch smoke failed" }
+          python JP/tools/jp_start_menu_pinned_gate_0623.py --source _external_nesrecomp/runner/cyc/cyc_sdl.c
+          if ($LASTEXITCODE -ne 0) { throw "JP0623 five-overlay SDL source regression failed" }
           python JP/tools/patch_cyc_chr_fetch_0600.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "PPU CHR observer anchor test failed" }
           python JP/tools/patch_cyc_ppu_nt_0606.py --smoke
@@ -293,6 +299,16 @@ jobs:
           if (!(Test-Path -LiteralPath $test)) { throw 'JP0622 modal state test missing' }
           & $test
           if ($LASTEXITCODE -ne 0) { throw 'JP0622 F6 modal state/input boundary test failed' }
+      - name: Verify JP0623 extensible Pause menu and original font (ROM-free)
+        shell: pwsh
+        run: |
+          $dir = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win/Release'
+          foreach ($testName in @('jp_start_menu_test_0623.exe','jp_start_ui_test_0623.exe')) {
+            $test = Join-Path $dir $testName
+            if (!(Test-Path -LiteralPath $test)) { throw ('JP0623 test missing: '+$testName) }
+            & $test
+            if ($LASTEXITCODE -ne 0) { throw ('JP0623 regression failed: '+$testName) }
+          }
       - name: Run bounded native C11 synthetic test with actual windowed-linked binary
         shell: pwsh
         run: |
