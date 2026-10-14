@@ -19,6 +19,8 @@
 #include "cviii_audio_levels_0618.h"
 #include "cviii_audio_ui_0619.h"
 #include "cviii_menu_registry_0620.h"
+#include "cviii_audio_menu_0620.h"
+#include "cviii_audio_menu_state_0622.h"
 #ifdef CYC_WITH_RECOMP_UI
 #include "recomp_runtime_ui.h"
 #endif
@@ -40,8 +42,7 @@ typedef struct {
     CviiiAudioSession audio_session; /* extra-CPU row-count epoch markers */
     CviiiAudioLevels volume; /* enhanced host gains, never emulated RAM */
     int audio_ui_preview; /* opt-in independent visual QA */
-    int audio_ui_open; /* F6 modal pause, driven by private pinned SDL overlay */
-    unsigned audio_ui_selected; /* exactly three volume rows */
+    CviiiAudioMenuState audio_ui; /* F6 modal selection, no guest RAM */
     char audio_session_id[33]; /* launcher-supplied private session GUID */
     uint8_t layer_masks[CVIII_LAYER_H];
     CviiiChrIndex assets; /* read-only imported physical CHR; presentation only */
@@ -158,7 +159,7 @@ static int parse_boolean(const char *text, int *value)
 static int set_edition(const char *name)
 {
     if (!strcmp(name, "original") || !strcmp(name, "Original")) {
-        cviii.audio_ui_open = 0;
+        cviii_audio_menu_state_close(&cviii.audio_ui);
         cviii.enhanced = 0;
         return 1;
     }
@@ -308,6 +309,7 @@ static void power_on(void *context)
      * Do not recapture in frame_begin: that clears the saved history.
      */
     cviii_layers_reset(&settings->sprite_layers);
+    cviii_audio_menu_state_close(&settings->audio_ui); /* reset cannot leave a stale modal */
     cyc_render_capture_background(true);
     cviii_audio_session_mark(&settings->audio_session,"power_on",
         cyc_cycle_count(),settings->sound_requests.requests,settings->audio_bus.writes,
@@ -330,7 +332,7 @@ static void state_loaded(void *context)
 {
     CviiiEdition *settings = (CviiiEdition *)context;
     cviii_layers_reset(&settings->sprite_layers);
-    settings->audio_ui_open=0; /* loaded gameplay never owns a stale modal */
+    cviii_audio_menu_state_close(&settings->audio_ui); /* loaded gameplay never owns a stale modal */
     cviii_audio_session_mark(&settings->audio_session,"state_loaded",
         cyc_cycle_count(),settings->sound_requests.requests,settings->audio_bus.writes,
         settings->sound_requests.output,settings->audio_bus.output);
@@ -440,43 +442,20 @@ static const uint32_t *present_game(void *context, int *width, int *height)
  * No SDL dependency here; the host handles pause, input and saving config. */
 int cviii_audio_menu_active(void)
 {
-    return cviii.audio_ui_open;
+    return cviii.audio_ui.open;
 }
 int cviii_audio_menu_toggle(void)
 {
-    if (cviii.audio_ui_open) {
-        cviii.audio_ui_open=0;
-        return 1;
-    }
-    if (!cviii.enhanced || !cviii.assets.pixels) return 0;
-    cviii.audio_ui_selected=0;
-    cviii.audio_ui_open=1;
-    return 1;
+    return cviii_audio_menu_state_toggle(&cviii.audio_ui,
+        cviii.enhanced,cviii.assets.pixels!=NULL);
 }
 void cviii_audio_menu_close(void)
 {
-    cviii.audio_ui_open=0;
+    cviii_audio_menu_state_close(&cviii.audio_ui);
 }
-/* Direction -1=up, +1=down, -2=left, +2=right.
- * Return true iff a persisted volume changed. */
 int cviii_audio_menu_move(int direction)
 {
-    if (!cviii.audio_ui_open) return 0;
-    if (direction==-1) {
-        cviii.audio_ui_selected=(cviii.audio_ui_selected+2u)%3u;
-        return 0;
-    }
-    if (direction==1) {
-        cviii.audio_ui_selected=(cviii.audio_ui_selected+1u)%3u;
-        return 0;
-    }
-    const CviiiVolumeChannel channel=(CviiiVolumeChannel)cviii.audio_ui_selected;
-    if(direction!=-2 && direction!=2)return 0;
-    const int before=cviii_audio_levels_get(&cviii.volume,channel);
-    if (before<0 ||
-        !cviii_audio_levels_step(&cviii.volume,channel,direction==2?1:-1))
-        return 0;
-    return before!=cviii_audio_levels_get(&cviii.volume,channel);
+    return cviii_audio_menu_state_move(&cviii.audio_ui,&cviii.volume,direction);
 }
 
 /* Audio hook only changes presentation PCM, not APU registers or CPU state.
@@ -488,15 +467,15 @@ static const uint32_t *present(void *context,int *width,int *height)
     CviiiEdition *settings=(CviiiEdition *)context;
     const uint32_t *frame=present_game(context,width,height);
     if (!settings->enhanced ||
-        (!settings->audio_ui_preview && !settings->audio_ui_open) ||
+        (!settings->audio_ui_preview && !settings->audio_ui.open) ||
         !settings->assets.pixels || *width!=CVIII_W || *height!=CVIII_H)
         return frame;
     if (frame!=settings->presentation)
         memcpy(settings->presentation,frame,sizeof settings->presentation);
     if (!cviii_audio_ui_render_mode(settings->presentation,CVIII_W,CVIII_H,
                                     &settings->assets,&settings->volume,
-                                    settings->audio_ui_open ? settings->audio_ui_selected : 0u,
-                                    settings->audio_ui_open!=0))
+                                    settings->audio_ui.open ? settings->audio_ui.selected : 0u,
+                                    settings->audio_ui.open!=0))
         return frame;
     return settings->presentation;
 }
