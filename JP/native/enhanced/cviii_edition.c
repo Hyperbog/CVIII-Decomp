@@ -67,7 +67,7 @@ static CviiiVolumeMenuBinding cviii_menu_bindings[3] = {
     {&cviii.volume,CVIII_VOLUME_MUSIC},
     {&cviii.volume,CVIII_VOLUME_SFX}
 };
-static RecompRuntimeUiItem cviii_ui_rows[3];
+static RecompRuntimeUiItem cviii_ui_rows[CVIII_MENU_MAX_ITEMS];
 static RecompRuntimeUiCallbacks cviii_ui_callbacks;
 static int cviii_menu_ready;
 
@@ -115,6 +115,10 @@ static void cviii_init_audio_menu(CycHostExtras *extras)
             fprintf(stderr,"CVIII JP0620: audio menu registration failed\n");
             return;
         }
+    }
+    /* Additional game-owned settings can be registered above without any
+     * change to the host's navigation, save or pause behavior. */
+    for(size_t i=0;i<cviii_menu.count;++i) {
         const CviiiMenuSetting *item=&cviii_menu.items[i];
         cviii_ui_rows[i]=(RecompRuntimeUiItem){
             .key=item->key, .section=item->section,
