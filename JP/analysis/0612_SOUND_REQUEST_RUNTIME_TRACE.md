@@ -22,7 +22,7 @@ Alongside existing `CVIII-Audio-Registers.csv`, the launcher now requests `CVIII
 
 - Local isolated compilation: GCC/Clang-style strict C11 logger fixture `-Wall -Wextra -Werror -pedantic`, 2 test events, wrong PC ignored, duplicate-open rejected — PASS.
 - Standalone Python source overlay smoke: both opcode-fetch paths, interrupt gate, mapper gate, duplicate patch rejection, changed-anchor fail closed — PASS.
-- Public upstream `mstan/nesrecomp` master inspection: all three required `hw_machine.c` replacement anchors each present exactly once; exact **pinned private checkout** must still pass build-time checks.
+- Exact pinned public NESRecomp revision `2b4fcdb98c9e702be3fb365cfc645003c50b5fc1` (from `JP/tools/build_retail_cycle_0575.py`) was independently fetched: all three `hw_machine.c` replacement anchors appear exactly once, `cpu_opcode_fetch` is present, and `cpu6502.h` confirms both fetch paths and pending-interrupt return logic. Generation/compilation in the owner-private Windows checkout remains untested.
 - Both Windows and Linux CI workflow files have synthetic ROM-free build/test gates, but the new HEAD's GitHub Actions results and real private Windows GUI gameplay were **not** independently verified in this session.
 - No MesenCE sound request trace paired with actual runtime CSV has yet been collected, and no dropped SFX, musical ownership or enhanced mixer parity can be inferred.
 
