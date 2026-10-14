@@ -116,12 +116,28 @@ if(NOT JP_CYCLE_HEADLESS AND JP_SAVE_STATE_SLOTS)
  if(NOT JP_BOOTSTRAP_PATCH_RESULT EQUAL 0)
   message(FATAL_ERROR "F10 password bootstrap overlay failed: ${JP_BOOTSTRAP_PATCH_ERROR}")
  endif()
+ # JP0620: owner-private F6 audio modal layer after stage/password patches.
+ # No external SDL source is changed in Git; assets remain owner-local.
+ set(JP_FINAL_SDL_OVERLAY "${JP_BOOTSTRAP_OVERLAY}")
+ if(JP_EDITION_HOST_EXTRAS)
+  set(JP_AUDIO_MENU_OVERLAY "${NESRECOMP_EXTERNAL_ROOT}/runner/cyc/cviii_cyc_sdl_audio_menu.c")
+  execute_process(
+   COMMAND "${Python3_EXECUTABLE}"
+    "${CMAKE_CURRENT_LIST_DIR}/../../tools/patch_cyc_audio_menu_0620.py"
+    --source "${JP_BOOTSTRAP_OVERLAY}" --out "${JP_AUDIO_MENU_OVERLAY}"
+   RESULT_VARIABLE JP_AUDIO_MENU_PATCH_RESULT
+   ERROR_VARIABLE JP_AUDIO_MENU_PATCH_ERROR)
+  if(NOT JP_AUDIO_MENU_PATCH_RESULT EQUAL 0)
+   message(FATAL_ERROR "F6 original-art audio menu overlay failed: ${JP_AUDIO_MENU_PATCH_ERROR}")
+  endif()
+  set(JP_FINAL_SDL_OVERLAY "${JP_AUDIO_MENU_OVERLAY}")
+ endif()
  get_target_property(JP_GAME_SOURCES jp_akumajou_densetsu SOURCES)
  set(JP_PATCHED_SOURCES "")
  set(JP_SDL_REPLACEMENTS 0)
  foreach(JP_FILE IN LISTS JP_GAME_SOURCES)
   if(JP_FILE MATCHES "cyc_sdl\\.c$")
-   list(APPEND JP_PATCHED_SOURCES "${JP_BOOTSTRAP_OVERLAY}")
+   list(APPEND JP_PATCHED_SOURCES "${JP_FINAL_SDL_OVERLAY}")
    math(EXPR JP_SDL_REPLACEMENTS "${JP_SDL_REPLACEMENTS} + 1")
   else()
    list(APPEND JP_PATCHED_SOURCES "${JP_FILE}")
@@ -132,7 +148,7 @@ if(NOT JP_CYCLE_HEADLESS AND JP_SAVE_STATE_SLOTS)
    "Expected exactly one upstream cyc_sdl.c in the target, got ${JP_SDL_REPLACEMENTS}")
  endif()
  set_property(TARGET jp_akumajou_densetsu PROPERTY SOURCES "${JP_PATCHED_SOURCES}")
- message(STATUS "CVIII: quick-saves, F10 stage/companion and password bootstrap enabled")
+ message(STATUS "CVIII: quick-saves/F10 password bootstrap; optional F6 paused original-art audio menu")
 endif()
 
 # A headless-only executable is NOT a playable alpha. In windowed builds
