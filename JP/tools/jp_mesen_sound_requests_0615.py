@@ -27,6 +27,13 @@ def check_binaries(rom:Path, emulator:Path)->None:
     source=rom.read_bytes()
     if len(source)!=393232 or digest(source)!=JP:
         raise ValueError('wrong original Japanese ROM')
+    # Explicit original raw-$0A / PRG21 caller signatures. Physical bytes,
+    # not a proof these callers are live in the reference route.
+    prg=source[16:16+262144]
+    for pc,command in ((0xB0C8,0x06),(0xB1CE,0x6A),(0xB58C,0x6B)):
+        at=21*8192+pc-0xA000
+        if prg[at:at+5]!=bytes((0xA9,command,0x20,0x49,0xE2)):
+            raise ValueError('Original raw-$0A sound caller changed')
     for name,want in (('mesen-agent',AGENT),('MesenCore.so',CORE)):
         if digest((emulator/name).read_bytes())!=want:
             raise ValueError('unrecognized independent Mesen2 binary: '+name)
