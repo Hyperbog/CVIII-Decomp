@@ -4,6 +4,7 @@
 #include "cyc_render.h"
 #include "cviii_chr_fetch_0600.h"
 #include "cviii_nt_trace_0606.h"
+#include "cviii_audio_menu_0620.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -72,6 +73,11 @@ int main(void) {
     const CycHostExtras *e=cyc_host_extras();
     assert(e && e->options && e->option && e->present);
     assert(e->option_count == 17);
+    assert(!cviii_audio_menu_active());
+    assert(!cviii_audio_menu_toggle()); /* no authenticated original CHR */
+    assert(!cviii_audio_menu_active());
+    assert(!cviii_audio_menu_move(2));
+    cviii_audio_menu_close();
     assert(e->audio_mix != NULL);
     assert(!e->option(e->ctx,"--asset-index",(const char *)0));
     assert(!e->option(e->ctx,"--audio-ui-preview","nonboolean"));
