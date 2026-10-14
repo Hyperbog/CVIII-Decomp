@@ -5,7 +5,7 @@
 #define PANEL_X 8u
 #define PANEL_Y 44u
 #define PANEL_W 240u
-#define PANEL_H 150u
+#define PANEL_H 176u
 #define BAR_X 80u
 #define BAR_W 144u
 #define BAR_TILES (BAR_W/8u)
@@ -93,8 +93,13 @@ bool cviii_audio_ui_render_mode(uint32_t *pixels,unsigned width,unsigned height,
         meter(pixels,chr,y,values[row]);
         number(pixels,chr,y,values[row],row==selected);
     }
-    print(pixels,chr,interactive ? 64u : 56u,181u,
-          interactive ? "F6 ESC CLOSE" : "AUDIO PREVIEW",0);
+    if (interactive) {
+        /* Both preferences currently persist but do not have independent buses. */
+        print(pixels,chr,48u,181u,"MUSIC SFX PENDING",0);
+        print(pixels,chr,64u,201u,"F6 ESC CLOSE",0);
+    } else {
+        print(pixels,chr,56u,181u,"AUDIO PREVIEW",0);
+    }
     return true;
 }
 
