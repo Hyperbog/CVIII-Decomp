@@ -56,7 +56,8 @@ if(JP_EDITION_HOST_EXTRAS)
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_nt_trace_0606.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_sprite_layers_0608.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_object_oam_trace_0609.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_bus_0610.c")
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_bus_0610.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_sound_requests_0612.c")
 endif()
 nesrecomp_add_cycle_game(jp_akumajou_densetsu
  ROM "${JP_ORIGINAL_JP_ROM}" ${JP_CYCLE_OPTIONS} ${JP_HOST_SOURCES})
@@ -288,3 +289,38 @@ add_executable(jp_audio_bus_test_0610
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_bus_0610.c"
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_bus_test_0610.c")
 set_property(TARGET jp_audio_bus_test_0610 PROPERTY C_STANDARD 11)
+# JP0612: private dual-path instruction-fetch observer at original fixed $E249.
+# Replaces hw_machine.c in generated target ONLY. Original CPU execution,
+# mapper/PPU/APU bus behavior and ROM source are unchanged.
+set(JP_REQUEST_MACHINE "${NESRECOMP_EXTERNAL_ROOT}/runner/cyc/hw_machine.c")
+set(JP_REQUEST_OVERLAY "${NESRECOMP_EXTERNAL_ROOT}/runner/cyc/cviii_hw_machine_requests.c")
+execute_process(
+ COMMAND "${Python3_EXECUTABLE}"
+  "${CMAKE_CURRENT_LIST_DIR}/../../tools/patch_cyc_sound_requests_0612.py"
+  --source "${JP_REQUEST_MACHINE}" --out "${JP_REQUEST_OVERLAY}"
+ RESULT_VARIABLE JP_REQUEST_PATCH_RESULT
+ ERROR_VARIABLE JP_REQUEST_PATCH_ERROR)
+if(NOT JP_REQUEST_PATCH_RESULT EQUAL 0)
+ message(FATAL_ERROR "JP0612 request observer source contract failed: ${JP_REQUEST_PATCH_ERROR}")
+endif()
+get_target_property(JP_REQUEST_ORIGINAL_SOURCES jp_akumajou_densetsu SOURCES)
+set(JP_REQUEST_NEW_SOURCES "")
+set(JP_REQUEST_COUNT 0)
+foreach(JP_SOURCE IN LISTS JP_REQUEST_ORIGINAL_SOURCES)
+ if(JP_SOURCE MATCHES "hw_machine\\.c$")
+  list(APPEND JP_REQUEST_NEW_SOURCES "${JP_REQUEST_OVERLAY}")
+  math(EXPR JP_REQUEST_COUNT "${JP_REQUEST_COUNT} + 1")
+ else()
+  list(APPEND JP_REQUEST_NEW_SOURCES "${JP_SOURCE}")
+ endif()
+endforeach()
+if(NOT JP_REQUEST_COUNT EQUAL 1)
+ message(FATAL_ERROR "JP0612 requires exactly one hw_machine.c in runtime")
+endif()
+set_property(TARGET jp_akumajou_densetsu PROPERTY SOURCES "${JP_REQUEST_NEW_SOURCES}")
+message(STATUS "JP0612 private read-only $E249 instruction-entry trace installed")
+
+add_executable(jp_sound_requests_test_0612
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_sound_requests_0612.c"
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_sound_requests_test_0612.c")
+set_property(TARGET jp_sound_requests_test_0612 PROPERTY C_STANDARD 11)
