@@ -10,8 +10,11 @@ local max_lines=40000
 local function byte(addr) return emu.read(addr,ram) end
 local function active() return byte(0x23)==0x0C and byte(0x26)==0xFF end
 local function log(line)
-  if count==max_lines then emu.log('JP0617_TRUNCATED') end
-  if count>=max_lines then return end
+  if count>=max_lines then
+    if count==max_lines then emu.log('JP0617_TRUNCATED') end
+    count=count+1
+    return
+  end
   emu.log(line)
   count=count+1
 end
