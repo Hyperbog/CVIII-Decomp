@@ -887,3 +887,7 @@ requests, track their scheduling/cancellation priority in the
 original bank0C driver, and re-synthesize music and SFX as separate
 independent host voices. Only then can separate volume, reverb
 and spatial effects be added without silently dropping notes.
+
+## JP0611 — bank0C sound event request entry (provisional research)
+
+Git [JP0611 analysis](../analysis/0611_SOUND_REQUEST_ENTRY_CENSUS.md) and [ROM-locked audit](../tools/jp_sound_request_census_0611.py) establish the original fixed $E249 wrapper and raw-$0C:$8850 paths ($00-$4F->$8842, $50-$6E sound-record installation, $6F-$FF->$8908 DMC writes). The 256 KiB source-pattern census yields 123 JSR + 8 JMP $E249 matches, 120 preceded by A9 immediate, 11 without; these are **not proven executable or live requests**. 0610's read-only APU/VRC6 register observer remains intact; no audio behavior, mixer, music/SFX arbitration, virtual polyphony, ROM or game bytes have been changed. Next research stage: capture entry A/mapper/caller/cycle plus linked hardware writes, then prove discarded requests and true music/SFX ownership against original Japanese execution. Semantic 0508 / fixed FB96, strict PRG 49,504/262,144 and VPP 27/100 are unchanged. RESUME_STATE.json remains authoritative and intentionally untouched.
