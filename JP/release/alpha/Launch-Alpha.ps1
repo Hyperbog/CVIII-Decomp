@@ -7,6 +7,7 @@ param(
  [switch]$StableSprites,
  [switch]$SpriteTrace,
  [switch]$AudioTrace,
+ [ValidateRange(0,100)][int]$MasterVolume,
  [switch]$ChrAudit,
  [string]$AuditOutDir=''
 )
@@ -59,6 +60,10 @@ if ($ChrAudit -or $SpriteTrace -or $AudioTrace) {
 Push-Location $PSScriptRoot
 try {
  $gameArgs=@($romPath,'--edition',$Edition.ToLowerInvariant(),'--unlimited-sprites',$sprites,'--stable-sprites',$stable)
+ if ($PSBoundParameters.ContainsKey('MasterVolume')) {
+  $gameArgs+=@('--master-volume',[string]$MasterVolume)
+  Write-Host ('Enhanced master output gain override: '+$MasterVolume+'%')
+ }
  if ($AudioTrace) {
   $audioLog=Join-Path $auditBase 'CVIII-Audio-Registers.csv'
   $gameArgs+=@('--audio-reg-trace',$audioLog)
