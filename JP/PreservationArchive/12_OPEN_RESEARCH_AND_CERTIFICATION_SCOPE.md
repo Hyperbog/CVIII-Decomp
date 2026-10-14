@@ -155,3 +155,7 @@ The original JP raw-bank-$0C source establishes both $884F low-command guard and
 ## JP0617 — R-007 unified sound-dispatch trace prepared; authentic capture outstanding
 
 The [unified JP0617 observer and parser](../analysis/0617_UNIFIED_SOUND_DISPATCH_REFERENCE.md) pair original driver $8852 commands with the $884F/$8860/$8922/$8928 decision boundaries, including $885D reset as an intermediate phase for $50–$6E. Original RAM $0109, $019E and $06DD is sampled before and after; a fail-closed parser distinguishes a selected branch from a proven audio output. Five synthetic paths and eleven negative tests passed. No Mesen2 execution, matched native run or earlier game-side sound trigger has been verified; R-007 OPEN. Strict PRG 49,504/262,144, VPP 27 unchanged.
+
+## JP0618 — Enhanced shipping goal with gameplay fidelity
+
+[JP0618 audio preferences](../analysis/0618_ENHANCED_AUDIO_LEVELS.md): The single player-facing product is Enhanced, while original Japanese gameplay and timing remain the reference baseline. Master/Music/SFX preferences are persisted as 0–100 in 1% increments, with an implemented enhanced-only Master PCM gain. Music/SFX separation and the health-bar-art/in-game-font slider interface remain pending, and original-Mesen source decisions are still relevant to reconstructing correctly independent buses. No semantic PRG/VPP promotion; native Windows/UI validation not claimed.
