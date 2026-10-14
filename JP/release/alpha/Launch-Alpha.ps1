@@ -66,6 +66,10 @@ try {
   $requestLog=Join-Path $auditBase 'CVIII-Sound-Requests.csv'
   $gameArgs+=@('--sound-request-trace',$requestLog)
   Write-Host ('JP0612 original $E249 sound requests: '+$requestLog)
+  $sessionId=([guid]::NewGuid()).ToString('N').ToLowerInvariant()
+  $epochLog=Join-Path $auditBase 'CVIII-Audio-Epochs.csv'
+  $gameArgs+=@('--audio-session-id',$sessionId,'--audio-epoch-trace',$epochLog)
+  Write-Host ('JP0614 private audio epoch boundaries: '+$epochLog)
  }
  if ($SpriteTrace) {
   $spriteLog=Join-Path $auditBase 'CVIII-Sprite-Objects.csv'
@@ -100,14 +104,42 @@ try {
  } elseif ($ChrAudit) { throw 'CHR mapping audit is developer-only for Enhanced' }
  & $game @gameArgs
  if ($LASTEXITCODE -ne 0) {throw "Native game exited with $LASTEXITCODE"}
- if ($AudioTrace -and (Test-Path -LiteralPath $audioLog)) {
-  $audioTool=Join-Path $PSScriptRoot 'jp_audio_bus_report_0610.py'
-  if (!(Test-Path -LiteralPath $audioTool)) {
-   throw 'JP0610 audio trace analyzer missing from the private build'
+ if ($AudioTrace) {
+  $audioVerifier=Join-Path $PSScriptRoot 'jp_audio_session_verify_0614.py'
+  if (!(Test-Path -LiteralPath $audioVerifier)) { throw 'JP0614 session validator missing; rebuild latest private AlphaCandidate' }
+  $fileSpecs=@{
+   requests=@{ name='CVIII-Sound-Requests.csv'; path=$requestLog }
+   registers=@{ name='CVIII-Audio-Registers.csv'; path=$audioLog }
+   epochs=@{ name='CVIII-Audio-Epochs.csv'; path=$epochLog }
   }
-  $audioSummary=Join-Path $auditBase 'CVIII-Audio-Registers.json'
-  Invoke-CviiiPython -Script $audioTool -Arguments @('--csv',$audioLog,'--json',$audioSummary)
-  Write-Host ('JP0610 2A03/VRC6 sound-register report: '+$audioSummary)
+  $boundFiles=@{}
+  foreach ($key in @('requests','registers','epochs')) {
+   $item=$fileSpecs[$key]
+   if (!(Test-Path -LiteralPath $item.path)) {throw ('Missing private audio capture file: '+$item.path)}
+   $boundFiles[$key]=@{ name=$item.name; sha256=(Get-FileHash -LiteralPath $item.path -Algorithm SHA256).Hash.ToLowerInvariant() }
+  }
+  $manifestFile=Join-Path $auditBase 'CVIII-Audio-Session.json'
+  $manifestData=@{ schema='CVIII-JP-audio-session/v1'; session_id=$sessionId; files=$boundFiles }
+  [IO.File]::WriteAllText($manifestFile,
+    (($manifestData | ConvertTo-Json -Depth 6) + [Environment]::NewLine),
+    [Text.UTF8Encoding]::new($false))
+  $epochSummary=Join-Path $auditBase 'CVIII-Audio-Epoch-Verification.json'
+  Invoke-CviiiPython -Script $audioVerifier -Arguments @('--dir',$auditBase,'--json',$epochSummary)
+  if ($LASTEXITCODE -ne 0) {throw 'JP0614 sound trace session/epoch validation failed'}
+  Write-Host ('JP0614 validated session epoch boundaries: '+$epochSummary)
+  $epochInfo=Get-Content -LiteralPath $epochSummary -Raw | ConvertFrom-Json
+  # The older JP0610 analyzer requires one monotonically increasing
+  # cycle epoch. Never apply it blindly across reset or load-state.
+  if ($epochInfo.epochs.Count -eq 1) {
+   $audioTool=Join-Path $PSScriptRoot 'jp_audio_bus_report_0610.py'
+   if (!(Test-Path -LiteralPath $audioTool)) { throw 'JP0610 audio trace analyzer missing from private build' }
+   $audioSummary=Join-Path $auditBase 'CVIII-Audio-Registers.json'
+   Invoke-CviiiPython -Script $audioTool -Arguments @('--csv',$audioLog,'--json',$audioSummary)
+   if ($LASTEXITCODE -ne 0) { throw 'JP0610 hardware trace invalid' }
+   Write-Host ('JP0610 2A03/VRC6 single-epoch report: '+$audioSummary)
+  } else {
+   Write-Host 'JP0610 whole-file report omitted: use validated JP0614 epochs after load/reset.'
+  }
  }
  if ($SpriteTrace -and (Test-Path -LiteralPath $spriteLog)) {
   $oamTool=Join-Path $PSScriptRoot 'jp_object_oam_report_0609.py'
