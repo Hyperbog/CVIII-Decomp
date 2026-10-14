@@ -55,7 +55,8 @@ if(JP_EDITION_HOST_EXTRAS)
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_frame_evidence_0601.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_nt_trace_0606.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_sprite_layers_0608.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_object_oam_trace_0609.c")
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_object_oam_trace_0609.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_bus_0610.c")
 endif()
 nesrecomp_add_cycle_game(jp_akumajou_densetsu
  ROM "${JP_ORIGINAL_JP_ROM}" ${JP_CYCLE_OPTIONS} ${JP_HOST_SOURCES})
@@ -242,3 +243,48 @@ add_executable(jp_object_oam_test_0609
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_object_oam_trace_0609.c"
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_object_oam_trace_test_0609.c")
 set_property(TARGET jp_object_oam_test_0609 PROPERTY C_STANDARD 11)
+
+# JP0610: observe actual 2A03 and VRC6 sound-register CPU writes without
+# changing any hardware write, music envelope, audio output or NES timing.
+# Both overlays remain private in the pinned external runtime checkout.
+set(JP_AUDIO_APU_ORIG "${NESRECOMP_EXTERNAL_ROOT}/runner/cyc/hw_apu.c")
+set(JP_AUDIO_APU_OVERLAY "${NESRECOMP_EXTERNAL_ROOT}/runner/cyc/cviii_hw_apu_audio.c")
+set(JP_AUDIO_MAPPER_ORIG "${NESRECOMP_EXTERNAL_ROOT}/runner/cyc/cviii_hw_mapper_fetch.c")
+set(JP_AUDIO_MAPPER_OVERLAY "${NESRECOMP_EXTERNAL_ROOT}/runner/cyc/cviii_hw_mapper_fetch_audio.c")
+execute_process(
+ COMMAND "${Python3_EXECUTABLE}"
+  "${CMAKE_CURRENT_LIST_DIR}/../../tools/patch_cyc_audio_bus_0610.py"
+  --apu "${JP_AUDIO_APU_ORIG}"
+  --mapper "${JP_AUDIO_MAPPER_ORIG}"
+  --out-apu "${JP_AUDIO_APU_OVERLAY}"
+  --out-mapper "${JP_AUDIO_MAPPER_OVERLAY}"
+ RESULT_VARIABLE JP_AUDIO_PATCH_RESULT
+ ERROR_VARIABLE JP_AUDIO_PATCH_ERROR)
+if(NOT JP_AUDIO_PATCH_RESULT EQUAL 0)
+ message(FATAL_ERROR "JP0610 audio register overlay failed: ${JP_AUDIO_PATCH_ERROR}")
+endif()
+get_target_property(JP_AUDIO_ORIGINAL_SOURCES jp_akumajou_densetsu SOURCES)
+set(JP_AUDIO_REWRITTEN_SOURCES "")
+set(JP_APU_MATCHES 0)
+set(JP_MAPPER_MATCHES 0)
+foreach(JP_SOURCE IN LISTS JP_AUDIO_ORIGINAL_SOURCES)
+ if(JP_SOURCE MATCHES "hw_apu\\.c$")
+  list(APPEND JP_AUDIO_REWRITTEN_SOURCES "${JP_AUDIO_APU_OVERLAY}")
+  math(EXPR JP_APU_MATCHES "${JP_APU_MATCHES} + 1")
+ elseif(JP_SOURCE MATCHES "cviii_hw_mapper_fetch\\.c$")
+  list(APPEND JP_AUDIO_REWRITTEN_SOURCES "${JP_AUDIO_MAPPER_OVERLAY}")
+  math(EXPR JP_MAPPER_MATCHES "${JP_MAPPER_MATCHES} + 1")
+ else()
+  list(APPEND JP_AUDIO_REWRITTEN_SOURCES "${JP_SOURCE}")
+ endif()
+endforeach()
+if(NOT JP_APU_MATCHES EQUAL 1 OR NOT JP_MAPPER_MATCHES EQUAL 1)
+ message(FATAL_ERROR "JP0610 requires one 2A03 and one VRC6 mapper source")
+endif()
+set_property(TARGET jp_akumajou_densetsu PROPERTY SOURCES "${JP_AUDIO_REWRITTEN_SOURCES}")
+message(STATUS "JP0610 owner-private 2A03/VRC6 sound-register diagnostic wired")
+
+add_executable(jp_audio_bus_test_0610
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_bus_0610.c"
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_bus_test_0610.c")
+set_property(TARGET jp_audio_bus_test_0610 PROPERTY C_STANDARD 11)
