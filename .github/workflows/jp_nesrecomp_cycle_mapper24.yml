@@ -20,6 +20,7 @@ on:
       - "JP/tools/jp_sound_priority_paths_0616.py"
       - "JP/tools/jp_mesen_gate_report_0616.py"
       - "JP/tools/jp_sound_decision_reference_0617.py"
+      - "JP/tools/jp_audio_ui_chr_0619.py"
       - "JP/tools/mesen_jp_sound_decisions_0617.lua"
       - "JP/tools/mesen_jp_sound_gates_0616.lua"
       - "JP/tools/mesen_jp_sound_requests_0615.lua"
@@ -68,7 +69,7 @@ jobs:
         run: |
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
             -I _external_nesrecomp/runner/cyc \
-            JP/native/enhanced/cviii_edition.c JP/native/enhanced/cviii_chr_index_0598.c JP/native/enhanced/cviii_chr_audit_0599.c JP/native/enhanced/cviii_chr_fetch_0600.c JP/native/enhanced/cviii_frame_evidence_0601.c JP/native/enhanced/cviii_nt_trace_0606.c JP/native/enhanced/cviii_sprite_layers_0608.c JP/native/enhanced/cviii_object_oam_trace_0609.c JP/native/enhanced/cviii_audio_bus_0610.c JP/native/enhanced/cviii_sound_requests_0612.c JP/native/enhanced/cviii_audio_session_0614.c JP/native/enhanced/cviii_audio_levels_0618.c JP/native/enhanced/test_cviii_edition.c \
+            JP/native/enhanced/cviii_edition.c JP/native/enhanced/cviii_chr_index_0598.c JP/native/enhanced/cviii_chr_audit_0599.c JP/native/enhanced/cviii_chr_fetch_0600.c JP/native/enhanced/cviii_frame_evidence_0601.c JP/native/enhanced/cviii_nt_trace_0606.c JP/native/enhanced/cviii_sprite_layers_0608.c JP/native/enhanced/cviii_object_oam_trace_0609.c JP/native/enhanced/cviii_audio_bus_0610.c JP/native/enhanced/cviii_sound_requests_0612.c JP/native/enhanced/cviii_audio_session_0614.c JP/native/enhanced/cviii_audio_levels_0618.c JP/native/enhanced/cviii_audio_ui_0619.c JP/native/enhanced/test_cviii_edition.c \
             -o "${{ runner.temp }}/test_cviii_edition"
           "${{ runner.temp }}/test_cviii_edition"
       - name: Verify JP0618 enhanced PCM master level and 1-percent settings (ROM-free)
@@ -78,6 +79,15 @@ jobs:
             JP/native/enhanced/cviii_audio_levels_test_0618.c \
             -o "${{ runner.temp }}/test_audio_levels_0618"
           "${{ runner.temp }}/test_audio_levels_0618"
+      - name: Verify JP0619 CHR-faithful audio health bar preview (ROM-free)
+        run: |
+          python3 JP/tools/jp_audio_ui_chr_0619.py --smoke
+          cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
+            JP/native/enhanced/cviii_audio_ui_0619.c \
+            JP/native/enhanced/cviii_audio_levels_0618.c \
+            JP/native/enhanced/cviii_audio_ui_test_0619.c \
+            -o "${{ runner.temp }}/test_audio_ui_0619"
+          "${{ runner.temp }}/test_audio_ui_0619"
       - name: Verify VRC6 CHR register mapping modes and physical offsets (ROM-free)
         run: |
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
