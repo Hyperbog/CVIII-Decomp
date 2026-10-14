@@ -63,6 +63,9 @@ try {
   $audioLog=Join-Path $auditBase 'CVIII-Audio-Registers.csv'
   $gameArgs+=@('--audio-reg-trace',$audioLog)
   Write-Host ('JP0610 original 2A03/VRC6 audio register trace: '+$audioLog)
+  $requestLog=Join-Path $auditBase 'CVIII-Sound-Requests.csv'
+  $gameArgs+=@('--sound-request-trace',$requestLog)
+  Write-Host ('JP0612 original $E249 sound requests: '+$requestLog)
  }
  if ($SpriteTrace) {
   $spriteLog=Join-Path $auditBase 'CVIII-Sprite-Objects.csv'
