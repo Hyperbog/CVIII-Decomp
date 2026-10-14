@@ -18,6 +18,10 @@
 #include "cviii_audio_session_0614.h"
 #include "cviii_audio_levels_0618.h"
 #include "cviii_audio_ui_0619.h"
+#include "cviii_menu_registry_0620.h"
+#ifdef CYC_WITH_RECOMP_UI
+#include "recomp_runtime_ui.h"
+#endif
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -47,6 +51,90 @@ typedef struct {
 } CviiiEdition;
 
 static CviiiEdition cviii = { .volume = CVIII_AUDIO_LEVELS_DEFAULT };
+
+/* Actual player settings in the pinned host's PAUSED runtime menu.
+ * The game's original-CHR standalone overlay remains a dev-only preview;
+ * recomp-ui's generic rows are temporary until the custom skin is integrated.
+ * No native input hooks or reimplemented pause loop are introduced. */
+#ifdef CYC_WITH_RECOMP_UI
+typedef struct {
+    CviiiAudioLevels *levels;
+    CviiiVolumeChannel channel;
+} CviiiVolumeMenuBinding;
+static CviiiMenuRegistry cviii_menu;
+static CviiiVolumeMenuBinding cviii_menu_bindings[3] = {
+    {&cviii.volume,CVIII_VOLUME_MASTER},
+    {&cviii.volume,CVIII_VOLUME_MUSIC},
+    {&cviii.volume,CVIII_VOLUME_SFX}
+};
+static RecompRuntimeUiItem cviii_ui_rows[3];
+static RecompRuntimeUiCallbacks cviii_ui_callbacks;
+static int cviii_menu_ready;
+
+static int cviii_menu_get_volume(void *user,int *value)
+{
+    CviiiVolumeMenuBinding *b=(CviiiVolumeMenuBinding *)user;
+    *value=cviii_audio_levels_get(b->levels,b->channel);
+    return *value>=0;
+}
+static int cviii_menu_set_volume(void *user,int value)
+{
+    CviiiVolumeMenuBinding *b=(CviiiVolumeMenuBinding *)user;
+    return cviii_audio_levels_set(b->levels,b->channel,value);
+}
+static int cviii_host_menu_get(void *ctx,const RecompRuntimeUiItem *it,int *out)
+{
+    return cviii_menu_get((const CviiiMenuRegistry *)ctx,it->key,out);
+}
+static int cviii_host_menu_set(void *ctx,const RecompRuntimeUiItem *it,int v)
+{
+    return cviii_menu_set((const CviiiMenuRegistry *)ctx,it->key,v);
+}
+static void cviii_init_audio_menu(CycHostExtras *extras)
+{
+    if(cviii_menu_ready)return;
+    static const char *const keys[3]={
+        "cviii.audio.master","cviii.audio.music","cviii.audio.sfx"
+    };
+    static const char *const labels[3]={
+        "Master Volume","Music Volume (pending mixer)",
+        "Sound Effects Volume (pending mixer)"
+    };
+    static const char *const descriptions[3]={
+        "Enhanced output PCM master level, 0 to 100 in one-percent steps.",
+        "Saved preference only until independent music voice mixing exists.",
+        "Saved preference only until independent sound-effect mixing exists."
+    };
+    for(unsigned i=0;i<3u;++i) {
+        CviiiMenuSetting setting={
+            keys[i],"Audio",labels[i],descriptions[i],
+            0,100,1,&cviii_menu_bindings[i],
+            cviii_menu_get_volume,cviii_menu_set_volume
+        };
+        if(!cviii_menu_register(&cviii_menu,&setting)){
+            fprintf(stderr,"CVIII JP0620: audio menu registration failed\n");
+            return;
+        }
+        const CviiiMenuSetting *item=&cviii_menu.items[i];
+        cviii_ui_rows[i]=(RecompRuntimeUiItem){
+            .key=item->key, .section=item->section,
+            .label=item->label, .description=item->description,
+            .type=RECOMP_RUNTIME_UI_INT, .minimum=item->minimum,
+            .maximum=item->maximum, .step=item->step
+        };
+    }
+    cviii_menu_seal(&cviii_menu);
+    cviii_ui_callbacks=(RecompRuntimeUiCallbacks){
+        .context=&cviii_menu,
+        .get_value=cviii_host_menu_get,
+        .set_value=cviii_host_menu_set
+    };
+    extras->menu_items=cviii_ui_rows;
+    extras->menu_item_count=cviii_menu.count;
+    extras->menu_callbacks=&cviii_ui_callbacks;
+    cviii_menu_ready=1;
+}
+#endif
 
 static int parse_boolean(const char *text, int *value)
 {
@@ -410,4 +498,10 @@ static CycHostExtras cviii_extra = {
     .option = option,
 };
 
-const CycHostExtras *cyc_host_extras(void) { return &cviii_extra; }
+const CycHostExtras *cyc_host_extras(void)
+{
+#ifdef CYC_WITH_RECOMP_UI
+    cviii_init_audio_menu(&cviii_extra);
+#endif
+    return &cviii_extra;
+}
