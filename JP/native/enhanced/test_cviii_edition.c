@@ -71,13 +71,17 @@ void cyc_render_sprites(uint32_t *out,int w,int h,int x,const uint8_t *bg,
 int main(void) {
     const CycHostExtras *e=cyc_host_extras();
     assert(e && e->options && e->option && e->present);
-    assert(e->option_count == 16);
+    assert(e->option_count == 17);
     assert(e->audio_mix != NULL);
     assert(!e->option(e->ctx,"--asset-index",(const char *)0));
+    assert(!e->option(e->ctx,"--audio-ui-preview","nonboolean"));
+    assert(e->option(e->ctx,"--audio-ui-preview","1"));
     int w=0,h=0;
     e->power_on(e->ctx);
     assert(capture_enabled);
     assert(e->present(e->ctx,&w,&h)==native && w==256 && h==240);
+    /* Missing authenticated CHR must never substitute fabricated menu art. */
+    assert(e->present(e->ctx,&w,&h)==native);
     assert(!compose_calls && !bg_reads);
     assert(e->option(e->ctx,"--unlimited-sprites","1"));
     assert(!e->option(e->ctx,"--stable-sprites","invalid"));
