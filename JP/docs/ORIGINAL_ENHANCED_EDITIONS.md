@@ -161,3 +161,28 @@ stage-data decompilation, or a substitute ROM for NESRecomp.
 Background/sprite interpretation, metatiles, palettes, stage maps,
 animation, music, and text extraction remain open; no strict semantic
 PRG or VPP progress is claimed.
+
+## JP0608 — Optional sprite-history layers (experimental)
+
+The owner reports continued Stage 1 Trevor/torch and doorway flicker
+even with UnlimitedSprites enabled. Pinned NESRecomp already renders
+all 64 OAM-present sprites over the independently captured background;
+it cannot recreate sprites missing from an entire frame's OAM.
+
+The new optional -StableSprites switch captures the two-bit sprite
+pixels independently, paints them in original OAM priority order,
+and holds unmatched previous-frame pieces for exactly one extra frame.
+Transparent pixels, behind-background priority, sprite-enable and
+left-edge clipping are preserved. Large changes in OAM population
+suppress ghosting; power-on and state loads clear history.
+
+After privately rebuilding the Windows Alpha, run:
+
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Launch-Alpha.ps1 -Edition Enhanced -StableSprites
+
+This is host presentation ONLY. Collision, PPU status, CPU, IRQ,
+sprite zero and game OAM remain unmodified. It can temporarily ghost
+animated sprites, and frame-end CHR mapping still may not reflect
+mid-scanline CHR bank switches. Experimental and off by default.
+Retail-Japanese Trevor/torch and doorway validation is outstanding.
+Stage A-01 background corruption is unrelated and still unresolved.

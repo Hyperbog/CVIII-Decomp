@@ -56,7 +56,7 @@ jobs:
         run: |
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
             -I _external_nesrecomp/runner/cyc \
-            JP/native/enhanced/cviii_edition.c JP/native/enhanced/cviii_chr_index_0598.c JP/native/enhanced/cviii_chr_audit_0599.c JP/native/enhanced/cviii_chr_fetch_0600.c JP/native/enhanced/cviii_frame_evidence_0601.c JP/native/enhanced/cviii_nt_trace_0606.c JP/native/enhanced/test_cviii_edition.c \
+            JP/native/enhanced/cviii_edition.c JP/native/enhanced/cviii_chr_index_0598.c JP/native/enhanced/cviii_chr_audit_0599.c JP/native/enhanced/cviii_chr_fetch_0600.c JP/native/enhanced/cviii_frame_evidence_0601.c JP/native/enhanced/cviii_nt_trace_0606.c JP/native/enhanced/cviii_sprite_layers_0608.c JP/native/enhanced/test_cviii_edition.c \
             -o "${{ runner.temp }}/test_cviii_edition"
           "${{ runner.temp }}/test_cviii_edition"
       - name: Verify VRC6 CHR register mapping modes and physical offsets (ROM-free)
@@ -89,6 +89,13 @@ jobs:
         run: |
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic             JP/native/enhanced/cviii_nt_trace_0606.c             JP/native/enhanced/cviii_nt_trace_test_0606.c             -o "${{ runner.temp }}/test_nt_trace_0606"
           "${{ runner.temp }}/test_nt_trace_0606"
+      - name: Verify independent sprite layers and bounded OAM continuity
+        run: |
+          cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
+            JP/native/enhanced/cviii_sprite_layers_0608.c \
+            JP/native/enhanced/cviii_sprite_layers_test_0608.c \
+            -o "${{ runner.temp }}/test_sprite_layers_0608"
+          "${{ runner.temp }}/test_sprite_layers_0608"
       - name: Generate noncommercial synthetic mapper24 VRC6 ROM
         run: python3 JP/tools/test_cycle_synthetic_rom_0569.py --out "${{ runner.temp }}/jp_mapper24_fixture.nes"
       - name: Configure CVIII external C11 cycle wrapper with exact synthetic fixture

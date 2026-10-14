@@ -189,6 +189,13 @@ jobs:
           if (!(Test-Path -LiteralPath $test)) { throw "JP0606 PPU background test missing" }
           & $test
           if ($LASTEXITCODE -ne 0) { throw "JP0606 original PPU background fetch test failed" }
+      - name: Verify independent temporal sprite layers and OAM priority
+        shell: pwsh
+        run: |
+          $test = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win/Release/jp_sprite_layers_test_0608.exe'
+          if (!(Test-Path -LiteralPath $test)) { throw "JP0608 sprite layer test missing" }
+          & $test
+          if ($LASTEXITCODE -ne 0) { throw "JP0608 synthetic sprite layer test failed" }
       - name: Run bounded native C11 synthetic test with actual windowed-linked binary
         shell: pwsh
         run: |
