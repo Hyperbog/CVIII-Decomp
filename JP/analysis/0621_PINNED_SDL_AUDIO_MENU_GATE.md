@@ -29,8 +29,10 @@ not a completed compiled four-overlay build.
 [JP0621 verifier](../tools/jp_audio_menu_pinned_gate_0621.py):
 
 - Reads only a user-supplied copy of the **pinned, unmodified** upstream SDL
-  source. Computes the Git blob identity of the raw bytes; refuses any
-  altered upstream file, even if the patch anchors still match.
+  source. Applies **only** Git's reversible Windows checkout CRLF→LF
+  normalization, rejects unexpected bare CR, and checks the exact committed
+  Git blob identity. Any other altered upstream content fails even if the
+  patch anchors still match.
 - Imports the **actual committed** 0591/0594/0596/0620 Python patchers and
   calls their real `generate` functions in order, without writing source
   output, and invokes JP0591's original validator.
