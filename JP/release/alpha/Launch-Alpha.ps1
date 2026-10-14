@@ -4,6 +4,7 @@ param(
  [string]$Rom='',
  [ValidateSet('Original','Enhanced')][string]$Edition='Enhanced',
  [switch]$UnlimitedSprites,
+ [switch]$StableSprites,
  [switch]$ChrAudit,
  [string]$AuditOutDir=''
 )
@@ -38,7 +39,8 @@ if (-not (Test-Path -LiteralPath $game) -or -not (Test-Path -LiteralPath $dll)) 
         '. Do not download an unrelated SDL2.dll.')
 }
 $sprites=if ($Edition -eq 'Enhanced' -and $UnlimitedSprites) {'1'} else {'0'}
-Write-Host "CVIII Alpha 0.2 $Edition (experimental extra-OAM sprites: $sprites)"
+$stable=if ($Edition -eq 'Enhanced' -and $StableSprites) {'1'} else {'0'}
+Write-Host "CVIII Enhanced (extra-OAM $sprites; experimental stable sprite layers $stable)"
 Write-Host 'Controls: arrows=D-pad, Z=A, X=B, Enter=Start, Backslash=Select.'
 Write-Host 'F8/F9 save/load; builds supporting slots use Ctrl+0..9.'
 if ($AuditOutDir -and -not $ChrAudit) { throw '-AuditOutDir requires -ChrAudit' }
@@ -54,7 +56,7 @@ if ($ChrAudit) {
 }
 Push-Location $PSScriptRoot
 try {
- $gameArgs=@($romPath,'--edition',$Edition.ToLowerInvariant(),'--unlimited-sprites',$sprites)
+ $gameArgs=@($romPath,'--edition',$Edition.ToLowerInvariant(),'--unlimited-sprites',$sprites,'--stable-sprites',$stable)
  # Enhanced can opt into verified physical CHR asset metadata without ever
  # replacing the original cartridge's timing, mapper or game framebuffer.
  if ($Edition -eq 'Enhanced') {

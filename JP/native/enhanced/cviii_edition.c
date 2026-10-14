@@ -11,6 +11,7 @@
 #include "cviii_chr_fetch_0600.h"
 #include "cviii_frame_evidence_0601.h"
 #include "cviii_nt_trace_0606.h"
+#include "cviii_sprite_layers_0608.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -21,6 +22,9 @@
 typedef struct {
     int enhanced;
     int sprite_unlimited;
+    int stable_sprites; /* optional host-only temporal presentation; off by default */
+    CviiiSpriteLayers sprite_layers;
+    uint8_t layer_masks[CVIII_LAYER_H];
     CviiiChrIndex assets; /* read-only imported physical CHR; presentation only */
     CviiiChrAudit audit; /* opt-in read-only per-frame bank audit */
     CviiiChrFetchAudit fetch; /* opt-in actual PPU pattern-read observation */
@@ -63,13 +67,16 @@ static void load_setting(void *context, const char *key, const char *value)
     if (!strcmp(key, "Edition")) (void)set_edition(value);
     else if (!strcmp(key, "UnlimitedSprites"))
         (void)parse_boolean(value, &cviii.sprite_unlimited);
+    else if (!strcmp(key, "StableSprites"))
+        (void)parse_boolean(value, &cviii.stable_sprites);
 }
 
 static void save_settings(void *context, FILE *file)
 {
     (void)context;
-    fprintf(file, "Edition = %s\nUnlimitedSprites = %d\n",
-            cviii.enhanced ? "Enhanced" : "Original", cviii.sprite_unlimited);
+    fprintf(file, "Edition = %s\nUnlimitedSprites = %d\nStableSprites = %d\n",
+            cviii.enhanced ? "Enhanced" : "Original",
+            cviii.sprite_unlimited, cviii.stable_sprites);
 }
 
 static bool option(void *context, const char *name, const char *value)
@@ -78,6 +85,8 @@ static bool option(void *context, const char *name, const char *value)
     if (!strcmp(name, "--edition")) return value && set_edition(value);
     if (!strcmp(name, "--unlimited-sprites"))
         return value && parse_boolean(value, &cviii.sprite_unlimited);
+    if (!strcmp(name, "--stable-sprites"))
+        return value && parse_boolean(value, &cviii.stable_sprites);
     if (!strcmp(name, "--asset-index")) {
         if (!value || !cviii_chr_index_load(&cviii.assets, value)) {
             fprintf(stderr, "CVIII: rejected missing, mismatched or damaged JP asset index\n");
@@ -136,8 +145,26 @@ static void power_on(void *context)
      * The capture does NOT affect sprite-0, overflow, IRQ, DMA or CPU state.
      * Do not recapture in frame_begin: that clears the saved history.
      */
-    (void)settings;
+    cviii_layers_reset(&settings->sprite_layers);
     cyc_render_capture_background(true);
+}
+
+static uint8_t layer_read_chr(void *user, uint16_t address)
+{
+    (void)user;
+    return cyc_render_chr(address);
+}
+static uint32_t layer_color(void *user, unsigned palette_index)
+{
+    (void)user;
+    return cyc_render_color((int)palette_index);
+}
+static const CviiiLayerFns layer_functions = {layer_read_chr, layer_color, NULL};
+
+static void state_loaded(void *context)
+{
+    CviiiEdition *settings = (CviiiEdition *)context;
+    cviii_layers_reset(&settings->sprite_layers);
 }
 
 static void frame_begin(void *context)
@@ -153,6 +180,18 @@ static void frame_begin(void *context)
 static void frame_end(void *context)
 {
     CviiiEdition *settings = (CviiiEdition *)context;
+    if (settings->enhanced && settings->stable_sprites) {
+        uint8_t tall[CVIII_LAYER_H];
+        uint16_t tables[CVIII_LAYER_H];
+        for (unsigned y=0;y<CVIII_LAYER_H;++y) {
+            settings->layer_masks[y] = cyc_render_line_mask((int)y);
+            tall[y] = (uint8_t)cyc_render_line_sprite16((int)y);
+            tables[y] = cyc_render_line_sprite_table((int)y);
+        }
+        const uint8_t *oam = cyc_render_oam();
+        if (oam) cviii_layers_capture(&settings->sprite_layers,
+            oam, settings->layer_masks, tall, tables, &layer_functions);
+    }
     if (settings->frame_evidence.output && settings->fetch.active) {
         const CycLine *source_lines = cyc_frame_lines();
         if (source_lines) {
@@ -199,10 +238,17 @@ static const uint32_t *present(void *context, int *width, int *height)
     CviiiEdition *settings = (CviiiEdition *)context;
     *width = CVIII_W;
     *height = CVIII_H;
-    if (!settings->enhanced || !settings->sprite_unlimited)
+    if (!settings->enhanced ||
+        (!settings->sprite_unlimited && !settings->stable_sprites))
         return cyc_frame_argb();
     if (!cyc_render_background(settings->presentation))
         return cyc_frame_argb();
+    if (settings->stable_sprites && settings->sprite_layers.primed) {
+        cviii_layers_draw(&settings->sprite_layers, settings->presentation,
+                          cyc_frame_bg_opaque(), settings->layer_masks,
+                          &layer_functions);
+        return settings->presentation;
+    }
     /* Composite up to 64 *OAM-present* sprites over the PPU background.
      * This cannot restore sprites the game never put in OAM.
      * Actual mid-frame CHR switching remains a limitation: experimental.
@@ -217,6 +263,8 @@ static const CycHostOption cviii_options[] = {
     {"--edition", true, "Original or Enhanced PC edition (Original default)"},
     {"--unlimited-sprites", true,
      "Enhanced experimental 64-OAM sprite compositor (0/1, default 0)"},
+    {"--stable-sprites", true,
+     "EXPERIMENTAL independent sprite layers with 1-frame OAM history (0/1, default 0)"},
     {"--asset-index", true,
      "Private read-only 655368-byte JP CHR index (no renderer substitution)"},
     {"--chr-audit", true,
@@ -237,6 +285,7 @@ static CycHostExtras cviii_extra = {
     .power_on = power_on,
     .frame_begin = frame_begin,
     .frame_end = frame_end,
+    .state_loaded = state_loaded,
     .options = cviii_options,
     .option_count = sizeof(cviii_options) / sizeof(cviii_options[0]),
     .option = option,

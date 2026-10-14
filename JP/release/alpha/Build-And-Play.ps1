@@ -5,6 +5,7 @@ param(
  [ValidateSet('Original','Enhanced')][string]$Edition='Enhanced',
  [string]$Rom='',
  [switch]$UnlimitedSprites,
+ [switch]$StableSprites,
  [switch]$Rebuild
 )
 Set-StrictMode -Version Latest
@@ -108,5 +109,6 @@ Write-Host ('Launching '+$Edition+' from '+$runDir)
 $launcher=Join-Path $runDir 'Launch-Alpha.ps1'
 $options=@{Rom=$romPath;Edition=$Edition}
 if ($UnlimitedSprites -and $Edition -eq 'Enhanced') { $options.UnlimitedSprites=$true }
+if ($StableSprites -and $Edition -eq 'Enhanced') { $options.StableSprites=$true }
 & $launcher @options
 if ($LASTEXITCODE -ne 0) { throw ('Native game exited with status '+$LASTEXITCODE) }

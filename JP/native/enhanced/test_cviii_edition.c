@@ -57,7 +57,7 @@ void cyc_render_sprites(uint32_t *out,int w,int h,int x,const uint8_t *bg,
 int main(void) {
     const CycHostExtras *e=cyc_host_extras();
     assert(e && e->options && e->option && e->present);
-    assert(e->option_count == 7);
+    assert(e->option_count == 8);
     assert(!e->option(e->ctx,"--asset-index",(const char *)0));
     int w=0,h=0;
     e->power_on(e->ctx);
@@ -65,6 +65,7 @@ int main(void) {
     assert(e->present(e->ctx,&w,&h)==native && w==256 && h==240);
     assert(!compose_calls && !bg_reads);
     assert(e->option(e->ctx,"--unlimited-sprites","1"));
+    assert(!e->option(e->ctx,"--stable-sprites","invalid"));
     e->power_on(e->ctx);
     assert(capture_enabled);
     assert(e->present(e->ctx,&w,&h)==native);

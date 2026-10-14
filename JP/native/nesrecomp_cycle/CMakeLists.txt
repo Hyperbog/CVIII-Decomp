@@ -53,7 +53,8 @@ if(JP_EDITION_HOST_EXTRAS)
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_chr_audit_0599.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_chr_fetch_0600.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_frame_evidence_0601.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_nt_trace_0606.c")
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_nt_trace_0606.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_sprite_layers_0608.c")
 endif()
 nesrecomp_add_cycle_game(jp_akumajou_densetsu
  ROM "${JP_ORIGINAL_JP_ROM}" ${JP_CYCLE_OPTIONS} ${JP_HOST_SOURCES})
@@ -227,3 +228,10 @@ add_executable(jp_nt_trace_test_0606
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_nt_trace_0606.c"
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_nt_trace_test_0606.c")
 set_property(TARGET jp_nt_trace_test_0606 PROPERTY C_STANDARD 11)
+
+# JP0608: independent ROM-free sprite priority, transparency and 1-frame
+# continuity regression. Experimental host presentation, NOT machine state.
+add_executable(jp_sprite_layers_test_0608
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_sprite_layers_0608.c"
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_sprite_layers_test_0608.c")
+set_property(TARGET jp_sprite_layers_test_0608 PROPERTY C_STANDARD 11)
