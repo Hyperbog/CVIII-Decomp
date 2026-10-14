@@ -21,6 +21,8 @@ int main(void)
     assert(!cviii_start_find(&m,"other.absent"));
     CviiiStartEntry forbidden={"core.something","BAD",CVIII_START_EXTENSION,NULL,NULL};
     assert(!cviii_start_register(&m,&forbidden));
+    CviiiStartEntry privilege={"other.save","ILLEGAL",CVIII_START_SAVE,NULL,NULL};
+    assert(!cviii_start_register(&m,&privilege));
     CviiiStartEntry malformed={"bad id","BAD",CVIII_START_EXTENSION,NULL,NULL};
     assert(!cviii_start_register(&m,&malformed));
     assert(cviii_start_register(&m,&extra));
