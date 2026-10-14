@@ -1,5 +1,7 @@
 # Enhanced-only port: extensible menus, moddable game systems and future editor
 
+**Universal parent policy:** [MOD_FORWARD_METHODOLOGY.md](../../MOD_FORWARD_METHODOLOGY.md) governs all DOS/NES/SNES/SMS/Genesis and future game ports. This document is the **JP game-specific implementation profile and roadmap**; it supplies examples and constraints, not exceptions to the shared policy.
+
 **Status:** project direction / architecture contract, **not an implemented mod SDK, editor, menu registry or loader**. Adopted after JP0619. The sole player-facing edition is Enhanced, with original Japanese *Akumajou Densetsu* gameplay as its **default behavioral baseline**. Intentional fixes or improvements are allowed, but changes to movement, physics, enemy timing, hitboxes, level behavior or progression need explicit tests and changelog entries.
 
 ## 1. Expandable Start/Pause menu
