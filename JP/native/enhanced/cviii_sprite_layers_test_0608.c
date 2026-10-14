@@ -34,7 +34,8 @@ int main(void){
     if(s->held_now!=1 || !s->held[0].valid)return 4;
     memset(canvas,0,256*240*sizeof(uint32_t));
     cviii_layers_draw(s,canvas,bg,mask,&f);
-    if(canvas[40*256+40]!=17u)return 5;
+    /* Current live sprites must always appear over old rescued pieces. */
+    if(canvas[40*256+40]!=22u)return 5;
     cviii_layers_capture(s,oam,0,mask,tall,tables,&f);
     if(s->held_now || s->held[0].valid)return 6;
     cviii_layers_reset(s);
