@@ -286,6 +286,13 @@ jobs:
           if (!(Test-Path -LiteralPath $test)) { throw 'JP0620 registry test missing' }
           & $test
           if ($LASTEXITCODE -ne 0) { throw 'JP0620 menu registry validation failed' }
+      - name: Verify JP0622 game-owned F6 modal boundary regression (ROM-free)
+        shell: pwsh
+        run: |
+          $test = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win/Release/jp_audio_menu_state_test_0622.exe'
+          if (!(Test-Path -LiteralPath $test)) { throw 'JP0622 modal state test missing' }
+          & $test
+          if ($LASTEXITCODE -ne 0) { throw 'JP0622 F6 modal state/input boundary test failed' }
       - name: Run bounded native C11 synthetic test with actual windowed-linked binary
         shell: pwsh
         run: |
