@@ -61,7 +61,8 @@ if(JP_EDITION_HOST_EXTRAS)
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_session_0614.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_levels_0618.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_ui_0619.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_menu_registry_0620.c")
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_menu_registry_0620.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_menu_state_0622.c")
 endif()
 nesrecomp_add_cycle_game(jp_akumajou_densetsu
  ROM "${JP_ORIGINAL_JP_ROM}" ${JP_CYCLE_OPTIONS} ${JP_HOST_SOURCES})
@@ -370,3 +371,10 @@ add_executable(jp_menu_registry_test_0620
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_levels_0618.c"
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_menu_registry_test_0620.c")
 set_property(TARGET jp_menu_registry_test_0620 PROPERTY C_STANDARD 11)
+
+# JP0622: actual game-owned F6 modal behavior isolated for deterministic testing.
+add_executable(jp_audio_menu_state_test_0622
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_menu_state_0622.c"
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_levels_0618.c"
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_menu_state_test_0622.c")
+set_property(TARGET jp_audio_menu_state_test_0622 PROPERTY C_STANDARD 11)
