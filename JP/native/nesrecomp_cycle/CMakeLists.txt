@@ -57,7 +57,8 @@ if(JP_EDITION_HOST_EXTRAS)
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_sprite_layers_0608.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_object_oam_trace_0609.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_bus_0610.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_sound_requests_0612.c")
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_sound_requests_0612.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_session_0614.c")
 endif()
 nesrecomp_add_cycle_game(jp_akumajou_densetsu
  ROM "${JP_ORIGINAL_JP_ROM}" ${JP_CYCLE_OPTIONS} ${JP_HOST_SOURCES})
@@ -324,3 +325,9 @@ add_executable(jp_sound_requests_test_0612
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_sound_requests_0612.c"
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_sound_requests_test_0612.c")
 set_property(TARGET jp_sound_requests_test_0612 PROPERTY C_STANDARD 11)
+
+# JP0614: owner-local session epochs; host callbacks only, not machine state.
+add_executable(jp_audio_session_test_0614
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_session_0614.c"
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_session_test_0614.c")
+set_property(TARGET jp_audio_session_test_0614 PROPERTY C_STANDARD 11)
