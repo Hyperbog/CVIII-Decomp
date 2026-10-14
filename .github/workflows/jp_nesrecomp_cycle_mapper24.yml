@@ -124,7 +124,10 @@ jobs:
       - name: Validate JP0614 audio capture session and save-state epochs (ROM-free)
         run: |
           python3 JP/tools/jp_audio_session_verify_0614.py --smoke
-          cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic             JP/native/enhanced/cviii_audio_session_0614.c             JP/native/enhanced/cviii_audio_session_test_0614.c             -o "${{ runner.temp }}/test_audio_session_0614"
+          cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
+            JP/native/enhanced/cviii_audio_session_0614.c \
+            JP/native/enhanced/cviii_audio_session_test_0614.c \
+            -o "${{ runner.temp }}/test_audio_session_0614"
           "${{ runner.temp }}/test_audio_session_0614"
       - name: Verify independent sprite layers and bounded OAM continuity
         run: |
