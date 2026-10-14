@@ -151,3 +151,7 @@ The [JP0612 implementation and limits](../analysis/0612_SOUND_REQUEST_RUNTIME_TR
 ## JP0616 — R-007 dispatcher rejection branch proven structurally, liveness OPEN
 
 The original JP raw-bank-$0C source establishes both $884F low-command guard and $8922 DMC-priority return predicates, and the prior $06DD increment even on some returns. [JP0616](../analysis/0616_ORIGINAL_SOUND_DISPATCH_GUARDS.md) covers all command/priority combinations with a bounded instruction-subset evaluator; Mesen independent guard-execution capture tooling is committed but has not run. No original Mesen2 sample proves any specific effect was muted, music/SFX ownership or eventual hardware output. R-007 remains OPEN; strict PRG 49,504/262,144, VPP27/100 unchanged.
+
+## JP0617 — R-007 unified sound-dispatch trace prepared; authentic capture outstanding
+
+The [unified JP0617 observer and parser](../analysis/0617_UNIFIED_SOUND_DISPATCH_REFERENCE.md) pair original driver $8852 commands with the $884F/$8860/$8922/$8928 decision boundaries, including $885D reset as an intermediate phase for $50–$6E. Original RAM $0109, $019E and $06DD is sampled before and after; a fail-closed parser distinguishes a selected branch from a proven audio output. Five synthetic paths and eleven negative tests passed. No Mesen2 execution, matched native run or earlier game-side sound trigger has been verified; R-007 OPEN. Strict PRG 49,504/262,144, VPP 27 unchanged.
