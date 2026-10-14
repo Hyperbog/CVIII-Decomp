@@ -11,6 +11,9 @@ int main(void)
     CviiiChrIndex index={0};
     CviiiStartMenu menu={0};
     assert(cviii_start_defaults(&menu));
+    CviiiStartEntry long_row={"mod.long","ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZ",
+                              CVIII_START_EXTENSION,NULL,NULL};
+    assert(cviii_start_register(&menu,&long_row));
     assert(cviii_start_toggle(&menu,1,1));
     for(unsigned t=0x1041u;t<=0x1069u;t++)
         for(unsigned i=0;i<64u;i++)chr[t*64u+i]=3u;
@@ -28,6 +31,10 @@ int main(void)
     assert(cviii_start_accept(&menu)==CVIII_START_NONE);
     assert(cviii_start_ui_draw(canvas+1,W,H,&index,&menu));
     assert(canvas[1+183u*W+40u]==0xFFFF882Cu);
+    assert(cviii_start_move(&menu,1) && menu.selected==4u);
+    assert(cviii_start_ui_draw(canvas+1,W,H,&index,&menu));
+    assert(canvas[1+147u*W+32u]==0xFFFF882Cu);
+    assert(canvas[1+147u*W+248u]==0xFF224466u); /* label cannot escape panel */
     cviii_start_close(&menu);
     assert(!cviii_start_ui_draw(canvas+1,W,H,&index,&menu));
     assert(canvas[0]==0x00FEDCBAu && canvas[W*H+1u]==0x00ABCDEFu);
