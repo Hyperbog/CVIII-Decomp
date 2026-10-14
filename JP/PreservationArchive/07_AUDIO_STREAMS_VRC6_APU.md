@@ -53,3 +53,7 @@ The [new private opcode-fetch overlay](../tools/patch_cyc_sound_requests_0612.py
 ## JP0613 — Paired request/register timing report (noncausal)
 
 [JP0613](../analysis/0613_SOUND_REQUEST_REGISTER_PROXIMITY.md) adds a strict two-schema checker for the original $E249 request trace and actual 2A03/VRC6 register-write log. It produces owner-local bounded forward-cycle **proximity windows** only. Per-file cycle regressions fail closed; save-state epoch/session correspondence between the two files remains unproved. A nearby register rewrite neither proves that a command caused it nor that the game accepted/rejected a music/SFX voice. The ROM-free CI fixture is not retail gameplay evidence. R-007 remains OPEN, with no strict PRG or VPP increment.
+
+## JP0614 — Session identity and save-state epoch boundaries
+
+[JP0614 source and verification limits](../analysis/0614_AUDIO_SESSION_EPOCH_PROVENANCE.md) introduce an owner-only power-on/state-loaded marker CSV recording GUID, CPU cycle and cumulative JP0612 request/JP0610 register-log row counts. Launcher-created SHA-256 manifest binds all three files. The verifier splits CPU-time epochs even when a saved game rewinds the CPU cycle counter; the old JP0610 whole-file analyzer is skipped for multi-epoch captures. Synthetic strict-C11/Python tests pass, but owner-original-ROM/MesenCE sound attribution and runtime build remain unverified. R-007 OPEN; no music/SFX separation, PCM alteration, semantic PRG or VPP increment.
