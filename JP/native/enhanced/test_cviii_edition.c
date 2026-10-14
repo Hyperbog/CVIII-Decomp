@@ -48,6 +48,7 @@ const uint8_t *cyc_frame_bg_opaque(void) { static uint8_t mask[256*240]; return 
  * The independent actual layering tests exercise pixel priorities. */
 static uint8_t mock_oam[256];
 const uint8_t *cyc_render_oam(void) { return mock_oam; }
+const uint8_t *cyc_ppu_oam(void) { return mock_oam; }
 uint8_t cyc_render_chr(uint16_t addr) { (void)addr; return 0; }
 uint32_t cyc_render_color(int palette) { return (uint32_t)palette; }
 uint8_t cyc_render_line_mask(int y) { (void)y; return 0x14; }
