@@ -17,6 +17,9 @@ on:
       - "JP/tools/jp_audio_bus_report_0610.py"
       - "JP/tools/jp_audio_session_verify_0614.py"
       - "JP/tools/jp_mesen_sound_requests_0615.py"
+      - "JP/tools/jp_sound_priority_paths_0616.py"
+      - "JP/tools/jp_mesen_gate_report_0616.py"
+      - "JP/tools/mesen_jp_sound_gates_0616.lua"
       - "JP/tools/mesen_jp_sound_requests_0615.lua"
       - "JP/tools/jp_sound_request_report_0613.py"
       - "JP/tools/jp_chr_fetch_report_0600.py"
@@ -125,6 +128,8 @@ jobs:
           "${{ runner.temp }}/test_sound_requests_0612"
       - name: Validate JP0614 audio capture session and save-state epochs (ROM-free)
         run: |
+          python3 JP/tools/jp_sound_priority_paths_0616.py --smoke
+          python3 JP/tools/jp_mesen_gate_report_0616.py --smoke
           python3 JP/tools/jp_mesen_sound_requests_0615.py --smoke
           python3 JP/tools/jp_audio_session_verify_0614.py --smoke
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
