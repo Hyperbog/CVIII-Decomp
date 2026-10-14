@@ -17,6 +17,7 @@ on:
       - "JP/tools/jp_nt_trace_report_0606.py"
       - "JP/tools/jp_object_oam_report_0609.py"
       - "JP/tools/patch_cyc_audio_bus_0610.py"
+      - "JP/tools/patch_cyc_sound_requests_0612.py"
       - "JP/tools/jp_audio_bus_report_0610.py"
       - "JP/tools/jp_chr_fetch_report_0600.py"
       - "JP/tools/jp_frame_evidence_report_0601.py"
@@ -79,6 +80,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "JP0609 logical OAM-priority inversion report failed" }
           python JP/tools/patch_cyc_audio_bus_0610.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "JP0610 audio backend observer patch rejected" }
+          python JP/tools/patch_cyc_sound_requests_0612.py --smoke
+          if ($LASTEXITCODE -ne 0) { throw "JP0612 sound request CPU-fetch patch rejected" }
           python JP/tools/jp_audio_bus_report_0610.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "JP0610 audio traffic report failed" }
           python JP/tools/jp_chr_fetch_report_0600.py --smoke
@@ -219,6 +222,13 @@ jobs:
           if (!(Test-Path -LiteralPath $test)) { throw 'JP0610 audio diagnostic test missing' }
           & $test
           if ($LASTEXITCODE -ne 0) { throw 'JP0610 original audio write integrity test failed' }
+      - name: Verify JP0612 original sound-request ingress logger (ROM-free)
+        shell: pwsh
+        run: |
+          $test = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win/Release/jp_sound_requests_test_0612.exe'
+          if (!(Test-Path -LiteralPath $test)) { throw 'JP0612 request observer test missing' }
+          & $test
+          if ($LASTEXITCODE -ne 0) { throw 'JP0612 sound entry logger failed' }
       - name: Run bounded native C11 synthetic test with actual windowed-linked binary
         shell: pwsh
         run: |
