@@ -69,7 +69,7 @@ jobs:
         run: |
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
             -I _external_nesrecomp/runner/cyc \
-            JP/native/enhanced/cviii_edition.c JP/native/enhanced/cviii_chr_index_0598.c JP/native/enhanced/cviii_chr_audit_0599.c JP/native/enhanced/cviii_chr_fetch_0600.c JP/native/enhanced/cviii_frame_evidence_0601.c JP/native/enhanced/cviii_nt_trace_0606.c JP/native/enhanced/cviii_sprite_layers_0608.c JP/native/enhanced/cviii_object_oam_trace_0609.c JP/native/enhanced/cviii_audio_bus_0610.c JP/native/enhanced/cviii_sound_requests_0612.c JP/native/enhanced/cviii_audio_session_0614.c JP/native/enhanced/cviii_audio_levels_0618.c JP/native/enhanced/cviii_audio_ui_0619.c JP/native/enhanced/test_cviii_edition.c \
+            JP/native/enhanced/cviii_edition.c JP/native/enhanced/cviii_chr_index_0598.c JP/native/enhanced/cviii_chr_audit_0599.c JP/native/enhanced/cviii_chr_fetch_0600.c JP/native/enhanced/cviii_frame_evidence_0601.c JP/native/enhanced/cviii_nt_trace_0606.c JP/native/enhanced/cviii_sprite_layers_0608.c JP/native/enhanced/cviii_object_oam_trace_0609.c JP/native/enhanced/cviii_audio_bus_0610.c JP/native/enhanced/cviii_sound_requests_0612.c JP/native/enhanced/cviii_audio_session_0614.c JP/native/enhanced/cviii_audio_levels_0618.c JP/native/enhanced/cviii_audio_ui_0619.c JP/native/enhanced/cviii_menu_registry_0620.c JP/native/enhanced/test_cviii_edition.c \
             -o "${{ runner.temp }}/test_cviii_edition"
           "${{ runner.temp }}/test_cviii_edition"
       - name: Verify JP0618 enhanced PCM master level and 1-percent settings (ROM-free)
@@ -88,6 +88,14 @@ jobs:
             JP/native/enhanced/cviii_audio_ui_test_0619.c \
             -o "${{ runner.temp }}/test_audio_ui_0619"
           "${{ runner.temp }}/test_audio_ui_0619"
+      - name: Verify JP0620 mod-forward host menu registry and 1-percent controls
+        run: |
+          cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
+            JP/native/enhanced/cviii_menu_registry_0620.c \
+            JP/native/enhanced/cviii_audio_levels_0618.c \
+            JP/native/enhanced/cviii_menu_registry_test_0620.c \
+            -o "${{ runner.temp }}/test_menu_registry_0620"
+          "${{ runner.temp }}/test_menu_registry_0620"
       - name: Verify VRC6 CHR register mapping modes and physical offsets (ROM-free)
         run: |
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
