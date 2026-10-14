@@ -94,7 +94,8 @@ static void paint(const CviiiLayerSprite *s,uint32_t *frame,const uint8_t *bg,
     }
 }
 void cviii_layers_draw(const CviiiSpriteLayers *s,uint32_t *frame,
-                       const uint8_t *bg,const uint8_t mask[CVIII_LAYER_H],
+                       const uint8_t bg[CVIII_LAYER_W * CVIII_LAYER_H],
+                       const uint8_t mask[CVIII_LAYER_H],
                        const CviiiLayerFns *f)
 {
     if(!s || !frame || !mask || !f || !f->color)return;
