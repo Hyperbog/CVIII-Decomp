@@ -10,6 +10,9 @@ int main(void)
     uint8_t ram[0x800]={0}, oam[256];
     FILE *f=tmpfile();
     if(!f) return 1;
+    /* tmpfile bypasses the path-opening/header wrapper; seed its column
+     * prefix here and focus this test on raw frame values and rotation. */
+    fputs("frame,phase,phase_delta,active_objects,visible_oam\n",f);
     t.out=f; t.prev_phase=-1;
     memset(oam,0xf4,sizeof(oam));
     ram[0x22]=0x44; ram[0x0400]=2; ram[0x041c]=100;
