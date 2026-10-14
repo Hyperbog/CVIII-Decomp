@@ -1,5 +1,7 @@
 # Agent rules — whole-bank / whole-subsystem work
 
+**All runtime/game-system changes also follow the repository-wide [Universal Mod-Forward Development Methodology](../MOD_FORWARD_METHODOLOGY.md).** Its content/resource/API principles apply to every hardware family (DOS, NES, SMS, SNES, Genesis and future games). Historical evidence and parity requirements below remain independent and must not be weakened by enhancements.
+
 1. State the **whole physical bank or complete runtime subsystem** being reconstructed; an isolated function is an internal step, not a checkpoint deliverable.
 2. Preserve and authenticate original image bytes. Do not alter golden references or test expected results to improve a match. Keep original retail media out of commits.
 3. Record all addresses as physical bank + mapped CPU location (or executable object + relocated address). Do not merge same-address routines from different mapper configurations.
