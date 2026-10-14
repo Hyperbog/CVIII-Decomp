@@ -71,7 +71,7 @@ void cyc_render_sprites(uint32_t *out,int w,int h,int x,const uint8_t *bg,
 int main(void) {
     const CycHostExtras *e=cyc_host_extras();
     assert(e && e->options && e->option && e->present);
-    assert(e->option_count == 10);
+    assert(e->option_count == 11);
     assert(!e->option(e->ctx,"--asset-index",(const char *)0));
     int w=0,h=0;
     e->power_on(e->ctx);
