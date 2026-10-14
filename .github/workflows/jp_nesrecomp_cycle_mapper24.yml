@@ -15,6 +15,7 @@ on:
       - "JP/tools/patch_cyc_audio_bus_0610.py"
       - "JP/tools/patch_cyc_sound_requests_0612.py"
       - "JP/tools/jp_audio_bus_report_0610.py"
+      - "JP/tools/jp_sound_request_report_0613.py"
       - "JP/tools/jp_chr_fetch_report_0600.py"
       - "JP/tools/jp_frame_evidence_report_0601.py"
       - "JP/tools/jp_qa_matrix_0602.py"
@@ -109,6 +110,8 @@ jobs:
             JP/native/enhanced/cviii_audio_bus_test_0610.c \
             -o "${{ runner.temp }}/test_audio_bus_0610"
           "${{ runner.temp }}/test_audio_bus_0610"
+      - name: Validate JP0613 sound request/register proximity parser (ROM-free)
+        run: python3 JP/tools/jp_sound_request_report_0613.py --smoke
       - name: Verify JP0612 sound entry dual fetch observer and logger (ROM-free)
         run: |
           python3 JP/tools/patch_cyc_sound_requests_0612.py --smoke
