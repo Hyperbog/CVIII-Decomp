@@ -54,10 +54,10 @@ typedef struct {
 
 static CviiiEdition cviii = { .volume = CVIII_AUDIO_LEVELS_DEFAULT };
 
-/* Actual player settings in the pinned host's PAUSED runtime menu.
- * The game's original-CHR standalone overlay remains a dev-only preview;
- * recomp-ui's generic rows are temporary until the custom skin is integrated.
- * No native input hooks or reimplemented pause loop are introduced. */
+/* JP0620: optional built-in paused runtime menu rows for recomp-ui builds.
+ * The separate F6 modal now uses the original CHR overlay on all supported
+ * private windowed builds, including those built without recomp-ui.
+ * Native pause/input routing remains in the separately pinned SDL overlay. */
 #ifdef CYC_WITH_RECOMP_UI
 typedef struct {
     CviiiAudioLevels *levels;
