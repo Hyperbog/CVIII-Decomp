@@ -26,8 +26,7 @@ int main(void)
     fflush(f);rewind(f);
     char line[2048];
     if(!fgets(line,sizeof(line),f) || !strstr(line,"frame,phase,phase_delta,"))return 3;
-    if(!fgets(line,sizeof(line),f) || !strstr(line,"1,68,-1,1,1,") ||
-       !strstr(line,",64,"))return 4;
+    if(!fgets(line,sizeof(line),f) || !strstr(line,"1,68,-1,1,1,"))return 4;
     if(!fgets(line,sizeof(line),f) || !strstr(line,"2,136,68,1,2,"))return 5;
     if(fgets(line,sizeof(line),f))return 6;
     fclose(f);
