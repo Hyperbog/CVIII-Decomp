@@ -538,3 +538,7 @@ and spatial effects be added without silently dropping notes.
 ## JP0612 — Original sound-request entries alongside chip-register traffic
 
 Rebuild your private AlphaCandidate and use `Launch-Alpha.ps1 -Edition Enhanced -AudioTrace`. In addition to the existing `CVIII-Audio-Registers.csv`, the same session writes owner-only `CVIII-Sound-Requests.csv`. Each recorded original fixed-$E249 CPU entry includes the incoming sound command, CPU cycle, X/Y/S/P, tracked bank $23 and two **uninterpreted** stack bytes. The hook captures either compiled or interpreter-fallback opcode fetches and skips fetches discarded for interrupts. Neither gameplay nor music/SFX output is changed. Commands suppressed before reaching $E249 are not captured; CSV entries are not proof of independent voices, source priority or original waveform parity. The real Windows retail-ROM trace remains to be checked against MesenCE.
+
+## JP0614 — Paired audio capture session safety
+
+With a freshly built private AlphaCandidate, use Launch-Alpha.ps1 -Edition Enhanced -AudioTrace. The launcher now collects CVIII-Sound-Requests.csv, CVIII-Audio-Registers.csv and CVIII-Audio-Epochs.csv; on successful exit, writes CVIII-Audio-Session.json with new GUID and SHA-256 bindings plus CVIII-Audio-Epoch-Verification.json. A loaded saved game begins a new analysis epoch even if CPU cycles rewind. Whole-file JP0610 register analysis is skipped for multi-epoch sessions; JP0613 request/voice proximity is still noncausal. No ROM, sound, PPU, gameplay, or native mixer behavior changes.
