@@ -47,6 +47,18 @@ int main(void)
     assert(cviii_start_accept(&m)==CVIII_START_EXTENSION);
     assert(cviii_start_move(&m,1)&&m.selected==0);
     assert(cviii_start_move(&m,-1)&&m.selected==4);
+    /* Add many independently-addressable future pages without changing navigation. */
+    char ids[27][24];
+    for(unsigned i=0;i<27u;i++) {
+        assert(snprintf(ids[i],sizeof ids[i],"mod.extra.%02u",i)>0);
+        CviiiStartEntry added={ids[i],"EXTRA",CVIII_START_EXTENSION,NULL,NULL};
+        assert(cviii_start_register(&m,&added));
+    }
+    assert(m.count==CVIII_START_MAX);
+    CviiiStartEntry overflow={"mod.too_many","BAD",CVIII_START_EXTENSION,NULL,NULL};
+    assert(!cviii_start_register(&m,&overflow));
+    while(m.selected!=31u)assert(cviii_start_move(&m,1));
+    assert(cviii_start_accept(&m)==CVIII_START_EXTENSION);
     cviii_start_seal(&m);
     assert(!cviii_start_register(&m,&extra));
     assert(cviii_start_toggle(&m,0,0)); /* close always permitted */
