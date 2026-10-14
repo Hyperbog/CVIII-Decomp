@@ -254,6 +254,13 @@ jobs:
           if (!(Test-Path -LiteralPath $test)) { throw 'JP0614 epoch boundary test missing' }
           & $test
           if ($LASTEXITCODE -ne 0) { throw 'JP0614 save-state boundary regression failed' }
+      - name: Verify JP0618 one-percent enhanced PCM master attenuation (ROM-free)
+        shell: pwsh
+        run: |
+          $test = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win/Release/jp_audio_levels_test_0618.exe'
+          if (!(Test-Path -LiteralPath $test)) { throw 'JP0618 volume test missing' }
+          & $test
+          if ($LASTEXITCODE -ne 0) { throw 'JP0618 enhanced PCM master-level regression failed' }
       - name: Run bounded native C11 synthetic test with actual windowed-linked binary
         shell: pwsh
         run: |
