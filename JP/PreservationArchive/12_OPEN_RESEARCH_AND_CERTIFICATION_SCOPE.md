@@ -147,3 +147,7 @@ The [JP0612 implementation and limits](../analysis/0612_SOUND_REQUEST_RUNTIME_TR
 ## JP0615 — R-007 independent audio ingress parity still needs source captures
 
 [JP0615](../analysis/0615_MESEN_SOUND_REQUEST_REFERENCE_GATE.md) prepares a hash-pinned original-Japanese-ROM Mesen2 execute callback for $E249 and a strict single-epoch JP0614 comparison. Three source-byte producer candidates ($B0C8/$06, $B1CE/$6A, $B58C/$6B) are authenticated; only $B58C has a historical conditional 6502 execution proof. No independent Mesen2 reference was actually executed in JP0615. Real matched controller inputs, original trace origin, request timing, game-side suppression and sound register ownership remain OPEN (R-007); unchanged strict PRG 49,504 and VPP27.
+
+## JP0616 — R-007 dispatcher rejection branch proven structurally, liveness OPEN
+
+The original JP raw-bank-$0C source establishes both $884F low-command guard and $8922 DMC-priority return predicates, and the prior $06DD increment even on some returns. [JP0616](../analysis/0616_ORIGINAL_SOUND_DISPATCH_GUARDS.md) covers all command/priority combinations with a bounded instruction-subset evaluator; Mesen independent guard-execution capture tooling is committed but has not run. No original Mesen2 sample proves any specific effect was muted, music/SFX ownership or eventual hardware output. R-007 remains OPEN; strict PRG 49,504/262,144, VPP27/100 unchanged.
