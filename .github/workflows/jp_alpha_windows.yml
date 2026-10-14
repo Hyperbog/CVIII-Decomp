@@ -21,6 +21,9 @@ on:
       - "JP/tools/jp_audio_bus_report_0610.py"
       - "JP/tools/jp_audio_session_verify_0614.py"
       - "JP/tools/jp_mesen_sound_requests_0615.py"
+      - "JP/tools/jp_sound_priority_paths_0616.py"
+      - "JP/tools/jp_mesen_gate_report_0616.py"
+      - "JP/tools/mesen_jp_sound_gates_0616.lua"
       - "JP/tools/mesen_jp_sound_requests_0615.lua"
       - "JP/tools/jp_chr_fetch_report_0600.py"
       - "JP/tools/jp_frame_evidence_report_0601.py"
@@ -85,6 +88,10 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "JP0610 audio backend observer patch rejected" }
           python JP/tools/patch_cyc_sound_requests_0612.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "JP0612 sound request CPU-fetch patch rejected" }
+          python JP/tools/jp_sound_priority_paths_0616.py --smoke
+          if ($LASTEXITCODE -ne 0) { throw "JP0616 sound-gate branch fixture failed" }
+          python JP/tools/jp_mesen_gate_report_0616.py --smoke
+          if ($LASTEXITCODE -ne 0) { throw "JP0616 original gate pairing validation failed" }
           python JP/tools/jp_mesen_sound_requests_0615.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "JP0615 Mesen sound request proof parser failed" }
           python JP/tools/jp_audio_session_verify_0614.py --smoke
