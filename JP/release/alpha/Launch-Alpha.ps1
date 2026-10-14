@@ -8,6 +8,7 @@ param(
  [switch]$SpriteTrace,
  [switch]$AudioTrace,
  [ValidateRange(0,100)][int]$MasterVolume,
+ [switch]$AudioUiPreview,
  [switch]$ChrAudit,
  [string]$AuditOutDir=''
 )
@@ -88,6 +89,10 @@ try {
   if (Test-Path -LiteralPath $assetIndex) {
    $gameArgs+=@('--asset-index',$assetIndex)
    Write-Host 'Loading authenticated read-only CHR asset index (no rendering changes).'
+   if ($AudioUiPreview) {
+    $gameArgs+=@('--audio-ui-preview','1')
+    Write-Host 'JP0619 noninteractive original health-bar/font overlay preview enabled.'
+   }
    if ($ChrAudit) {
     $chrAuditPath=Join-Path $auditBase 'CVIII-CHR-Audit.csv'
     $gameArgs+=@('--chr-audit',$chrAuditPath)
@@ -103,10 +108,10 @@ try {
     Write-Host ('Recording physical PPU CHR reads: '+$fetchAuditPath)
    }
   } else {
-   if ($ChrAudit) { throw 'CHR mapping audit requires private CVIII-CHR-Index.dat' }
+   if ($ChrAudit -or $AudioUiPreview) { throw 'Audio UI/CHR audit requires private CVIII-CHR-Index.dat' }
    Write-Host 'No asset index found; Enhanced falls back to original ROM-driven graphics.'
   }
- } elseif ($ChrAudit) { throw 'CHR mapping audit is developer-only for Enhanced' }
+ } elseif ($ChrAudit -or $AudioUiPreview) { throw 'CHR UI preview and audit require Enhanced' }
  & $game @gameArgs
  if ($LASTEXITCODE -ne 0) {throw "Native game exited with $LASTEXITCODE"}
  if ($AudioTrace) {
