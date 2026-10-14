@@ -14,6 +14,7 @@
 #include "cviii_sprite_layers_0608.h"
 #include "cviii_object_oam_trace_0609.h"
 #include "cviii_audio_bus_0610.h"
+#include "cviii_sound_requests_0612.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -28,6 +29,7 @@ typedef struct {
     CviiiSpriteLayers sprite_layers;
     CviiiObjectOamTrace object_trace; /* read-only JP PRG26 object/OAM correlation */
     CviiiAudioBus audio_bus; /* opt-in nonmutating 2A03/VRC6 sound writes */
+    CviiiSoundRequests sound_requests; /* original fixed $E249 ingress only */
     uint8_t layer_masks[CVIII_LAYER_H];
     CviiiChrIndex assets; /* read-only imported physical CHR; presentation only */
     CviiiChrAudit audit; /* opt-in read-only per-frame bank audit */
@@ -97,6 +99,14 @@ static bool option(void *context, const char *name, const char *value)
             return false;
         }
         printf("CVIII: tracing sound chip writes; no changes to music or effects\n");
+        return true;
+    }
+    if (!strcmp(name, "--sound-request-trace")) {
+        if (!value || !cviii_sound_requests_open(&cviii.sound_requests, value)) {
+            fprintf(stderr, "CVIII: cannot open private original JP sound-request CSV\n");
+            return false;
+        }
+        printf("CVIII: read-only original $E249 request entries; no sound changes\n");
         return true;
     }
     if (!strcmp(name, "--sprite-object-trace")) {
@@ -297,6 +307,8 @@ static const CycHostOption cviii_options[] = {
      "Developer owner-local per-frame 28 object fields and 64 hardware OAM entries"},
     {"--audio-reg-trace", true,
      "Read-only 2A03/VRC6 audio register traffic for source separation research"},
+    {"--sound-request-trace", true,
+     "Original JP fixed $E249 sound request entry register/stack snapshots"},
     {"--asset-index", true,
      "Private read-only 655368-byte JP CHR index (no renderer substitution)"},
     {"--chr-audit", true,
