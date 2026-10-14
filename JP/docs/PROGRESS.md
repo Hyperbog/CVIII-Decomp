@@ -856,3 +856,7 @@ Stage A-01 analysis and comparison against MesenCE.
 There is still **no** retested retail Stage A-01 screenshot proving a
 graphics fix; ROM-free CI only verifies the observer, bus report,
 private native build, and existing original-frame hash invariants.
+
+## JP0611 — sound-request dispatcher and static caller research
+
+New [ROM-locked audit](../tools/jp_sound_request_census_0611.py) and [analysis](../analysis/0611_SOUND_REQUEST_ENTRY_CENSUS.md) authenticate fixed $E249 -> raw-$0C $8850's three original command paths and count 123 JSR / 8 JMP $E249 **physical opcode-pattern candidates**, 120 with adjacent immediate-load bytes. This is explicitly NOT runtime caller liveness or independent music/SFX attribution. The next work requires real E249 request-entry/priority traces paired with the existing 0610 audio-register writer report. No strict verified PRG change (49,504/262,144), no VPP change (27/100), no semantic state-frontier change (0508, fixed FB96).
