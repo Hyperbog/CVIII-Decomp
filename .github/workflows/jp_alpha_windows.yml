@@ -12,6 +12,7 @@ on:
       - "JP/tools/jp_asset_runtime_0598.py"
       - "JP/tools/patch_cyc_stage_menu_0594.py"
       - "JP/tools/patch_cyc_stage_bootstrap_0596.py"
+      - "JP/tools/patch_cyc_audio_menu_0620.py"
       - "JP/tools/patch_cyc_chr_fetch_0600.py"
       - "JP/tools/patch_cyc_ppu_nt_0606.py"
       - "JP/tools/jp_nt_trace_report_0606.py"
@@ -79,6 +80,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "F10 stage menu patch test failed" }
           python JP/tools/patch_cyc_stage_bootstrap_0596.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "F10 password bootstrap patch test failed" }
+          python JP/tools/patch_cyc_audio_menu_0620.py --smoke
+          if ($LASTEXITCODE -ne 0) { throw "JP0620 F6 paused authentic audio menu patch test failed" }
           python JP/tools/patch_cyc_chr_fetch_0600.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "PPU CHR observer anchor test failed" }
           python JP/tools/patch_cyc_ppu_nt_0606.py --smoke
