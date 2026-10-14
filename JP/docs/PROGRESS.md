@@ -868,3 +868,7 @@ The [JP0612 trace design](../analysis/0612_SOUND_REQUEST_RUNTIME_TRACE.md) and [
 ## JP0613 — conservative source-request / register-write temporal windows
 
 [ROM-free paired CSV validator](../tools/jp_sound_request_report_0613.py) and [evidence limits](../analysis/0613_SOUND_REQUEST_REGISTER_PROXIMITY.md) correlate JP0612 original $E249 ingress with JP0610 hardware-register writes only by bounded CPU-cycle proximity, rejecting malformed rows and backward cycles. No claim is made about true sound-request acceptance, speaker allocation, music/SFX source ownership or frame/audio parity. A synthetic CI smoke target was added; original owner-private capture replay and MesenCE comparison remain outstanding. Strict 49,504/262,144, VPP 27/100, certified 0508 / fixed FB96 remain unchanged.
+
+## JP0614 — Sound trace provenance without runtime audio changes
+
+[JP0614 private capture integrity](../analysis/0614_AUDIO_SESSION_EPOCH_PROVENANCE.md) ties the existing sound request and APU/VRC6 write CSVs to a new power-on/load epoch CSV by owner-local GUID, exact SHA-256 hashes and cumulative event-row boundaries. A save-state CPU clock rewind is therefore separated, not silently combined. Strict C11 and Python synthetic tests pass locally; current Windows native Alpha/MesenCE replay and CI results are not claimed. No original sound-driver source ownership or semantic PRG proof promoted: 49,504/262,144, VPP 27/100, certified checkpoint 0508, fixed FB96.
