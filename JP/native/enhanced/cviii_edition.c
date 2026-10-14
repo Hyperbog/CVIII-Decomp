@@ -21,6 +21,9 @@
 #include "cviii_menu_registry_0620.h"
 #include "cviii_audio_menu_0620.h"
 #include "cviii_audio_menu_state_0622.h"
+#include "cviii_start_menu_0623.h"
+#include "cviii_start_host_0623.h"
+#include "cviii_start_ui_0623.h"
 #ifdef CYC_WITH_RECOMP_UI
 #include "recomp_runtime_ui.h"
 #endif
@@ -43,6 +46,7 @@ typedef struct {
     CviiiAudioLevels volume; /* enhanced host gains, never emulated RAM */
     int audio_ui_preview; /* opt-in independent visual QA */
     CviiiAudioMenuState audio_ui; /* F6 modal selection, no guest RAM */
+    CviiiStartMenu start_menu; /* F4 menu actions, no guest RAM */
     char audio_session_id[33]; /* launcher-supplied private session GUID */
     uint8_t layer_masks[CVIII_LAYER_H];
     CviiiChrIndex assets; /* read-only imported physical CHR; presentation only */
@@ -54,6 +58,7 @@ typedef struct {
 } CviiiEdition;
 
 static CviiiEdition cviii = { .volume = CVIII_AUDIO_LEVELS_DEFAULT };
+static int cviii_start_ready;
 
 /* JP0620: optional built-in paused runtime menu rows for recomp-ui builds.
  * The separate F6 modal now uses the original CHR overlay on all supported
@@ -160,6 +165,7 @@ static int set_edition(const char *name)
 {
     if (!strcmp(name, "original") || !strcmp(name, "Original")) {
         cviii_audio_menu_state_close(&cviii.audio_ui);
+        cviii_start_close(&cviii.start_menu);
         cviii.enhanced = 0;
         return 1;
     }
@@ -310,6 +316,7 @@ static void power_on(void *context)
      */
     cviii_layers_reset(&settings->sprite_layers);
     cviii_audio_menu_state_close(&settings->audio_ui); /* reset cannot leave a stale modal */
+    cviii_start_close(&settings->start_menu);
     cyc_render_capture_background(true);
     cviii_audio_session_mark(&settings->audio_session,"power_on",
         cyc_cycle_count(),settings->sound_requests.requests,settings->audio_bus.writes,
@@ -333,6 +340,7 @@ static void state_loaded(void *context)
     CviiiEdition *settings = (CviiiEdition *)context;
     cviii_layers_reset(&settings->sprite_layers);
     cviii_audio_menu_state_close(&settings->audio_ui); /* loaded gameplay never owns a stale modal */
+    cviii_start_close(&settings->start_menu);
     cviii_audio_session_mark(&settings->audio_session,"state_loaded",
         cyc_cycle_count(),settings->sound_requests.requests,settings->audio_bus.writes,
         settings->sound_requests.output,settings->audio_bus.output);
@@ -438,6 +446,35 @@ static const uint32_t *present_game(void *context, int *width, int *height)
     return settings->presentation;
 }
 
+/* JP0623 game-owned Start/Pause state and stable action identities. */
+int cviii_pause_active(void)
+{
+    return cviii.start_menu.open;
+}
+int cviii_pause_toggle(void)
+{
+    if(!cviii_start_ready) {
+        if(!cviii_start_defaults(&cviii.start_menu))return 0;
+        cviii_start_seal(&cviii.start_menu);
+        cviii_start_ready=1;
+    }
+    if(cviii.audio_ui.open && !cviii.start_menu.open)return 0;
+    return cviii_start_toggle(&cviii.start_menu,cviii.enhanced,
+                               cviii.assets.pixels!=NULL);
+}
+void cviii_pause_close(void)
+{
+    cviii_start_close(&cviii.start_menu);
+}
+void cviii_pause_move(int direction)
+{
+    (void)cviii_start_move(&cviii.start_menu,direction);
+}
+int cviii_pause_accept(void)
+{
+    return (int)cviii_start_accept(&cviii.start_menu);
+}
+
 /* JP0620 game-owned UI control exported to the private window host overlay.
  * No SDL dependency here; the host handles pause, input and saving config. */
 int cviii_audio_menu_active(void)
@@ -466,6 +503,14 @@ static const uint32_t *present(void *context,int *width,int *height)
 {
     CviiiEdition *settings=(CviiiEdition *)context;
     const uint32_t *frame=present_game(context,width,height);
+    if (settings->enhanced && settings->start_menu.open &&
+        settings->assets.pixels && *width==CVIII_W && *height==CVIII_H) {
+        if(frame!=settings->presentation)
+            memcpy(settings->presentation,frame,sizeof settings->presentation);
+        if(cviii_start_ui_draw(settings->presentation,CVIII_W,CVIII_H,
+                               &settings->assets,&settings->start_menu))
+            return settings->presentation;
+    }
     if (!settings->enhanced ||
         (!settings->audio_ui_preview && !settings->audio_ui.open) ||
         !settings->assets.pixels || *width!=CVIII_W || *height!=CVIII_H)
