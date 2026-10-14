@@ -13,6 +13,7 @@
 #include "cviii_nt_trace_0606.h"
 #include "cviii_sprite_layers_0608.h"
 #include "cviii_object_oam_trace_0609.h"
+#include "cviii_audio_bus_0610.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -26,6 +27,7 @@ typedef struct {
     int stable_sprites; /* optional host-only temporal presentation; off by default */
     CviiiSpriteLayers sprite_layers;
     CviiiObjectOamTrace object_trace; /* read-only JP PRG26 object/OAM correlation */
+    CviiiAudioBus audio_bus; /* opt-in nonmutating 2A03/VRC6 sound writes */
     uint8_t layer_masks[CVIII_LAYER_H];
     CviiiChrIndex assets; /* read-only imported physical CHR; presentation only */
     CviiiChrAudit audit; /* opt-in read-only per-frame bank audit */
@@ -89,6 +91,14 @@ static bool option(void *context, const char *name, const char *value)
         return value && parse_boolean(value, &cviii.sprite_unlimited);
     if (!strcmp(name, "--stable-sprites"))
         return value && parse_boolean(value, &cviii.stable_sprites);
+    if (!strcmp(name, "--audio-reg-trace")) {
+        if (!value || !cviii_audio_bus_open(&cviii.audio_bus, value)) {
+            fprintf(stderr, "CVIII: cannot open private 2A03/VRC6 audio register log\n");
+            return false;
+        }
+        printf("CVIII: tracing sound chip writes; no changes to music or effects\n");
+        return true;
+    }
     if (!strcmp(name, "--sprite-object-trace")) {
         if (!value || !cviii_object_oam_trace_open(&cviii.object_trace, value)) {
             fprintf(stderr, "CVIII: cannot open owner-local object/OAM trace output\n");
@@ -285,6 +295,8 @@ static const CycHostOption cviii_options[] = {
      "EXPERIMENTAL logical sprite-object layer order with 1-frame history (0/1, default 0)"},
     {"--sprite-object-trace", true,
      "Developer owner-local per-frame 28 object fields and 64 hardware OAM entries"},
+    {"--audio-reg-trace", true,
+     "Read-only 2A03/VRC6 audio register traffic for source separation research"},
     {"--asset-index", true,
      "Private read-only 655368-byte JP CHR index (no renderer substitution)"},
     {"--chr-audit", true,

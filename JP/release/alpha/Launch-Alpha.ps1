@@ -6,6 +6,7 @@ param(
  [switch]$UnlimitedSprites,
  [switch]$StableSprites,
  [switch]$SpriteTrace,
+ [switch]$AudioTrace,
  [switch]$ChrAudit,
  [string]$AuditOutDir=''
 )
@@ -44,9 +45,9 @@ $stable=if ($Edition -eq 'Enhanced' -and $StableSprites) {'1'} else {'0'}
 Write-Host "CVIII Enhanced (extra-OAM $sprites; experimental stable sprite layers $stable)"
 Write-Host 'Controls: arrows=D-pad, Z=A, X=B, Enter=Start, Backslash=Select.'
 Write-Host 'F8/F9 save/load; builds supporting slots use Ctrl+0..9.'
-if ($AuditOutDir -and -not ($ChrAudit -or $SpriteTrace)) { throw '-AuditOutDir requires -ChrAudit or -SpriteTrace' }
+if ($AuditOutDir -and -not ($ChrAudit -or $SpriteTrace -or $AudioTrace)) { throw '-AuditOutDir requires -ChrAudit, -SpriteTrace or -AudioTrace' }
 $auditBase=if ($AuditOutDir) { [IO.Path]::GetFullPath($AuditOutDir) } else { $PSScriptRoot }
-if ($ChrAudit -or $SpriteTrace) {
+if ($ChrAudit -or $SpriteTrace -or $AudioTrace) {
  [IO.Directory]::CreateDirectory($auditBase) | Out-Null
  $pythonResolver=Join-Path $PSScriptRoot 'Resolve-Python.ps1'
  if (-not (Test-Path -LiteralPath $pythonResolver)) {
@@ -58,6 +59,11 @@ if ($ChrAudit -or $SpriteTrace) {
 Push-Location $PSScriptRoot
 try {
  $gameArgs=@($romPath,'--edition',$Edition.ToLowerInvariant(),'--unlimited-sprites',$sprites,'--stable-sprites',$stable)
+ if ($AudioTrace) {
+  $audioLog=Join-Path $auditBase 'CVIII-Audio-Registers.csv'
+  $gameArgs+=@('--audio-reg-trace',$audioLog)
+  Write-Host ('JP0610 original 2A03/VRC6 audio register trace: '+$audioLog)
+ }
  if ($SpriteTrace) {
   $spriteLog=Join-Path $auditBase 'CVIII-Sprite-Objects.csv'
   $gameArgs+=@('--sprite-object-trace',$spriteLog)
