@@ -40,6 +40,15 @@ const CycLine *cyc_frame_lines(void) {
     return lines;
 }
 const uint8_t *cyc_frame_bg_opaque(void) { static uint8_t mask[256*240]; return mask; }
+/* Host-independent JP0608 layer accessors for headless C11 regression.
+ * The independent actual layering tests exercise pixel priorities. */
+static uint8_t mock_oam[256];
+const uint8_t *cyc_render_oam(void) { return mock_oam; }
+uint8_t cyc_render_chr(uint16_t addr) { (void)addr; return 0; }
+uint32_t cyc_render_color(int palette) { return (uint32_t)palette; }
+uint8_t cyc_render_line_mask(int y) { (void)y; return 0x14; }
+bool cyc_render_line_sprite16(int y) { (void)y; return false; }
+uint16_t cyc_render_line_sprite_table(int y) { (void)y; return 0; }
 void cyc_render_capture_background(bool enabled) { capture_enabled=enabled; }
 bool cyc_render_background(uint32_t *out) {
     bg_reads++;
