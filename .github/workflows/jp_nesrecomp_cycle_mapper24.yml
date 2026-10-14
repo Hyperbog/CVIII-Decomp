@@ -15,6 +15,7 @@ on:
       - "JP/tools/patch_cyc_audio_bus_0610.py"
       - "JP/tools/patch_cyc_sound_requests_0612.py"
       - "JP/tools/jp_audio_bus_report_0610.py"
+      - "JP/tools/jp_audio_session_verify_0614.py"
       - "JP/tools/jp_sound_request_report_0613.py"
       - "JP/tools/jp_chr_fetch_report_0600.py"
       - "JP/tools/jp_frame_evidence_report_0601.py"
@@ -60,7 +61,7 @@ jobs:
         run: |
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
             -I _external_nesrecomp/runner/cyc \
-            JP/native/enhanced/cviii_edition.c JP/native/enhanced/cviii_chr_index_0598.c JP/native/enhanced/cviii_chr_audit_0599.c JP/native/enhanced/cviii_chr_fetch_0600.c JP/native/enhanced/cviii_frame_evidence_0601.c JP/native/enhanced/cviii_nt_trace_0606.c JP/native/enhanced/cviii_sprite_layers_0608.c JP/native/enhanced/cviii_object_oam_trace_0609.c JP/native/enhanced/cviii_audio_bus_0610.c JP/native/enhanced/cviii_sound_requests_0612.c JP/native/enhanced/test_cviii_edition.c \
+            JP/native/enhanced/cviii_edition.c JP/native/enhanced/cviii_chr_index_0598.c JP/native/enhanced/cviii_chr_audit_0599.c JP/native/enhanced/cviii_chr_fetch_0600.c JP/native/enhanced/cviii_frame_evidence_0601.c JP/native/enhanced/cviii_nt_trace_0606.c JP/native/enhanced/cviii_sprite_layers_0608.c JP/native/enhanced/cviii_object_oam_trace_0609.c JP/native/enhanced/cviii_audio_bus_0610.c JP/native/enhanced/cviii_sound_requests_0612.c JP/native/enhanced/cviii_audio_session_0614.c JP/native/enhanced/test_cviii_edition.c \
             -o "${{ runner.temp }}/test_cviii_edition"
           "${{ runner.temp }}/test_cviii_edition"
       - name: Verify VRC6 CHR register mapping modes and physical offsets (ROM-free)
@@ -120,6 +121,11 @@ jobs:
             JP/native/enhanced/cviii_sound_requests_test_0612.c \
             -o "${{ runner.temp }}/test_sound_requests_0612"
           "${{ runner.temp }}/test_sound_requests_0612"
+      - name: Validate JP0614 audio capture session and save-state epochs (ROM-free)
+        run: |
+          python3 JP/tools/jp_audio_session_verify_0614.py --smoke
+          cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic             JP/native/enhanced/cviii_audio_session_0614.c             JP/native/enhanced/cviii_audio_session_test_0614.c             -o "${{ runner.temp }}/test_audio_session_0614"
+          "${{ runner.temp }}/test_audio_session_0614"
       - name: Verify independent sprite layers and bounded OAM continuity
         run: |
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
