@@ -1,5 +1,7 @@
 # Shared decompilation / native-parity evidence gates (v1)
 
+**Universal engineering policy:** [MOD_FORWARD_METHODOLOGY.md](../MOD_FORWARD_METHODOLOGY.md) specifies the modder-first content, extension, compatibility, editor-readiness and safety standards across all platform ports. This directory's historical evidence tools remain platform-independent and do not constitute a mod loader.
+
 This is **working**, standard-library-only cross-project tooling for source auditing and original-versus-native regression. It is not an emulator, ISA translator, Ghidra bridge, or proof of a complete native recompilation.
 
 Use the same `workflow.py`, `test_workflow.py`, schema and acceptance thresholds in NES, SMS/Z80, and DOS/Watcom repos. Original media, commercial source bytes and licensed assets are never committed.
