@@ -18,7 +18,7 @@ static unsigned tile_for(char c)
 static void print_at(uint32_t *pixels,const unsigned char *chr,
                      unsigned x,unsigned y,const char *s,int selected)
 {
-    for(;s&&*s&&x+8<=SCREEN_W;s++,x+=8) {
+    for(;s&&*s&&x+8<=PANEL_X+PANEL_W;s++,x+=8) {
         unsigned tile=tile_for(*s);
         if(!tile||y+8>SCREEN_H)continue;
         const unsigned char *src=chr+tile*64u;
