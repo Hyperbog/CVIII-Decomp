@@ -91,6 +91,15 @@ try {
  } elseif ($ChrAudit) { throw 'CHR mapping audit is developer-only for Enhanced' }
  & $game @gameArgs
  if ($LASTEXITCODE -ne 0) {throw "Native game exited with $LASTEXITCODE"}
+ if ($SpriteTrace -and (Test-Path -LiteralPath $spriteLog)) {
+  $oamTool=Join-Path $PSScriptRoot 'jp_object_oam_report_0609.py'
+  if (!(Test-Path -LiteralPath $oamTool)) {
+   throw 'JP0609 object/OAM trace analyzer missing from the private build'
+  }
+  $oamSummary=Join-Path $auditBase 'CVIII-Sprite-Objects.json'
+  Invoke-CviiiPython -Script $oamTool -Arguments @('--csv',$spriteLog,'--json',$oamSummary)
+  Write-Host ('Original 28-object/OAM trace report: '+$oamSummary)
+ }
  if ($ChrAudit -and (Test-Path -LiteralPath $fetchAuditPath)) {
   $summaryTool=Join-Path $PSScriptRoot 'jp_chr_fetch_report_0600.py'
   $summaryJson=Join-Path $auditBase 'CVIII-CHR-Fetch.json'

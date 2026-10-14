@@ -26,3 +26,38 @@ retail-JP Stage 1 and doorway scene tests remain necessary.
 
 Shared Stage A-01 tile corruption remains a separate open problem.
 PRG 49,504/262,144 and VPP27/100 are unchanged.
+
+
+## JP0609 — Stabilize sprite priority using original PRG26 object order
+
+The original Japanese PRG26 NMI sprite renderer advances $22 by
+$44 (17 hardware OAM slots) each frame, then places emitted sprites
+at consecutive byte positions spaced by $C4 (-15 physical slots).
+Because the NES gives lower physical OAM slots higher priority,
+two overlapping pieces can repeatedly exchange foreground/background
+priority even when neither is missing. Increasing OAM capacity or
+holding last-frame sprite pixels does not remove that priority swap.
+
+JP0609 changes only the optional Enhanced -StableSprites compositor:
+it reverses the original physical OAM permutation, draws sprites in
+stable logical emission order, then overlays current sprites above
+any one-frame rescued pieces. There are NO changes to NES OAM, IRQ,
+DMA, sprite zero, CPU state, collisions or gameplay. This is a
+hypothesis-driven change, with a synthetic reproducer but NOT yet
+a proven retail-JP Trevor/torch fix.
+
+An optional -SpriteTrace captures read-only per-frame $0400-$04C3
+game-object arrays and actual 64 PPU OAM slots. The tracer and
+analyzer can show whether physical priority swaps while logical
+order remains stable, or whether the game drops sprite entries.
+The report files are CVIII-Sprite-Objects.csv and .json, private.
+
+After building the newest private Windows AlphaCandidate, run:
+
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Launch-Alpha.ps1 -Edition Enhanced -StableSprites -SpriteTrace
+
+Play the first village torch overlap for 5-10 seconds, close the game.
+Compare against the same scene with -StableSprites omitted. The
+original known A-01 background corruption is a SEPARATE issue.
+No HD art, widescreen, gameplay changes or public Original edition
+is included in this milestone.
