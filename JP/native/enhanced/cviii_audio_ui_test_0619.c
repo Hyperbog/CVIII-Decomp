@@ -50,6 +50,8 @@ int main(void)
     assert(cviii_audio_levels_set(&levels,CVIII_VOLUME_MASTER,0));
     assert(cviii_audio_ui_render(guarded+1,W,H,&index,&levels,0));
     assert(at(80,89)==0xFFF1EEEAu);
+    assert(cviii_audio_ui_render_mode(guarded+1,W,H,&index,&levels,2,true));
+    assert(at(64,182)==0xFFF1EEEAu); /* interactive F6/ESC footer in game font */
     assert(guarded[0]==0xA1B2C3D4u && guarded[W*H+1u]==0xE5F60718u);
     puts("PASS JP0619 health-meter art, authentic font slots, 1-percent fill and bounds");
     return 0;
