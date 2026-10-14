@@ -93,3 +93,16 @@ mod-content loader/editor remain planned, not implemented.
 **No certification advancement:** strict semantic PRG
 **49,504/262,144 (18.8843%)**; VPP **27/100**; checkpoint **0508**,
 fixed frontier **$FB96**; `JP/analysis/RESUME_STATE.json` unchanged.
+
+## JP0623 correction — Intermediate developer-key precedence
+
+The historical JP0621 description above called the four-stage SDL keyboard
+priority validated. Inspection in JP0623 showed that the **pinned
+`CYC_DEV_UI` handler actually runs first in the JP0620 four-stage
+intermediate source**. This is a real integration issue, not a gameplay
+claim: `jp_audio_menu_pinned_gate_0621.py` now verifies and exposes that
+intermediate order rather than incorrectly asserting the intended one.
+The [JP0623 fifth-layer overlay and source gate](0623_MOD_FORWARD_START_PAUSE_MENU.md)
+move the developer handler behind F4 Pause, F6 Audio and F10
+password/debug dispatch. Native Windows gameplay acceptance still
+requires the actual five-layer SDL build/test.
