@@ -271,6 +271,13 @@ jobs:
           if (!(Test-Path -LiteralPath $test)) { throw 'JP0619 UI test missing' }
           & $test
           if ($LASTEXITCODE -ne 0) { throw 'JP0619 original-art renderer failed' }
+      - name: Verify JP0620 mod-forward native volume registry (ROM-free)
+        shell: pwsh
+        run: |
+          $test = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win/Release/jp_menu_registry_test_0620.exe'
+          if (!(Test-Path -LiteralPath $test)) { throw 'JP0620 registry test missing' }
+          & $test
+          if ($LASTEXITCODE -ne 0) { throw 'JP0620 menu registry validation failed' }
       - name: Run bounded native C11 synthetic test with actual windowed-linked binary
         shell: pwsh
         run: |
