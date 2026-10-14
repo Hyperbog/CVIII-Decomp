@@ -25,38 +25,58 @@ int main(void){
     memset(mask,0x14,sizeof(mask));
     CviiiLayerFns f={read_chr,color,NULL};
     blank(oam);add(oam,0,39,1,0,40);add(oam,1,39,2,1,40);
-    cviii_layers_capture(s,oam,mask,tall,tables,&f);
+    cviii_layers_capture(s,oam,0,mask,tall,tables,&f);
     if(s->held_now || s->frames!=1)return 2;
     cviii_layers_draw(s,canvas,bg,mask,&f);
     if(canvas[40*256+40]!=17u)return 3;
     blank(oam);add(oam,1,39,2,1,40);
-    cviii_layers_capture(s,oam,mask,tall,tables,&f);
+    cviii_layers_capture(s,oam,0,mask,tall,tables,&f);
     if(s->held_now!=1 || !s->held[0].valid)return 4;
     memset(canvas,0,256*240*sizeof(uint32_t));
     cviii_layers_draw(s,canvas,bg,mask,&f);
     if(canvas[40*256+40]!=17u)return 5;
-    cviii_layers_capture(s,oam,mask,tall,tables,&f);
+    cviii_layers_capture(s,oam,0,mask,tall,tables,&f);
     if(s->held_now || s->held[0].valid)return 6;
     cviii_layers_reset(s);
     blank(oam);add(oam,0,39,1,0x20,40);
-    cviii_layers_capture(s,oam,mask,tall,tables,&f);
+    cviii_layers_capture(s,oam,0,mask,tall,tables,&f);
     memset(canvas,0,256*240*sizeof(uint32_t));bg[40*256+40]=1;
     cviii_layers_draw(s,canvas,bg,mask,&f);
     if(canvas[40*256+40]!=0)return 7;
     bg[40*256+40]=0;
     blank(oam);add(oam,0,39,1,0,0);
-    cviii_layers_capture(s,oam,mask,tall,tables,&f);
+    cviii_layers_capture(s,oam,0,mask,tall,tables,&f);
     mask[40]=0x10;memset(canvas,0,256*240*sizeof(uint32_t));
     cviii_layers_draw(s,canvas,bg,mask,&f);
     if(canvas[40*256]!=0)return 8;
     mask[40]=0x14;
     blank(oam);
     for(unsigned i=0;i<16;++i)add(oam,i,60,1,0,(uint8_t)(i*12));
-    cviii_layers_capture(s,oam,mask,tall,tables,&f);
-    blank(oam);cviii_layers_capture(s,oam,mask,tall,tables,&f);
+    cviii_layers_capture(s,oam,0,mask,tall,tables,&f);
+    blank(oam);cviii_layers_capture(s,oam,0,mask,tall,tables,&f);
     if(s->held_now || s->total_held<1)return 9;
+
+    /* The original game changes OAM phase by +$44 each frame. At phase
+     * 0, emission #0 lands in physical slot 0, emission #1 in slot 49.
+     * At phase $44, the SAME logical actors land in slot 17 and slot 2.
+     * Hardware OAM priority reverses! The Enhanced paint order must not.
+     */
+    cviii_layers_reset(s); blank(oam);
+    add(oam,0,39,1,0,40); /* Trevor: color index 1 */
+    add(oam,49,39,2,1,40); /* Torch: color index 2 */
+    cviii_layers_capture(s,oam,0,mask,tall,tables,&f);
+    memset(canvas,0,256*240*sizeof(uint32_t));
+    cviii_layers_draw(s,canvas,bg,mask,&f);
+    if(canvas[40*256+40]!=17u)return 10;
+    blank(oam);
+    add(oam,17,39,1,0,40);
+    add(oam,2,39,2,1,40);
+    cviii_layers_capture(s,oam,0x44u,mask,tall,tables,&f);
+    memset(canvas,0,256*240*sizeof(uint32_t));
+    cviii_layers_draw(s,canvas,bg,mask,&f);
+    if(canvas[40*256+40]!=17u || s->phase!=0x44u || s->prior_phase!=0)return 11;
     cviii_layers_reset(s);
-    if(s->primed || s->total_held || s->frames)return 10;
+    if(s->primed || s->total_held || s->frames)return 12;
     free(canvas);free(bg);free(s);
     puts("PASS JP0608 separate OAM layers, one-frame sprite hold, priorities, clipping and reset");
     return 0;

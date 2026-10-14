@@ -30,6 +30,10 @@ void cviii_nt_set_hook(CviiiNtHook hook) { nt_hook = hook; }
 static uint32_t native[256*240];
 static int capture_enabled, compose_calls, bg_reads;
 const uint32_t *cyc_frame_argb(void) { return native; }
+const uint8_t *cyc_cpu_ram(void) {
+    static uint8_t ram[0x800];
+    return ram;
+}
 /* JP0601 pure read-only original PPU views for the isolated host test. */
 const uint16_t *cyc_frame_index(void) {
     static uint16_t pixels[256*240];

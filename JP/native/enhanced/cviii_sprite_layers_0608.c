@@ -45,12 +45,15 @@ static void sample(CviiiLayerSprite *s, const uint8_t *oam,
     }
 }
 void cviii_layers_capture(CviiiSpriteLayers *s, const uint8_t oam[256],
+                          uint8_t oam_start_phase,
                           const uint8_t mask[CVIII_LAYER_H],
                           const uint8_t tall[CVIII_LAYER_H],
                           const uint16_t tables[CVIII_LAYER_H],
                           const CviiiLayerFns *f)
 {
     if (!s || !oam || !mask || !tall || !tables || !f || !f->read_chr) return;
+    s->prior_phase=s->phase;
+    s->phase=oam_start_phase;
     CviiiLayerSprite previous[CVIII_LAYER_SLOTS];
     memcpy(previous,s->current,sizeof(previous));
     memset(s->current,0,sizeof(s->current));
@@ -99,9 +102,29 @@ void cviii_layers_draw(const CviiiSpriteLayers *s,uint32_t *frame,
                        const CviiiLayerFns *f)
 {
     if(!s || !frame || !mask || !f || !f->color)return;
-    /* NES lower-numbered OAM slots appear above higher slots. */
-    for(int i=CVIII_LAYER_SLOTS-1;i>=0;--i) {
-        paint(&s->held[i],frame,bg,mask,f);
-        paint(&s->current[i],frame,bg,mask,f);
+    /* JP0609: PRG26:$8001 rotates its OAM byte offset by +$44
+     * (17 hardware slots) each frame. Each emitted sprite then advances
+     * by +$C4 bytes (-15 slots). NES priority by raw OAM slot therefore
+     * visibly swaps overlapped actors as that offset rotates.
+     *
+     * Reconstruct the STABLE logical emission order. Lower emission
+     * indices were written earlier by the original per-object builder
+     * and remain in front when overlap occurs. Never alter the PPU's
+     * real OAM, sprite-zero, overflow or game collision flags.
+     *
+     * Paint previous-frame rescued pieces first under CURRENT sprites:
+     * an older ghost can never obscure a live sprite in this mode.
+     */
+    for(int emission=CVIII_LAYER_SLOTS-1;emission>=0;--emission) {
+        uint8_t byte_offset=(uint8_t)(s->prior_phase+
+                                      (unsigned)emission*0xC4u);
+        unsigned slot=(byte_offset>>2)&63u;
+        paint(&s->held[slot],frame,bg,mask,f);
+    }
+    for(int emission=CVIII_LAYER_SLOTS-1;emission>=0;--emission) {
+        uint8_t byte_offset=(uint8_t)(s->phase+
+                                      (unsigned)emission*0xC4u);
+        unsigned slot=(byte_offset>>2)&63u;
+        paint(&s->current[slot],frame,bg,mask,f);
     }
 }

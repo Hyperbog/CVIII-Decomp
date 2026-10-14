@@ -189,8 +189,13 @@ static void frame_end(void *context)
             tables[y] = cyc_render_line_sprite_table((int)y);
         }
         const uint8_t *oam = cyc_render_oam();
-        if (oam) cviii_layers_capture(&settings->sprite_layers,
-            oam, settings->layer_masks, tall, tables, &layer_functions);
+        /* $22 is the ORIGINAL game OAM emission phase. Unlike raw OAM
+         * slot priority it is stable when converted back into logical
+         * object emission order (stride $C4, frame shift $44). */
+        const uint8_t *ram = cyc_cpu_ram();
+        if (oam && ram) cviii_layers_capture(&settings->sprite_layers,
+            oam, ram[0x22], settings->layer_masks, tall, tables,
+            &layer_functions);
     }
     if (settings->frame_evidence.output && settings->fetch.active) {
         const CycLine *source_lines = cyc_frame_lines();

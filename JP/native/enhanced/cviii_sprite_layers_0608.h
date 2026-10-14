@@ -15,6 +15,7 @@ typedef struct {
     CviiiLayerSprite current[CVIII_LAYER_SLOTS];
     CviiiLayerSprite held[CVIII_LAYER_SLOTS];
     unsigned held_now;
+    uint8_t phase, prior_phase;
     uint64_t frames, total_held;
     bool primed;
 } CviiiSpriteLayers;
@@ -25,6 +26,7 @@ typedef struct {
 } CviiiLayerFns;
 void cviii_layers_reset(CviiiSpriteLayers *layers);
 void cviii_layers_capture(CviiiSpriteLayers *layers, const uint8_t oam[256],
+                          uint8_t oam_start_phase,
                           const uint8_t sprite_mask[CVIII_LAYER_H],
                           const uint8_t tall[CVIII_LAYER_H],
                           const uint16_t tables[CVIII_LAYER_H],
