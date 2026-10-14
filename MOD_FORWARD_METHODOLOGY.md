@@ -289,17 +289,11 @@ Project-level guidance may **specialize** platform details but must not
 quietly weaken authenticity, isolation, deterministic resolution,
 security, user rights or the requirement to label unfinished capabilities.
 
-### Project-specific documentation in this repository
+This shared policy deliberately does **not** prescribe the exact address mapping,
+renderer, mixer, input driver, executable format, editor UI, or release model for
+any particular game. Those belong in the project-specific modding profile, with
+links to the actual code and tests.
 
-- **JP port direction:** [Enhanced architecture and proposed
-  menu/editor contracts](JP/docs/ENHANCED_MODDING_ARCHITECTURE.md).
-- **Original behavior/evidence:** [shared decompilation agent
-  rules](SharedDecomp/AGENT_RULES.md) and
-  [JP continuity](JP/docs/DECOMPILATION_CONTINUITY.md).
-- **Status:** JP0619 has a three-row original-CHR audio-slider
-  **noninteractive preview** and live Master volume attenuation.
-  Separate Music/SFX buses, player-facing menu, mod loader and
-  editors remain **not implemented**.
-
-**This policy is not a semantic decompilation checkpoint.**
-Original evidence and progress metrics remain independently audited.
+**This methodology is not a semantic decompilation checkpoint or a parity
+certificate.** Original evidence and implementation progress remain
+independently audited.
