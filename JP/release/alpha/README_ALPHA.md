@@ -542,3 +542,7 @@ Rebuild your private AlphaCandidate and use `Launch-Alpha.ps1 -Edition Enhanced 
 ## JP0614 — Paired audio capture session safety
 
 With a freshly built private AlphaCandidate, use Launch-Alpha.ps1 -Edition Enhanced -AudioTrace. The launcher now collects CVIII-Sound-Requests.csv, CVIII-Audio-Registers.csv and CVIII-Audio-Epochs.csv; on successful exit, writes CVIII-Audio-Session.json with new GUID and SHA-256 bindings plus CVIII-Audio-Epoch-Verification.json. A loaded saved game begins a new analysis epoch even if CPU cycles rewind. Whole-file JP0610 register analysis is skipped for multi-epoch sessions; JP0613 request/voice proximity is still noncausal. No ROM, sound, PPU, gameplay, or native mixer behavior changes.
+
+## JP0615 — Optional independent Mesen sound-request verification
+
+The private AlphaCandidate kit now includes jp_mesen_sound_requests_0615.py and mesen_jp_sound_requests_0615.lua alongside the JP0614 provenance verifier. For a valid comparison, retain a **single power-on epoch** native -AudioTrace capture and separately replay the identical controller inputs/duration on the SHA-pinned Mesen2 v2.1.1 original-JP ROM agent. Run the JP0615 tool against that private Mesen JSONL and AlphaCandidate directory. Compare sound entry A/X/Y/S/P/software $23 bank/stack; request interval cycle deltas are independent findings. Arbitrary manual play, save-state load epochs, empty output or a different original route cannot establish parity. No audio, music/SFX scheduler or gameplay changes.
