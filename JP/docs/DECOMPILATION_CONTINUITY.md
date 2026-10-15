@@ -974,3 +974,22 @@ candidates and 0529/0538 already-certified mnemonic lifts for source
 classification; do not confuse lossless .byte listings with genuine
 instruction semantics. Strict 49,504/262144 PRG, VPP27, 0508 and
 fixed $FB96; RESUME_STATE unchanged.
+
+## JP0628 — Raw0A producer-domain hazard requires real mapper/liveness evidence
+
+[JP0628](../analysis/0628_ROOM_SELECTOR_PRODUCER_BOUNDARY.md) is a
+reproducible ROM-authenticated 6502 prefix interpreter that enumerates
+all 256 raw0A:$B7F7 RAM[$07A0] selector outcomes with independent
+pointer-byte decoding, plus all 256 raw01:$BB57 RAM[$30] producer
+inputs. One conditional path $30=$06 -> $07A0=$35 -> pointer $FF63
+lies outside the five-stream switchable bank0E window, but DOES NOT
+prove a real cross-frame caller chain, out-of-bounds CPU bus address
+($FF63 belongs to fixed ROM), a crash or safe input bound.
+High-bit alias period 128 is confirmed; other in-window pointers
+are still unvalidated data. Local original-ROM run and synthetic
+altered-opcode negative test PASS, script matches Git blob
+8ce922e80b3a0f742383175c572f05f0838e955f.
+ROM-free smoke in Linux/Windows CI; 0507/0508 fixed fingerprints
+rechecked against owner ROM. R-002 is still OPEN pending real
+Mesen original gameplay RAM-write/caller/mapper trace. No new PRG
+credit: 49,504/262144; VPP27; 0508; $FB96; RESUME_STATE unchanged.
