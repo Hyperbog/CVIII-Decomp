@@ -586,3 +586,9 @@ The private fifth SDL patch reuses the host's normal paused-frame and input-rele
 ## JP0624 — Start/Pause action integration test
 
 `JP/tools/jp_start_pause_shell_test_0624.py` imports the **actual JP0623 F4 menu SDL action source fragment** and compiles a ROM-free fake-host regression in offline and netplay configurations, linked against the real Start/Pause registry. Linux CI runs this strict C11 test; Windows CI runs `--smoke` to check exact source extraction. A locally mirrored C11 host fixture PASS in both offline and netplay modes, but the precise source-generated harness and full pinned native Windows SDL build have not yet been independently executed here. This is development-side action/input safety coverage, not a new menu control or a certified owner gameplay build.
+
+## JP0625 — In-menu Save/Load slot chooser (build owner QA outstanding)
+
+In the latest Enhanced F4 Start/Pause source, **Save State** and **Load State** now open their own original in-game-font screen listing the selected quick-save slot **0–9**. Up/Down or Left/Right (keyboard and gamepad D-pad) adjusts by one with wraparound; Enter/gamepad A confirms, Escape/Backspace/B returns to the parent without saving/loading, and F4/gamepad Start closes the menu. The selected slot is applied to the pinned host's existing full-machine Save/Load handlers, not to a new incompatible format; `Ctrl+0..9` and F8/F9 game shortcuts still work. These visuals require the authenticated private `CVIII-CHR-Index.dat` file. The original game input and emulated timing are intended to be unchanged while outside modal UI.
+
+**Verification status:** strict C11 unit + original-font renderer tests PASS locally; pinned six-layer SDL generation, new CI outcomes, actual owner Windows/gamepad/native slot file round-trip are pending. A source commit alone is not proof of playable Alpha acceptance.
