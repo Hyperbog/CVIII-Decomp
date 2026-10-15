@@ -171,3 +171,17 @@ annotations to a verified source. Do not commit JP0627-generated
 ROM-equivalent ASM files. ROM-free tests run in Linux/Windows CI;
 original-ROM roundtrip was successfully executed locally. Strict
 49,504/262,144 PRG, VPP27, checkpoint0508, frontier $FB96 unchanged.
+
+## JP0628 — Whole-selector proof, without treating pointers as live code
+
+[JP0628 raw0A selector boundary](../analysis/0628_ROOM_SELECTOR_PRODUCER_BOUNDARY.md)
+demonstrates how the JP0627 private physical-byte reference and the
+whole-PRG atlas should be used: investigate **real ROM-decoded**
+consumer/producer instructions, enumerate the actual 8-bit indexing
+domain, and refuse to promote structurally plausible pointer values
+without mapper state and original-game execution. The 256-value
+raw0A:$B7F7 study finds 10 aliases to five already-audited room
+stream roots, 26 other pointers inside a bank window and 220 outside.
+These are **conditional pointer computations**, not 220 demonstrated
+faults or 36 valid gameplay selectors. Five-stream global bounds
+and R-002 liveness are not yet proved; strict bytes unchanged.
