@@ -39,6 +39,10 @@ static bool cviii_audio_menu_toggled=false;
 static int save_calls=0,load_calls=0,audio_calls=0,note_calls=0;
 static int assets_ok=1,enhanced=1;
 static int audio_open=0;
+#ifdef NESRECOMP_NET
+static int netplay_on=0;
+static bool nes_netplay_active(void) {return netplay_on!=0;}
+#endif
 static void note(const char *title,const char *detail)
 {
  (void)title;(void)detail;note_calls++;
@@ -78,6 +82,12 @@ int main(void)
  assert(cviii_pause_accept()==CVIII_START_NONE);
  cviii_pause_button(SDL_CONTROLLER_BUTTON_A);
  assert(save_calls==0 && load_calls==0);
+#ifdef NESRECOMP_NET
+ netplay_on=1;
+ e=key(SDL_SCANCODE_F4,0);
+ assert(cviii_pause_key(&e) && !cviii_pause_active());
+ netplay_on=0;
+#endif
  enhanced=0;
  e=key(SDL_SCANCODE_F4,0);
  assert(cviii_pause_key(&e) && !cviii_pause_active());
@@ -168,11 +178,13 @@ def main()->None:
         c_file=Path(temp)/"audio_start_shell.c"
         exe=Path(temp)/("audio_start_shell.exe" if os.name=="nt" else "audio_start_shell")
         c_file.write_text(source,encoding="utf-8")
-        subprocess.run([a.cc,"-std=c11","-O2","-Wall","-Wextra",
-                        "-Werror","-pedantic","-I",str(ENHANCED),
-                        str(c_file),str(ENHANCED/"cviii_start_menu_0623.c"),
-                        "-o",str(exe)],check=True)
-        subprocess.run([str(exe)],check=True)
-    print("PASS JP0624 patcher-extracted F4 SDL shell compiled and executed")
+        for suffix,extra in (("offline",[]),("netplay",["-DNESRECOMP_NET"])):
+            out=exe.with_name(exe.stem+"_"+suffix+exe.suffix)
+            subprocess.run([a.cc,"-std=c11","-O2","-Wall","-Wextra",
+                            "-Werror","-pedantic",*extra,"-I",str(ENHANCED),
+                            str(c_file),str(ENHANCED/"cviii_start_menu_0623.c"),
+                            "-o",str(out)],check=True)
+            subprocess.run([str(out)],check=True)
+    print("PASS JP0624 patcher-extracted SDL shell compiled/executed offline + netplay")
 
 if __name__=="__main__":main()
