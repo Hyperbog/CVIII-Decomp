@@ -109,3 +109,7 @@ and NMI/IRQ tracing remains necessary to close R-002.
 Strict PRG, original code/data classifications, VPP and frontier
 remain unchanged; the public machine-readable report contains
 only non-lossless findings.
+
+## JP0629 — Nine identified original-bank01 producer cells; original-Mesen watchpoints ready
+
+[JP0629 findings](../analysis/0629_MESEN_ROOM_SELECTOR_PROVENANCE.md) distinguish a nine-byte source table raw01:$BB62–$BB6A from the following code-like $BB6B region (candidate JMP from $B877). Only hypothesized $30 values 00–11 index within those nine identified cells; classifying their *independent hypothetical* raw0A room pointers gives six known streams, four unvalidated in-window targets and eight outside the expected bank0E window. This does not imply any eight original gameplay faults or 18 proven input values. The owner-only Mesen Lua script watches physical raw01:$BB57, raw0A:$B7F7 and every mirrored RAM $07A0 write, and a strict validator checks event chronology, physical PRG identity and source ROM pointer bytes. Capture has not been run. R-002 remains OPEN pending real original game producer ordering; original source partition and decomp ledger unchanged.
