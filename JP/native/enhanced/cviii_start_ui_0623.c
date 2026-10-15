@@ -58,3 +58,24 @@ int cviii_start_ui_draw(uint32_t *pixels,unsigned w,unsigned h,
     print_at(pixels,chr,44,196,"F4 ESC CLOSE",0);
     return 1;
 }
+
+/* JP0625: original-font slot selection, shared panel and authenticated CHR. */
+int cviii_start_slot_ui_draw(uint32_t *pixels,unsigned w,unsigned h,
+                             const CviiiChrIndex *assets,
+                             const CviiiSlotPicker *picker)
+{
+    if(!pixels || w!=SCREEN_W || h!=SCREEN_H || !assets ||
+       !assets->pixels || !cviii_slot_active(picker)) return 0;
+    const unsigned char *chr=assets->pixels;
+    for(unsigned y=PANEL_Y;y<PANEL_Y+PANEL_H;y++)
+        for(unsigned x=PANEL_X;x<PANEL_X+PANEL_W;x++)
+            pixels[y*SCREEN_W+x]=UINT32_C(0xFF09070F);
+    print_at(pixels,chr,80u,60u,
+             picker->mode==CVIII_START_SAVE?"SAVE SLOT":"LOAD SLOT",0);
+    const char digit[2]={(char)('0'+picker->slot),'\0'};
+    print_at(pixels,chr,124u,96u,digit,1);
+    print_at(pixels,chr,48u,139u,"LEFT RIGHT SLOT",0);
+    print_at(pixels,chr,48u,162u,"ENTER CONFIRM",0);
+    print_at(pixels,chr,84u,186u,"ESC BACK",0);
+    return 1;
+}
