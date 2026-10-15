@@ -993,3 +993,7 @@ ROM-free smoke in Linux/Windows CI; 0507/0508 fixed fingerprints
 rechecked against owner ROM. R-002 is still OPEN pending real
 Mesen original gameplay RAM-write/caller/mapper trace. No new PRG
 credit: 49,504/262144; VPP27; 0508; $FB96; RESUME_STATE unchanged.
+
+## JP0629 — Actual producer/consumer liveness remains outstanding
+
+[JP0629](../analysis/0629_MESEN_ROOM_SELECTOR_PROVENANCE.md): source-authenticated nine-byte raw01:$BB62–$BB6A table boundary, followed by code-like $BB6B and raw01:$B877 JMP $BB6B. The conditional $30=00..11 table-only domain has six downstream known-root, four in-window unvalidated, eight outside-window pointer computations. No live $30 domain or actual raw01-to-raw0A producer/consumer timing is demonstrated. Added read-only original-Mesen2 Lua script (physically gated producer raw01:$BB57 and consumer raw0A:$B7F7, RAM $07A0 mirrored write callbacks, event/cycle order and expected pointer) and strict owner-local ROM-backed log validator, plus ROM-free smoke in both CI workflows. The original ROM table audit PASS locally; synthetically tested parser negative cases PASS; no authentic Mesen log or CI outcome yet. Continue R-002 with owner emulator gameplay and mapper trace, **never promote strict PRG from these conditional arithmetic findings**. Certified 49,504/262144, VPP27, 0508, $FB96; RESUME_STATE untouched.
