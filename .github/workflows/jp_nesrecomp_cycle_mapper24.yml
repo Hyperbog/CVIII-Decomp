@@ -12,6 +12,7 @@ on:
       - "JP/tools/patch_cyc_audio_menu_0620.py"
       - "JP/tools/patch_cyc_start_menu_0623.py"
       - "JP/tools/jp_start_menu_pinned_gate_0623.py"
+      - "JP/tools/jp_start_pause_shell_test_0624.py"
       - "JP/tools/jp_audio_menu_pinned_gate_0621.py"
       - "JP/tools/patch_cyc_chr_fetch_0600.py"
       - "JP/tools/patch_cyc_ppu_nt_0606.py"
@@ -128,6 +129,10 @@ jobs:
             JP/native/enhanced/cviii_start_ui_test_0623.c \
             -o "${{ runner.temp }}/test_start_ui_0623"
           "${{ runner.temp }}/test_start_ui_0623"
+      - name: Verify JP0624 real generated F4 action shell under mock host (ROM-free)
+        run: |
+          python3 JP/tools/jp_start_pause_shell_test_0624.py --smoke
+          python3 JP/tools/jp_start_pause_shell_test_0624.py
       - name: Verify VRC6 CHR register mapping modes and physical offsets (ROM-free)
         run: |
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
