@@ -24,6 +24,7 @@
 #include "cviii_start_menu_0623.h"
 #include "cviii_start_host_0623.h"
 #include "cviii_start_ui_0623.h"
+#include "cviii_slot_picker_0625.h"
 #ifdef CYC_WITH_RECOMP_UI
 #include "recomp_runtime_ui.h"
 #endif
@@ -47,6 +48,7 @@ typedef struct {
     int audio_ui_preview; /* opt-in independent visual QA */
     CviiiAudioMenuState audio_ui; /* F6 modal selection, no guest RAM */
     CviiiStartMenu start_menu; /* F4 menu actions, no guest RAM */
+    CviiiSlotPicker slot_menu; /* JP0625, host-selected save file number */
     char audio_session_id[33]; /* launcher-supplied private session GUID */
     uint8_t layer_masks[CVIII_LAYER_H];
     CviiiChrIndex assets; /* read-only imported physical CHR; presentation only */
@@ -166,6 +168,7 @@ static int set_edition(const char *name)
     if (!strcmp(name, "original") || !strcmp(name, "Original")) {
         cviii_audio_menu_state_close(&cviii.audio_ui);
         cviii_start_close(&cviii.start_menu);
+        cviii_slot_cancel(&cviii.slot_menu);
         cviii.enhanced = 0;
         return 1;
     }
@@ -317,6 +320,7 @@ static void power_on(void *context)
     cviii_layers_reset(&settings->sprite_layers);
     cviii_audio_menu_state_close(&settings->audio_ui); /* reset cannot leave a stale modal */
     cviii_start_close(&settings->start_menu);
+    cviii_slot_cancel(&settings->slot_menu);
     cyc_render_capture_background(true);
     cviii_audio_session_mark(&settings->audio_session,"power_on",
         cyc_cycle_count(),settings->sound_requests.requests,settings->audio_bus.writes,
@@ -341,6 +345,7 @@ static void state_loaded(void *context)
     cviii_layers_reset(&settings->sprite_layers);
     cviii_audio_menu_state_close(&settings->audio_ui); /* loaded gameplay never owns a stale modal */
     cviii_start_close(&settings->start_menu);
+    cviii_slot_cancel(&settings->slot_menu);
     cviii_audio_session_mark(&settings->audio_session,"state_loaded",
         cyc_cycle_count(),settings->sound_requests.requests,settings->audio_bus.writes,
         settings->sound_requests.output,settings->audio_bus.output);
@@ -459,12 +464,38 @@ int cviii_pause_toggle(void)
         cviii_start_ready=1;
     }
     if(cviii.audio_ui.open && !cviii.start_menu.open)return 0;
+    if(cviii.start_menu.open)cviii_slot_cancel(&cviii.slot_menu);
     return cviii_start_toggle(&cviii.start_menu,cviii.enhanced,
                                cviii.assets.pixels!=NULL);
 }
 void cviii_pause_close(void)
 {
     cviii_start_close(&cviii.start_menu);
+    cviii_slot_cancel(&cviii.slot_menu);
+}
+/* JP0625: game-only slot edits; host owns authenticated state serialization. */
+int cviii_pause_slot_active(void)
+{
+    return cviii.start_menu.open && cviii_slot_active(&cviii.slot_menu);
+}
+int cviii_pause_slot_begin(int action,unsigned current_slot)
+{
+    if(!cviii.start_menu.open || !cviii.enhanced)return 0;
+    return cviii_slot_begin(&cviii.slot_menu,(CviiiStartAction)action,current_slot);
+}
+void cviii_pause_slot_cancel(void)
+{
+    cviii_slot_cancel(&cviii.slot_menu);
+}
+int cviii_pause_slot_step(int direction)
+{
+    return cviii.start_menu.open &&
+           cviii_slot_step(&cviii.slot_menu,direction);
+}
+int cviii_pause_slot_accept(unsigned *slot)
+{
+    if(!cviii.start_menu.open)return (int)CVIII_START_NONE;
+    return (int)cviii_slot_accept(&cviii.slot_menu,slot);
 }
 void cviii_pause_move(int direction)
 {
@@ -507,6 +538,10 @@ static const uint32_t *present(void *context,int *width,int *height)
         settings->assets.pixels && *width==CVIII_W && *height==CVIII_H) {
         if(frame!=settings->presentation)
             memcpy(settings->presentation,frame,sizeof settings->presentation);
+        if(cviii_pause_slot_active() &&
+           cviii_start_slot_ui_draw(settings->presentation,CVIII_W,CVIII_H,
+                                    &settings->assets,&settings->slot_menu))
+            return settings->presentation;
         if(cviii_start_ui_draw(settings->presentation,CVIII_W,CVIII_H,
                                &settings->assets,&settings->start_menu))
             return settings->presentation;
