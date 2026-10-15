@@ -13,6 +13,8 @@ on:
       - "JP/tools/patch_cyc_start_menu_0623.py"
       - "JP/tools/jp_start_menu_pinned_gate_0623.py"
       - "JP/tools/jp_start_pause_shell_test_0624.py"
+      - "JP/tools/patch_cyc_slot_picker_0625.py"
+      - "JP/tools/jp_slot_picker_pinned_gate_0625.py"
       - "JP/tools/jp_audio_menu_pinned_gate_0621.py"
       - "JP/tools/patch_cyc_chr_fetch_0600.py"
       - "JP/tools/patch_cyc_ppu_nt_0606.py"
@@ -73,6 +75,9 @@ jobs:
           python3 JP/tools/jp_start_menu_pinned_gate_0623.py --smoke
           python3 JP/tools/jp_start_menu_pinned_gate_0623.py \
             --source _external_nesrecomp/runner/cyc/cyc_sdl.c
+          python3 JP/tools/jp_slot_picker_pinned_gate_0625.py --smoke
+          python3 JP/tools/jp_slot_picker_pinned_gate_0625.py \
+            --source _external_nesrecomp/runner/cyc/cyc_sdl.c
           python3 JP/tools/patch_cyc_savestates_0591.py \
             --source _external_nesrecomp/runner/cyc/cyc_sdl.c \
             --out _external_nesrecomp/runner/cyc/cviii_cyc_sdl_slots.c
@@ -81,7 +86,7 @@ jobs:
         run: |
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
             -I _external_nesrecomp/runner/cyc \
-            JP/native/enhanced/cviii_edition.c JP/native/enhanced/cviii_chr_index_0598.c JP/native/enhanced/cviii_chr_audit_0599.c JP/native/enhanced/cviii_chr_fetch_0600.c JP/native/enhanced/cviii_frame_evidence_0601.c JP/native/enhanced/cviii_nt_trace_0606.c JP/native/enhanced/cviii_sprite_layers_0608.c JP/native/enhanced/cviii_object_oam_trace_0609.c JP/native/enhanced/cviii_audio_bus_0610.c JP/native/enhanced/cviii_sound_requests_0612.c JP/native/enhanced/cviii_audio_session_0614.c JP/native/enhanced/cviii_audio_levels_0618.c JP/native/enhanced/cviii_audio_ui_0619.c JP/native/enhanced/cviii_menu_registry_0620.c JP/native/enhanced/cviii_audio_menu_state_0622.c JP/native/enhanced/cviii_start_menu_0623.c JP/native/enhanced/cviii_start_ui_0623.c JP/native/enhanced/test_cviii_edition.c \
+            JP/native/enhanced/cviii_edition.c JP/native/enhanced/cviii_chr_index_0598.c JP/native/enhanced/cviii_chr_audit_0599.c JP/native/enhanced/cviii_chr_fetch_0600.c JP/native/enhanced/cviii_frame_evidence_0601.c JP/native/enhanced/cviii_nt_trace_0606.c JP/native/enhanced/cviii_sprite_layers_0608.c JP/native/enhanced/cviii_object_oam_trace_0609.c JP/native/enhanced/cviii_audio_bus_0610.c JP/native/enhanced/cviii_sound_requests_0612.c JP/native/enhanced/cviii_audio_session_0614.c JP/native/enhanced/cviii_audio_levels_0618.c JP/native/enhanced/cviii_audio_ui_0619.c JP/native/enhanced/cviii_menu_registry_0620.c JP/native/enhanced/cviii_audio_menu_state_0622.c JP/native/enhanced/cviii_start_menu_0623.c JP/native/enhanced/cviii_start_ui_0623.c JP/native/enhanced/cviii_slot_picker_0625.c JP/native/enhanced/test_cviii_edition.c \
             -o "${{ runner.temp }}/test_cviii_edition"
           "${{ runner.temp }}/test_cviii_edition"
       - name: Verify JP0618 enhanced PCM master level and 1-percent settings (ROM-free)
@@ -126,6 +131,7 @@ jobs:
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
             JP/native/enhanced/cviii_start_menu_0623.c \
             JP/native/enhanced/cviii_start_ui_0623.c \
+            JP/native/enhanced/cviii_slot_picker_0625.c \
             JP/native/enhanced/cviii_start_ui_test_0623.c \
             -o "${{ runner.temp }}/test_start_ui_0623"
           "${{ runner.temp }}/test_start_ui_0623"
@@ -133,6 +139,13 @@ jobs:
         run: |
           python3 JP/tools/jp_start_pause_shell_test_0624.py --smoke
           python3 JP/tools/jp_start_pause_shell_test_0624.py
+      - name: Verify JP0625 real Save/Load slot picker state 0-9 (ROM-free)
+        run: |
+          cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
+            JP/native/enhanced/cviii_slot_picker_0625.c \
+            JP/native/enhanced/cviii_slot_picker_test_0625.c \
+            -o "${{ runner.temp }}/test_slot_picker_0625"
+          "${{ runner.temp }}/test_slot_picker_0625"
       - name: Verify VRC6 CHR register mapping modes and physical offsets (ROM-free)
         run: |
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
