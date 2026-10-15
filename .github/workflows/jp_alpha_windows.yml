@@ -19,6 +19,8 @@ on:
       - "JP/tools/patch_cyc_slot_picker_0625.py"
       - "JP/tools/jp_slot_picker_pinned_gate_0625.py"
       - "JP/tools/jp_slot_shell_test_0625.py"
+      - "JP/tools/patch_cyc_audio_return_0626.py"
+      - "JP/tools/jp_audio_return_pinned_gate_0626.py"
       - "JP/tools/jp_audio_menu_pinned_gate_0621.py"
       - "JP/tools/patch_cyc_chr_fetch_0600.py"
       - "JP/tools/patch_cyc_ppu_nt_0606.py"
@@ -101,6 +103,10 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "JP0625 source patch smoke failed" }
           python JP/tools/jp_slot_picker_pinned_gate_0625.py --source _external_nesrecomp/runner/cyc/cyc_sdl.c
           if ($LASTEXITCODE -ne 0) { throw "JP0625 six-layer pinned SDL source gate failed" }
+          python JP/tools/jp_audio_return_pinned_gate_0626.py --smoke
+          if ($LASTEXITCODE -ne 0) { throw "JP0626 Audio return patch smoke failed" }
+          python JP/tools/jp_audio_return_pinned_gate_0626.py --source _external_nesrecomp/runner/cyc/cyc_sdl.c
+          if ($LASTEXITCODE -ne 0) { throw "JP0626 seventh-layer pinned SDL source gate failed" }
           python JP/tools/patch_cyc_chr_fetch_0600.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "PPU CHR observer anchor test failed" }
           python JP/tools/patch_cyc_ppu_nt_0606.py --smoke
@@ -334,6 +340,13 @@ jobs:
         run: |
           python JP/tools/jp_slot_shell_test_0625.py --smoke
           if ($LASTEXITCODE -ne 0) { throw 'JP0625 generated slot SDL source extraction failed' }
+      - name: Verify JP0626 Pause to Audio to Pause focus regression (ROM-free)
+        shell: pwsh
+        run: |
+          $exe = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win/Release/jp_menu_stack_test_0626.exe'
+          if (!(Test-Path -LiteralPath $exe)) { throw 'JP0626 nested menu test missing' }
+          & $exe
+          if ($LASTEXITCODE -ne 0) { throw 'JP0626 Audio return focus regression failed' }
       - name: Run bounded native C11 synthetic test with actual windowed-linked binary
         shell: pwsh
         run: |
