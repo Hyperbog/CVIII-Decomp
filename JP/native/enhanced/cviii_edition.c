@@ -25,6 +25,7 @@
 #include "cviii_start_host_0623.h"
 #include "cviii_start_ui_0623.h"
 #include "cviii_slot_picker_0625.h"
+#include "cviii_menu_stack_0626.h"
 #ifdef CYC_WITH_RECOMP_UI
 #include "recomp_runtime_ui.h"
 #endif
@@ -454,7 +455,7 @@ static const uint32_t *present_game(void *context, int *width, int *height)
 /* JP0623 game-owned Start/Pause state and stable action identities. */
 int cviii_pause_active(void)
 {
-    return cviii.start_menu.open;
+    return cviii_menu_stack_parent_active(&cviii.start_menu,&cviii.audio_ui);
 }
 int cviii_pause_toggle(void)
 {
@@ -463,7 +464,7 @@ int cviii_pause_toggle(void)
         cviii_start_seal(&cviii.start_menu);
         cviii_start_ready=1;
     }
-    if(cviii.audio_ui.open && !cviii.start_menu.open)return 0;
+    if(cviii.audio_ui.open)return 0; /* audio owns input until Back */
     if(cviii.start_menu.open)cviii_slot_cancel(&cviii.slot_menu);
     return cviii_start_toggle(&cviii.start_menu,cviii.enhanced,
                                cviii.assets.pixels!=NULL);
@@ -476,11 +477,11 @@ void cviii_pause_close(void)
 /* JP0625: game-only slot edits; host owns authenticated state serialization. */
 int cviii_pause_slot_active(void)
 {
-    return cviii.start_menu.open && cviii_slot_active(&cviii.slot_menu);
+    return cviii_pause_active() && cviii_slot_active(&cviii.slot_menu);
 }
 int cviii_pause_slot_begin(int action,unsigned current_slot)
 {
-    if(!cviii.start_menu.open || !cviii.enhanced)return 0;
+    if(!cviii_pause_active() || !cviii.enhanced)return 0;
     return cviii_slot_begin(&cviii.slot_menu,(CviiiStartAction)action,current_slot);
 }
 void cviii_pause_slot_cancel(void)
@@ -489,21 +490,29 @@ void cviii_pause_slot_cancel(void)
 }
 int cviii_pause_slot_step(int direction)
 {
-    return cviii.start_menu.open &&
+    return cviii_pause_active() &&
            cviii_slot_step(&cviii.slot_menu,direction);
 }
 int cviii_pause_slot_accept(unsigned *slot)
 {
-    if(!cviii.start_menu.open)return (int)CVIII_START_NONE;
+    if(!cviii_pause_active())return (int)CVIII_START_NONE;
     return (int)cviii_slot_accept(&cviii.slot_menu,slot);
 }
 void cviii_pause_move(int direction)
 {
-    (void)cviii_start_move(&cviii.start_menu,direction);
+    if(cviii_pause_active())
+        (void)cviii_start_move(&cviii.start_menu,direction);
 }
 int cviii_pause_accept(void)
 {
-    return (int)cviii_start_accept(&cviii.start_menu);
+    return cviii_pause_active() ?
+        (int)cviii_start_accept(&cviii.start_menu) : (int)CVIII_START_NONE;
+}
+/* JP0626: child Audio holds parent selection, returns there after Back. */
+int cviii_pause_audio_enter(void)
+{
+    return cviii_menu_stack_enter_audio(&cviii.start_menu,&cviii.audio_ui,
+                                        cviii.enhanced,cviii.assets.pixels!=NULL);
 }
 
 /* JP0620 game-owned UI control exported to the private window host overlay.
@@ -534,8 +543,8 @@ static const uint32_t *present(void *context,int *width,int *height)
 {
     CviiiEdition *settings=(CviiiEdition *)context;
     const uint32_t *frame=present_game(context,width,height);
-    if (settings->enhanced && settings->start_menu.open &&
-        settings->assets.pixels && *width==CVIII_W && *height==CVIII_H) {
+    if (settings->enhanced && !settings->audio_ui.open &&
+        settings->start_menu.open && settings->assets.pixels && *width==CVIII_W && *height==CVIII_H) {
         if(frame!=settings->presentation)
             memcpy(settings->presentation,frame,sizeof settings->presentation);
         if(cviii_pause_slot_active() &&
