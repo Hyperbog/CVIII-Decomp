@@ -946,3 +946,24 @@ proven mnemonics should be maintained in 0529/0538 lifting, not
 reclassified from all-byte opcode candidate decoding. Semantic strict
 PRG 49,504/262144 (18.8843%), VPP 27/100, checkpoint0508 and $FB96
 are unchanged; no RESUME_STATE promotion.
+
+## JP0628 — Original 6502 room-selector producer/consumer boundary, R-002 narrowed
+
+[JP0628 original-ROM audit](../analysis/0628_ROOM_SELECTOR_PRODUCER_BOUNDARY.md)
+executes actual Japanese 6502 instruction prefixes separately for raw01:$BB57
+(indexed writer of RAM $07A0) and raw0A:$B7F7 (five-word room-stream
+pointer consumer). Exhaustively tested **256 incoming $30 values and 256
+incoming $07A0 values** against the original SHA-authenticated ROM and
+independently checked each decoded pointer from physical raw0A bytes.
+Only 10 selectors lead to one of the five documented stream roots
+(indices 0..4 plus high-bit alias indices 128..132); 26 produce other
+addresses inside the expected bank window but without validated stream
+records; 220 produce pointers outside that raw-bank window.
+Conditional witness: raw01 input $30=$06 can produce $07A0=$35, which
+raw0A would interpret as pointer $FF63 if these independent code paths
+were connected in that order. **No actual live chain or gameplay crash
+proved.** Original ROM and synthetic smoke PASS locally; exact committed
+script blob matched locally tested code; Linux/Windows CI gates added.
+Fixed $FB96 recovery fingerprint and source-bank hashes preserved.
+R-002 remains OPEN; no strict new bytes. Strict 49,504/262144 PRG,
+VPP27/100, certified 0508, fixed frontier $FB96 unchanged.
