@@ -924,3 +924,25 @@ The future [Enhanced modding architecture](ENHANCED_MODDING_ARCHITECTURE.md) res
 ## JP0626 — Start/Pause Audio Back preserves parent and input pause
 
 [JP0626](../analysis/0626_NESTED_AUDIO_PAUSE_RETURN.md) fixes Start/Pause → Audio → Back returning directly to gameplay: the new game-owned `cviii_menu_stack_0626` parent/child focus boundary leaves the F4 Start/Pause open (Audio row selected) while the original-healthmeter F6 Audio child owns presentation/input. Closing Audio with F6/Escape/Backspace or controller B/Start restores the original-font Start/Pause menu **without advancing gameplay**; direct F6 from gameplay still returns to gameplay. A seventh fail-closed owner-private SDL patch changes Audio dispatch and preserves `open=true` within the **same SDL event batch**, avoiding transient input leakage on Back. CMake uses seventh overlay, and Linux/Windows CI include C11 menu-stack tests and genuine pinned-source seven-layer Python gate. **Actually run locally, PASS:** exact committed pure C11 source/tests with GCC `-Wall -Wextra -Werror -pedantic` and original-volume level code; exact seventh patcher smoke, Git blobs matched. Native Windows SDL executable, actual seven-stage pinned upstream gate and new Actions results remain unverified. Master gain remains real, Music/SFX saved only, gameplay baseline unchanged; strict 49,504/262144 PRG, VPP27, checkpoint0508/$FB96 unchanged.
+
+## JP0627 — Private whole-ROM assembly reference generated and byte-replay proved
+
+[JP0627 findings](../analysis/0627_COMPLETE_PRIVATE_ASM_REFERENCE.md) add
+a complete physically indexed source-reference generator across the
+**32 original 8 KiB PRG banks and 16 CHR banks**. The authenticated
+393,232-byte original Japanese retail ROM was actually run through
+the generator, with entire assembly source **re-parsed byte-for-byte
+against the original image**; PASS. Per-bank hash manifest,
+address-context-qualified physical-offset TSV and three structurally
+identified PRG31 vectors (NMI $E057, Reset $E00B, IRQ $E0F5) are available.
+Strict synthetic tests cover all 48 banks, determinism, corruption
+rejection, roundtrip and refusing copyrighted output in Git. The
+exact committed tool/test Git blobs match the locally executed files;
+both Linux/Windows CI gates are wired, execution outcomes unverified.
+
+**Important:** this is complete ROM byte representation, not 100%
+classified 6502 code. Unclassified source bytes remain .byte. Already
+proven mnemonics should be maintained in 0529/0538 lifting, not
+reclassified from all-byte opcode candidate decoding. Semantic strict
+PRG 49,504/262144 (18.8843%), VPP 27/100, checkpoint0508 and $FB96
+are unchanged; no RESUME_STATE promotion.
