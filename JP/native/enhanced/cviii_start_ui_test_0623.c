@@ -35,6 +35,20 @@ int main(void)
     assert(cviii_start_ui_draw(canvas+1,W,H,&index,&menu));
     assert(canvas[1+147u*W+32u]==0xFFFF882Cu);
     assert(canvas[1+147u*W+248u]==0xFF224466u); /* label cannot escape panel */
+    CviiiSlotPicker picker={0};
+    assert(!cviii_start_slot_ui_draw(canvas+1,W,H,&index,&picker));
+    assert(cviii_slot_begin(&picker,CVIII_START_SAVE,7u));
+    assert(cviii_start_slot_ui_draw(canvas+1,W,H,&index,&picker));
+    assert(canvas[1+60u*W+80u]==0xFFF1EEEAu); /* original SAVE font */
+    assert(canvas[1+96u*W+124u]==0xFFFF882Cu); /* original numeric 7 */
+    assert(canvas[1+239u*W+255u]==0xFF224466u);
+    cviii_slot_cancel(&picker);
+    assert(cviii_slot_begin(&picker,CVIII_START_LOAD,0u));
+    assert(cviii_start_slot_ui_draw(canvas+1,W,H,&index,&picker));
+    assert(canvas[1+60u*W+80u]==0xFFF1EEEAu); /* original LOAD font */
+    assert(canvas[1+96u*W+124u]==0xFFFF882Cu);
+    cviii_slot_cancel(&picker);
+    assert(!cviii_start_slot_ui_draw(canvas+1,W,H,&index,&picker));
     cviii_start_close(&menu);
     assert(!cviii_start_ui_draw(canvas+1,W,H,&index,&menu));
     assert(canvas[0]==0x00FEDCBAu && canvas[W*H+1u]==0x00ABCDEFu);
