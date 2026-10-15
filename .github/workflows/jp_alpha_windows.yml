@@ -7,6 +7,9 @@ on:
       - "JP/tools/build_private_asm_reference_0627.py"
       - "JP/tools/test_private_asm_reference_0627.py"
       - "JP/tools/audit_room_selector_window_0628.py"
+      - "JP/tools/audit_room_selector_table_0629.py"
+      - "JP/tools/audit_mesen_room_selector_trace_0629.py"
+      - "JP/tools/mesen_jp_room_selector_provenance_0629.lua"
       - "JP/tools/package_alpha_builder_0580.py"
       - "JP/tools/test_alpha_arguments_0604.ps1"
       - "JP/tools/test_alpha_python_0607.ps1"
@@ -83,6 +86,13 @@ jobs:
         run: |
           python JP/tools/test_private_asm_reference_0627.py
           if ($LASTEXITCODE -ne 0) { throw 'JP0627 bank reference regeneration failed' }
+      - name: Verify JP0629 source-identified Mesen event parser (ROM-free)
+        shell: pwsh
+        run: |
+          python JP/tools/audit_mesen_room_selector_trace_0629.py --smoke
+          if ($LASTEXITCODE -ne 0) { throw 'JP0629 Mesen trace validator smoke failed' }
+          python -m py_compile JP/tools/audit_room_selector_table_0629.py
+          if ($LASTEXITCODE -ne 0) { throw 'JP0629 room selector table audit compile failed' }
       - name: Verify JP0628 mapper-aware selector hazard guard (ROM-free)
         shell: pwsh
         run: |
