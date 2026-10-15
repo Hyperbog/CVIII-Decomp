@@ -15,6 +15,7 @@ on:
       - "JP/tools/jp_start_pause_shell_test_0624.py"
       - "JP/tools/patch_cyc_slot_picker_0625.py"
       - "JP/tools/jp_slot_picker_pinned_gate_0625.py"
+      - "JP/tools/jp_slot_shell_test_0625.py"
       - "JP/tools/jp_audio_menu_pinned_gate_0621.py"
       - "JP/tools/patch_cyc_chr_fetch_0600.py"
       - "JP/tools/patch_cyc_ppu_nt_0606.py"
@@ -146,6 +147,10 @@ jobs:
             JP/native/enhanced/cviii_slot_picker_test_0625.c \
             -o "${{ runner.temp }}/test_slot_picker_0625"
           "${{ runner.temp }}/test_slot_picker_0625"
+      - name: Verify JP0625 exact generated Save/Load SDL shell offline and netplay
+        run: |
+          python3 JP/tools/jp_slot_shell_test_0625.py --smoke
+          python3 JP/tools/jp_slot_shell_test_0625.py
       - name: Verify VRC6 CHR register mapping modes and physical offsets (ROM-free)
         run: |
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
