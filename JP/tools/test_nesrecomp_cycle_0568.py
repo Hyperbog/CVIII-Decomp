@@ -25,11 +25,19 @@ def main():
         old.write_text("PolyForm Noncommercial License 1.0.0\n")
         out=p/"out"
         cfg,build,run=commands(rom,engine,out,120,True)
-        assert cfg[:2]==["cmake","-S"] and cfg[-1]=="-DJP_CYCLE_HEADLESS=ON"
+        assert cfg[:2]==["cmake","-S"]
+        assert cfg.count("-DJP_CYCLE_HEADLESS=ON")==1
+        assert cfg.count("-DJP_PPU_IMPLEMENTATION=LLE")==1
+        assert cfg[-1]=="-DJP_PPU_IMPLEMENTATION=LLE"
         assert "-DJP_ORIGINAL_JP_ROM="+str(rom) in cfg
         assert "-DNESRECOMP_EXTERNAL_ROOT="+str(engine) in cfg
         assert build[:2]==["cmake","--build"]
         assert run[-2:]==["--frames","120"]
+        cfg_hle, _, _ = commands(rom,engine,out,120,True,ppu_impl="HLE")
+        assert cfg_hle.count("-DJP_PPU_IMPLEMENTATION=HLE")==1
+        assert "-DJP_PPU_IMPLEMENTATION=LLE" not in cfg_hle
+        expect_error(lambda:commands(rom,engine,out,120,True,ppu_impl="BAD"),
+                     "unknown PPU backend accepted")
         expect_error(lambda:commands(rom,engine,out,0,True),"zero frames accepted")
         expect_error(lambda:commands(rom,engine,out,12001,True),"unbounded frames accepted")
     print("PASS JP0568 C11 external cycle runner commands, mapper24 ROM gate, "

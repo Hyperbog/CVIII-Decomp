@@ -13,7 +13,7 @@ MARKER="CVIII_AUDIO_MENU_0620"
 SOURCE_NAME="cviii_cyc_sdl_stage_bootstrap.c"
 OUTPUT_NAME="cviii_cyc_sdl_audio_menu.c"
 OPEN_START="        bool open = menu_open() || cviii_stage_open;"
-OPEN_FINAL="        open = menu_open() || cviii_stage_open;"
+OPEN_FINAL="\n        open = menu_open() || cviii_stage_open;"
 KEY="                if ((!open || cviii_stage_open) && cviii_stage_key(&ev.key)) {"
 CONTROLLER="                menu_nav_button(ev.cbutton.button);"
 SHELL=r'''
@@ -112,7 +112,7 @@ def generate(src:str)->str:
 '''        cviii_audio_menu_toggled=false;
         bool open = menu_open() || cviii_stage_open || cviii_audio_menu_active();''')
     src=once(src,OPEN_FINAL,
-'''        open = menu_open() || cviii_stage_open || cviii_audio_menu_active();
+'''\n        open = menu_open() || cviii_stage_open || cviii_audio_menu_active();
         if (cviii_audio_menu_toggled && open && dev)
             SDL_ClearQueuedAudio(dev); /* no queued SFX bleeding into pause */''')
     src=once(src,"if (edge[CYC_SC_MENU] && s_have_menu)",
