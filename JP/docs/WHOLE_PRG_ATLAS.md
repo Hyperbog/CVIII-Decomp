@@ -146,3 +146,28 @@ The atlas is the base for:
 - later CPU/bank/interrupt parity traces.
 
 Those layers must preserve the same rule: acceleration may propose; JP-ROM evidence promotes.
+
+## JP0627 — Lossless private bank-addressed reference (separate from speculative atlas)
+
+[JP0627 evidence and reproduction](../analysis/0627_COMPLETE_PRIVATE_ASM_REFERENCE.md)
+provides a deterministic original-ROM-authenticated generator
+[build_private_asm_reference_0627.py](../tools/build_private_asm_reference_0627.py)
+with PRG00–31 and CHR00–15 physical 8 KiB bank listings, ROM.asm,
+manifest with per-bank SHA-256, and physical-offset navigation TSV.
+It re-parses its complete assembly-format .byte/.word output to prove
+**393,232/393,232 exact original retail-ROM bytes**, including the iNES
+header, without pretending all PRG bytes are executed instructions.
+The reference specifically identifies the three fixed-bank hardware
+vectors (NMI $E057, Reset $E00B, IRQ/BRK $E0F5) and distinguishes fixed
+PRG31 CPU addresses from switchable mapper-dependent physical offsets.
+
+**Division of labor:** JP0627 is the safe private, bank-addressed
+*byte/reference* layer; this atlas remains the provisional whole-PRG
+*discovery* layer; the existing 0529/0538 symbolic bank sources and
+verified checkpoint audits remain the *authenticated code/data lift*
+and semantic-certification layer. New candidate findings must first
+be reconciled with original CPU/mapper state before adding mnemonic
+annotations to a verified source. Do not commit JP0627-generated
+ROM-equivalent ASM files. ROM-free tests run in Linux/Windows CI;
+original-ROM roundtrip was successfully executed locally. Strict
+49,504/262,144 PRG, VPP27, checkpoint0508, frontier $FB96 unchanged.
