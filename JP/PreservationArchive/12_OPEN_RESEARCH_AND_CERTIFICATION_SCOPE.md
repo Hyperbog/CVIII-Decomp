@@ -183,3 +183,8 @@ No new source byte promotion or VPP credit is justified.
 ## JP0629 — Precise R-002 Mesen capture requirement
 
 [JP0629](../analysis/0629_MESEN_ROOM_SELECTOR_PROVENANCE.md) discovers nine distinct original raw01:$BB62–$BB6A table cells preceding code-like $BB6B and enumerates all 18 *conditional* $30 values that index only those cells. The true RAM $30 input domain and whether raw01:$BB57 ever feeds raw0A:$B7F7 on an actual played frame are still unproven. Read-only Mesen2 callback instrumentation now physically authenticates both mapped entries, captures mirrored writes to RAM $07A0 and consumer pointer values with cycle order. The ROM-authenticated report rejects mapper mismatch and interrupted timelines, but **no original emulator capture has yet been collected**, so it cannot close R-002. Future evidence must establish actual mapper bank, writer PC and value, intervening writers, source call-chain and relevant NMI/IRQ timing; only independently live, nonoverlapping bytes should be promoted.
+
+
+## JP0630 — R-002 producer STA and consumer result evidence gate
+
+[JP0630](../analysis/0630_MESEN_ROOM_CHAIN_POSTCONDITION.md) adds raw01:$BB5E and raw0A:$B806 instruction watchpoints, mirrored $30/$07A0 write logging, NMI/IRQ event ordering and strict original-ROM pointer comparison. Only synthetic trace regression and owner-original ROM identity/pointer checks have run; no actual Mesen session, original gameplay liveness, strict source-byte promotion or task closure. R-002 stays OPEN; certified 49,504 PRG bytes, VPP27, 0508 and fixed $FB96 unchanged.

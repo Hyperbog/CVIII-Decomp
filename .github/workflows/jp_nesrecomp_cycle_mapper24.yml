@@ -9,6 +9,8 @@ on:
       - "JP/tools/audit_room_selector_table_0629.py"
       - "JP/tools/audit_mesen_room_selector_trace_0629.py"
       - "JP/tools/mesen_jp_room_selector_provenance_0629.lua"
+      - "JP/tools/mesen_jp_room_chain_0630.lua"
+      - "JP/tools/audit_mesen_room_chain_0630.py"
       - "JP/tools/test_cycle_synthetic_rom_0569.py"
       - "JP/tools/check_cycle_stats_0571.py"
       - "JP/tools/validate_cycle_media_0576.py"
@@ -79,6 +81,7 @@ jobs:
         run: |
           python3 JP/tools/audit_mesen_room_selector_trace_0629.py --smoke
           python3 -m py_compile JP/tools/audit_room_selector_table_0629.py
+          python3 JP/tools/audit_mesen_room_chain_0630.py --smoke
       - name: Verify JP0628 raw0A room selector guard (ROM-free)
         run: python3 JP/tools/audit_room_selector_window_0628.py --smoke
       - name: Validate PPU diagnostic backend choice (no ROM)

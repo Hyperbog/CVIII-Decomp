@@ -10,6 +10,8 @@ on:
       - "JP/tools/audit_room_selector_table_0629.py"
       - "JP/tools/audit_mesen_room_selector_trace_0629.py"
       - "JP/tools/mesen_jp_room_selector_provenance_0629.lua"
+      - "JP/tools/mesen_jp_room_chain_0630.lua"
+      - "JP/tools/audit_mesen_room_chain_0630.py"
       - "JP/tools/package_alpha_builder_0580.py"
       - "JP/tools/test_alpha_arguments_0604.ps1"
       - "JP/tools/test_alpha_python_0607.ps1"
@@ -93,6 +95,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'JP0629 Mesen trace validator smoke failed' }
           python -m py_compile JP/tools/audit_room_selector_table_0629.py
           if ($LASTEXITCODE -ne 0) { throw 'JP0629 room selector table audit compile failed' }
+          python JP/tools/audit_mesen_room_chain_0630.py --smoke
+          if ($LASTEXITCODE -ne 0) { throw 'JP0630 Mesen room chain parser smoke failed' }
       - name: Verify JP0628 mapper-aware selector hazard guard (ROM-free)
         shell: pwsh
         run: |
