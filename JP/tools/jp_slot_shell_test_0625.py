@@ -113,7 +113,7 @@ int main(void)
  assert(cviii_pause_active() && save_calls==1);
  e=key(SDL_SCANCODE_ESCAPE,0);
  assert(cviii_pause_key(&e) && !cviii_pause_active());
- assert(save_calls==1 && load_calls==1);
+ assert(save_calls==1 && load_calls==1 && audio_calls==0);
  puts("PASS JP0625 exact slot SDL shell: 0/9 wrap, save/load, child cancel, netplay");
  return 0;
 }
