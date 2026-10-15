@@ -4,6 +4,8 @@ on:
     branches: [decompilation]
     paths:
       - "JP/release/alpha/**"
+      - "JP/tools/build_private_asm_reference_0627.py"
+      - "JP/tools/test_private_asm_reference_0627.py"
       - "JP/tools/package_alpha_builder_0580.py"
       - "JP/tools/test_alpha_arguments_0604.ps1"
       - "JP/tools/test_alpha_python_0607.ps1"
@@ -75,6 +77,11 @@ jobs:
         run: |
           python JP/tools/jp_password_debug_menu_0593.py --self-test
           if ($LASTEXITCODE -ne 0) { throw "Stage/companion debug contract failed" }
+      - name: Verify JP0627 full cartridge assembly round-trip generator (synthetic only)
+        shell: pwsh
+        run: |
+          python JP/tools/test_private_asm_reference_0627.py
+          if ($LASTEXITCODE -ne 0) { throw 'JP0627 bank reference regeneration failed' }
       - name: Test deterministic ROM-free asset cache and copyright boundary
         shell: pwsh
         run: |
