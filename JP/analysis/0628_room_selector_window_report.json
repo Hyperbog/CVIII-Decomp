@@ -13,7 +13,13 @@
     "producer_output_ram07a0": "35"
   },
   "consumer": "physical raw0A:$B7F7-$B805 reads word at $B8C2+((2*$07A0)&$FF)",
-  "five_stream_selector_values": [0, 1, 2, 3, 4],
+  "five_stream_selector_values": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
   "high_bit_mirror_period": 128,
   "kind": "original-ROM-bounded-producer-consumer-risk; not gameplay trace",
   "new_semantically_certified_prg_bytes": 0,
