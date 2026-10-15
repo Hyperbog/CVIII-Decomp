@@ -18,6 +18,7 @@ on:
       - "JP/tools/jp_start_pause_shell_test_0624.py"
       - "JP/tools/patch_cyc_slot_picker_0625.py"
       - "JP/tools/jp_slot_picker_pinned_gate_0625.py"
+      - "JP/tools/jp_slot_shell_test_0625.py"
       - "JP/tools/jp_audio_menu_pinned_gate_0621.py"
       - "JP/tools/patch_cyc_chr_fetch_0600.py"
       - "JP/tools/patch_cyc_ppu_nt_0606.py"
@@ -328,6 +329,11 @@ jobs:
           if (!(Test-Path -LiteralPath $exe)) { throw 'JP0625 native slot test missing' }
           & $exe
           if ($LASTEXITCODE -ne 0) { throw 'JP0625 slot state test failed' }
+      - name: Verify JP0625 generated slot SDL shell extraction (ROM-free)
+        shell: pwsh
+        run: |
+          python JP/tools/jp_slot_shell_test_0625.py --smoke
+          if ($LASTEXITCODE -ne 0) { throw 'JP0625 generated slot SDL source extraction failed' }
       - name: Run bounded native C11 synthetic test with actual windowed-linked binary
         shell: pwsh
         run: |
