@@ -955,3 +955,22 @@ The user now requires an **open-ended, modder-friendly Enhanced-only port**, whi
 ## JP0626 — Parent-preserving Audio modal, no 6502 changes
 
 [JP0626](../analysis/0626_NESTED_AUDIO_PAUSE_RETURN.md): F4 Start/Pause retains parent selection while Audio owns controls/visuals. Closing child with F6/Escape/B/Start returns to paused parent; F6 from gameplay still closes directly to gameplay. Focus isolation is in host-independent C11 `cviii_menu_stack_0626`; the owner-private seventh SDL overlay fixes the same-event `open` recomputation so subsequent SDL events never see an unpaused gap on the Audio→Pause transition. CMake targets and Linux/Windows CI gates add exact pinned-source seven-stage patch checks and C11 regression. **PASS locally** exact committed C11 sources/test and exact seventh-patcher Python smoke; full seven-stage pinned source execution, Windows SDL link, UI pause/gamepad gameplay, independent Music/SFX voice buses remain unverified. Strict semantic PRG 49,504, VPP27, certified 0508, frontier FB96; RESUME_STATE untouched.
+
+## JP0627 — Deterministic private full-ROM bank-addressed source baseline
+
+[JP0627](../analysis/0627_COMPLETE_PRIVATE_ASM_REFERENCE.md) now generates
+lossless owner-local ROM.asm, 32 PRG plus 16 CHR bank-addressed .asm
+files, per-bank hash manifest and a physical-offset TSV directly from
+the exact SHA-256 authenticated 393,232-byte Japanese ROM. The
+generated output is **copyrighted ROM-equivalent and deliberately not
+committed**; tracked Python generator rejects checkout-local output.
+Full assembly replay against the original 393232 retail bytes PASS
+locally; ROM-free deterministic tests PASS using matching committed
+source Git blobs. Fixed PRG31 hardware vectors independently read
+from the original ROM are NMI $E057, Reset $E00B and IRQ $E0F5.
+Those entrypoints seed future bank-qualified CFG analysis, not a
+new code-coverage certificate. Continue to use Whole-PRG Atlas for
+candidates and 0529/0538 already-certified mnemonic lifts for source
+classification; do not confuse lossless .byte listings with genuine
+instruction semantics. Strict 49,504/262144 PRG, VPP27, 0508 and
+fixed $FB96; RESUME_STATE unchanged.
