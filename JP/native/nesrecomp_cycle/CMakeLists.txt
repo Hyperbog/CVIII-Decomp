@@ -64,7 +64,8 @@ if(JP_EDITION_HOST_EXTRAS)
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_menu_registry_0620.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_menu_state_0622.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_start_menu_0623.c"
-  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_start_ui_0623.c")
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_start_ui_0623.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_slot_picker_0625.c")
 endif()
 nesrecomp_add_cycle_game(jp_akumajou_densetsu
  ROM "${JP_ORIGINAL_JP_ROM}" ${JP_CYCLE_OPTIONS} ${JP_HOST_SOURCES})
@@ -144,7 +145,18 @@ if(NOT JP_CYCLE_HEADLESS AND JP_SAVE_STATE_SLOTS)
   if(NOT JP_START_MENU_PATCH_RESULT EQUAL 0)
    message(FATAL_ERROR "F4 Start/Pause overlay failed: ${JP_START_MENU_PATCH_ERROR}")
   endif()
-  set(JP_FINAL_SDL_OVERLAY "${JP_START_MENU_OVERLAY}")
+  # JP0625: a sixth private layer opens a Save/Load 0..9 slot submenu.
+  set(JP_SLOT_MENU_OVERLAY "${NESRECOMP_EXTERNAL_ROOT}/runner/cyc/cviii_cyc_sdl_slot_picker.c")
+  execute_process(
+   COMMAND "${Python3_EXECUTABLE}"
+     "${CMAKE_CURRENT_LIST_DIR}/../../tools/patch_cyc_slot_picker_0625.py"
+     --source "${JP_START_MENU_OVERLAY}" --out "${JP_SLOT_MENU_OVERLAY}"
+   RESULT_VARIABLE JP_SLOT_MENU_PATCH_RESULT
+   ERROR_VARIABLE JP_SLOT_MENU_PATCH_ERROR)
+  if(NOT JP_SLOT_MENU_PATCH_RESULT EQUAL 0)
+   message(FATAL_ERROR "Save/Load slot menu overlay failed: ${JP_SLOT_MENU_PATCH_ERROR}")
+  endif()
+  set(JP_FINAL_SDL_OVERLAY "${JP_SLOT_MENU_OVERLAY}")
  endif()
  get_target_property(JP_GAME_SOURCES jp_akumajou_densetsu SOURCES)
  set(JP_PATCHED_SOURCES "")
@@ -400,5 +412,12 @@ set_property(TARGET jp_start_menu_test_0623 PROPERTY C_STANDARD 11)
 add_executable(jp_start_ui_test_0623
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_start_menu_0623.c"
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_start_ui_0623.c"
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_slot_picker_0625.c"
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_start_ui_test_0623.c")
 set_property(TARGET jp_start_ui_test_0623 PROPERTY C_STANDARD 11)
+
+# JP0625: Save/Load action subpage shares the pinned host's ten slots.
+add_executable(jp_slot_picker_test_0625
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_slot_picker_0625.c"
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_slot_picker_test_0625.c")
+set_property(TARGET jp_slot_picker_test_0625 PROPERTY C_STANDARD 11)
