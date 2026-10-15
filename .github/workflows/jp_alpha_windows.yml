@@ -6,6 +6,7 @@ on:
       - "JP/release/alpha/**"
       - "JP/tools/build_private_asm_reference_0627.py"
       - "JP/tools/test_private_asm_reference_0627.py"
+      - "JP/tools/audit_room_selector_window_0628.py"
       - "JP/tools/package_alpha_builder_0580.py"
       - "JP/tools/test_alpha_arguments_0604.ps1"
       - "JP/tools/test_alpha_python_0607.ps1"
@@ -82,6 +83,11 @@ jobs:
         run: |
           python JP/tools/test_private_asm_reference_0627.py
           if ($LASTEXITCODE -ne 0) { throw 'JP0627 bank reference regeneration failed' }
+      - name: Verify JP0628 mapper-aware selector hazard guard (ROM-free)
+        shell: pwsh
+        run: |
+          python JP/tools/audit_room_selector_window_0628.py --smoke
+          if ($LASTEXITCODE -ne 0) { throw 'JP0628 selector audit smoke failed' }
       - name: Test deterministic ROM-free asset cache and copyright boundary
         shell: pwsh
         run: |
