@@ -179,3 +179,7 @@ original Mesen trace shows the producer PC, selected VRC6 bank,
 RAM $07A0 value/order and subsequent raw0A consumer PC under a
 genuine gameplay trajectory, including intervening writes/IRQ.
 No new source byte promotion or VPP credit is justified.
+
+## JP0629 — Precise R-002 Mesen capture requirement
+
+[JP0629](../analysis/0629_MESEN_ROOM_SELECTOR_PROVENANCE.md) discovers nine distinct original raw01:$BB62–$BB6A table cells preceding code-like $BB6B and enumerates all 18 *conditional* $30 values that index only those cells. The true RAM $30 input domain and whether raw01:$BB57 ever feeds raw0A:$B7F7 on an actual played frame are still unproven. Read-only Mesen2 callback instrumentation now physically authenticates both mapped entries, captures mirrored writes to RAM $07A0 and consumer pointer values with cycle order. The ROM-authenticated report rejects mapper mismatch and interrupted timelines, but **no original emulator capture has yet been collected**, so it cannot close R-002. Future evidence must establish actual mapper bank, writer PC and value, intervening writers, source call-chain and relevant NMI/IRQ timing; only independently live, nonoverlapping bytes should be promoted.
