@@ -91,3 +91,21 @@ A separate, authentic mapper-24 Mesen2 reference reaches **playable Stage 1** by
 Independent retail-JP Mesen2 replay reaches **BLK 1-02** with right/jump controller pulses, in addition to prior BLK 1-01. See [multi-branch frame audit](../SharedNES/0508_STAGE1_MULTIBRANCH_REFERENCE.md): 9,500 emulated frame executions across seven divergent forks, 16,772 observed physical code bytes. The active gameplay first-level NMI state **$18=04** is real; subordinate $19 can reach $03 and $68 can visit $00-$09, while the bank-$0A hypothetical room-$0C/$0D branch remains unobserved. This does **not** earn stage/world milestone credit or prove a complete stage room map.
 
 The [0508 fixed PRG source certificate](../analysis/0508_MESEN_FIXED_LIVE_PROOF.md) independently admits **100 new** PRG31 instruction/operand bytes in original intro/prayer and Stage 1 actor cleanup paths. Fixed $FBA5/$FBB0 select raw bank $00 for real stream walkers and restore via E62D; fixed $FF06/$FF24 perform actual active slot scan and indexed object clear. **Strict PRG 49,504/262,144; VPP 26/100.** These verified code fragments must not be confused with conditional $18=0D room loader initialization or all stage resource data.
+
+## JP0628 — Exact ROM-wide selector boundary (R-002 OPEN)
+
+[JP0628](../analysis/0628_ROOM_SELECTOR_PRODUCER_BOUNDARY.md)
+executes actual authenticated raw-bank01:$BB57 and raw-bank0A:$B7F7
+6502 instruction prefixes independently over **every input byte**.
+Only selectors 0..4 (and unproven high-bit aliases 128..132) point
+to one of the five established bank0E room streams. 26 other
+selector values land at currently unvalidated addresses within
+$8000–$BFFF and 220 point outside that expected bank window.
+The separate bank01 writer can conditionally assign $07A0=$35
+at input $30=$06; raw0A would calculate $FF63 from that value.
+This is not a proven live chain or real game crash, and $FF63
+remains a valid fixed-bank CPU address. Independent mapper/producer
+and NMI/IRQ tracing remains necessary to close R-002.
+Strict PRG, original code/data classifications, VPP and frontier
+remain unchanged; the public machine-readable report contains
+only non-lossless findings.
