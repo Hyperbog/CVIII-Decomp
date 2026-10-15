@@ -163,3 +163,19 @@ The [unified JP0617 observer and parser](../analysis/0617_UNIFIED_SOUND_DISPATCH
 ## JP0619 — Authentic interface asset proof, playable audio menu pending
 
 [JP0619](../analysis/0619_AUTHENTIC_AUDIO_SLIDER_ART.md) locates and SHA-authenticates original JP CHR font numerals $1041–$104A, letters $1050–$1069, and filled/empty life-meter segments $1093/$1085. The native host has an opt-in, read-only, noninteractive 3-row slider preview from original CHR pixels; preview colors are not independently PPU-palette certified. Input isolation, menu pause, actual separate music/SFX buses and compiled Windows GUI QA remain pending, so no audio ownership or game-playback advancement is claimed. PRG 49,504/262,144 and VPP27 unchanged.
+
+## JP0628 R-002 progress — Conditional room-index counterexample, not closure
+
+[ROM-backed 0628 experiment](../analysis/0628_ROOM_SELECTOR_PRODUCER_BOUNDARY.md):
+all 256 selector bytes at physical raw0A:$B7F7 produce 10 roots
+matching five documented streams (including 5 high-bit aliases),
+26 other pointers inside the expected bank window and 220
+outside. Original raw01:$BB57 with conditional input $30=$06 can
+write $07A0=$35, which raw0A would decode as $FF63.
+This is conditional calculation by *two separately mapped source
+fragments*, not evidence that this producer actually feeds that
+consumer in a live original game. R-002 remains OPEN until
+original Mesen trace shows the producer PC, selected VRC6 bank,
+RAM $07A0 value/order and subsequent raw0A consumer PC under a
+genuine gameplay trajectory, including intervening writes/IRQ.
+No new source byte promotion or VPP credit is justified.
