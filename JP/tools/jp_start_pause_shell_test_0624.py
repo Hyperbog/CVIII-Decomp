@@ -147,8 +147,19 @@ def main()->None:
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--cc",default=os.getenv("CC","cc"))
     parser.add_argument("--emit-c",type=Path)
+    parser.add_argument("--smoke",action="store_true",
+                        help="Check exact shell extraction without a C compiler")
     a=parser.parse_args()
     source=shell_source()
+    if a.smoke:
+        for token in ("cviii_pause_key(", "cviii_pause_button(",
+                      "case CVIII_START_SAVE:", "case CVIII_START_LOAD:",
+                      "case CVIII_START_AUDIO:", "case CVIII_START_QUIT:",
+                      "SDL_SCANCODE_F4", "SDL_CONTROLLER_BUTTON_A"):
+            if token not in source:
+                raise ValueError("Missing expected real SDL shell action: "+token)
+        print("PASS JP0624 exact JP0623 F4 action shell extracted safely")
+        return
     if a.emit_c:
         a.emit_c.write_text(source,encoding="utf-8")
         print("Wrote owner-independent C integration fixture: "+str(a.emit_c))
