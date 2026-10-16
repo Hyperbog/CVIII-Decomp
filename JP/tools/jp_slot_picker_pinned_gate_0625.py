@@ -62,7 +62,7 @@ def final_check(src:str)->dict:
             key.index("    if(sc==SDL_SCANCODE_ESCAPE || sc==SDL_SCANCODE_BACKSPACE) {",
                       key.index("if(cviii_pause_slot_active())")+2),
             "slot Escape must be handled by child before parent")
-    require(key.index("if(sc==SDL_SCANCODE_F4)") <
+    require(key.index("if (sc==SDL_SCANCODE_F4) {") <
             key.index("if(cviii_pause_slot_active())"),
             "F4 must retain whole-menu close behavior")
     return {"six_layers":["0591","0594","0596","0620","0623","0625"],
@@ -75,6 +75,17 @@ def smoke()->None:
     patch=imp(HERE/"patch_cyc_slot_picker_0625.py")
     patch.smoke()
     assert patch.MARKER=="CVIII_SLOT_SELECTOR_0625"
+    # JP0623 has a space after 'if', while JP0625's nested branches
+    # use compact 'if('. Enforce actual generated order, not style.
+    k = (
+        "    if (sc==SDL_SCANCODE_F4) {\n"
+        "    if(cviii_pause_slot_active()) {\n"
+        "    if(sc==SDL_SCANCODE_ESCAPE || sc==SDL_SCANCODE_BACKSPACE) {\n"
+    )
+    require(k.index("if (sc==SDL_SCANCODE_F4) {") <
+            k.index("if(cviii_pause_slot_active())"),
+            "F4 parent close must precede child picker")
+
     print("PASS JP0625 ROM-free generated slot patch source gate")
 
 def main()->None:

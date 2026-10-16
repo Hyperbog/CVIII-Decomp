@@ -986,3 +986,8 @@ VPP27/100, certified 0508, fixed frontier $FB96 unchanged.
 ## JP0636 — F6 pinned source guard position corrected
 
 [JP0636](../analysis/0636_F6_PREFIX_SOURCE_GATE.md) repairs a source-test false negative: JP0621 formerly searched for an F10 exclusion guard after F6's callback, while the actual JP0620 patch places the guard before that callback. An exact combined guard/callee check and tamper-negative fixtures replace it. Full native integration/Windows playtest still require independent CI and original reference emulator observation. Strict 49,504/262,144, VPP27, 0508, $FB96, R-002 unchanged.
+
+
+## JP0637 — JP0625 six-stage F4 source gate spelling fix
+
+[JP0637](../analysis/0637_SLOT_PICKER_SOURCE_GATE.md) fixes another source-audit typo: the source gate looked for `if(sc==SDL_SCANCODE_F4)` while authentic JP0623 inserts `if (sc==SDL_SCANCODE_F4) {`. The corrected assertion continues to require F4 before the child slot handling and child Escape before parent Escape, without changing the SDL overlay or game code. Fresh CI required; strict PRG49,504, VPP27, checkpoint0508, $FB96 and R-002 remain unchanged.
