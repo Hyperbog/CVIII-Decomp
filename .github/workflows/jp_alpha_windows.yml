@@ -39,6 +39,7 @@ on:
       - "JP/tools/patch_cyc_sound_requests_0612.py"
       - "JP/tools/patch_cyc_sound_decisions_0646.py"
       - "JP/tools/jp_dmc_original_source_0648.py"
+      - "JP/tools/jp_dpcm_memory_audit_0649.py"
       - "JP/tools/jp_audio_bus_report_0610.py"
       - "JP/tools/jp_audio_session_verify_0614.py"
       - "JP/tools/jp_mesen_sound_requests_0615.py"
@@ -336,6 +337,18 @@ jobs:
           if (!(Test-Path -LiteralPath $test)) { throw 'JP0648 DMC source event C11 test missing' }
           & $test
           if ($LASTEXITCODE -ne 0) { throw 'JP0648 bounded 15-program DMC event regression' }
+      - name: Verify JP0649 bounded mapper8 sample-region original source smoke (ROM-free)
+        shell: pwsh
+        run: |
+          python JP/tools/jp_dpcm_memory_audit_0649.py --smoke
+          if ($LASTEXITCODE -ne 0) { throw 'JP0649 DPCM mapper bounds regression' }
+      - name: Verify JP0649 NTSC PAL read-only raw DAC decoder (ROM-free)
+        shell: pwsh
+        run: |
+          $test = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win/Release/jp_dpcm_decode_test_0649.exe'
+          if (!(Test-Path -LiteralPath $test)) { throw 'JP0649 DPCM C11 test missing' }
+          & $test
+          if ($LASTEXITCODE -ne 0) { throw 'JP0649 raw DPCM bounds and period regression' }
       - name: Verify JP0646 real native sound-driver branch logger (ROM-free)
         shell: pwsh
         run: |

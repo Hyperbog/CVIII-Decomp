@@ -60,6 +60,7 @@ if(JP_EDITION_HOST_EXTRAS)
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_sound_requests_0612.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_sound_decisions_0646.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_dmc_source_0648.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_dpcm_decode_0649.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_session_0614.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_levels_0618.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_virtual_audio_0647.c"
@@ -417,6 +418,14 @@ add_executable(jp_dmc_source_test_0648
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_dmc_source_0648.c"
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_dmc_source_test_0648.c")
 set_property(TARGET jp_dmc_source_test_0648 PROPERTY C_STANDARD 11)
+
+# JP0649: dormant bounded source/mapper8 + raw DPCM 7-bit decoder.
+# Original-JP sample bytes and ROM-derived fixtures remain owner-private.
+add_executable(jp_dpcm_decode_test_0649
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_dmc_source_0648.c"
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_dpcm_decode_0649.c"
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_dpcm_decode_test_0649.c")
+set_property(TARGET jp_dpcm_decode_test_0649 PROPERTY C_STANDARD 11)
 
 # JP0614: owner-local session epochs; host callbacks only, not machine state.
 add_executable(jp_audio_session_test_0614
