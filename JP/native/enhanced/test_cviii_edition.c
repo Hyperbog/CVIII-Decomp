@@ -9,6 +9,10 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+/* JP0638: the pinned production core provides the real CPU cycle counter.
+ * The isolated ROM-free host test links no guest CPU, so it supplies an
+ * explicitly inert counter; this must not be linked into the game binary. */
+uint64_t cyc_cycle_count(void) { return UINT64_C(0); }
 /* Read-only JP0599 debug interface mocks for isolated host extension test. */
 const uint8_t *cyc_ppu_palette(void) {
     static uint8_t palette[32];

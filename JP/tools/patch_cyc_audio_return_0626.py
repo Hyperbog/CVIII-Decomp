@@ -64,7 +64,7 @@ def smoke()->None:
         try:generate(changed)
         except ValueError:continue
         raise AssertionError("JP0626 accepted a changed/double-patched SDL host")
-    print("PASS JP0626 nested Audio↔Pause SDL return and event-batch pause gate")
+    print("PASS JP0626 nested Audio<->Pause SDL return and event-batch pause gate")
 
 def main()->None:
     p=argparse.ArgumentParser(description=__doc__)

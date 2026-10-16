@@ -991,3 +991,8 @@ VPP27/100, certified 0508, fixed frontier $FB96 unchanged.
 ## JP0637 — JP0625 six-stage F4 source gate spelling fix
 
 [JP0637](../analysis/0637_SLOT_PICKER_SOURCE_GATE.md) fixes another source-audit typo: the source gate looked for `if(sc==SDL_SCANCODE_F4)` while authentic JP0623 inserts `if (sc==SDL_SCANCODE_F4) {`. The corrected assertion continues to require F4 before the child slot handling and child Escape before parent Escape, without changing the SDL overlay or game code. Fresh CI required; strict PRG49,504, VPP27, checkpoint0508, $FB96 and R-002 remain unchanged.
+
+
+## JP0638 — ROM-free host linkage and CP1252 smoke diagnostic fixes
+
+[JP0638](../analysis/0638_TEST_HOST_LINK_AND_CONSOLE.md) fixes two unrelated CI environmental errors exposed after six-layer SDL source verification: the isolated C11 edition fixture now provides an explicitly inert mock of pinned upstream `uint64_t cyc_cycle_count(void)`, and JP0626's smoke confirmation uses CP1252-compatible ASCII rather than a Unicode arrow. Production game modules and pinned SDL patch content remain unchanged. Owner gameplay and full emulator trace verification are still pending. Strict 49,504/262,144, VPP27, certified0508, $FB96 and R-002 OPEN.
