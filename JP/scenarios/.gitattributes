@@ -1,0 +1,4 @@
+# JP0641 replay inputs are hashed byte-for-byte across Windows/Linux.
+# CRLF checkout conversion would invalidate the pinned SHA-256 evidence.
+*.txt text eol=lf
+*.json text eol=lf

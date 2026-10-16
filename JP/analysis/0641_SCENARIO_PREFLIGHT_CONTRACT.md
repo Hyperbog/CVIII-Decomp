@@ -55,3 +55,8 @@ The seven-layer SDL chain stays intact while executable behavior tests mature.
 preflight locally passed; separate Windows/Linux CI to follow. Historical
 strict semantic PRG 49,504/262,144 (18.8843%), VPP 27/100, certified
 checkpoint 0508, fixed frontier `$FB96`; R-002 **OPEN**.
+
+
+## JP0641 Windows checkout SHA-256 portability correction
+
+The first independent Windows CI run 38832650652 correctly rejected a checked-out sample schedule because Git's default Windows CRLF conversion changed the bytes relative to the committed LF hash. Linux CI and both synthetic negative-fixture suites passed. Scoped `JP/scenarios/.gitattributes` now enforces LF for scenario `.txt` and `.json` files. Input SHA-256 checks are **not** relaxed or normalized; a changed byte still fails validation. Re-run CI on the updated branch before claiming a cross-platform pass.
