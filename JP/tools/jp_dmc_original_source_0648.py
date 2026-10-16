@@ -49,9 +49,6 @@ def verify_bank(bank: bytes) -> bytes:
     for index in range(PROGRAMS):
         descriptor = int.from_bytes(read(bank, META_START+2*(110+index),
                                           META_START+2*(111+index)), "little")
-        expected_ptr = 0x9505 + 4*index
-        if index == 11:
-            expected_ptr = 0x9531
         # Metadata descriptor addresses are indexed rather than ordered;
         # validation follows the original pointer, not a guessed order.
         if not 0x9505 <= descriptor <= 0x953D or (descriptor-0x9505)%4:
@@ -84,7 +81,7 @@ def enumerate_domain(table: bytes) -> dict:
     for cmd in range(0x6F,0x7E):
         for old in range(256):
             event=plan(table,cmd,old)
-            assert event["accepted"] == not (old>=5 and cmd-0x6F<old)
+            assert event["accepted"] == (not (old>=5 and cmd-0x6F<old))
             if event["accepted"]:
                 accepted+=1
                 assert len(event["register_writes"])==6
