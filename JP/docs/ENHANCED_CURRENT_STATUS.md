@@ -33,6 +33,7 @@ chronological decompilation notes.
 | Enhanced F6 Audio | Health-bar and original-font menu with 1% Master/Music/SFX sliders; nested Audio returns to parent Pause; latest owner UI acceptance pending |
 | Master volume | **Working**, applied to final mixed PCM in Enhanced mode |
 | Music/SFX sliders | Stored settings only; **not** independent sound gains or voices |
+| JP0647 independent virtual mixer | **Implemented**: bounded 8 music + 24 SFX synthetic PCM voices, separate virtual gain controls, no voice stealing, reset-safe handles. **Dormant** in real gameplay: original sound programs and PCM producers not yet recovered; real Music/SFX sliders remain preferences only. |
 | Experimental sprite enhancement | Opt-in extra-OAM compositor and stable sprite history/priority; JP0645 now uses original PRG26 OAM-rotation emission identity to prevent duplicated animation ghosts, with 64-sprite synthetic CI; default off, owner gameplay acceptance pending; issue #1 stays closed |
 | Original ROM asset package | Authentic private CHR/package/index and read-only tracing are implemented, **not** an installable texture override |
 | F10 stage/companion tools | Debug-only checkpoint/password bootstrap, not public game progression |
@@ -69,10 +70,12 @@ on the owner's actual Windows desktop.
    actual rendered scenes in owner builds, keep original mechanics
    unchanged, and fix only observed sprite regressions. This is
    independent of the already-closed graphics issue #1.
-3. **Independent Music/SFX engine:** prototype one song and a few
-   competing effects with independent virtual voices and working
-   Music/SFX gains, then expand while preserving original sound
-   hardware for CPU/gameplay state.
+3. **Authentic original Music/SFX virtual producers:** JP0647 now
+   provides the independent 8+24 PCM mixer; recover one actual
+   original Japanese song and competing effects, prove command/voice
+   ownership and timing, then connect the decoded producers and real
+   Music/SFX gains behind a reversible Enhanced-only setting. Keep
+   original hardware emulation for CPU/gameplay state.
 4. **Custom controls:** complete player-facing keyboard/controller
    rebinding and persistent profiles with a recoverable default.
 5. **True widescreen:** render additional verified scene geometry;
@@ -133,6 +136,26 @@ were delivered; these **still require** matched original-game sound
 events and virtual voices. Actual owner private retail-game trace
 capture/independent Mesen comparison remains outstanding (R-007).
 See [JP0646 evidence](../analysis/0646_ORIGINAL_SOUND_TERMINAL_OBSERVER.md).
+
+## Latest Enhanced audio core — JP0647
+
+The **production virtual PCM mix infrastructure is now implemented**:
+8 independent music voices, 24 independent SFX voices, independent
+Music/SFX/Master gains, and bounded deterministic callback rendering.
+The native host owns dormant voice state and clears it on game power-on
+and state load. No original Japanese song/effect decoder or event-based
+virtual producer has been validated, so **real game playback remains
+unchanged** and the Music/SFX UI sliders still only store preferences.
+
+The Windows SDL2 Alpha and Linux NESRecomp integration runs **passed**
+([Windows](https://github.com/Hyperbog/CVIII-Decomp/actions/runs/38847041444),
+[Linux](https://github.com/Hyperbog/CVIII-Decomp/actions/runs/38847041479)),
+including both C11 audio suites and a 10,000-sample synthetic
+Music+SFX scenario with bit-identical output across three buffer sizes.
+These are **not** proof of real Japanese-game separate audio playback.
+See [JP0647 evidence](../analysis/0647_INDEPENDENT_VIRTUAL_AUDIO_BUS.md).
+Owner-tested original gameplay remains the baseline. All modding
+features remain deferred until Enhanced Edition completion.
 
 ## Independent historical decompilation metrics
 
