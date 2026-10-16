@@ -285,6 +285,13 @@ jobs:
           if (!(Test-Path -LiteralPath $test)) { throw "JP0608 sprite layer test missing" }
           & $test
           if ($LASTEXITCODE -ne 0) { throw "JP0608 synthetic sprite layer test failed" }
+      - name: Verify JP0645 original gameplay OAM rotation, animation and held-sprite rejection
+        shell: pwsh
+        run: |
+          $test = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win/Release/jp_sprite_identity_test_0645.exe'
+          if (!(Test-Path -LiteralPath $test)) { throw "JP0645 independent sprite identity test missing" }
+          & $test
+          if ($LASTEXITCODE -ne 0) { throw "JP0645 sprite identity/animation regression" }
       - name: Verify game object/OAM read-only physical rotation sample
         shell: pwsh
         run: |

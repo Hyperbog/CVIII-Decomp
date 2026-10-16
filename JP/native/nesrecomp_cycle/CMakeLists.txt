@@ -297,6 +297,13 @@ add_executable(jp_sprite_layers_test_0608
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_sprite_layers_test_0608.c")
 set_property(TARGET jp_sprite_layers_test_0608 PROPERTY C_STANDARD 11)
 
+# JP0645: strict C11 64-emission OAM-rotation/animation and ghost-negative gate.
+# Opt-in host display only; original PPU frame and gameplay remain untouched.
+add_executable(jp_sprite_identity_test_0645
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_sprite_layers_0608.c"
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_sprite_identity_test_0645.c")
+set_property(TARGET jp_sprite_identity_test_0645 PROPERTY C_STANDARD 11)
+
 # JP0609: ROM-free dynamic object/OAM rotation capture unit test.
 add_executable(jp_object_oam_test_0609
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_object_oam_trace_0609.c"

@@ -265,6 +265,13 @@ jobs:
             JP/native/enhanced/cviii_sprite_layers_test_0608.c \
             -o "${{ runner.temp }}/test_sprite_layers_0608"
           "${{ runner.temp }}/test_sprite_layers_0608"
+      - name: Verify JP0645 original logical sprite OAM rotation and 64-object animation (ROM-free)
+        run: |
+          cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
+            JP/native/enhanced/cviii_sprite_layers_0608.c \
+            JP/native/enhanced/cviii_sprite_identity_test_0645.c \
+            -o "${{ runner.temp }}/jp_sprite_identity_test_0645"
+          "${{ runner.temp }}/jp_sprite_identity_test_0645"
       - name: Generate noncommercial synthetic mapper24 VRC6 ROM
         run: python3 JP/tools/test_cycle_synthetic_rom_0569.py --out "${{ runner.temp }}/jp_mapper24_fixture.nes"
       - name: Configure CVIII external C11 cycle wrapper with exact synthetic fixture
