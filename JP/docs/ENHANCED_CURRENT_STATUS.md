@@ -113,6 +113,27 @@ new 64-piece animation and one-frame ghost tests (runs 38838450762 and
 stage-specific visual QA; original gameplay and issue #1 resolution are
 unchanged. Modding remains outside pre-release scope. See [JP0645](../analysis/0645_STABLE_SPRITE_EMISSION_ANIMATION.md).
 
+## Latest audio-engine research integration — JP0646
+
+A private owner-only `--sound-decision-trace` can now record
+**native original driver control-flow decisions**, not merely sound
+request entry points. The ROM-backed original PRG0C branch classes are
+low-command gated return, low install, metadata install, DMC priority
+return and DMC programming. It records original RAM snapshots and
+flags invalid event order rather than attributing an effect to a song.
+The read-only reporter is disabled by default and leaves the working
+native sound, 2A03/VRC6 registers, CPU/PPU timing and gameplay intact.
+
+New synthetic C11 decision-stream and pinned-source patch tests plus
+full Windows SDL2 Alpha and Linux Mapper24 backend builds **passed**
+(runs [Windows 38841999987](https://github.com/Hyperbog/CVIII-Decomp/actions/runs/38841999987),
+[Linux 38842000015](https://github.com/Hyperbog/CVIII-Decomp/actions/runs/38842000015)).
+No independent Music/SFX playback or effective separate output gains
+were delivered; these **still require** matched original-game sound
+events and virtual voices. Actual owner private retail-game trace
+capture/independent Mesen comparison remains outstanding (R-007).
+See [JP0646 evidence](../analysis/0646_ORIGINAL_SOUND_TERMINAL_OBSERVER.md).
+
 ## Independent historical decompilation metrics
 
 Strict semantic PRG **49,504 / 262,144 (18.8843%)**;
