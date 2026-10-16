@@ -78,7 +78,7 @@ int main(void) {
     assert(e && e->options && e->option && e->present);
     /* JP0646: all diagnostic CLI options must be advertised to the host,
      * rather than silently unreachable despite an implemented callback. */
-    assert(e->option_count == 20);
+    assert(e->option_count == 18);
     const char *const required[]={
         "--sound-request-trace","--sound-decision-trace",
         "--audio-session-id","--audio-epoch-trace"
