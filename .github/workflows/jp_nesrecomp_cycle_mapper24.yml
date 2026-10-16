@@ -39,6 +39,8 @@ on:
       - "JP/tools/jp_dpcm_memory_audit_0649.py"
       - "JP/tools/patch_cyc_dmc_dma_trace_0650.py"
       - "JP/tools/jp_dmc_dma_trace_verify_0650.py"
+      - "JP/tools/patch_mesen_dmc_reference_0651.py"
+      - "JP/tools/jp_mesen_dmc_dma_compare_0651.py"
       - "JP/tools/jp_audio_bus_report_0610.py"
       - "JP/tools/jp_audio_session_verify_0614.py"
       - "JP/tools/jp_mesen_sound_requests_0615.py"
@@ -293,6 +295,10 @@ jobs:
             JP/native/enhanced/cviii_dmc_dma_trace_test_0650.c \
             -o "${{ runner.temp }}/jp_dmc_dma_trace_test_0650"
           "${{ runner.temp }}/jp_dmc_dma_trace_test_0650"
+      - name: Verify JP0651 independently sourced MesenCE DMC DMA callback and lossless source/cycle comparator (ROM-free)
+        run: |
+          python3 JP/tools/patch_mesen_dmc_reference_0651.py --smoke
+          python3 JP/tools/jp_mesen_dmc_dma_compare_0651.py --smoke
       - name: Verify JP0646 native original sound decision hook + five driver outcomes (ROM-free)
         run: |
           python3 JP/tools/patch_cyc_sound_decisions_0646.py --smoke

@@ -42,6 +42,8 @@ on:
       - "JP/tools/jp_dpcm_memory_audit_0649.py"
       - "JP/tools/patch_cyc_dmc_dma_trace_0650.py"
       - "JP/tools/jp_dmc_dma_trace_verify_0650.py"
+      - "JP/tools/patch_mesen_dmc_reference_0651.py"
+      - "JP/tools/jp_mesen_dmc_dma_compare_0651.py"
       - "JP/tools/jp_audio_bus_report_0610.py"
       - "JP/tools/jp_audio_session_verify_0614.py"
       - "JP/tools/jp_mesen_sound_requests_0615.py"
@@ -362,6 +364,13 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'JP0650 physical DMC DMA mapping observation regression' }
           python JP/tools/jp_dmc_dma_trace_verify_0650.py --smoke
           if ($LASTEXITCODE -ne 0) { throw 'JP0650 private DMA trace verifier invalid' }
+      - name: Verify JP0651 MesenCE original DMC-specific observer and exact event-pair comparator (ROM-free)
+        shell: pwsh
+        run: |
+          python JP/tools/patch_mesen_dmc_reference_0651.py --smoke
+          if ($LASTEXITCODE -ne 0) { throw 'JP0651 independent MesenCE source-patch contract failed' }
+          python JP/tools/jp_mesen_dmc_dma_compare_0651.py --smoke
+          if ($LASTEXITCODE -ne 0) { throw 'JP0651 original-native DMC event pairing negative tests failed' }
       - name: Verify JP0646 real native sound-driver branch logger (ROM-free)
         shell: pwsh
         run: |
