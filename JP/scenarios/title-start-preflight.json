@@ -1,0 +1,26 @@
+{
+  "schema": "CVIII-JP-replay-scenario/v1",
+  "id": "title-start-preflight",
+  "rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "frames": 300,
+  "start": {
+    "type": "power_on"
+  },
+  "config": {
+    "ppu": "LLE",
+    "edition": "Original"
+  },
+  "input": {
+    "file": "title-start-preflight.txt",
+    "sha256": "0d3f050efed14947ef36d40dd4bc2abd5f0ae033532741d966fecd1b0e9b6740",
+    "format": "nesrecomp-frame-schedule/v1"
+  },
+  "reference": {
+    "engine": "mesen2",
+    "sha256": null
+  },
+  "native": {
+    "engine": "nesrecomp-cycle",
+    "sha256": null
+  }
+}

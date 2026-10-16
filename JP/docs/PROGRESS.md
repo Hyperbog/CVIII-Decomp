@@ -1006,3 +1006,8 @@ VPP27/100, certified 0508, fixed frontier $FB96 unchanged.
 ## JP0640 — Authenticated raw01 B801/B807 direct callsite boundary
 
 [JP0640](../analysis/0640_RAW01_SELECTOR_DIRECT_CALLS.md) authenticates the full raw01 bank and $B7EF–$B813 window, decodes 14 original instruction boundaries, and identifies physical raw01:$B801 JSR $B87A and raw01:$B807 JSR $B877; the latter reaches JMP $BB6B following the separate $BB62–$BB6A table. A whole-bank literal-JSR census finds one occurrence of each encoding; this does not prove actual game liveness, independent physical mapping across helper calls or absence of indirect alternatives. Owner-ROM local source audit and ROM-free tamper fixtures PASS; R-002 OPEN, strict 49,504/262,144 PRG, VPP27, checkpoint0508, FB96 unchanged.
+
+
+## JP0641 — Independent scenario replay preflight foundation (no execution)
+
+[JP0641](../analysis/0641_SCENARIO_PREFLIGHT_CONTRACT.md) adds a strict versioned scenario manifest, SHA-pinned deterministic native input schedule, owner-only retail-ROM/executable identity preflight, and explicit PASS/FAIL/NOT_EXERCISED per phase. A ROM-free sample and synthetic tamper/negative tests are wired into separate Windows/Linux CI, leaving the recovered seven-layer SDL integration unchanged. The included sample is an input-probe contract, **not** a verified title-to-village route. No original Mesen or native gameplay was executed in this phase; replay/frame/CPU/render parity remain NOT_EXERCISED. Strict PRG 49,504/262,144 (18.8843%), VPP 27/100, certified 0508, fixed $FB96, R-002 OPEN.

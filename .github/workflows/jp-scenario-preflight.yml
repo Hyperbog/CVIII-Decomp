@@ -1,0 +1,37 @@
+name: JP Replay Scenario Contract
+on:
+  push:
+    branches: [decompilation]
+    paths:
+      - 'JP/tools/jp_scenario_preflight_0641.py'
+      - 'JP/tools/test_jp_scenario_preflight_0641.py'
+      - 'JP/scenarios/**'
+      - 'JP/analysis/0641_*'
+      - '.github/workflows/jp-scenario-preflight.yml'
+  pull_request:
+    paths:
+      - 'JP/tools/jp_scenario_preflight_0641.py'
+      - 'JP/tools/test_jp_scenario_preflight_0641.py'
+      - 'JP/scenarios/**'
+      - '.github/workflows/jp-scenario-preflight.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  rom-free-contract:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile parser and tamper-negative tests
+        run: python -m py_compile JP/tools/jp_scenario_preflight_0641.py JP/tools/test_jp_scenario_preflight_0641.py
+      - name: Test strict manifest, schedule and executable identities
+        run: python JP/tools/test_jp_scenario_preflight_0641.py
+      - name: Validate bounded title probe without proprietary media
+        run: python JP/tools/jp_scenario_preflight_0641.py --manifest JP/scenarios/title-start-preflight.json
