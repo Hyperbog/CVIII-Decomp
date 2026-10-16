@@ -27,7 +27,7 @@ chronological decompilation notes.
 | Component | State and limitations |
 |---|---|
 | Native Japanese game and public Windows launcher | Playable owner-tested baseline; user supplies authenticated original JP ROM |
-| Save states | F8/F9 and Ctrl+0..9 native slots; current GUI Save/Load chooser still needs owner round-trip validation |
+| Save states | F8/F9 and Ctrl+0..9 native slots; JP0644 now rolls back the chosen quick slot on failed I/O and keeps the picker open for retry; real owner-file round-trip still pending |
 | Enhanced F4 Start/Pause | Source-implemented Save, Load, Audio and two-step Quit, game-authentic pixel font, modal pause and input release; source/C11 tests pass; F4 opens by keyboard, gamepad operates menu after opening |
 | Enhanced F4 Save/Load chooser | Original font, 0–9 slot picker, uses existing whole-machine serializer; new GUI/real save-load acceptance pending |
 | Enhanced F6 Audio | Health-bar and original-font menu with 1% Master/Music/SFX sliders; nested Audio returns to parent Pause; latest owner UI acceptance pending |
@@ -65,15 +65,39 @@ on the owner's actual Windows desktop.
    and verify F4/F6/Save-Load/Audio-to-Pause input, save persistence,
    real state round-trip and controller interactions. Accept the
    graphics issue closure; do not invent a new renderer defect.
-2. **One functional cosmetic mod:** implement a versioned manifest,
-   a symbolic asset ID, validated override, and safe original fallback.
-   Make it installable/removable with unchanged gameplay semantics.
-3. **First actual independent Music/SFX voice prototype:** one song
-   plus competing effects, isolated original hardware emulation, and
-   working separate output gains before claiming a full audio system.
-4. Continue other larger Enhanced targets in priority order after
-   regression baselines exist: player remapping, texture packs,
-   audio replacement and widescreen.
+2. **Complete optional Enhanced sprite presentation:** compare
+   actual rendered scenes in owner builds, keep original mechanics
+   unchanged, and fix only observed sprite regressions. This is
+   independent of the already-closed graphics issue #1.
+3. **Independent Music/SFX engine:** prototype one song and a few
+   competing effects with independent virtual voices and working
+   Music/SFX gains, then expand while preserving original sound
+   hardware for CPU/gameplay state.
+4. **Custom controls:** complete player-facing keyboard/controller
+   rebinding and persistent profiles with a recoverable default.
+5. **True widescreen:** render additional verified scene geometry;
+   never stretch the 256x240 original bitmap as a substitute.
+6. **Full Enhanced Beta acceptance:** exercise stage routes,
+   companions, bosses, audio, saves and menus in actual gameplay,
+   then release a stable Enhanced Edition.
+7. **After release only:** modding infrastructure, user-installed
+   texture/resource packs, soundtrack swaps, editors and optional
+   gameplay modules. Do not put these on the active pre-release queue.
+
+## Latest integration — JP0644
+
+The seventh-layer generated SDL shell now passes compiled offline and
+netplay tests with the real menu/slot/audio-controller C models, covering
+transactional failed Save/Load, retry/cancel, nested Audio parent return,
+modal input ownership and double-confirm Quit. The Windows SDL2 native
+candidate builder and Linux external NESRecomp integration CI both passed
+at commit `279da91c` (runs 38836167641 and 38836167331). These are
+**synthetic-media integration results**, not real controller/save-file owner
+acceptance. See [JP0644 evidence](../analysis/0644_ENHANCED_MODAL_TRANSACTION_AND_SDL_HARNESS.md)
+and [owner menu QA](../release/alpha/QA_ENHANCED_MENUS_0644.md).
+
+**Product scope reminder:** all modding features are explicitly deferred
+until the Enhanced Edition is complete and stable.
 
 ## Independent historical decompilation metrics
 
