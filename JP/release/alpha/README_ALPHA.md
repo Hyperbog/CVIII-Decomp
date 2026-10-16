@@ -12,8 +12,9 @@ development history only. Original PPU presentation remains an
 **internal reference path** (`Launch-Alpha.ps1 -Edition Original`),
 not a separate player-facing edition. Unverified improvements,
 including experimental unlimited sprites, are **off by default**.
-The shared Stage A-01 pixel corruption and the Stage 1 sprite
-overlap reports remain open; this launcher change does not fix either.
+**Current owner update (JP0643):** Graphics issue #1 was closed as owner-resolved.
+Historical Stage A-01/sprite investigation notes below are not current
+reports of a current graphics defect; see [Enhanced status](../../docs/ENHANCED_CURRENT_STATUS.md).
 
 ## First-run setup — JP0603
 
@@ -62,8 +63,7 @@ The launchers authenticate original Japanese mapper24 ROM SHA256 and
 prompt for the cartridge when not supplied.
 
 Enhanced is the sole public launcher. Its initial graphics use the
-stock PPU output while the shared mapper/PPU defect remains under
-investigation. Optional all-primary-OAM sprite compositing is experimental
+stock PPU output; the owner confirms the previously reported graphics problem is resolved. Optional all-primary-OAM sprite compositing is experimental
 and disabled by default; enabling it requires separate owner QA.
 CPU/PPU-visible gameplay, sprite-0 hit, IRQ, DMA and collisions remain
 original by default. The internal Original PPU path is reserved for
@@ -76,8 +76,8 @@ support Ctrl+0..9 slot selection plus F8/F9 save/load.
 
 Not yet supported: true widescreen level geometry, individual channel
 gain, independent soundtrack/SFX voices, remastered audio or texture
-replacement, and optional new moves. The Stage 2/3?/4-0A shared
-background-layer artifacts remain an unresolved Original issue.
+replacement, and optional new moves. The historical Stage 2/3?/4-0A
+background issue is owner-resolved (issue #1 closed).
 
 Focused authentic-ROM validation: Original and Enhanced 600-frame
 headless CPU/PPU/memory hashes match byte-for-byte. This is not
@@ -392,8 +392,8 @@ bus read tracing**, not a speculative rendering change. The pinned
 NESRecomp VRC6a mapper's common `$B003 = $20/$24/$28/$2C`
 mirroring logic is consistent with NESdev's documented mode-0
 behavior, so no hardware mapping is modified without gameplay
-evidence. The shared Stage A-01 pixel corruption remains an open
-defect in both reference/Enhanced rendering paths.
+evidence. At JP0606 the Stage A-01 corruption was being investigated; it is
+now owner-reported resolved in closed issue #1 (JP0643).
 
 Rebuild the private native Enhanced candidate and launch Stage A-01 with
 `Capture-QA-0602.ps1`. The captured scene folder contains an extra
@@ -461,7 +461,8 @@ sprite zero and game OAM remain unmodified. It can temporarily ghost
 animated sprites, and frame-end CHR mapping still may not reflect
 mid-scanline CHR bank switches. Experimental and off by default.
 Retail-Japanese Trevor/torch and doorway validation is outstanding.
-Stage A-01 background corruption is unrelated and still unresolved.
+The separate A-01 background report was unresolved at JP0608;
+its current status is owner-resolved (JP0643).
 
 ## JP0609 — Stabilize sprite priority using original PRG26 object order
 
@@ -493,7 +494,8 @@ After building the newest private Windows AlphaCandidate, run:
 
 Play the first village torch overlap for 5-10 seconds, close the game.
 Compare against the same scene with -StableSprites omitted. The
-original known A-01 background corruption is a SEPARATE issue.
+historical A-01 background report was tracked separately;
+its current owner-accepted resolution is recorded in JP0643.
 No HD art, widescreen, gameplay changes or public Original edition
 is included in this milestone.
 
@@ -596,3 +598,8 @@ In the latest Enhanced F4 Start/Pause source, **Save State** and **Load State** 
 ## JP0626 — Audio Back returns to F4 parent
 
 The Enhanced original-font F4 Start/Pause menu now **retains its position** when Audio is selected. Use F4 → Audio to edit the original-healthbar Master/Music/SFX preferences; F6/Escape/Backspace or controller B/Start closes Audio **back to F4 Start/Pause on the Audio row**, not directly into active gameplay. Close F4 afterward to resume. In contrast, F6 Audio opened directly from gameplay still closes to gameplay. Master currently affects PCM; Music/SFX preferences are not independently mixed. Both original-CHR panels require the authenticated private CHR index. The seventh owner-private SDL overlay preserves game-frame pause throughout the child/parent handoff. **Exact committed C11 stack regression and seventh-layer smoke PASS locally; rebuilt owner Windows SDL, physical controller pause/resume, real seven-stage source gate and new Actions outcome still require verification.** See [JP0626 evidence](../../analysis/0626_NESTED_AUDIO_PAUSE_RETURN.md).
+
+
+## JP0643 — Owner-confirmed graphics closure and current Enhanced status
+
+[Graphics issue #1](https://github.com/Hyperbog/CVIII-Decomp/issues/1) is closed as completed after owner confirmation that the defect was fixed in the playable game. Earlier JP0590/JP0606/JP0608/JP0609 notes preserve historical diagnostics and should not be read as a current reported bug. This is owner acceptance, not a new original-Mesen pixel-parity certificate or attribution to any single source commit. Current implemented Enhanced features and outstanding product work are listed in [Enhanced current status](../../docs/ENHANCED_CURRENT_STATUS.md).
