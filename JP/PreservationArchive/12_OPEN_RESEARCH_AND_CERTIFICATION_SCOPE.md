@@ -262,3 +262,18 @@ but arbitrary raw byte positions are **not** certified decoded
 sound-command starts; the other format point awaits raw04/05 modes.
 R-007 and R-002 remain OPEN. Strict PRG 49,504 unchanged.
 
+## JP0657 — Native source-room format established; liveness unresolved
+
+[JP0657](../analysis/0657_STAGE_ROOM_NATIVE_CATALOG_AND_COORDINATE.md)
+adds a complete bounded native C11 source-data catalog for
+raw0A's 15 stage groups / 64 second tables / 135 indexed
+leaves, and a source-authenticated coordinate routine verified
+against 131,072 original 6502 instruction executions. One
+Stage/world stage/room data-format VPP point is now earned
+(global 29/100). The other four stage format points and
+all actual scrolling, collision, progression, frame parity,
+and editor/export milestones remain unearned. The dynamic
+$8410,Y producer range, natural $801E and $80D1 entry
+liveness, original PPU outcome and native gameplay integration
+are still UNKNOWN. R-002 OPEN and strict PRG unchanged.
+

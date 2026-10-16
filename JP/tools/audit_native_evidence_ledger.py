@@ -120,8 +120,8 @@ def validate() -> dict:
            "VPP changed without evidence/rubric ledger review")
     if "vpp_decision" in expected:
         decision = ROOT / expected["vpp_decision"]
-        insist(decision.is_file() and "28/100" in decision.read_text(encoding="utf-8"),
-               "Missing scored JP0656 audio format VPP evidence decision")
+        insist(decision.is_file() and f'{expected["vpp_earned"]}/100' in decision.read_text(encoding="utf-8"),
+               "Missing scored formal VPP evidence decision")
     with (ROOT/"analysis/PROGRESS_SCORE.csv").open(newline="",encoding="utf-8") as source:
         rubric=list(csv.DictReader(source))
     insist(sum(int(row["earned"]) for row in rubric) == expected["vpp_earned"],

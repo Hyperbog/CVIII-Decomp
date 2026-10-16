@@ -65,6 +65,8 @@ if(JP_EDITION_HOST_EXTRAS)
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_phrase_lookup_0653.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_phrase_delta_0655.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_phrase_control_0656.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_room_catalog_0657.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_room_coordinate_0657.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_session_0614.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_levels_0618.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_virtual_audio_0647.c"
@@ -477,6 +479,15 @@ add_executable(jp_phrase_control_test_0656
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_phrase_control_0656.c"
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_phrase_control_test_0656.c")
 set_property(TARGET jp_phrase_control_test_0656 PROPERTY C_STANDARD 11)
+# JP0657 stage/room source format plus original room-coordinate arithmetic.
+add_executable(jp_room_catalog_test_0657
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_room_catalog_0657.c"
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_room_catalog_test_0657.c")
+set_property(TARGET jp_room_catalog_test_0657 PROPERTY C_STANDARD 11)
+add_executable(jp_room_coordinate_test_0657
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_room_coordinate_0657.c"
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_room_coordinate_test_0657.c")
+set_property(TARGET jp_room_coordinate_test_0657 PROPERTY C_STANDARD 11)
 
 
 # JP0649: dormant bounded source/mapper8 + raw DPCM 7-bit decoder.

@@ -5,8 +5,8 @@
   "certification": {
     "strict_prg_floor": 49504,
     "certified_checkpoint": "0508",
-    "vpp_earned": 28,
-    "vpp_decision": "analysis/0656_FORMAL_VPP_AUDIO_FORMAT_DECISION.md"
+    "vpp_earned": 29,
+    "vpp_decision": "analysis/0657_FORMAL_VPP_STAGE_FORMAT_DECISION.md"
   },
   "entries": [
     {

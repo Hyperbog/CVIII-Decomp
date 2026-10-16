@@ -123,3 +123,28 @@ only non-lossless findings.
 ## JP0640 — Conditional physical raw01 callsite extension
 
 [JP0640](../analysis/0640_RAW01_SELECTOR_DIRECT_CALLS.md) ties code-like raw01:$B801 JSR $B87A and $B807 JSR $B877 to original 14-instruction $B7EF–$B813 source window. $B877's real encoded JMP $BB6B crosses the $BB62–$BB6A data boundary to a candidate code prefix. Mapper-state preservation through external helpers, liveness and linkage to raw0A room loading are still OPEN. No new certified semantic bytes.
+
+## JP0657 — Complete typed original room-source index in native C11
+
+The [JP0657 original-source and compiled-native proof](../analysis/0657_STAGE_ROOM_NATIVE_CATALOG_AND_COORDINATE.md)
+models the original physical Mapper24 raw0A three-level source
+lookup at CPU $801E–$8046, now with a **whole-system native C11
+catalog validator and indexed typed source records**: 15 stage
+groups, 64 second-level vectors, 135 leaf selections and
+129 distinct record roots. Every one of 709 four-byte source
+cells and 163 seven-byte source records, plus all 16 original
+FF terminators, is bounded and verified against the authenticated
+retail ROM source. The original indexed CPU lookup versus compiled
+native records matches 135/135 selections. The original bank0A
+$8001 and $80D1 source coordinate-phase calculation is also
+translated, and matches 131,072 instruction-stepped original
+ROM conditions versus C11, preserving register/flag arithmetic.
+
+This earns **one of five stage/room data-format VPP points**
+(global VPP 29/100). Earlier JP0538 already represented
+the 4,421 structurally typed source bytes. No historical strict
+PRG byte promotion, user-visible room rendering, natural
+stage/gameplay entry, PPU/mapper frame parity or level editor
+is implied. The C11 code has no live gameplay caller. Room
+source field meanings and R-002 remain OPEN.
+

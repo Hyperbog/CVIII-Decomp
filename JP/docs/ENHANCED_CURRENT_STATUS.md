@@ -339,9 +339,25 @@ full sound grammar/raw04/05 and independent Music/SFX integration,
 real-game timing and audio parity remain OPEN.
 Strict PRG is still 49,504 bytes (18.8843%).
 
+## JP0657 — Validated room catalog and native coordinate stage
+
+The original raw0A stage-data format now has a native C11 room
+catalog and bounded leaf resolver: 15 source stage groups,
+64 nested groups, 135 indexed leaves, 709 four-byte cells and
+163 seven-byte records, source-checked against the Japanese
+ROM and an original 6502 instruction replay. A separate
+native room-coordinate helper matches 131,072 original-ROM
+6502 executions. [Full JP0657 evidence](../analysis/0657_STAGE_ROOM_NATIVE_CATALOG_AND_COORDINATE.md).
+
+**Stage/world format rubric first point earned; VPP 29/100.**
+These C11 routines are compiled but dormant. There is no
+actual new scrolling, stage-rendering, controller/gameplay or
+savestate integration. Strict PRG remains 49,504/262,144
+(18.8843%). R-002 and original-Mesen frame parity open.
+
 ## Independent historical decompilation metrics
 
 Strict semantic PRG **49,504 / 262,144 (18.8843%)**;
-VPP **28/100**; certified checkpoint **0508**;
+VPP **29/100**; certified checkpoint **0508**;
 fixed PRG31 frontier **$FB96**; room-loader R-002 **OPEN**.
 None measures the percentage of the playable game that works.

@@ -8,9 +8,11 @@ The machine-readable score is `analysis/PROGRESS_SCORE.csv`; `tools/progress_sco
 
 ## Current score
 
-**VPP: 28 / 100 (28%)**
+**VPP: 29 / 100 (29%)**
 
-The latest point is **Audio → music/SFX data formats (first of two)**: original-ROM authenticated 125 sound descriptors, 325 bank-qualified refs, 148 phrase pointers, and a complete bounded phrase byte grammar ($00–$FA arithmetic and $FB–$FF control branches), with 5,610 JP0655 ordinary and 1,827 JP0656 original-6502/native test cases. All outputs remain dormant and natural original-game audio parity is not proved. [JP0656 evidence](../analysis/0656_ORIGINAL_SOUND_CONTROL_COMPLETE.md).
+The latest point is **Stage/world → stage/room data formats (first of five)**: full native raw0A room catalog (15/64/135 selectors, 709 four-byte cells and 163 seven-byte records), 135 original-6502/native selector matches and 131,072 original-native coordinate checks. Stage/room field semantics, gameplay reachability and PPU frame parity remain unproven. [JP0657 source proof](../analysis/0657_STAGE_ROOM_NATIVE_CATALOG_AND_COORDINATE.md).
+
+The preceding point is **Audio → music/SFX data formats (first of two)**: original-ROM authenticated 125 sound descriptors, 325 bank-qualified refs, 148 phrase pointers, and a complete bounded phrase byte grammar ($00–$FA arithmetic and $FB–$FF control branches), with 5,610 JP0655 ordinary and 1,827 JP0656 original-6502/native test cases. All outputs remain dormant and natural original-game audio parity is not proved. [JP0656 evidence](../analysis/0656_ORIGINAL_SOUND_CONTROL_COMPLETE.md).
 
 The preceding gameplay point is a distinct reusable original-Stage-1 native actor collision subsystem: the 0514-0517 connected B1F8 to FDFE path matches original Mesen across 91 source CPU instructions and all 1,792 non-stack RAM bytes plus A/X/Y/P. A formal fixed-rubric review (analysis/0518_RECONCILIATION_AND_VPP_DECISION.md) advances gameplay movement/collision from 1/4 to 2/4. This is not full-frame parity or a strict PRG-byte promotion.
 
@@ -22,7 +24,7 @@ The preceding validation point was independent CPU state+cycle trace conformance
 | CPU / mapper / interrupts | 10 | 8 | RESET path, PRG helpers, top-level NMI, IRQ table/state machine, control-vs-ack behavior, native VRC6 PRG/CHR mapper, native VRC6 IRQ scheduler; trace parity still open |
 | Rendering / PPU | 10 | 5 | OAM arrays, selector/master tables, variable descriptor encoding, exact sprite transforms/state, native OAM lift; background/CHR/PPU parity open |
 | Gameplay / object systems | 25 | 3 | original object dispatcher architecture, isolated collision-math architecture, and distinct connected B1F8-to-FDFE actor collision/follower pipeline with 91-instruction original Mesen parity; remaining player/combat/enemy/boss systems open |
-| Stage / world / progression | 20 | 0 | stage data, room/scrolling, collision maps, route/progression, menus/password/end flow not yet reconstructed |
+| Stage / world / progression | 20 | 1 | original raw0A 15/64/135 stage/room data hierarchy, 709 four-byte and 163 seven-byte typed records, 135 original-6502/native pointer matches, 131,072 original/native room-coordinate matches; real gameplay/PPU parity open |
 | Audio | 12 | 2 | NSF/retail correlation plus first original phrase/data-format point (JP0652–JP0656); second format, driver, native APU/VRC6 and parity work remain open |
 | Native runtime / platform | 10 | 1 | isolated faithful native OAM subsystem exists; native mapper/IRQ/collision primitives now exist but complete memory/PPU integration and executable are open |
 | Validation / tooling | 8 | 5 | ROM identity/subsystem audits, native tests and CI; independent Nintendulator CPU register/status/stack/cycle trace 8991/8991; original JP VRC6 mapper/IRQ trace and frame goldens open |
@@ -85,7 +87,7 @@ Partial points in this category require a committed, reusable architectural resu
 
 ### 5. Stage / world / progression — 20 points
 
-- stage/room data formats: 5 — open
+- stage/room data formats: 5 — **1 earned / 5**, JP0657 full raw0A native typed room-source hierarchy and original 6502 selector parity; actual stage field usage and natural producer domains open
 - scrolling/room transitions: 4 — open
 - collision/environment maps: 4 — open
 - route/stage progression: 3 — open

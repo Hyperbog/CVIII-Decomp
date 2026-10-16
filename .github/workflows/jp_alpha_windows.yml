@@ -43,6 +43,8 @@ on:
       - "JP/tools/jp_phrase_lookup_0653.py"
       - "JP/tools/jp_phrase_delta_0655.py"
       - "JP/tools/jp_phrase_control_0656.py"
+      - "JP/tools/jp_room_catalog_0657.py"
+      - "JP/tools/jp_room_coordinate_0657.py"
       - "JP/tools/jp_dpcm_memory_audit_0649.py"
       - "JP/tools/patch_cyc_dmc_dma_trace_0650.py"
       - "JP/tools/jp_dmc_dma_trace_verify_0650.py"
@@ -363,6 +365,20 @@ jobs:
           if (!(Test-Path -LiteralPath $test)) { throw 'JP0656 native executable missing' }
           & $test
           if ($LASTEXITCODE -ne 0) { throw 'JP0656 complete C11 token-domain regression failed' }
+      - name: Verify JP0657 original stage hierarchy and coordinate C11 on Windows (ROM-free)
+        shell: pwsh
+        run: |
+          python JP/tools/jp_room_catalog_0657.py --smoke
+          if ($LASTEXITCODE -ne 0) { throw 'JP0657 synthetic room hierarchy failed' }
+          python JP/tools/jp_room_coordinate_0657.py --smoke
+          if ($LASTEXITCODE -ne 0) { throw 'JP0657 synthetic coordinate original logic failed' }
+          $base = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win/Release'
+          foreach ($test in @('jp_room_catalog_test_0657.exe','jp_room_coordinate_test_0657.exe')) {
+            $exe = Join-Path $base $test
+            if (!(Test-Path -LiteralPath $exe)) { throw "JP0657 native test not compiled: $test" }
+            & $exe
+            if ($LASTEXITCODE -ne 0) { throw "JP0657 native test failed: $test" }
+          }
       - name: Authenticate JP0648 DMC priority and indexed source, ROM-free negatives
         shell: pwsh
         run: |
