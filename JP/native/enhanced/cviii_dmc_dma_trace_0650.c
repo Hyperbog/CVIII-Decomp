@@ -10,7 +10,19 @@ static void record(CviiiDmcDmaTrace *t, const char *kind,uint64_t cycle,
                    int addr,int64_t physical,int value,int bank8,
                    int bytes_before,int requested)
 {
-    if(t->rows>=ROW_LIMIT){++t->dropped;return;}
+    if(t->rows>=ROW_LIMIT){
+        ++t->dropped;
+        /* A truncated owner trace must NEVER pass as a complete capture.
+         * Emit exactly one terminal row; the strict CSV verifier rejects it.
+         * Do not perform unbounded I/O after the cap has been reached. */
+        if(t->dropped==1u){
+            (void)fprintf(t->output,
+                "trace_limit,%" PRIu32 ",%" PRIu64 ",-1,-1,-1,-1,-1,-1\n",
+                t->epoch,cycle);
+            fflush(t->output);
+        }
+        return;
+    }
     if(fprintf(t->output,
         "%s,%" PRIu32 ",%" PRIu64 ",%d,%" PRId64 ",%d,%d,%d,%d\n",
         kind,t->epoch,cycle,addr,physical,value,bank8,

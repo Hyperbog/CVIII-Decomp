@@ -37,6 +37,8 @@ def parse(stream, prg:bytes, require_byte_match:bool=False)->dict:
         if None in row or any(value is None for value in row.values()):
             raise ValueError("CSV row has missing/extra fields")
         name=row["event"]
+        if name=="trace_limit":
+            raise ValueError("Trace was truncated at the recorder row cap")
         if name not in KIND:
             raise ValueError("Trace contains invalid or unrecognized event "+name)
         try:
@@ -162,6 +164,8 @@ def smoke()->None:
     assert report["mapper_write_fetch_disagreements"]==2
     broken=[x[:] for x in good];broken[2][0]="invalid_fetch_map"
     reject(broken,prg,"invalid logger event")
+    broken=[x[:] for x in good];broken[2][0]="trace_limit"
+    reject(broken,prg,"truncated capped capture")
     broken=[x[:] for x in good];broken[5][1]=3
     reject(broken,prg,"bad new load epoch")
     reject(good,prg[:-1],"wrong PRG length")

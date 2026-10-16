@@ -60,7 +60,18 @@ int main(void)
     assert(n==t.rows);
     assert(remove(file)==0);
     assert(cviii_dmc_dma_trace_open(&another,file));
+    cviii_dmc_dma_trace_boundary("power_on",200u);
+    another.rows=200000u; /* simulate a full private recording */
+    cviii_dmc_dma_trace_fetch(201u,0xC000u,0u,0u,1u);
+    cviii_dmc_dma_trace_fetch(202u,0xC001u,1u,0u,1u);
+    assert(another.dropped==2u && another.rows==200000u);
     cviii_dmc_dma_trace_close(&another);
+    f=fopen(file,"r");
+    assert(f && fgets(line,sizeof line,f) && fgets(line,sizeof line,f));
+    assert(fgets(line,sizeof line,f));
+    assert(!strcmp(line,"trace_limit,1,201,-1,-1,-1,-1,-1,-1\n"));
+    assert(!fgets(line,sizeof line,f));
+    fclose(f);
     assert(remove(file)==0);
     puts("PASS JP0650 exact DMA fetch physical bank, mapper request, epochs, failed-map and cycle checks");
     return 0;
