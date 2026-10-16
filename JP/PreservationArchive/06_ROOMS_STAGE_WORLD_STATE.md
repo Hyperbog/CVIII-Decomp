@@ -118,3 +118,8 @@ only non-lossless findings.
 ## JP0634 original raw01 password/selector parent route (static, conditional)
 
 [JP0634](../analysis/0634_RAW01_SELECTOR_PARENT_CFG.md) authenticates in-bank raw01:$B87A JSR $B919, subsequent JMP $BAEF, and continuous $BAEF–$BB61 6502 code ending at indexed $BB62,Y table read and STA $07A0. The original B91E–B927 clamp computes unsigned min(RAM[$30],$11); all 256 inputs pass that instruction-stepped clamp audit on the authenticated owner ROM. Thus the **specific non-interrupted** predecessor path indexes only the nine previously identified $BB62–$BB6A cells. This does not prove the path is live, bound all alternative callers or IRQ/NMI writers, or join raw01:$BB57 to raw0A:$B7F7. R-002 remains OPEN; strict source credit unchanged.
+
+
+## JP0640 — Conditional physical raw01 callsite extension
+
+[JP0640](../analysis/0640_RAW01_SELECTOR_DIRECT_CALLS.md) ties code-like raw01:$B801 JSR $B87A and $B807 JSR $B877 to original 14-instruction $B7EF–$B813 source window. $B877's real encoded JMP $BB6B crosses the $BB62–$BB6A data boundary to a candidate code prefix. Mapper-state preservation through external helpers, liveness and linkage to raw0A room loading are still OPEN. No new certified semantic bytes.

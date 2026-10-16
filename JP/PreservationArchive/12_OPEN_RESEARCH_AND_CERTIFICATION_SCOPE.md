@@ -193,3 +193,8 @@ No new source byte promotion or VPP credit is justified.
 ## JP0634 preservation gate — bounded raw01 parent, R-002 still open
 
 Original SHA-authenticated JP physical raw01 code now has a documented B87A→B919 clamp→BAEF→BB57 contiguous conditional path. Its post-clamp RAM[$30] values are 00..11 and its nine-cell BB62 index values 0..8 **only for this specified uninterrupted route**. Source/ROM test and Windows/Linux ROM-free CI are separately recorded at [JP0634](../analysis/0634_RAW01_SELECTOR_PARENT_CFG.md). This cannot close R-002: true source liveness, alternative entries, intervening $30/$07A0 writers, and consumer raw0A:$B7F7 original-game chronology remain unproved. No new semantic bytes, coverage %, VPP or recovery frontier advancement.
+
+
+## JP0640 — R-002 raw01 physical direct-call audit
+
+ROM-authenticated [JP0640](../analysis/0640_RAW01_SELECTOR_DIRECT_CALLS.md) verifies the raw01:$B801 JSR $B87A precursor of JP0634's bounded clamp and the separate raw01:$B807 JSR $B877; $B877 JMP $BB6B reaches the candidate code immediately after the nine-byte table. This confirms a static literal callsite arrangement, not Mesen gameplay, mapper preservation through fixed helpers or raw0A consumer causality. R-002 OPEN, no strict PRG/VPP change.

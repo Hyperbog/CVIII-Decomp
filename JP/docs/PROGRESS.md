@@ -1001,3 +1001,8 @@ VPP27/100, certified 0508, fixed frontier $FB96 unchanged.
 ## JP0639 — Windows seven-layer source gate log encoding
 
 [JP0639](../analysis/0639_WINDOWS_UTF8_SOURCE_GATE.md) addresses a Windows CP1252 console failure after the actual seven-layer pinned SDL source check had generated and reported success. The JP0626 message now uses ASCII and the Windows GitHub Actions job explicitly requests UTF-8 Python output. These are diagnostic/environment changes, not CPU/gameplay corrections. Strict 49,504 PRG, VPP27, 0508 and FB96 unchanged; independent original Mesen capture and owner Windows playtest remain pending.
+
+
+## JP0640 — Authenticated raw01 B801/B807 direct callsite boundary
+
+[JP0640](../analysis/0640_RAW01_SELECTOR_DIRECT_CALLS.md) authenticates the full raw01 bank and $B7EF–$B813 window, decodes 14 original instruction boundaries, and identifies physical raw01:$B801 JSR $B87A and raw01:$B807 JSR $B877; the latter reaches JMP $BB6B following the separate $BB62–$BB6A table. A whole-bank literal-JSR census finds one occurrence of each encoding; this does not prove actual game liveness, independent physical mapping across helper calls or absence of indirect alternatives. Owner-ROM local source audit and ROM-free tamper fixtures PASS; R-002 OPEN, strict 49,504/262,144 PRG, VPP27, checkpoint0508, FB96 unchanged.

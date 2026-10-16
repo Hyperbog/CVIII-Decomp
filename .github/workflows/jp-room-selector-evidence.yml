@@ -8,12 +8,14 @@ on:
       - 'JP/tools/audit_mesen_room_selector_trace_0629.py'
       - 'JP/tools/audit_mesen_room_chain_0630.py'
       - 'JP/tools/audit_room_selector_parent_0634.py'
+      - 'JP/tools/audit_room_selector_callers_0640.py'
       - 'JP/tools/mesen_jp_room_selector_provenance_0629.lua'
       - 'JP/tools/mesen_jp_room_chain_0630.lua'
       - 'JP/analysis/0628_*'
       - 'JP/analysis/0629_*'
       - 'JP/analysis/0630_*'
       - 'JP/analysis/0634_*'
+      - 'JP/analysis/0640_*'
       - '.github/workflows/jp-room-selector-evidence.yml'
   workflow_dispatch:
 permissions:
@@ -41,3 +43,5 @@ jobs:
         run: python JP/tools/audit_mesen_room_chain_0630.py --smoke
       - name: Check JP0634 original bank01 clamp smoke
         run: python JP/tools/audit_room_selector_parent_0634.py --smoke
+      - name: Check JP0640 ROM-free raw01 callsite instruction boundaries
+        run: python JP/tools/audit_room_selector_callers_0640.py --smoke
