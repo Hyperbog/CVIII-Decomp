@@ -61,6 +61,7 @@ if(JP_EDITION_HOST_EXTRAS)
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_sound_decisions_0646.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_session_0614.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_levels_0618.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_virtual_audio_0647.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_ui_0619.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_menu_registry_0620.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_menu_state_0622.c"
@@ -420,6 +421,12 @@ add_executable(jp_audio_levels_test_0618
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_levels_0618.c"
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_levels_test_0618.c")
 set_property(TARGET jp_audio_levels_test_0618 PROPERTY C_STANDARD 11)
+
+# JP0647: separate host-only virtual voice mixer with independent gains.
+add_executable(jp_virtual_audio_test_0647
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_virtual_audio_0647.c"
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_virtual_audio_test_0647.c")
+set_property(TARGET jp_virtual_audio_test_0647 PROPERTY C_STANDARD 11)
 
 # JP0647: separate deterministic event-timed synthetic stage/FX soundtrack.
 add_executable(jp_virtual_scene_test_0647

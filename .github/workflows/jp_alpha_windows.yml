@@ -344,6 +344,13 @@ jobs:
           if (!(Test-Path -LiteralPath $test)) { throw 'JP0618 volume test missing' }
           & $test
           if ($LASTEXITCODE -ne 0) { throw 'JP0618 enhanced PCM master-level regression failed' }
+      - name: Verify JP0647 8+24 virtual-voice mixer and independent gain controls
+        shell: pwsh
+        run: |
+          $test = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win/Release/jp_virtual_audio_test_0647.exe'
+          if (!(Test-Path -LiteralPath $test)) { throw 'JP0647 virtual-voice C11 test missing' }
+          & $test
+          if ($LASTEXITCODE -ne 0) { throw 'JP0647 virtual-voice allocation/gain/overflow regression' }
       - name: Verify JP0647 virtual song and overlapping effects scene across render block sizes
         shell: pwsh
         run: |
