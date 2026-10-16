@@ -188,3 +188,8 @@ No new source byte promotion or VPP credit is justified.
 ## JP0630 — R-002 producer STA and consumer result evidence gate
 
 [JP0630](../analysis/0630_MESEN_ROOM_CHAIN_POSTCONDITION.md) adds raw01:$BB5E and raw0A:$B806 instruction watchpoints, mirrored $30/$07A0 write logging, NMI/IRQ event ordering and strict original-ROM pointer comparison. Only synthetic trace regression and owner-original ROM identity/pointer checks have run; no actual Mesen session, original gameplay liveness, strict source-byte promotion or task closure. R-002 stays OPEN; certified 49,504 PRG bytes, VPP27, 0508 and fixed $FB96 unchanged.
+
+
+## JP0634 preservation gate — bounded raw01 parent, R-002 still open
+
+Original SHA-authenticated JP physical raw01 code now has a documented B87A→B919 clamp→BAEF→BB57 contiguous conditional path. Its post-clamp RAM[$30] values are 00..11 and its nine-cell BB62 index values 0..8 **only for this specified uninterrupted route**. Source/ROM test and Windows/Linux ROM-free CI are separately recorded at [JP0634](../analysis/0634_RAW01_SELECTOR_PARENT_CFG.md). This cannot close R-002: true source liveness, alternative entries, intervening $30/$07A0 writers, and consumer raw0A:$B7F7 original-game chronology remain unproved. No new semantic bytes, coverage %, VPP or recovery frontier advancement.

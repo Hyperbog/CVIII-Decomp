@@ -113,3 +113,8 @@ only non-lossless findings.
 ## JP0629 — Nine identified original-bank01 producer cells; original-Mesen watchpoints ready
 
 [JP0629 findings](../analysis/0629_MESEN_ROOM_SELECTOR_PROVENANCE.md) distinguish a nine-byte source table raw01:$BB62–$BB6A from the following code-like $BB6B region (candidate JMP from $B877). Only hypothesized $30 values 00–11 index within those nine identified cells; classifying their *independent hypothetical* raw0A room pointers gives six known streams, four unvalidated in-window targets and eight outside the expected bank0E window. This does not imply any eight original gameplay faults or 18 proven input values. The owner-only Mesen Lua script watches physical raw01:$BB57, raw0A:$B7F7 and every mirrored RAM $07A0 write, and a strict validator checks event chronology, physical PRG identity and source ROM pointer bytes. Capture has not been run. R-002 remains OPEN pending real original game producer ordering; original source partition and decomp ledger unchanged.
+
+
+## JP0634 original raw01 password/selector parent route (static, conditional)
+
+[JP0634](../analysis/0634_RAW01_SELECTOR_PARENT_CFG.md) authenticates in-bank raw01:$B87A JSR $B919, subsequent JMP $BAEF, and continuous $BAEF–$BB61 6502 code ending at indexed $BB62,Y table read and STA $07A0. The original B91E–B927 clamp computes unsigned min(RAM[$30],$11); all 256 inputs pass that instruction-stepped clamp audit on the authenticated owner ROM. Thus the **specific non-interrupted** predecessor path indexes only the nine previously identified $BB62–$BB6A cells. This does not prove the path is live, bound all alternative callers or IRQ/NMI writers, or join raw01:$BB57 to raw0A:$B7F7. R-002 remains OPEN; strict source credit unchanged.
