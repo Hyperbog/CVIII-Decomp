@@ -37,6 +37,7 @@ chronological decompilation notes.
 | JP0648 original DMC command source | Original-JP-authenticated 15 four-byte DMC programs ($6F..$7D) and pure six-register-event planner, with original priority and $06DD side-effect model. Unsupported high commands fail closed; **not** a playable DPCM generator. |
 | JP0649 original DPCM sample ranges/bit decode | **Implemented, dormant:** SHA-authenticated 15 descriptors covering 8 distinct CPU sample spans in switchable VRC6 $C000–$DFFF, plus NTSC/PAL per-bit period geometry and raw 7-bit DAC decoding for caller-supplied PRG bank8. Live mapper bank/DMA phase and real game audio remain unverified. |
 | JP0650 native DMC DMA physical-bank observer | Opt-in owner-only --dmc-dma-trace from actual DMC bus gets and VRC6 $C000 bank-write intents: mapped physical source offsets, returned bytes, cycle/epoch and validated ROM-byte reporting; truncation explicitly rejected. Real original-game capture and independent Mesen parity pending. |
+| JP0651 independent MesenCE DMA reference pair | **Implemented, ROM-free tested:** SHA-pinned optional MesenCE DMC-only source hook and strict one-to-one native/reference address, mapped PRG offset, byte and inter-fetch cycle comparison. Real original-JP paired emulator execution and MesenCE build acceptance still pending. |
 | Experimental sprite enhancement | Opt-in extra-OAM compositor and stable sprite history/priority; JP0645 now uses original PRG26 OAM-rotation emission identity to prevent duplicated animation ghosts, with 64-sprite synthetic CI; default off, owner gameplay acceptance pending; issue #1 stays closed |
 | Original ROM asset package | Authentic private CHR/package/index and read-only tracing are implemented, **not** an installable texture override |
 | F10 stage/companion tools | Debug-only checkpoint/password bootstrap, not public game progression |
@@ -231,6 +232,33 @@ not independently playable. See [JP0650 owner capture and evidence]
 (../analysis/0650_DMC_DMA_FETCH_AND_MAPPER_TRACE.md).
 
 Default original audio preserved, modding deferred, R-007 open.
+
+## Latest independent DMC reference comparison infrastructure — JP0651
+
+An independent MesenCE source-pinned hook is now authored for the
+genuine DMC sample-transfer branch, not for normal CPU, OAM or
+dummy reads. It records actual sample fetch byte, CPU address,
+physical mapped PRG offset and cycle to an opt-in owner-private
+reference log when a privately built pinned MesenCE emulator runs.
+The Python comparison rejects mismatched/missing/truncated source
+events, wrong cartridge offsets, altered sample bytes, inconsistent
+mapper state and any inter-fetch CPU cycle gap disagreement. It
+reports a constant absolute-cycle offset without hiding it.
+
+The cross-platform Windows SDL2 Alpha and Linux NESRecomp workflows
+passed strict ROM-free Mesen-source patch and reference/native
+pairing tests ([Windows](https://github.com/Hyperbog/CVIII-Decomp/actions/runs/38854153989),
+[Linux](https://github.com/Hyperbog/CVIII-Decomp/actions/runs/38854153973)).
+**MesenCE was not compiled or executed in these workflows**, and
+**no matched original-Japanese retail gameplay pair was observed**.
+A real original-JP CPU/DMC mapper timing claim remains unproven
+until owner-local pinned MesenCE build and identical-route comparison.
+See [JP0651 evidence and private instructions]
+(../analysis/0651_INDEPENDENT_MESEN_DMC_DMA_REFERENCE.md).
+
+The existing playable game audio stays untouched. Authentic Music/SFX
+producers are not yet implemented; JP0647 virtual mixer remains
+dormant. R-007 open; all modding still deferred.
 
 ## Independent historical decompilation metrics
 
