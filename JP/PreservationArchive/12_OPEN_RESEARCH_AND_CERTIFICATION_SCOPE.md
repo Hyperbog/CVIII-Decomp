@@ -203,3 +203,16 @@ ROM-authenticated [JP0640](../analysis/0640_RAW01_SELECTOR_DIRECT_CALLS.md) veri
 
 [JP0652](../analysis/0652_COMPLETE_ORIGINAL_SOUND_DIRECTORY.md) independently catalogs all 125 indexed original sound records and all 325 physical-bank-qualified stream references. This improves inspectable source metadata, **not** confirmed playback. Original request-to-record liveness, phrase opcodes, mapper histories, independent sample fetches, note/voice classification and native Music/SFX ownership remain open. The catalog produces no host voices and no additional certified semantic PRG bytes/VPP points; owner-derived metadata JSON remains private.
 
+## JP0653 — Original sound phrase array source semantics, liveness still open
+
+[JP0653](../analysis/0653_ORIGINAL_SOUND_PHRASE_POINTER_NATIVE.md)
+validates the two original CPU lookup routines and the complete
+148-pointer/140-root structural phrase pool with a compiled native C11
+read-only helper. Conditional second-table indices outside 0..19
+read other raw ROM bytes; they must not be treated as live source
+pointers or faults without original Mesen producer/order evidence.
+Original music phrase command semantics, actual selector domains,
+scheduler source ownership and native waveform parity remain open.
+The 3,072 exact bounded opcode/native replays are not game-frame parity
+or additional strict semantic coverage. R-007 and R-002 remain OPEN.
+

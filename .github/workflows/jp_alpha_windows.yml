@@ -40,6 +40,7 @@ on:
       - "JP/tools/patch_cyc_sound_decisions_0646.py"
       - "JP/tools/jp_dmc_original_source_0648.py"
       - "JP/tools/jp_sound_catalog_0652.py"
+      - "JP/tools/jp_phrase_lookup_0653.py"
       - "JP/tools/jp_dpcm_memory_audit_0649.py"
       - "JP/tools/patch_cyc_dmc_dma_trace_0650.py"
       - "JP/tools/jp_dmc_dma_trace_verify_0650.py"
@@ -337,6 +338,11 @@ jobs:
         run: |
           python JP/tools/jp_sound_catalog_0652.py --smoke
           if ($LASTEXITCODE -ne 0) { throw 'JP0652 full sound metadata catalog synthetic guard failed' }
+      - name: Verify JP0653 complete original phrase-pointer source partition (ROM-free)
+        shell: pwsh
+        run: |
+          python JP/tools/jp_phrase_lookup_0653.py --smoke
+          if ($LASTEXITCODE -ne 0) { throw 'JP0653 source phrase CPU lookup smoke failed' }
       - name: Authenticate JP0648 DMC priority and indexed source, ROM-free negatives
         shell: pwsh
         run: |

@@ -57,3 +57,22 @@ For every new record add reproducible ROM address, evidence grade, whether actua
 
 
 **U-002 supplement (JP0634):** The original raw01:$B87A → $B919 → $BAEF → $BB57 candidate route contains a real unsigned $30 clamp to $11 before the nine-cell table read. This is conditional source proof, **not** a universal observed selector domain or crossbank raw0A room-loader predecessor. Alternative entries, NMI/IRQ writes and runtime reachability remain unknown. [Source audit](../analysis/0634_RAW01_SELECTOR_PARENT_CFG.md). Do not classify the earlier conditional $35→$FF63 pointer as an observed gameplay bug.
+
+## JP0653 — Phrase-index source boundary and $FF terminal distinctions
+
+[JP0653](../analysis/0653_ORIGINAL_SOUND_PHRASE_POINTER_NATIVE.md)
+proves from original PRG0C opcodes that the $8B2C consumer uses
+LDA $01B7,X, whereas the $8D07 consumer uses **LDA $06** (two-byte
+zero-page load). They index two different source bases, $A304
+and $A404; the latter has only twenty physical structural
+pointer entries before actual phrase-data bytes begin at $A42C.
+Both use an **8-bit** ASL and alias selectors 128..255 onto 0..127.
+Treating all 148 physical pointer entries as one unrestricted consumer
+table, or classifying a phrase-data read as an authenticated pointer,
+would be incorrect. Similarly the final structural root interval
+$A945-$A956 has an interior FF at $A94F as well as FF at $A956;
+its full bounded source interval is **not** proved to be one playable
+phrase. These limits are now asserted in owner-JP source audit and
+fail-closed native C11. They do not prove game selector liveness.
+R-007, R-002 and full audio parity remain open; no PRG/VPP credit.
+

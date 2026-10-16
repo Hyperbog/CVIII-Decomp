@@ -37,6 +37,7 @@ on:
       - "JP/tools/patch_cyc_sound_decisions_0646.py"
       - "JP/tools/jp_dmc_original_source_0648.py"
       - "JP/tools/jp_sound_catalog_0652.py"
+      - "JP/tools/jp_phrase_lookup_0653.py"
       - "JP/tools/jp_dpcm_memory_audit_0649.py"
       - "JP/tools/patch_cyc_dmc_dma_trace_0650.py"
       - "JP/tools/jp_dmc_dma_trace_verify_0650.py"
@@ -273,6 +274,14 @@ jobs:
       - name: Verify JP0652 complete source-indexed sound directory (ROM-free)
         run: |
           python3 JP/tools/jp_sound_catalog_0652.py --smoke
+      - name: Verify JP0653 148-entry phrase index, 512 CPU smokes and native C11 (ROM-free)
+        run: |
+          python3 JP/tools/jp_phrase_lookup_0653.py --smoke
+          cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic -DNDEBUG \
+            JP/native/enhanced/cviii_phrase_lookup_0653.c \
+            JP/native/enhanced/cviii_phrase_lookup_test_0653.c \
+            -o "${{ runner.temp }}/jp_phrase_lookup_test_0653"
+          "${{ runner.temp }}/jp_phrase_lookup_test_0653"
       - name: Verify JP0648 original source DMC table boundaries and priority (ROM-free)
         run: |
           python3 JP/tools/jp_dmc_original_source_0648.py --smoke

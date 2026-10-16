@@ -86,3 +86,19 @@ The [new private opcode-fetch overlay](../tools/patch_cyc_sound_requests_0612.py
 
 The [JP0652 owner-ROM catalog](../analysis/0652_COMPLETE_ORIGINAL_SOUND_DIRECTORY.md) authenticates physical raw PRG0C's 125 indexed descriptors (1,505 source bytes), their 325 bank-qualified producer references (raw0C 139, raw04 102, raw05 84), and the 15 special DMC command slots $6F–$7D. The original 3,523-byte addressed sound stream pool is fingerprinted, **not parsed command-by-command**. Private optional output uses internal source IDs and physical provenance, not independently witnessed active VRC6 mapper state; its reconstructed descriptor metadata must not be published as ROM-equivalent data. Synthetic corruption tests and owner-ROM source checks pass. No music/SFX identity or playable per-voice producer is inferred. R-007 open; semantic PRG/VPP unchanged.
 
+## JP0653 — Conditional $8B2C/$8D07 phrase reads, bounded native source semantics
+
+The [JP0653 authenticated original opcode and C11 audit](../analysis/0653_ORIGINAL_SOUND_PHRASE_POINTER_NATIVE.md)
+executes source original PRG0C:$8B2C–$8B3A and $8D07–$8D14, tracking
+selectors RAM $01B7,X and ZP $06, respectively. The 6502's 8-bit
+`ASL A; TAY` indexes distinct 128-word and 20-word structural source
+tables. All 256 byte input values per consumer are tested, including
+high-bit alias and the second table's *out-of-table* data reads. The
+native host helper records returned raw words but never promotes
+those out-of-table values to authenticated phrase roots. The complete
+148-pointer/140-root pool is 1,323 bytes and contains one extra
+interior $FF at $A94F, before the final $A956 terminator. Exactly
+3,072 bounded original-versus-native cases passed. The source decoder
+is dormant, sound output unchanged; no source selector liveness,
+music/SFX classification, or full playable audio parity is asserted.
+

@@ -275,6 +275,21 @@ The game sound path remains unchanged, JP0647 independent virtual voices
 remain dormant, and original-game Mesen/native parity is unverified. R-007
 stays open; no source PRG/VPP promotion or new public mod API.
 
+## JP0653 — Original phrase lookup, native-source parity only
+
+The two original Japanese sound phrase-pointer consumers now have a
+read-only source-derived C11 resolver. Their indexed source spans are
+**128 entries at $A304 and 20 entries at $A404**, with an 8-bit
+high-selector alias. The 148 source words have 140 distinct physical
+roots covering 1,323 original bytes. Bounded original-opcode/NMOS 6502
+vs native C11 tests passed 3,072 cases on the owner's authenticated
+Japanese ROM. [JP0653 source evidence](../analysis/0653_ORIGINAL_SOUND_PHRASE_POINTER_NATIVE.md).
+
+This is not an audible phrase decoder, live game sound request replay
+or working separate Music/SFX controls. The C11 code is linked but
+dormant; the 2A03/VRC6 output remains unchanged. R-007 remains open;
+strict semantic PRG and VPP are unchanged.
+
 ## Independent historical decompilation metrics
 
 Strict semantic PRG **49,504 / 262,144 (18.8843%)**;
