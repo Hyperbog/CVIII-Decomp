@@ -1037,3 +1037,8 @@ credit: 49,504/262144; VPP27; 0508; $FB96; RESUME_STATE unchanged.
 ## JP0641 — Independent scenario replay preflight foundation (no execution)
 
 [JP0641](../analysis/0641_SCENARIO_PREFLIGHT_CONTRACT.md) adds a strict versioned scenario manifest, SHA-pinned deterministic native input schedule, owner-only retail-ROM/executable identity preflight, and explicit PASS/FAIL/NOT_EXERCISED per phase. A ROM-free sample and synthetic tamper/negative tests are wired into separate Windows/Linux CI, leaving the recovered seven-layer SDL integration unchanged. The included sample is an input-probe contract, **not** a verified title-to-village route. No original Mesen or native gameplay was executed in this phase; replay/frame/CPU/render parity remain NOT_EXERCISED. Strict PRG 49,504/262,144 (18.8843%), VPP 27/100, certified 0508, fixed $FB96, R-002 OPEN.
+
+
+## JP0642 — Pinned original-Mesen/native independent replay adapter
+
+[JP0642](../analysis/0642_INDEPENDENT_REPLAY_ADAPTER.md) implements owner-local independent Mesen-agent and native C11 bounded frame execution from the exact JP0641 scenario file, translating verified frame-change controller input into Mesen's inclusive intervals and requiring SHA pins for the original JP ROM, both executables, and MesenCore. It validates actual reference NES JSONL summary/state/final PNG and native JP0578 frame-hash/PNG output without sharing savestates. Synthetic mocked-process and negative-fixture tests PASS locally; genuine original Mesen/native retail gameplay and inter-engine parity were NOT EXERCISED. Strict PRG49,504/262,144, VPP27/100, 0508, $FB96, R-002 OPEN.
