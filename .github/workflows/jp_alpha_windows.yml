@@ -60,6 +60,8 @@ jobs:
   windowed-native-c11:
     runs-on: windows-2022
     timeout-minutes: 40
+    env:
+      PYTHONIOENCODING: utf-8
     steps:
       - name: Checkout CVIII source
         uses: actions/checkout@v4

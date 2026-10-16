@@ -1022,3 +1022,8 @@ credit: 49,504/262144; VPP27; 0508; $FB96; RESUME_STATE unchanged.
 ## JP0638 — ROM-free host linkage and CP1252 smoke diagnostic fixes
 
 [JP0638](../analysis/0638_TEST_HOST_LINK_AND_CONSOLE.md) fixes two unrelated CI environmental errors exposed after six-layer SDL source verification: the isolated C11 edition fixture now provides an explicitly inert mock of pinned upstream `uint64_t cyc_cycle_count(void)`, and JP0626's smoke confirmation uses CP1252-compatible ASCII rather than a Unicode arrow. Production game modules and pinned SDL patch content remain unchanged. Owner gameplay and full emulator trace verification are still pending. Strict 49,504/262,144, VPP27, certified0508, $FB96 and R-002 OPEN.
+
+
+## JP0639 — Windows seven-layer source gate log encoding
+
+[JP0639](../analysis/0639_WINDOWS_UTF8_SOURCE_GATE.md) addresses a Windows CP1252 console failure after the actual seven-layer pinned SDL source check had generated and reported success. The JP0626 message now uses ASCII and the Windows GitHub Actions job explicitly requests UTF-8 Python output. These are diagnostic/environment changes, not CPU/gameplay corrections. Strict 49,504 PRG, VPP27, 0508 and FB96 unchanged; independent original Mesen capture and owner Windows playtest remain pending.

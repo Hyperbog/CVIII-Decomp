@@ -95,6 +95,6 @@ def main()->None:
     result["pinned_source_git_blob"]=identity
     result["generated_source_bytes"]=len(seventh.encode("utf-8"))
     print(json.dumps(result,sort_keys=True))
-    print("PASS JP0626 exact pinned 7-stage SDL Pause→Audio→Pause contract")
+    print("PASS JP0626 exact pinned 7-stage SDL Pause->Audio->Pause contract")
 
 if __name__=="__main__":main()
