@@ -148,3 +148,27 @@ stage/gameplay entry, PPU/mapper frame parity or level editor
 is implied. The C11 code has no live gameplay caller. Room
 source field meanings and R-002 remain OPEN.
 
+## JP0658 — Full bounded state-zero room init, original 6502 ↔ C11
+
+[JP0658](../analysis/0658_ORIGINAL_ROOM_ZERO_PPU_NATIVE.md)
+follows the conditional raw0A:$B570 room-state-zero entry
+through fixed E2C4, E616, E7B6, E16C, E827, EB82,
+and ED89, then back to raw0A:$B589/$B58B, returning
+with room state $19=1. The translated native C11
+postcondition owns **1,297 exact RAM clear destinations**,
+preserves $0781, returns the correct $07A0/$07A6
+reset, and records $C000=$1E and $B003=$20.
+The exact 42-byte fixed $EC1D–$EC46 source script
+produces **2,048 ordered PPUDATA port writes**,
+split into two 1,024-write nametable regions, with
+the original $7F address switch and 1/32-byte PPU
+increment behavior. Original-ROM 6502 versus native
+checks pass 512 complete entry/return paths, comparing
+917,504 nonstack RAM bytes and 1,048,576 port events.
+
+No live mapper/PPU/cycle/frame integration or
+reset-to-room original Mesen witness; C11 module
+is dormant. Source bytes were previously indexed.
+No new strict PRG credit or VPP point. Room
+producer bounds R-002 remain OPEN.
+

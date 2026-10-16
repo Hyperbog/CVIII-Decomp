@@ -349,3 +349,5 @@ else
   echo "SKIP native title/intro/stage demo: X11 development dependency not available"
 fi
 echo "PASS: native test binaries and original-ROM headless CLI compiled; ROM-free suites executed"
+# JP0658 bounded original room clear + PPU stream contract; media-free.
+python3 "$root/JP/tools/jp_room_clear_0658.py" --smoke

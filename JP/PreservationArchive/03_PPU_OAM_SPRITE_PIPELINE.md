@@ -32,3 +32,23 @@ The [Phase 9 original-instruction witness](../analysis/0508_PHASE9_FINDINGS.md) 
 ## 0508 experimental PPU-vblank scheduler, not video parity
 
 The [model/test report](../analysis/0508_EXPERIMENTAL_VBLANK_CYCLE_TRACE.md) implements only PPUSTATUS vblank read-clear, PPUCTRL NMI enable and an approximate CPU-cycle-to-PPU-dot frame schedule, then exercises 960 synthetic frames and 948 modeled NMI entries with original ROM CPU code. It does not model complete PPU image/CHR/OAM rendering, odd-frame timing, sprite status, DMA transfer bus sequence or VRC6 IRQ; existing sprite/OAM faithful lift and partial PPU output audit are separate. **No frame golden or rendering VPP point is earned.**
+
+## JP0658 — Original nametable clear source and native PPU-port plan
+
+[Original-JP opcode and C11 comparison](../analysis/0658_ORIGINAL_ROOM_ZERO_PPU_NATIVE.md)
+authenticates the conditional stage-zero $EB82
+nametable-clear script. It sends $2006 high then low
+from little-endian pointer data, writes 1,024 zeros
+to each of two nominal $2000/$2400 nametable
+regions, parses $7F PPU address-switch and $FF
+stream end, and restores original PPUCTRL at $ED89.
+All 2,048 write addresses per test are verified
+against 6502 source execution (512 full room
+initialization cases, both PPU increment modes).
+For PPUCTRL increment=32, 2,048 port writes are
+**not** 2,048 unique VRAM cell locations.
+PPUSTATUS and timing are externally bounded in
+the source replay, not original PPU hardware parity.
+The native module is a dormant event plan;
+background update/rendering VPP not credited.
+

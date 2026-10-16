@@ -355,6 +355,25 @@ actual new scrolling, stage-rendering, controller/gameplay or
 savestate integration. Strict PRG remains 49,504/262,144
 (18.8843%). R-002 and original-Mesen frame parity open.
 
+## JP0658 — Full native room reset and nametable-clear event planner
+
+Original raw0A room-state-zero now has a compiled native C11
+room initialization plan covering exactly 1,297 cleared RAM
+bytes, 2,048 ordered PPUDATA nametable write events,
+the original $C000/$B003 register events, source-pointer
+and room-state transition to $19=1. An original-opcode
+6502 reference matches 512 full native scenarios across
+5,392,384 instructions, 917,504 nonstack RAM comparisons
+and 1,048,576 PPU write events.
+[Full source evidence](../analysis/0658_ORIGINAL_ROOM_ZERO_PPU_NATIVE.md).
+
+This subsystem is **compiled but dormant**; it does not clear
+the actual running game's RAM or draw game frames. An
+original-Mesen gameplay trace, pixel/PPU register timing
+and the global room producer domain remain open.
+Strict PRG **49,504/262,144 (18.8843%)**, VPP **29/100**
+unchanged, fixed frontier $FB96.
+
 ## Independent historical decompilation metrics
 
 Strict semantic PRG **49,504 / 262,144 (18.8843%)**;

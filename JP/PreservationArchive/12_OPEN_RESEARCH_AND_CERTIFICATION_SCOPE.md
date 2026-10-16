@@ -277,3 +277,23 @@ $8410,Y producer range, natural $801E and $80D1 entry
 liveness, original PPU outcome and native gameplay integration
 are still UNKNOWN. R-002 OPEN and strict PRG unchanged.
 
+## JP0658 — 2,048 original PPU port events matched, gameplay still not live-proved
+
+[JP0658](../analysis/0658_ORIGINAL_ROOM_ZERO_PPU_NATIVE.md)
+closes the conditional native source transaction
+from original raw0A room-state $00 through the
+complete 1,297-byte RAM reset and the 2,048
+ordered fixed-PRG nametable-clear PPUDATA
+events, returning state $19=1. The full
+original 6502 opcode path matches native C11
+across 512 scenarios, 917,504 nonstack RAM
+byte comparisons, and 1,048,576 ordered
+port write comparisons. This is not an
+independently observed original gameplay scene,
+does not simulate real PPU cycles/pixels, and
+does not prove the producer chain for the
+$18/$19 or $07A0 room selectors. C11 is
+dormant. VPP 29/100 and strict PRG
+49,504/262,144 remain unchanged; R-001 and
+R-002 OPEN.
+

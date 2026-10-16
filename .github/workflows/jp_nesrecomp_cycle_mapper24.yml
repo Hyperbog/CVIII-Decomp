@@ -42,6 +42,7 @@ on:
       - "JP/tools/jp_phrase_control_0656.py"
       - "JP/tools/jp_room_catalog_0657.py"
       - "JP/tools/jp_room_coordinate_0657.py"
+      - "JP/tools/jp_room_clear_0658.py"
       - "JP/tools/jp_dpcm_memory_audit_0649.py"
       - "JP/tools/patch_cyc_dmc_dma_trace_0650.py"
       - "JP/tools/jp_dmc_dma_trace_verify_0650.py"
@@ -316,6 +317,15 @@ jobs:
             JP/native/enhanced/cviii_room_coordinate_test_0657.c \
             -o "${{ runner.temp }}/jp_room_coordinate_test_0657"
           "${{ runner.temp }}/jp_room_coordinate_test_0657"
+      - name: Verify JP0658 512 synthetic full room-state and 2048 PPU events (ROM-free)
+        run: |
+          python3 JP/tools/jp_room_clear_0658.py --smoke
+          cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic -DNDEBUG \
+            JP/native/enhanced/cviii_room_ppu_stream_0658.c \
+            JP/native/enhanced/cviii_room_state0_0658.c \
+            JP/native/enhanced/cviii_room_state0_test_0658.c \
+            -o "${{ runner.temp }}/jp_room_state0_test_0658"
+          "${{ runner.temp }}/jp_room_state0_test_0658"
       - name: Verify JP0648 original source DMC table boundaries and priority (ROM-free)
         run: |
           python3 JP/tools/jp_dmc_original_source_0648.py --smoke

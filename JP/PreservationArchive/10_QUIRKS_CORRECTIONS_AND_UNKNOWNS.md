@@ -122,3 +122,22 @@ JP0653 pool; do not falsely classify either as observed sound events.
 The native helper preserves both cases without mutating actual
 gameplay. R-007 OPEN; strict PRG unchanged.
 
+## JP0658 — Room initialization preserves cleared $0781 and PPU increment mode (Q/U)
+
+The original room-zero path at raw0A:$B570
+saves $0781 on the 6502 stack, invokes the fixed
+$E7B6 bulk reset covering that address, then
+restores its incoming value. Treating all 1,297
+reset destinations as **finally zero** is incorrect
+at $0781. The independently tested native
+postcondition preserves the incoming byte, while
+$0789/$07A0/$07A6 are finally zero in this
+bounded source path. The fixed PPU stream at
+$EC1D emits 2,048 port writes; PPUCTRL bit2
+selects +1 or +32 VRAM increments, so port
+event count is not unique VRAM address coverage.
+[JP0658 source](../analysis/0658_ORIGINAL_ROOM_ZERO_PPU_NATIVE.md).
+These are conditionally executed source results,
+**not** proof of natural room stage liveness or
+frame-accurate PPU timing. R-002 OPEN.
+
