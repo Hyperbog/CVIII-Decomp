@@ -35,6 +35,7 @@ chronological decompilation notes.
 | Music/SFX sliders | Stored settings only; **not** independent sound gains or voices |
 | JP0647 independent virtual mixer | **Implemented**: bounded 8 music + 24 SFX synthetic PCM voices, separate virtual gain controls, no voice stealing, reset-safe handles. **Dormant** in real gameplay: original sound programs and PCM producers not yet recovered; real Music/SFX sliders remain preferences only. |
 | JP0648 original DMC command source | Original-JP-authenticated 15 four-byte DMC programs ($6F..$7D) and pure six-register-event planner, with original priority and $06DD side-effect model. Unsupported high commands fail closed; **not** a playable DPCM generator. |
+| JP0649 original DPCM sample ranges/bit decode | **Implemented, dormant:** SHA-authenticated 15 descriptors covering 8 distinct CPU sample spans in switchable VRC6 $C000–$DFFF, plus NTSC/PAL per-bit period geometry and raw 7-bit DAC decoding for caller-supplied PRG bank8. Live mapper bank/DMA phase and real game audio remain unverified. |
 | Experimental sprite enhancement | Opt-in extra-OAM compositor and stable sprite history/priority; JP0645 now uses original PRG26 OAM-rotation emission identity to prevent duplicated animation ghosts, with 64-sprite synthetic CI; default off, owner gameplay acceptance pending; issue #1 stays closed |
 | Original ROM asset package | Authentic private CHR/package/index and read-only tracing are implemented, **not** an installable texture override |
 | F10 stage/companion tools | Debug-only checkpoint/password bootstrap, not public game progression |
@@ -181,6 +182,33 @@ checking in the private ROM audit. See
 Authentic DPCM playback, original game-to-Mesen sound event matching
 and live independent Music/SFX controls remain **NOT DELIVERED**.
 R-007 is still open. Default game unchanged; modding remains deferred.
+
+## Latest original-DPCM evidence and bounded decoder — JP0649
+
+The exact original Japanese ROM contains 15 DMC sound descriptors
+targeting 8 unique sample CPU spans, fully inside switchable VRC6
+$C000–$DFFF. Two variants loop. The physical 8 KiB PRG bank depends
+on actual VRC6 $C000 register state, so JP0649 accepts only an
+explicit external bank8 snapshot and **does not guess** original
+live sound memory mapping.
+
+The dormant production 2A03 DPCM helper validates the preceding
+JP0648 six-write event plan and one physical PRG bank, computes
+byte/bit counts and NTSC/PAL idealized period sums, and decodes one
+bounded raw bitstream into 7-bit delta DAC levels. It is **not**
+CPU-DMA-cycle-accurate, not the final audible effect producer,
+and never changes verified original gameplay sound or JP0647
+Music/SFX slider semantics.
+
+Original-ROM authentication and a ROM-free C11/Python regression
+matrix passed; both Windows SDL2 Alpha and Linux NESRecomp native
+workflows passed (runs [38850407597](https://github.com/Hyperbog/CVIII-Decomp/actions/runs/38850407597)
+and [38850407592](https://github.com/Hyperbog/CVIII-Decomp/actions/runs/38850407592)).
+See [JP0649 technical evidence](../analysis/0649_DPCM_MEMORY_AND_TIMING.md).
+
+Next audio gate: observed original mapper8 state at DMC DMA fetch,
+full sample-buffer/CPU timing and independent Mesen/native waveform
+comparison, followed by actual sound producers. R-007 remains OPEN.
 
 ## Independent historical decompilation metrics
 
