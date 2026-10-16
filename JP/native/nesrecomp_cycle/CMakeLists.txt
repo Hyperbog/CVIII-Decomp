@@ -58,6 +58,7 @@ if(JP_EDITION_HOST_EXTRAS)
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_object_oam_trace_0609.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_bus_0610.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_sound_requests_0612.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_sound_decisions_0646.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_session_0614.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_levels_0618.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_ui_0619.c"
@@ -368,12 +369,24 @@ execute_process(
 if(NOT JP_REQUEST_PATCH_RESULT EQUAL 0)
  message(FATAL_ERROR "JP0612 request observer source contract failed: ${JP_REQUEST_PATCH_ERROR}")
 endif()
+# JP0646: exact second private overlay uses the actual JP0612 dual opcode tap.
+# Do not vendor or modify upstream hw_machine.c or original cartridge bytes.
+set(JP_DECISION_OVERLAY "${NESRECOMP_EXTERNAL_ROOT}/runner/cyc/cviii_hw_machine_decisions.c")
+execute_process(
+ COMMAND "${Python3_EXECUTABLE}"
+  "${CMAKE_CURRENT_LIST_DIR}/../../tools/patch_cyc_sound_decisions_0646.py"
+  --source "${JP_REQUEST_OVERLAY}" --out "${JP_DECISION_OVERLAY}"
+ RESULT_VARIABLE JP_DECISION_PATCH_RESULT
+ ERROR_VARIABLE JP_DECISION_PATCH_ERROR)
+if(NOT JP_DECISION_PATCH_RESULT EQUAL 0)
+ message(FATAL_ERROR "JP0646 private original-sound decision hook rejected: ${JP_DECISION_PATCH_ERROR}")
+endif()
 get_target_property(JP_REQUEST_ORIGINAL_SOURCES jp_akumajou_densetsu SOURCES)
 set(JP_REQUEST_NEW_SOURCES "")
 set(JP_REQUEST_COUNT 0)
 foreach(JP_SOURCE IN LISTS JP_REQUEST_ORIGINAL_SOURCES)
  if(JP_SOURCE MATCHES "hw_machine\\.c$")
-  list(APPEND JP_REQUEST_NEW_SOURCES "${JP_REQUEST_OVERLAY}")
+  list(APPEND JP_REQUEST_NEW_SOURCES "${JP_DECISION_OVERLAY}")
   math(EXPR JP_REQUEST_COUNT "${JP_REQUEST_COUNT} + 1")
  else()
   list(APPEND JP_REQUEST_NEW_SOURCES "${JP_SOURCE}")
@@ -389,6 +402,12 @@ add_executable(jp_sound_requests_test_0612
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_sound_requests_0612.c"
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_sound_requests_test_0612.c")
 set_property(TARGET jp_sound_requests_test_0612 PROPERTY C_STANDARD 11)
+
+# JP0646: read-only driver-branch logger, synthetic five-path/failure test.
+add_executable(jp_sound_decisions_test_0646
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_sound_decisions_0646.c"
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_sound_decisions_test_0646.c")
+set_property(TARGET jp_sound_decisions_test_0646 PROPERTY C_STANDARD 11)
 
 # JP0614: owner-local session epochs; host callbacks only, not machine state.
 add_executable(jp_audio_session_test_0614

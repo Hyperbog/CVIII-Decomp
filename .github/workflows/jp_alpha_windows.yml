@@ -37,6 +37,7 @@ on:
       - "JP/tools/jp_object_oam_report_0609.py"
       - "JP/tools/patch_cyc_audio_bus_0610.py"
       - "JP/tools/patch_cyc_sound_requests_0612.py"
+      - "JP/tools/patch_cyc_sound_decisions_0646.py"
       - "JP/tools/jp_audio_bus_report_0610.py"
       - "JP/tools/jp_audio_session_verify_0614.py"
       - "JP/tools/jp_mesen_sound_requests_0615.py"
@@ -149,6 +150,9 @@ jobs:
           python JP/tools/patch_cyc_audio_bus_0610.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "JP0610 audio backend observer patch rejected" }
           python JP/tools/patch_cyc_sound_requests_0612.py --smoke
+          if ($LASTEXITCODE -ne 0) { throw "JP0612 sound fetch gate failed" }
+          python JP/tools/patch_cyc_sound_decisions_0646.py --smoke
+          if ($LASTEXITCODE -ne 0) { throw "JP0646 exact original driver sound-decision patch failed" }
           if ($LASTEXITCODE -ne 0) { throw "JP0612 sound request CPU-fetch patch rejected" }
           python JP/tools/jp_sound_priority_paths_0616.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "JP0616 sound-gate branch fixture failed" }
@@ -319,6 +323,13 @@ jobs:
           if (!(Test-Path -LiteralPath $test)) { throw 'JP0612 request observer test missing' }
           & $test
           if ($LASTEXITCODE -ne 0) { throw 'JP0612 sound entry logger failed' }
+      - name: Verify JP0646 real native sound-driver branch logger (ROM-free)
+        shell: pwsh
+        run: |
+          $test = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win/Release/jp_sound_decisions_test_0646.exe'
+          if (!(Test-Path -LiteralPath $test)) { throw "JP0646 native driver-decision observer missing" }
+          & $test
+          if ($LASTEXITCODE -ne 0) { throw "JP0646 original branch decision observer failed" }
       - name: Validate JP0614 owner-local epoch boundary logger (ROM-free)
         shell: pwsh
         run: |

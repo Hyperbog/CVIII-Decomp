@@ -15,6 +15,7 @@
 #include "cviii_object_oam_trace_0609.h"
 #include "cviii_audio_bus_0610.h"
 #include "cviii_sound_requests_0612.h"
+#include "cviii_sound_decisions_0646.h"
 #include "cviii_audio_session_0614.h"
 #include "cviii_audio_levels_0618.h"
 #include "cviii_audio_ui_0619.h"
@@ -44,6 +45,7 @@ typedef struct {
     CviiiObjectOamTrace object_trace; /* read-only JP PRG26 object/OAM correlation */
     CviiiAudioBus audio_bus; /* opt-in nonmutating 2A03/VRC6 sound writes */
     CviiiSoundRequests sound_requests; /* original fixed $E249 ingress only */
+    CviiiSoundDecisions sound_decisions; /* opt-in $0C sound terminal observations */
     CviiiAudioSession audio_session; /* extra-CPU row-count epoch markers */
     CviiiAudioLevels volume; /* enhanced host gains, never emulated RAM */
     int audio_ui_preview; /* opt-in independent visual QA */
@@ -238,6 +240,14 @@ static bool option(void *context, const char *name, const char *value)
         printf("CVIII: read-only original $E249 request entries; no sound changes\n");
         return true;
     }
+    if (!strcmp(name, "--sound-decision-trace")) {
+        if (!value || !cviii_sound_decisions_open(&cviii.sound_decisions, value)) {
+            fprintf(stderr, "CVIII: cannot open private original sound-decision CSV\n");
+            return false;
+        }
+        printf("CVIII: original sound branch observation; no audio changes\n");
+        return true;
+    }
     if (!strcmp(name, "--audio-session-id")) {
         if (!value || strlen(value)!=32 || strspn(value,"0123456789abcdef")!=32)
             return false;
@@ -323,6 +333,7 @@ static void power_on(void *context)
     cviii_start_close(&settings->start_menu);
     cviii_slot_cancel(&settings->slot_menu);
     cyc_render_capture_background(true);
+    cviii_sound_decisions_boundary("power_on",cyc_cycle_count());
     cviii_audio_session_mark(&settings->audio_session,"power_on",
         cyc_cycle_count(),settings->sound_requests.requests,settings->audio_bus.writes,
         settings->sound_requests.output,settings->audio_bus.output);
@@ -347,6 +358,7 @@ static void state_loaded(void *context)
     cviii_audio_menu_state_close(&settings->audio_ui); /* loaded gameplay never owns a stale modal */
     cviii_start_close(&settings->start_menu);
     cviii_slot_cancel(&settings->slot_menu);
+    cviii_sound_decisions_boundary("state_loaded",cyc_cycle_count());
     cviii_audio_session_mark(&settings->audio_session,"state_loaded",
         cyc_cycle_count(),settings->sound_requests.requests,settings->audio_bus.writes,
         settings->sound_requests.output,settings->audio_bus.output);
@@ -591,6 +603,12 @@ static const CycHostOption cviii_options[] = {
      "Read-only 2A03/VRC6 audio register traffic for source separation research"},
     {"--sound-request-trace", true,
      "Original JP fixed $E249 sound request entry register/stack snapshots"},
+    {"--sound-decision-trace", true,
+     "Owner-only original PRG0C sound request/terminal decision CSV (no audio change)"},
+    {"--audio-session-id", true,
+     "Private 32-lowercase-hex audio trace session identity"},
+    {"--audio-epoch-trace", true,
+     "Private original audio trace power-on/load epoch boundaries"},
     {"--audio-session-id", true, "Owner-local GUID binding both audio traces"},
     {"--audio-epoch-trace", true, "Owner-local power-on/load epoch row boundaries"},
     {"--asset-index", true,
