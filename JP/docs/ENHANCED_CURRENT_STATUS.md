@@ -34,6 +34,7 @@ chronological decompilation notes.
 | Master volume | **Working**, applied to final mixed PCM in Enhanced mode |
 | Music/SFX sliders | Stored settings only; **not** independent sound gains or voices |
 | JP0647 independent virtual mixer | **Implemented**: bounded 8 music + 24 SFX synthetic PCM voices, separate virtual gain controls, no voice stealing, reset-safe handles. **Dormant** in real gameplay: original sound programs and PCM producers not yet recovered; real Music/SFX sliders remain preferences only. |
+| JP0648 original DMC command source | Original-JP-authenticated 15 four-byte DMC programs ($6F..$7D) and pure six-register-event planner, with original priority and $06DD side-effect model. Unsupported high commands fail closed; **not** a playable DPCM generator. |
 | Experimental sprite enhancement | Opt-in extra-OAM compositor and stable sprite history/priority; JP0645 now uses original PRG26 OAM-rotation emission identity to prevent duplicated animation ghosts, with 64-sprite synthetic CI; default off, owner gameplay acceptance pending; issue #1 stays closed |
 | Original ROM asset package | Authentic private CHR/package/index and read-only tracing are implemented, **not** an installable texture override |
 | F10 stage/companion tools | Debug-only checkpoint/password bootstrap, not public game progression |
@@ -156,6 +157,30 @@ These are **not** proof of real Japanese-game separate audio playback.
 See [JP0647 evidence](../analysis/0647_INDEPENDENT_VIRTUAL_AUDIO_BUS.md).
 Owner-tested original gameplay remains the baseline. All modding
 features remain deferred until Enhanced Edition completion.
+
+## Original Japanese DMC source milestone — JP0648
+
+A bounded subset of the actual Japanese sound programs is now
+**source-authenticated and structurally decoded**: original 15
+DMC program descriptors for commands $6F..$7D, the original DMC
+priority gate and the six-write control sequence. The reusable host-only
+C11 decoder constructs read-only abstract register-write plans; no
+DPCM sample bytes, original sound events or PCM samples are generated
+for gameplay, and the verified 2A03/VRC6 output remains authoritative.
+The event planner is dormant in the native binary until it has an
+authenticated original-RAM producer and full sound-sample bank
+mapping.
+
+Both [Windows Alpha](https://github.com/Hyperbog/CVIII-Decomp/actions/runs/38848854199)
+and [Linux NESRecomp](https://github.com/Hyperbog/CVIII-Decomp/actions/runs/38848854194)
+builds succeeded, with 3,840 synthetic command/priority pairs tested on
+each platform, invalid-command refusal and original metadata SHA
+checking in the private ROM audit. See
+[JP0648 original DMC evidence](../analysis/0648_AUTHENTIC_DMC_SOUND_PROGRAMS.md).
+
+Authentic DPCM playback, original game-to-Mesen sound event matching
+and live independent Music/SFX controls remain **NOT DELIVERED**.
+R-007 is still open. Default game unchanged; modding remains deferred.
 
 ## Independent historical decompilation metrics
 
