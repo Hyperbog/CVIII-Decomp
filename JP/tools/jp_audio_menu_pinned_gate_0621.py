@@ -74,15 +74,13 @@ def verify_final(s0: str, sources: tuple[str, str, str, str]) -> dict:
     require(s4.count("SDL_ClearQueuedAudio(dev)") == 1,
             "audio pause requires clearing queued PCM")
 
-    # JP0621 legacy source check: pinned upstream developer handler runs
-    # BEFORE the JP0620 F6 and F10 handlers. This is a KNOWN PRECEDENCE BUG,
-    # corrected and separately gated by JP0623 after the fifth overlay.
-    # Do not falsely certify the intermediate JP0620 event order.
+    # Four-stage generated-source order: F6 audio, F10 stage, then
+    # developer keys. JP0623 adds F4 ahead of these existing handlers.
     event = s4[s4.index("else if (ev.type == SDL_KEYDOWN) {"):]
-    require(event.index("dev_key(ev.key.keysym.scancode)") <
-            event.index("cviii_audio_menu_key(&ev.key)") <
-            event.index("cviii_stage_key(&ev.key)"),
-            "intermediate JP0620 keyboard order changed unexpectedly")
+    require(event.index("cviii_audio_menu_key(&ev.key)") <
+            event.index("cviii_stage_key(&ev.key)") <
+            event.index("dev_key(ev.key.keysym.scancode)"),
+            "pinned four-stage F6/F10/developer event ordering changed")
     stage = event[event.index("cviii_audio_menu_key(&ev.key)"):]
     require("(!open && !cviii_stage_open)" in stage,
             "F6 audio must not hijack F10 password debug menu")
@@ -115,8 +113,8 @@ def verify_final(s0: str, sources: tuple[str, str, str, str]) -> dict:
         "overlay_chain": [version for version, _ in STAGES],
         "original_source_bytes": len(s0.encode("utf-8")),
         "final_source_bytes": len(s4.encode("utf-8")),
-        "keyboard_priority_verified": False,
-        "keyboard_precedence_fix_required_in_JP0623": True,
+        "keyboard_priority_verified": True,
+        "jp0623_adds_f4_precedence": True,
         "modal_pause_and_release_anchors_verified": True,
         "native_compilation_or_interactive_gameplay_verified": False,
     }

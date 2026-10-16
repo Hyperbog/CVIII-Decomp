@@ -78,15 +78,15 @@ from host action dispatch. Those route to `save_state_to` /
 the whole-machine format and announce failures. Quit uses the normal
 window exit flag; the registry requires two confirms.
 
-This fifth overlay corrects an earlier integration flaw: the pinned
-`CYC_DEV_UI` handler previously ran **before** F6 Audio and F10
-password key handling. The final priority is **F4 Start/Pause → F6
-Audio → F10 password/debug → developer shortcuts**. The original
-four-layer JP0621 gate has been corrected to truthfully assert its
-*intermediate* old ordering; the new
-[JP0623 five-layer gate](../tools/jp_start_menu_pinned_gate_0623.py)
-requires the corrected final ordering on the authenticated actual
-upstream SDL source before any new native candidate is built.
+**JP0632 source-order correction:** The earlier claim that the
+CYC_DEV_UI handler ran before F6 and F10 in the four-layer JP0621
+build was incorrect. The pinned SDL source and actual patch insertions
+put F6 Audio → F10 password/debug → developer shortcuts in that order.
+The fifth JP0623 overlay adds F4 Start/Pause ahead of these, resulting
+in F4 → F6 → F10 → developer shortcuts. The original dev-first
+JP0621 assertion was an audit error (C category), now corrected.
+The [five-layer gate](../tools/jp_start_menu_pinned_gate_0623.py)
+still checks final priority and original source identity.
 
 The host's existing frame `open` predicate includes the new modal
 and continues to gate CPU frames, controller input forwarding, and PCM
