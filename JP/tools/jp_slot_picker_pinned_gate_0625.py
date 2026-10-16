@@ -35,7 +35,12 @@ def final_check(src:str)->dict:
             "must preserve the existing host quick-slot identity")
     require("save_state_slot() : load_state_slot()" in src,
             "must call original host state serializer, not a substitute")
-    require("if(ok)cviii_pause_close();" in src,
+    require("const unsigned previous=cviii_save_slot;" in src and
+            "if(!ok) {" in src and
+            "cviii_save_slot=previous;" in src and
+            "cviii_pause_slot_begin(action,selected)" in src,
+            "failed save/load must roll back the active slot and reopen the picker")
+    require("    cviii_pause_close();\n}" in src,
             "successful save/load must dismiss the modal")
     require("case CVIII_START_SAVE:\n        if(!cviii_pause_slot_begin(action,cviii_save_slot))" in src,
             "Save must open slot picker rather than write immediately")

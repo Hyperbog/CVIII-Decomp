@@ -24,6 +24,7 @@ on:
       - "JP/tools/patch_cyc_slot_picker_0625.py"
       - "JP/tools/jp_slot_picker_pinned_gate_0625.py"
       - "JP/tools/jp_slot_shell_test_0625.py"
+      - "JP/tools/jp_menu_roundtrip_shell_test_0644.py"
       - "JP/tools/patch_cyc_audio_return_0626.py"
       - "JP/tools/jp_audio_return_pinned_gate_0626.py"
       - "JP/tools/jp_audio_menu_pinned_gate_0621.py"
@@ -174,6 +175,10 @@ jobs:
         run: |
           python3 JP/tools/jp_slot_shell_test_0625.py --smoke
           python3 JP/tools/jp_slot_shell_test_0625.py
+      - name: Execute JP0644 generated seventh-layer Save Load Audio interaction offline and netplay
+        run: |
+          python3 JP/tools/jp_menu_roundtrip_shell_test_0644.py --smoke
+          python3 JP/tools/jp_menu_roundtrip_shell_test_0644.py
       - name: Verify JP0626 Audio child return preserves Pause focus (ROM-free)
         run: |
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \

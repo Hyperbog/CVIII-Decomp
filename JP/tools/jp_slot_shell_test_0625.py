@@ -50,13 +50,14 @@ int cviii_pause_slot_accept(unsigned *chosen)
 '''
 END=r'''
 static int saved_slot=-1,loaded_slot=-1;
+static bool save_ok=true,load_ok=true;
 static bool save_state_slot(void)
 {
- save_calls++;saved_slot=(int)cviii_save_slot;return true;
+ save_calls++;saved_slot=(int)cviii_save_slot;return save_ok;
 }
 static bool load_state_slot(void)
 {
- load_calls++;loaded_slot=(int)cviii_save_slot;return true;
+ load_calls++;loaded_slot=(int)cviii_save_slot;return load_ok;
 }
 static SDL_KeyboardEvent key(SDL_Scancode sc,int repeat)
 {
@@ -114,7 +115,47 @@ int main(void)
  e=key(SDL_SCANCODE_ESCAPE,0);
  assert(cviii_pause_key(&e) && !cviii_pause_active());
  assert(save_calls==1 && load_calls==1 && audio_calls==0);
- puts("PASS JP0625 exact slot SDL shell: 0/9 wrap, save/load, child cancel, netplay");
+
+ /* Failure must preserve active quick-slot identity and the retry page. */
+ e=key(SDL_SCANCODE_F4,0);
+ assert(cviii_pause_key(&e) && cviii_pause_active());
+ e=key(SDL_SCANCODE_RETURN,0); /* Save, current 0 */
+ assert(cviii_pause_key(&e) && cviii_pause_slot_active());
+ e=key(SDL_SCANCODE_RIGHT,0); /* desired 1 */
+ assert(cviii_pause_key(&e));
+ save_ok=false;
+ e=key(SDL_SCANCODE_RETURN,0);
+ assert(cviii_pause_key(&e) && save_calls==2 && saved_slot==1);
+ assert(cviii_save_slot==0 && cviii_pause_slot_active());
+ assert(slot_picker.slot==1u && cviii_pause_active());
+ save_ok=true;
+ assert(cviii_pause_key(&e) && save_calls==3 && saved_slot==1);
+ assert(cviii_save_slot==1 && !cviii_pause_active());
+
+ e=key(SDL_SCANCODE_F4,0);
+ assert(cviii_pause_key(&e) && cviii_pause_active());
+ cviii_pause_button(SDL_CONTROLLER_BUTTON_DPAD_DOWN); /* Load */
+ cviii_pause_button(SDL_CONTROLLER_BUTTON_A);
+ assert(cviii_pause_slot_active());
+ cviii_pause_button(SDL_CONTROLLER_BUTTON_DPAD_RIGHT); /* desired 2 */
+ load_ok=false;
+ cviii_pause_button(SDL_CONTROLLER_BUTTON_A);
+ assert(load_calls==2 && loaded_slot==2);
+ assert(cviii_save_slot==1 && cviii_pause_active());
+ assert(cviii_pause_slot_active() && slot_picker.slot==2u);
+ /* Cancelling failed I/O must not replace the selected quick slot. */
+ cviii_pause_button(SDL_CONTROLLER_BUTTON_B);
+ assert(cviii_pause_active() && !cviii_pause_slot_active());
+ assert(cviii_save_slot==1);
+ cviii_pause_button(SDL_CONTROLLER_BUTTON_A); /* Load child again */
+ assert(cviii_pause_slot_active() && slot_picker.slot==1u);
+ cviii_pause_button(SDL_CONTROLLER_BUTTON_DPAD_RIGHT);
+ load_ok=true;
+ cviii_pause_button(SDL_CONTROLLER_BUTTON_A);
+ assert(load_calls==3 && loaded_slot==2 && cviii_save_slot==2);
+ assert(!cviii_pause_active());
+
+ puts("PASS JP0644 generated slot SDL: success, failed I/O rollback/retry/cancel, netplay");
  return 0;
 }
 '''

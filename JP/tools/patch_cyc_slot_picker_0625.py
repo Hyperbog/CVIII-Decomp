@@ -28,10 +28,21 @@ static void cviii_pause_slot_commit(void)
     unsigned selected=0u;
     const int action=cviii_pause_slot_accept(&selected);
     if(action!=CVIII_START_SAVE && action!=CVIII_START_LOAD)return;
+    /* The picker accepts first; I/O must not permanently change the
+     * active quick slot until the original host confirms success. */
+    const unsigned previous=cviii_save_slot;
     cviii_save_slot=selected;
     const bool ok=action==CVIII_START_SAVE ?
         save_state_slot() : load_state_slot();
-    if(ok)cviii_pause_close();
+    if(!ok) {
+        cviii_save_slot=previous;
+        /* Keep the chosen slot displayed and the game paused for retry
+         * or cancellation; the native host already reports I/O errors. */
+        if(!cviii_pause_slot_begin(action,selected))
+            note("SAVE SLOT", "Could not restore slot picker");
+        return;
+    }
+    cviii_pause_close();
 }
 '''
 SLOT_KEY=r'''    if(cviii_pause_slot_active()) {
@@ -118,6 +129,8 @@ def smoke()->None:
     assert "save_state_slot() : load_state_slot()" in result
     assert "SDL_CONTROLLER_BUTTON_DPAD_RIGHT" in result
     assert "cviii_pause_slot_cancel();" in result
+    assert "cviii_save_slot=previous;" in result
+    assert "cviii_pause_slot_begin(action,selected)" in result
     assert "cviii_pause_close();" in result
     for bad in (result,synthetic.replace(SAVE,"/* missing save action */")):
         try:generate(bad)
