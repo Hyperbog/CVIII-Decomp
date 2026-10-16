@@ -981,3 +981,8 @@ VPP27/100, certified 0508, fixed frontier $FB96 unchanged.
 ## JP0634 — Raw01 parent selector route bounded conditionally
 
 [JP0634](../analysis/0634_RAW01_SELECTOR_PARENT_CFG.md) authenticates the original raw01 B87A→B919→BAEF→BB57 route and steps all 256 inputs through the actual unsigned B91E clamp. For this no-interrupt route, source $30 is bounded to 00..11 and the nine-cell BB62 table index to 0..8. Other entries, live NMI/IRQ writers and the raw0A consumer connection remain unproven. R-002 OPEN, strict PRG 49,504/262,144, VPP27/100, checkpoint0508 and FB96 unchanged.
+
+
+## JP0636 — F6 pinned source guard position corrected
+
+[JP0636](../analysis/0636_F6_PREFIX_SOURCE_GATE.md) repairs a source-test false negative: JP0621 formerly searched for an F10 exclusion guard after F6's callback, while the actual JP0620 patch places the guard before that callback. An exact combined guard/callee check and tamper-negative fixtures replace it. Full native integration/Windows playtest still require independent CI and original reference emulator observation. Strict 49,504/262,144, VPP27, 0508, $FB96, R-002 unchanged.

@@ -50,6 +50,15 @@ def require(condition: bool, message: str) -> None:
     if not condition:
         raise ValueError("JP0621 " + message)
 
+def require_audio_guard(event: str) -> None:
+    # The F6 exclusion must precede its callback in the actual C event block.
+    expression = (
+        "if ((cviii_audio_menu_active() || (!open && !cviii_stage_open)) &&\n"
+        "                    cviii_audio_menu_key(&ev.key))"
+    )
+    require(event.count(expression) == 1,
+            "F6 guard missing, altered or detached from audio callback")
+
 def verify_final(s0: str, sources: tuple[str, str, str, str]) -> dict:
     s1, s2, s3, s4 = sources
     require(len(s0) < len(s1) < len(s2) < len(s3) < len(s4),
@@ -81,9 +90,7 @@ def verify_final(s0: str, sources: tuple[str, str, str, str]) -> dict:
             event.index("cviii_stage_key(&ev.key)") <
             event.index("dev_key(ev.key.keysym.scancode)"),
             "pinned four-stage F6/F10/developer event ordering changed")
-    stage = event[event.index("cviii_audio_menu_key(&ev.key)"):]
-    require("(!open && !cviii_stage_open)" in stage,
-            "F6 audio must not hijack F10 password debug menu")
+    require_audio_guard(event)
     require("SDL_SCANCODE_F6" in s4 and
             "SDL_CONTROLLER_BUTTON_DPAD_LEFT" in s4,
             "keyboard/gamepad branches missing")
@@ -140,6 +147,21 @@ def smoke() -> None:
         except ValueError:
             continue
         raise AssertionError("Malformed checkout newline accepted")
+    audio_event = (
+        "if ((cviii_audio_menu_active() || (!open && !cviii_stage_open)) &&\n"
+        "                    cviii_audio_menu_key(&ev.key))"
+    )
+    require_audio_guard(audio_event)
+    for altered in (
+        audio_event.replace("!cviii_stage_open", "cviii_stage_open"),
+        audio_event.replace("cviii_audio_menu_key(&ev.key)", "cviii_stage_key(&ev.key)"),
+        audio_event + "\n" + audio_event,
+    ):
+        try:
+            require_audio_guard(altered)
+        except ValueError:
+            continue
+        raise AssertionError("F6 guard tamper incorrectly accepted")
     patches = [module(TOOLS / filename) for _, filename in STAGES]
     for script in patches:
         script.smoke()
