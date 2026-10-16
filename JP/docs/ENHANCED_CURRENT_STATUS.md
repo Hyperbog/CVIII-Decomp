@@ -33,7 +33,7 @@ chronological decompilation notes.
 | Enhanced F6 Audio | Health-bar and original-font menu with 1% Master/Music/SFX sliders; nested Audio returns to parent Pause; latest owner UI acceptance pending |
 | Master volume | **Working**, applied to final mixed PCM in Enhanced mode |
 | Music/SFX sliders | Stored settings only; **not** independent sound gains or voices |
-| Experimental sprite enhancement | Opt-in extra-OAM compositor and stable sprite history/priority; default off, independent owner acceptance needed; not required to close already-resolved issue #1 |
+| Experimental sprite enhancement | Opt-in extra-OAM compositor and stable sprite history/priority; JP0645 now uses original PRG26 OAM-rotation emission identity to prevent duplicated animation ghosts, with 64-sprite synthetic CI; default off, owner gameplay acceptance pending; issue #1 stays closed |
 | Original ROM asset package | Authentic private CHR/package/index and read-only tracing are implemented, **not** an installable texture override |
 | F10 stage/companion tools | Debug-only checkpoint/password bootstrap, not public game progression |
 | JP0641/JP0642 scenario/replay tools | Versioned preflight and private reference/native frame-budget orchestration; synthetic CI passed, genuine per-frame parity not demonstrated |
@@ -98,6 +98,20 @@ and [owner menu QA](../release/alpha/QA_ENHANCED_MENUS_0644.md).
 
 **Product scope reminder:** all modding features are explicitly deferred
 until the Enhanced Edition is complete and stable.
+
+## Latest gameplay-facing Enhanced work — JP0645
+
+The optional StableSprites compositor now pairs animated sprite pieces
+by logical PRG26 emission identity despite rotating physical OAM slots,
+with one-to-one matching and conservative fallback. The original Japanese
+PRG26 `$22 += $44` and OAM `X += $C4` opcode windows were checked on the
+actual owner cartridge, not inferred from an invented ROM. A ROM-free
+4,096-case phase/slot inverse audit is included. Both the Windows SDL2
+candidate and Linux NESRecomp native integration passed, including the
+new 64-piece animation and one-frame ghost tests (runs 38838450762 and
+38838450730). **StableSprites remains opt-in/off by default** until owner
+stage-specific visual QA; original gameplay and issue #1 resolution are
+unchanged. Modding remains outside pre-release scope. See [JP0645](../analysis/0645_STABLE_SPRITE_EMISSION_ANIMATION.md).
 
 ## Independent historical decompilation metrics
 

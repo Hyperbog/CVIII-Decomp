@@ -53,6 +53,7 @@ on:
       - "JP/tools/jp_mapper_audit_0602.py"
       - "JP/native/nesrecomp_cycle/**"
       - "JP/native/enhanced/**"
+      - "JP/tools/jp_sprite_emission_source_0645.py"
       - ".github/workflows/jp_alpha_windows.yml"
   workflow_dispatch:
 permissions:
@@ -285,6 +286,11 @@ jobs:
           if (!(Test-Path -LiteralPath $test)) { throw "JP0608 sprite layer test missing" }
           & $test
           if ($LASTEXITCODE -ne 0) { throw "JP0608 synthetic sprite layer test failed" }
+      - name: Verify JP0645 PRG26 emission permutation original-byte smoke
+        shell: pwsh
+        run: |
+          python JP/tools/jp_sprite_emission_source_0645.py --smoke
+          if ($LASTEXITCODE -ne 0) { throw "JP0645 original-emission arithmetic smoke failed" }
       - name: Verify JP0645 original gameplay OAM rotation, animation and held-sprite rejection
         shell: pwsh
         run: |

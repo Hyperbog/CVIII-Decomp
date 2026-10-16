@@ -94,3 +94,23 @@ Original game semantic source counts remain exactly
 49,504/262,144 bytes (18.8843%), VPP27/100, certified checkpoint0508,
 fixed frontier $FB96 and R-002 OPEN. All modding features remain
 deferred until Enhanced Edition completion.
+
+## Authenticated Japanese source-byte corroboration
+
+The optional owner-local `JP/tools/jp_sprite_emission_source_0645.py`
+identifies the exact original PRG26 bank-26 byte windows at physical
+PRG offset `0x34019` (`A5 22 18 69 44 85 22 85 04`) and
+`0x34051` (`8A 18 69 C4 AA 88 D0 F3`). The former contains
+`LDA $22; CLC; ADC #$44; STA $22`; the latter contains
+`TXA; CLC; ADC #$C4; TAX`, supporting the static emitter-rotation
+interpretation. It checks the exact supplied owner Japanese ROM hash,
+iNES mapper24 and both byte windows; no ROM is copied to Git.
+The ROM-free synthetic bank/tamper fixtures plus 4,096 inverse-permutation
+cases run in Windows/Linux CI. Authenticated retail ROM audit was
+actually run locally and passed. These are **original source bytes**,
+not proof of runtime liveness or gameplay-layer pixel parity.
+
+```sh
+python3 JP/tools/jp_sprite_emission_source_0645.py --smoke
+python3 JP/tools/jp_sprite_emission_source_0645.py --rom "/private/Akumajou Densetsu (Japan).nes"
+```

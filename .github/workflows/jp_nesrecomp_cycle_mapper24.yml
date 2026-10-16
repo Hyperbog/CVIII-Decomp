@@ -16,6 +16,7 @@ on:
       - "JP/tools/validate_cycle_media_0576.py"
       - "JP/tools/validate_frame_artifacts_0578.py"
       - "JP/native/enhanced/**"
+      - "JP/tools/jp_sprite_emission_source_0645.py"
       - "JP/tools/patch_cyc_savestates_0591.py"
       - "JP/tools/patch_cyc_audio_menu_0620.py"
       - "JP/tools/patch_cyc_start_menu_0623.py"
@@ -265,6 +266,8 @@ jobs:
             JP/native/enhanced/cviii_sprite_layers_test_0608.c \
             -o "${{ runner.temp }}/test_sprite_layers_0608"
           "${{ runner.temp }}/test_sprite_layers_0608"
+      - name: Verify JP0645 original PRG26 emission arithmetic and malformed motifs (ROM-free)
+        run: python3 JP/tools/jp_sprite_emission_source_0645.py --smoke
       - name: Verify JP0645 original logical sprite OAM rotation and 64-object animation (ROM-free)
         run: |
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
