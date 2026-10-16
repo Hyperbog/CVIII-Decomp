@@ -16,6 +16,7 @@
 #include "cviii_audio_bus_0610.h"
 #include "cviii_sound_requests_0612.h"
 #include "cviii_sound_decisions_0646.h"
+#include "cviii_dmc_dma_trace_0650.h"
 #include "cviii_audio_session_0614.h"
 #include "cviii_audio_levels_0618.h"
 #include "cviii_virtual_audio_0647.h"
@@ -47,6 +48,7 @@ typedef struct {
     CviiiAudioBus audio_bus; /* opt-in nonmutating 2A03/VRC6 sound writes */
     CviiiSoundRequests sound_requests; /* original fixed $E249 ingress only */
     CviiiSoundDecisions sound_decisions; /* opt-in $0C sound terminal observations */
+    CviiiDmcDmaTrace dmc_dma_trace; /* opt-in actual DMC fetch physical-bank evidence */
     CviiiAudioSession audio_session; /* extra-CPU row-count epoch markers */
     CviiiAudioLevels volume; /* enhanced host gains, never emulated RAM */
     CviiiVirtualAudio virtual_audio; /* dormant until original program decoder is verified */
@@ -250,6 +252,14 @@ static bool option(void *context, const char *name, const char *value)
         printf("CVIII: original sound branch observation; no audio changes\n");
         return true;
     }
+    if (!strcmp(name, "--dmc-dma-trace")) {
+        if (!value || !cviii_dmc_dma_trace_open(&cviii.dmc_dma_trace,value)) {
+            fprintf(stderr,"CVIII: cannot open private DMC DMA physical-bank CSV\n");
+            return false;
+        }
+        printf("CVIII: actual DMC sample fetch and mapper write intent; original audio unchanged\n");
+        return true;
+    }
     if (!strcmp(name, "--audio-session-id")) {
         if (!value || strlen(value)!=32 || strspn(value,"0123456789abcdef")!=32)
             return false;
@@ -337,6 +347,7 @@ static void power_on(void *context)
     cviii_virtual_audio_clear(&settings->virtual_audio); /* no host voice survives power */
     cyc_render_capture_background(true);
     cviii_sound_decisions_boundary("power_on",cyc_cycle_count());
+    cviii_dmc_dma_trace_boundary("power_on",cyc_cycle_count());
     cviii_audio_session_mark(&settings->audio_session,"power_on",
         cyc_cycle_count(),settings->sound_requests.requests,settings->audio_bus.writes,
         settings->sound_requests.output,settings->audio_bus.output);
@@ -363,6 +374,7 @@ static void state_loaded(void *context)
     cviii_slot_cancel(&settings->slot_menu);
     cviii_virtual_audio_clear(&settings->virtual_audio); /* clear on host load epoch */
     cviii_sound_decisions_boundary("state_loaded",cyc_cycle_count());
+    cviii_dmc_dma_trace_boundary("state_loaded",cyc_cycle_count());
     cviii_audio_session_mark(&settings->audio_session,"state_loaded",
         cyc_cycle_count(),settings->sound_requests.requests,settings->audio_bus.writes,
         settings->sound_requests.output,settings->audio_bus.output);
@@ -609,6 +621,8 @@ static const CycHostOption cviii_options[] = {
      "Original JP fixed $E249 sound request entry register/stack snapshots"},
     {"--sound-decision-trace", true,
      "Owner-only original PRG0C sound request/terminal decision CSV (no audio change)"},
+    {"--dmc-dma-trace", true,
+     "Private actual DMC DMA ROM-byte/PRG-bank fetch and VRC6 bank-write-intent CSV"},
     {"--audio-session-id", true, "Owner-local GUID binding both audio traces"},
     {"--audio-epoch-trace", true, "Owner-local power-on/load epoch row boundaries"},
     {"--asset-index", true,

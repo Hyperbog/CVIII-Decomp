@@ -78,10 +78,10 @@ int main(void) {
     assert(e && e->options && e->option && e->present);
     /* JP0646: all diagnostic CLI options must be advertised to the host,
      * rather than silently unreachable despite an implemented callback. */
-    assert(e->option_count == 18);
+    assert(e->option_count == 19);
     const char *const required[]={
         "--sound-request-trace","--sound-decision-trace",
-        "--audio-session-id","--audio-epoch-trace"
+        "--dmc-dma-trace","--audio-session-id","--audio-epoch-trace"
     };
     for(size_t i=0;i<sizeof required/sizeof required[0];++i) {
         size_t seen=0;
@@ -90,6 +90,7 @@ int main(void) {
         assert(seen==1u);
     }
     assert(!e->option(e->ctx,"--sound-decision-trace",NULL));
+    assert(!e->option(e->ctx,"--dmc-dma-trace",NULL));
     assert(!cviii_audio_menu_active());
     assert(!cviii_audio_menu_toggle()); /* no authenticated original CHR */
     assert(!cviii_audio_menu_active());

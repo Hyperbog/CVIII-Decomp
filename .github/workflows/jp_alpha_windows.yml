@@ -40,6 +40,8 @@ on:
       - "JP/tools/patch_cyc_sound_decisions_0646.py"
       - "JP/tools/jp_dmc_original_source_0648.py"
       - "JP/tools/jp_dpcm_memory_audit_0649.py"
+      - "JP/tools/patch_cyc_dmc_dma_trace_0650.py"
+      - "JP/tools/jp_dmc_dma_trace_verify_0650.py"
       - "JP/tools/jp_audio_bus_report_0610.py"
       - "JP/tools/jp_audio_session_verify_0614.py"
       - "JP/tools/jp_mesen_sound_requests_0615.py"
@@ -151,6 +153,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "JP0609 logical OAM-priority inversion report failed" }
           python JP/tools/patch_cyc_audio_bus_0610.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "JP0610 audio backend observer patch rejected" }
+          python JP/tools/patch_cyc_dmc_dma_trace_0650.py --smoke
+          if ($LASTEXITCODE -ne 0) { throw "JP0650 real DMA-source private overlay contract rejected" }
           python JP/tools/patch_cyc_sound_requests_0612.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "JP0612 sound fetch gate failed" }
           python JP/tools/patch_cyc_sound_decisions_0646.py --smoke
@@ -349,6 +353,15 @@ jobs:
           if (!(Test-Path -LiteralPath $test)) { throw 'JP0649 DPCM C11 test missing' }
           & $test
           if ($LASTEXITCODE -ne 0) { throw 'JP0649 raw DPCM bounds and period regression' }
+      - name: Verify JP0650 physical DMC DMA source observer and epochs (ROM-free)
+        shell: pwsh
+        run: |
+          $test = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win/Release/jp_dmc_dma_trace_test_0650.exe'
+          if (!(Test-Path -LiteralPath $test)) { throw 'JP0650 real DMA observation logger test missing' }
+          & $test
+          if ($LASTEXITCODE -ne 0) { throw 'JP0650 physical DMC DMA mapping observation regression' }
+          python JP/tools/jp_dmc_dma_trace_verify_0650.py --smoke
+          if ($LASTEXITCODE -ne 0) { throw 'JP0650 private DMA trace verifier invalid' }
       - name: Verify JP0646 real native sound-driver branch logger (ROM-free)
         shell: pwsh
         run: |

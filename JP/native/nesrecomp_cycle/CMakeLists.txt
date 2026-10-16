@@ -59,6 +59,7 @@ if(JP_EDITION_HOST_EXTRAS)
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_bus_0610.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_sound_requests_0612.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_sound_decisions_0646.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_dmc_dma_trace_0650.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_dmc_source_0648.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_dpcm_decode_0649.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_session_0614.c"
@@ -353,6 +354,49 @@ if(NOT JP_APU_MATCHES EQUAL 1 OR NOT JP_MAPPER_MATCHES EQUAL 1)
 endif()
 set_property(TARGET jp_akumajou_densetsu PROPERTY SOURCES "${JP_AUDIO_REWRITTEN_SOURCES}")
 message(STATUS "JP0610 owner-private 2A03/VRC6 sound-register diagnostic wired")
+
+# JP0650: trace actual DMC DMA sample gets and mapper24 $C000 writes.
+# Layer only on the JP0610 private APU/mapper overlays. Never vendor or
+# modify pinned external hardware, ROM data or original game audio behavior.
+set(JP_DMA_APU_OVERLAY "${NESRECOMP_EXTERNAL_ROOT}/runner/cyc/cviii_hw_apu_dma.c")
+set(JP_DMA_MAPPER_OVERLAY "${NESRECOMP_EXTERNAL_ROOT}/runner/cyc/cviii_hw_mapper_dma.c")
+execute_process(
+ COMMAND "${Python3_EXECUTABLE}"
+  "${CMAKE_CURRENT_LIST_DIR}/../../tools/patch_cyc_dmc_dma_trace_0650.py"
+  --apu "${JP_AUDIO_APU_OVERLAY}"
+  --mapper "${JP_AUDIO_MAPPER_OVERLAY}"
+  --out-apu "${JP_DMA_APU_OVERLAY}"
+  --out-mapper "${JP_DMA_MAPPER_OVERLAY}"
+ RESULT_VARIABLE JP_DMA_TAP_RESULT
+ ERROR_VARIABLE JP_DMA_TAP_ERROR)
+if(NOT JP_DMA_TAP_RESULT EQUAL 0)
+ message(FATAL_ERROR "JP0650 pinned DMC DMA fetch overlay rejected: ${JP_DMA_TAP_ERROR}")
+endif()
+get_target_property(JP_DMA_OLD_SOURCES jp_akumajou_densetsu SOURCES)
+set(JP_DMA_NEW_SOURCES "")
+set(JP_DMA_APU_MATCHES 0)
+set(JP_DMA_MAPPER_MATCHES 0)
+foreach(JP_SOURCE IN LISTS JP_DMA_OLD_SOURCES)
+ if(JP_SOURCE MATCHES "cviii_hw_apu_audio\\.c$")
+  list(APPEND JP_DMA_NEW_SOURCES "${JP_DMA_APU_OVERLAY}")
+  math(EXPR JP_DMA_APU_MATCHES "${JP_DMA_APU_MATCHES} + 1")
+ elseif(JP_SOURCE MATCHES "cviii_hw_mapper_fetch_audio\\.c$")
+  list(APPEND JP_DMA_NEW_SOURCES "${JP_DMA_MAPPER_OVERLAY}")
+  math(EXPR JP_DMA_MAPPER_MATCHES "${JP_DMA_MAPPER_MATCHES} + 1")
+ else()
+  list(APPEND JP_DMA_NEW_SOURCES "${JP_SOURCE}")
+ endif()
+endforeach()
+if(NOT JP_DMA_APU_MATCHES EQUAL 1 OR NOT JP_DMA_MAPPER_MATCHES EQUAL 1)
+ message(FATAL_ERROR "JP0650 requires exactly one real APU and one mapper24 audio overlay")
+endif()
+set_property(TARGET jp_akumajou_densetsu PROPERTY SOURCES "${JP_DMA_NEW_SOURCES}")
+message(STATUS "JP0650 optional DMC DMA actual PRG-byte fetch audit installed")
+
+add_executable(jp_dmc_dma_trace_test_0650
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_dmc_dma_trace_0650.c"
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_dmc_dma_trace_test_0650.c")
+set_property(TARGET jp_dmc_dma_trace_test_0650 PROPERTY C_STANDARD 11)
 
 add_executable(jp_audio_bus_test_0610
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_bus_0610.c"

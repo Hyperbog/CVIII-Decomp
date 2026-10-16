@@ -37,6 +37,8 @@ on:
       - "JP/tools/patch_cyc_sound_decisions_0646.py"
       - "JP/tools/jp_dmc_original_source_0648.py"
       - "JP/tools/jp_dpcm_memory_audit_0649.py"
+      - "JP/tools/patch_cyc_dmc_dma_trace_0650.py"
+      - "JP/tools/jp_dmc_dma_trace_verify_0650.py"
       - "JP/tools/jp_audio_bus_report_0610.py"
       - "JP/tools/jp_audio_session_verify_0614.py"
       - "JP/tools/jp_mesen_sound_requests_0615.py"
@@ -115,7 +117,7 @@ jobs:
         run: |
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
             -I _external_nesrecomp/runner/cyc \
-            JP/native/enhanced/cviii_edition.c JP/native/enhanced/cviii_chr_index_0598.c JP/native/enhanced/cviii_chr_audit_0599.c JP/native/enhanced/cviii_chr_fetch_0600.c JP/native/enhanced/cviii_frame_evidence_0601.c JP/native/enhanced/cviii_nt_trace_0606.c JP/native/enhanced/cviii_sprite_layers_0608.c JP/native/enhanced/cviii_object_oam_trace_0609.c JP/native/enhanced/cviii_audio_bus_0610.c JP/native/enhanced/cviii_sound_requests_0612.c JP/native/enhanced/cviii_sound_decisions_0646.c JP/native/enhanced/cviii_audio_session_0614.c JP/native/enhanced/cviii_audio_levels_0618.c JP/native/enhanced/cviii_virtual_audio_0647.c JP/native/enhanced/cviii_audio_ui_0619.c JP/native/enhanced/cviii_menu_registry_0620.c JP/native/enhanced/cviii_audio_menu_state_0622.c JP/native/enhanced/cviii_start_menu_0623.c JP/native/enhanced/cviii_start_ui_0623.c JP/native/enhanced/cviii_slot_picker_0625.c JP/native/enhanced/cviii_menu_stack_0626.c JP/native/enhanced/test_cviii_edition.c \
+            JP/native/enhanced/cviii_edition.c JP/native/enhanced/cviii_chr_index_0598.c JP/native/enhanced/cviii_chr_audit_0599.c JP/native/enhanced/cviii_chr_fetch_0600.c JP/native/enhanced/cviii_frame_evidence_0601.c JP/native/enhanced/cviii_nt_trace_0606.c JP/native/enhanced/cviii_sprite_layers_0608.c JP/native/enhanced/cviii_object_oam_trace_0609.c JP/native/enhanced/cviii_audio_bus_0610.c JP/native/enhanced/cviii_sound_requests_0612.c JP/native/enhanced/cviii_sound_decisions_0646.c JP/native/enhanced/cviii_dmc_dma_trace_0650.c JP/native/enhanced/cviii_audio_session_0614.c JP/native/enhanced/cviii_audio_levels_0618.c JP/native/enhanced/cviii_virtual_audio_0647.c JP/native/enhanced/cviii_audio_ui_0619.c JP/native/enhanced/cviii_menu_registry_0620.c JP/native/enhanced/cviii_audio_menu_state_0622.c JP/native/enhanced/cviii_start_menu_0623.c JP/native/enhanced/cviii_start_ui_0623.c JP/native/enhanced/cviii_slot_picker_0625.c JP/native/enhanced/cviii_menu_stack_0626.c JP/native/enhanced/test_cviii_edition.c \
             -o "${{ runner.temp }}/test_cviii_edition"
           "${{ runner.temp }}/test_cviii_edition"
       - name: Verify JP0618 enhanced PCM master level and 1-percent settings (ROM-free)
@@ -282,6 +284,15 @@ jobs:
             JP/native/enhanced/cviii_dpcm_decode_test_0649.c \
             -o "${{ runner.temp }}/jp_dpcm_decode_test_0649"
           "${{ runner.temp }}/jp_dpcm_decode_test_0649"
+      - name: Verify JP0650 mapper24 physical DMC DMA-get source and owner CSV integrity (ROM-free)
+        run: |
+          python3 JP/tools/patch_cyc_dmc_dma_trace_0650.py --smoke
+          python3 JP/tools/jp_dmc_dma_trace_verify_0650.py --smoke
+          cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic -DNDEBUG \
+            JP/native/enhanced/cviii_dmc_dma_trace_0650.c \
+            JP/native/enhanced/cviii_dmc_dma_trace_test_0650.c \
+            -o "${{ runner.temp }}/jp_dmc_dma_trace_test_0650"
+          "${{ runner.temp }}/jp_dmc_dma_trace_test_0650"
       - name: Verify JP0646 native original sound decision hook + five driver outcomes (ROM-free)
         run: |
           python3 JP/tools/patch_cyc_sound_decisions_0646.py --smoke
