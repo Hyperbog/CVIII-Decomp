@@ -35,6 +35,7 @@ on:
       - "JP/tools/patch_cyc_audio_bus_0610.py"
       - "JP/tools/patch_cyc_sound_requests_0612.py"
       - "JP/tools/patch_cyc_sound_decisions_0646.py"
+      - "JP/tools/jp_dmc_original_source_0648.py"
       - "JP/tools/jp_audio_bus_report_0610.py"
       - "JP/tools/jp_audio_session_verify_0614.py"
       - "JP/tools/jp_mesen_sound_requests_0615.py"
@@ -263,6 +264,14 @@ jobs:
             JP/native/enhanced/cviii_sound_requests_test_0612.c \
             -o "${{ runner.temp }}/test_sound_requests_0612"
           "${{ runner.temp }}/test_sound_requests_0612"
+      - name: Verify JP0648 original source DMC table boundaries and priority (ROM-free)
+        run: |
+          python3 JP/tools/jp_dmc_original_source_0648.py --smoke
+          cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic -DNDEBUG \
+            JP/native/enhanced/cviii_dmc_source_0648.c \
+            JP/native/enhanced/cviii_dmc_source_test_0648.c \
+            -o "${{ runner.temp }}/jp_dmc_source_test_0648"
+          "${{ runner.temp }}/jp_dmc_source_test_0648"
       - name: Verify JP0646 native original sound decision hook + five driver outcomes (ROM-free)
         run: |
           python3 JP/tools/patch_cyc_sound_decisions_0646.py --smoke

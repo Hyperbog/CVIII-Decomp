@@ -38,6 +38,7 @@ on:
       - "JP/tools/patch_cyc_audio_bus_0610.py"
       - "JP/tools/patch_cyc_sound_requests_0612.py"
       - "JP/tools/patch_cyc_sound_decisions_0646.py"
+      - "JP/tools/jp_dmc_original_source_0648.py"
       - "JP/tools/jp_audio_bus_report_0610.py"
       - "JP/tools/jp_audio_session_verify_0614.py"
       - "JP/tools/jp_mesen_sound_requests_0615.py"
@@ -323,6 +324,18 @@ jobs:
           if (!(Test-Path -LiteralPath $test)) { throw 'JP0612 request observer test missing' }
           & $test
           if ($LASTEXITCODE -ne 0) { throw 'JP0612 sound entry logger failed' }
+      - name: Authenticate JP0648 DMC priority and indexed source, ROM-free negatives
+        shell: pwsh
+        run: |
+          python JP/tools/jp_dmc_original_source_0648.py --smoke
+          if ($LASTEXITCODE -ne 0) { throw 'JP0648 sound source guard simulation failed' }
+      - name: Verify JP0648 exact six-write DMC event builder on Windows Release (ROM-free)
+        shell: pwsh
+        run: |
+          $test = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win/Release/jp_dmc_source_test_0648.exe'
+          if (!(Test-Path -LiteralPath $test)) { throw 'JP0648 DMC source event C11 test missing' }
+          & $test
+          if ($LASTEXITCODE -ne 0) { throw 'JP0648 bounded 15-program DMC event regression' }
       - name: Verify JP0646 real native sound-driver branch logger (ROM-free)
         shell: pwsh
         run: |

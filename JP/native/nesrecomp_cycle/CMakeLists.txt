@@ -59,6 +59,7 @@ if(JP_EDITION_HOST_EXTRAS)
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_bus_0610.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_sound_requests_0612.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_sound_decisions_0646.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_dmc_source_0648.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_session_0614.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_levels_0618.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_virtual_audio_0647.c"
@@ -409,6 +410,13 @@ add_executable(jp_sound_decisions_test_0646
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_sound_decisions_0646.c"
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_sound_decisions_test_0646.c")
 set_property(TARGET jp_sound_decisions_test_0646 PROPERTY C_STANDARD 11)
+
+# JP0648: read-only high-command DMC descriptor-to-register event plans.
+# The real 60-byte owner-ROM table is never included in this target or Git.
+add_executable(jp_dmc_source_test_0648
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_dmc_source_0648.c"
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_dmc_source_test_0648.c")
+set_property(TARGET jp_dmc_source_test_0648 PROPERTY C_STANDARD 11)
 
 # JP0614: owner-local session epochs; host callbacks only, not machine state.
 add_executable(jp_audio_session_test_0614
