@@ -76,3 +76,16 @@ phrase. These limits are now asserted in owner-JP source audit and
 fail-closed native C11. They do not prove game selector liveness.
 R-007, R-002 and full audio parity remain open; no PRG/VPP credit.
 
+## JP0654 — Rip-authored overlay is NOT shipped Japanese cartridge code (L/U)
+
+[JP0654](../analysis/0654_ORIGINAL_JP_NSF_ROM_CROSSWALK.md)
+proves two changed source-image regions in the owner NSF: raw0C
+$A000–$A2FF and raw03 $BFF0–$BFFF. Both are source-rip changes, not
+original game defects. In particular $A000–$A2FF overlaps the real
+ROM's indexed original sound-stream pool; the rip's INIT $E0E0,
+PLAY $E0D0 and NSF $5FF8–$5FFF virtual PRG paging cannot be credited
+as original cartridge semantics. The original phrase $A304–$A956
+and DMC $A957–$A992 sources are preserved, but song track numbers,
+original sound-ID mapping and actual gameplay liveness remain UNKNOWN.
+No strict PRG or VPP advancement.
+

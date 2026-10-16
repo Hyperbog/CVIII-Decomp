@@ -102,3 +102,19 @@ interior $FF at $A94F, before the final $A956 terminator. Exactly
 is dormant, sound output unchanged; no source selector liveness,
 music/SFX classification, or full playable audio parity is asserted.
 
+## JP0654 — JP NSF as a byte-authenticated secondary source, not original gameplay
+
+The [JP0654 physical NSF source audit](../analysis/0654_ORIGINAL_JP_NSF_ROM_CROSSWALK.md)
+identifies exact original 4KiB PRG source blocks for all 13 ripped
+NSF payload banks. Eleven 4KiB banks match perfectly, and a further
+7,408 original bytes match outside two modified regions: source raw0C
+$A000–$A2FF (the end of the original source-addressed sound pool, 768
+bytes) and raw03 $BFF0–$BFFF (16 bytes). The NSF INIT/PLAY entry
+addresses and $5FF8–$5FFF banks are NSF player contracts, **not** the
+retail Mapper24 program map. Source sound metadata $8F60–$9540,
+the entire JP0653 phrase table/pool $A304–$A956, and JP0648
+DMC table $A957–$A992 are byte-preserved. The 28-song playlist
+cannot be assumed to use the game's original 125 sound-program IDs.
+The archive and audio output stay untouched; original-Mesen/native
+request/PCM timing and independent Music/SFX output are unproved.
+

@@ -23,3 +23,19 @@ Strict PRG coverage is only the unique physically-tagged bytes promoted with com
 ## What the matcher is for
 
 Rapidly propose function boundaries, likely player/AI/collision/map subsystem owners and register-field meanings. Then verify JP bank selection, 6502 instruction starts, producer index domains and table/handler semantics independently before allocating semantic coverage or native parity credit. Use the archive chapters as the human-readable endpoint of that verified evidence.
+
+## JP0654 — Music rip provenance is secondary structural evidence
+
+[JP0654](../analysis/0654_ORIGINAL_JP_NSF_ROM_CROSSWALK.md)
+fully crosswalks the 53,248-byte Japanese NSF audio rip payload against
+the original Japanese cartridge physical PRG. The canonical 13-source-bank
+mapping is original 4KiB PRG [16..23, 48..50, 14..15], of which 11 banks
+are byte-exact, with only two bounded rip-edit regions (784 bytes total).
+The 52,464 untouched bytes support source/offset navigation, not an
+execution trace. In particular $A000–$A2FF of the original sound-stream
+pool is replaced by the NSF-specific program, so the rip cannot replace
+the complete original sound byte-source atlas. Never map NSF virtual
+4KiB $5FF8–$5FFF banks to VRC6 cartridge 16KiB PRG selection.
+The complete original-JP ROM remains the only byte authority; no
+novel strict ROM-byte or gameplay-parity credits are earned.
+

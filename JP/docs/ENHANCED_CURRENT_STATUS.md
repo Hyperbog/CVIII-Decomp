@@ -290,6 +290,22 @@ or working separate Music/SFX controls. The C11 code is linked but
 dormant; the 2A03/VRC6 output remains unchanged. R-007 remains open;
 strict semantic PRG and VPP are unchanged.
 
+## JP0654 — NSF static source evidence only
+
+The supplied 28-track Japanese NSF and original Japanese game ROM have
+been physically crosswalked. Eleven of the rip's 13 4KiB banks are
+byte-identical, but the rip replaces original raw0C $A000–$A2FF and
+raw03 $BFF0–$BFFF. The original JP0653 phrase pool, JP0652 sound
+directory and JP0648 DMC parameters are preserved byte-for-byte.
+[NSF source and modification audit](../analysis/0654_ORIGINAL_JP_NSF_ROM_CROSSWALK.md).
+
+An owner-local, read-only audit confirms source identity and exposes
+ROM-free synthetic regressions. The NSF's song INIT/PLAY and synthetic
+virtual bank state must not be confused with actual original-game
+scheduler/mapper/AUDIO behavior. **No Enhanced gameplay or sound
+implementation was changed**, and Music/SFX production remains
+unimplemented (R-007 open). Strict source certification/VPP unchanged.
+
 ## Independent historical decompilation metrics
 
 Strict semantic PRG **49,504 / 262,144 (18.8843%)**;
