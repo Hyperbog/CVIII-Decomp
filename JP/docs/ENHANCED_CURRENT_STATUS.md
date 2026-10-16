@@ -306,6 +306,23 @@ scheduler/mapper/AUDIO behavior. **No Enhanced gameplay or sound
 implementation was changed**, and Music/SFX production remains
 unimplemented (R-007 open). Strict source certification/VPP unchanged.
 
+## JP0655 — Authentic ordinary-byte phrase arithmetic (native, dormant)
+
+An original Japanese SHA-pinned PRG0C source lift now reproduces
+the $8D15–$8D8F 6502 arithmetic, including cursor advancement,
+a repeated-add 8-bit multiplier and 16-bit signed-direction
+carry/borrow updates. The original source/control byte boundary
+is **$FB**. A compiled, read-only C11 helper matches 5,610
+isolated original 6502 paths and passes 385,536 ROM-free tests.
+[JP0655 evidence and reproduction](../analysis/0655_ORIGINAL_PHRASE_ARITHMETIC_NATIVE.md).
+
+This helper is **compiled but not connected to actual playback**.
+Music/SFX voice ownership, original mapper/DMA timing, sound
+event trace parity and authentic gameplay liveness remain open
+(R-007). The original sound output and player experience are
+unchanged. The existing 49,504-byte strict certificate and VPP
+27/100 remain unchanged.
+
 ## Independent historical decompilation metrics
 
 Strict semantic PRG **49,504 / 262,144 (18.8843%)**;

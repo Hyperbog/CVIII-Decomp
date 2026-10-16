@@ -41,6 +41,7 @@ on:
       - "JP/tools/jp_dmc_original_source_0648.py"
       - "JP/tools/jp_sound_catalog_0652.py"
       - "JP/tools/jp_phrase_lookup_0653.py"
+      - "JP/tools/jp_phrase_delta_0655.py"
       - "JP/tools/jp_dpcm_memory_audit_0649.py"
       - "JP/tools/patch_cyc_dmc_dma_trace_0650.py"
       - "JP/tools/jp_dmc_dma_trace_verify_0650.py"
@@ -343,6 +344,15 @@ jobs:
         run: |
           python JP/tools/jp_phrase_lookup_0653.py --smoke
           if ($LASTEXITCODE -ne 0) { throw 'JP0653 source phrase CPU lookup smoke failed' }
+      - name: Verify JP0655 original phrase arithmetic, synthetic complete byte domain (ROM-free)
+        shell: pwsh
+        run: |
+          python JP/tools/jp_phrase_delta_0655.py --smoke
+          if ($LASTEXITCODE -ne 0) { throw 'JP0655 original phrase arithmetic Python smoke failed' }
+          $test = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win/Release/jp_phrase_delta_test_0655.exe'
+          if (!(Test-Path -LiteralPath $test)) { throw 'JP0655 C11 regression executable missing' }
+          & $test
+          if ($LASTEXITCODE -ne 0) { throw 'JP0655 385536 native C11 cases failed' }
       - name: Authenticate JP0648 DMC priority and indexed source, ROM-free negatives
         shell: pwsh
         run: |

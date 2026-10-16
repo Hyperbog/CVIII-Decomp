@@ -118,3 +118,28 @@ cannot be assumed to use the game's original 125 sound-program IDs.
 The archive and audio output stay untouched; original-Mesen/native
 request/PCM timing and independent Music/SFX output are unproved.
 
+## JP0655 — Original raw0C 16-bit phrase arithmetic; bounded compiled C11 implementation
+
+[JP0655](../analysis/0655_ORIGINAL_PHRASE_ARITHMETIC_NATIVE.md)
+source-authenticates raw0C CPU $8D15–$8D8F (123 instruction/operand
+bytes) as four linked ordinary-byte arithmetic routines:
+cursor $06AA,X + ($E2),Y source fetch; optional high-nibble
+$03F2,X writer; 8-bit repeated-add multiplier $03F7,X using
+the low nibble, with $8..$F interpreted as $10–nibble for subtraction;
+$EE-selected destination $01AD,X/$01B2,X to result $EC/$ED.
+Zero multiplier produces 256 original DEX/ADC loop iterations,
+and C/Z/N/V flags plus register/RAM outputs were checked.
+All original phrase pool bytes have their source-only value
+classification checked, including 201 $FB/$FE/$FF control-valued
+bytes **not admitted to this ordinary-byte native implementation**.
+
+A real original-ROM 6502 opcode runner compares the 1,122
+ordinary-valued *source positions* under five synthetic CPU/RAM seeds
+(5,610/5,610 passing cases). A 385,536-case independent native
+arithmetic grid, full 16-bit boundary seeds, source corruption
+rejection, ROM-free Python tests and sanitizers passed. The module
+is compiled into the host and has no playback call site.
+No original audio timing, Music/SFX ownership, sound-event liveness
+or emulator-original parity has been established. R-007 OPEN;
+strict certification and VPP unchanged.
+

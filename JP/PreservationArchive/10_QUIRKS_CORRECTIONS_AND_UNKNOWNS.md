@@ -89,3 +89,20 @@ and DMC $A957–$A992 sources are preserved, but song track numbers,
 original sound-ID mapping and actual gameplay liveness remain UNKNOWN.
 No strict PRG or VPP advancement.
 
+## JP0655 — Raw0C multiplier-zero 256-iteration behavior (source-proven local quirk)
+
+The [original opcode audit](../analysis/0655_ORIGINAL_PHRASE_ARITHMETIC_NATIVE.md)
+shows that raw0C CPU $8D4C–$8D5F first loads $03F7,X into X,
+then runs DEX/BEQ around an 8-bit repeated ADC of scratch $E2.
+For factor $00 this loops **256 iterations**, not zero, and
+the resulting eight-bit multiplication value is $00.
+This is a locally confirmed shipped-original arithmetic behavior
+under a **conditional** original sound-source entry, not proven
+live timing during an owner gameplay scene. A C11 host may use
+a constant-time equivalent **only for the proven byte postcondition**;
+an emulator or cycle-accurate recompilation must preserve the
+additional original loop cycles. No CPU-cycle or APU parity is
+claimed. The separate $FB/$FE/$FF handler beginning at $8D90
+remains undecoded by JP0655; treat it as active original control
+flow, not harmless padding. Strict PRG and VPP unchanged.
+

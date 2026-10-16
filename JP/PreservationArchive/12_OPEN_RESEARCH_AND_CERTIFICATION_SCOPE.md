@@ -231,3 +231,19 @@ the complete original sound byte-source atlas. Never map NSF virtual
 The complete original-JP ROM remains the only byte authority; no
 novel strict ROM-byte or gameplay-parity credits are earned.
 
+## JP0655 — Original sound phrase ordinary-byte arithmetic is no longer a black box
+
+[JP0655](../analysis/0655_ORIGINAL_PHRASE_ARITHMETIC_NATIVE.md)
+conditionally reconstructs CPU raw0C:$8D15–$8D8F with the true
+6502 algorithm and a compiled host C11 equivalent across 5,610
+authenticated-ROM single-byte tests. This does not establish
+the reachability of original sound-source bytes, the actual
+channel/multiplier state observed during gameplay, whole-sound
+sentence decode, distinct Music/SFX ownership, or 6502 CPU-cycle
+and APU/DMC/VRC6 audio equivalence. In particular command-like
+$FB, $FE, $FF words must be investigated through the original
+$8D90+ handler and matched owner gameplay, rather than applying
+the ordinary nibble algorithm. The 123 original source bytes were
+previously in the structural bank0C source census; no strict
+semantic PRG or VPP credit. R-007 open, R-002 open.
+
