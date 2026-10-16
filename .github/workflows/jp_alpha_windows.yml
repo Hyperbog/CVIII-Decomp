@@ -344,6 +344,13 @@ jobs:
           if (!(Test-Path -LiteralPath $test)) { throw 'JP0618 volume test missing' }
           & $test
           if ($LASTEXITCODE -ne 0) { throw 'JP0618 enhanced PCM master-level regression failed' }
+      - name: Verify JP0647 virtual song and overlapping effects scene across render block sizes
+        shell: pwsh
+        run: |
+          $test = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win/Release/jp_virtual_scene_test_0647.exe'
+          if (!(Test-Path -LiteralPath $test)) { throw 'JP0647 scene PCM test missing' }
+          & $test
+          if ($LASTEXITCODE -ne 0) { throw 'JP0647 soundtrack/effects scene mismatch' }
       - name: Verify JP0619 original font and health-meter renderer (ROM-free)
         shell: pwsh
         run: |

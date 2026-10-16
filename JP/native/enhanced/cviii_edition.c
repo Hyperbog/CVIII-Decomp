@@ -18,6 +18,7 @@
 #include "cviii_sound_decisions_0646.h"
 #include "cviii_audio_session_0614.h"
 #include "cviii_audio_levels_0618.h"
+#include "cviii_virtual_audio_0647.h"
 #include "cviii_audio_ui_0619.h"
 #include "cviii_menu_registry_0620.h"
 #include "cviii_audio_menu_0620.h"
@@ -48,6 +49,7 @@ typedef struct {
     CviiiSoundDecisions sound_decisions; /* opt-in $0C sound terminal observations */
     CviiiAudioSession audio_session; /* extra-CPU row-count epoch markers */
     CviiiAudioLevels volume; /* enhanced host gains, never emulated RAM */
+    CviiiVirtualAudio virtual_audio; /* dormant until original program decoder is verified */
     int audio_ui_preview; /* opt-in independent visual QA */
     CviiiAudioMenuState audio_ui; /* F6 modal selection, no guest RAM */
     CviiiStartMenu start_menu; /* F4 menu actions, no guest RAM */
@@ -332,6 +334,7 @@ static void power_on(void *context)
     cviii_audio_menu_state_close(&settings->audio_ui); /* reset cannot leave a stale modal */
     cviii_start_close(&settings->start_menu);
     cviii_slot_cancel(&settings->slot_menu);
+    cviii_virtual_audio_clear(&settings->virtual_audio); /* no host voice survives power */
     cyc_render_capture_background(true);
     cviii_sound_decisions_boundary("power_on",cyc_cycle_count());
     cviii_audio_session_mark(&settings->audio_session,"power_on",
@@ -358,6 +361,7 @@ static void state_loaded(void *context)
     cviii_audio_menu_state_close(&settings->audio_ui); /* loaded gameplay never owns a stale modal */
     cviii_start_close(&settings->start_menu);
     cviii_slot_cancel(&settings->slot_menu);
+    cviii_virtual_audio_clear(&settings->virtual_audio); /* clear on host load epoch */
     cviii_sound_decisions_boundary("state_loaded",cyc_cycle_count());
     cviii_audio_session_mark(&settings->audio_session,"state_loaded",
         cyc_cycle_count(),settings->sound_requests.requests,settings->audio_bus.writes,

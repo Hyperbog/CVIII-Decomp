@@ -123,6 +123,14 @@ jobs:
             JP/native/enhanced/cviii_audio_levels_test_0618.c \
             -o "${{ runner.temp }}/test_audio_levels_0618"
           "${{ runner.temp }}/test_audio_levels_0618"
+      - name: Verify JP0647 separate bus scenario with overlapping sound effects and no interrupted music (ROM-free)
+        run: |
+          cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic -DNDEBUG \
+            JP/native/enhanced/cviii_audio_levels_0618.c \
+            JP/native/enhanced/cviii_virtual_audio_0647.c \
+            JP/native/enhanced/cviii_virtual_scene_test_0647.c \
+            -o "${{ runner.temp }}/test_virtual_scene_0647"
+          "${{ runner.temp }}/test_virtual_scene_0647"
       - name: Verify JP0619 CHR-faithful audio health bar preview (ROM-free)
         run: |
           python3 JP/tools/jp_audio_ui_chr_0619.py --smoke
