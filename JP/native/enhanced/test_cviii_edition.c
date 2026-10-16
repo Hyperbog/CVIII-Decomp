@@ -76,7 +76,20 @@ void cyc_render_sprites(uint32_t *out,int w,int h,int x,const uint8_t *bg,
 int main(void) {
     const CycHostExtras *e=cyc_host_extras();
     assert(e && e->options && e->option && e->present);
-    assert(e->option_count == 17);
+    /* JP0646: all diagnostic CLI options must be advertised to the host,
+     * rather than silently unreachable despite an implemented callback. */
+    assert(e->option_count == 20);
+    const char *const required[]={
+        "--sound-request-trace","--sound-decision-trace",
+        "--audio-session-id","--audio-epoch-trace"
+    };
+    for(size_t i=0;i<sizeof required/sizeof required[0];++i) {
+        size_t seen=0;
+        for(size_t j=0;j<e->option_count;++j)
+            if(!strcmp(e->options[j].name,required[i]))++seen;
+        assert(seen==1u);
+    }
+    assert(!e->option(e->ctx,"--sound-decision-trace",NULL));
     assert(!cviii_audio_menu_active());
     assert(!cviii_audio_menu_toggle()); /* no authenticated original CHR */
     assert(!cviii_audio_menu_active());
