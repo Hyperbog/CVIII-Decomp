@@ -976,3 +976,8 @@ VPP27/100, certified 0508, fixed frontier $FB96 unchanged.
 ## JP0630 — Original-Mesen STA/postcondition provenance watchpoints (not yet run in emulator)
 
 [JP0630](../analysis/0630_MESEN_ROOM_CHAIN_POSTCONDITION.md) adds physically mapped raw01:$BB5E pre-STA A and raw0A:$B806 actual RAM $08/$09 pointer postcondition callbacks, mirrored RAM $30/$07A0 writes and NMI/IRQ chronology. A ROM-authenticated parser compares actual postcondition to original bank0A table and fails closed on event loss, wrong physical PRG, RAM continuity, reset or savestate load. **Only synthetic smoke and an owner-ROM-backed synthetic log were tested locally; no authentic Mesen playback trace exists yet.** R-002 OPEN; no semantic bytes or VPP promoted. Strict PRG 49,504/262,144 (18.8843%), VPP 27/100, 0508, fixed $FB96, RESUME_STATE unchanged.
+
+
+## JP0634 — Raw01 parent selector route bounded conditionally
+
+[JP0634](../analysis/0634_RAW01_SELECTOR_PARENT_CFG.md) authenticates the original raw01 B87A→B919→BAEF→BB57 route and steps all 256 inputs through the actual unsigned B91E clamp. For this no-interrupt route, source $30 is bounded to 00..11 and the nine-cell BB62 table index to 0..8. Other entries, live NMI/IRQ writers and the raw0A consumer connection remain unproven. R-002 OPEN, strict PRG 49,504/262,144, VPP27/100, checkpoint0508 and FB96 unchanged.
