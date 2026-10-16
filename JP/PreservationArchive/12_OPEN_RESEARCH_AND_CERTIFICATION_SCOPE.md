@@ -247,3 +247,18 @@ the ordinary nibble algorithm. The 123 original source bytes were
 previously in the structural bank0C source census; no strict
 semantic PRG or VPP credit. R-007 open, R-002 open.
 
+## JP0656 — Source format earned; live sound behavior not certified
+
+[JP0656](../analysis/0656_ORIGINAL_SOUND_CONTROL_COMPLETE.md)
+closes the locally executable raw0C phrase byte grammar from
+JP0655 ($00–$FA) and the newly matched control handler
+($FB–$FF) against original 6502 execution. Source-local evidence
+earns **one audio data-format VPP point** (global 28/100)
+but does not prove real game driver scheduling, producer-domain
+liveness, owner-independent Music/SFX routing, mapped APU/VRC6
+register sequences, original native PCM parity or user gameplay.
+The original sound stream pool $A42C–$A956 is source-authenticated
+but arbitrary raw byte positions are **not** certified decoded
+sound-command starts; the other format point awaits raw04/05 modes.
+R-007 and R-002 remain OPEN. Strict PRG 49,504 unchanged.
+

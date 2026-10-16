@@ -323,9 +323,25 @@ event trace parity and authentic gameplay liveness remain open
 unchanged. The existing 49,504-byte strict certificate and VPP
 27/100 remain unchanged.
 
+## JP0656 — Sound phrase grammar now source-decoded (dormant native)
+
+Original ROM source $8D90–$8DCC, including $FB–$FF
+cursor, repeat, channel-end controls, is implemented as a
+read-only C11 state-delta helper, matching original 6502
+execution at all 201 control-valued source positions
+(1,827/1,827 tested input contexts). The remaining
+ordinary $00–$FA path was previously proved in JP0655.
+[JP0656 technical audit](../analysis/0656_ORIGINAL_SOUND_CONTROL_COMPLETE.md).
+This completes one bounded source-audio-format milestone:
+**VPP 28/100 (Audio data formats 1/2 earned)**.
+The compiled decoder still has **no active playback caller**;
+full sound grammar/raw04/05 and independent Music/SFX integration,
+real-game timing and audio parity remain OPEN.
+Strict PRG is still 49,504 bytes (18.8843%).
+
 ## Independent historical decompilation metrics
 
 Strict semantic PRG **49,504 / 262,144 (18.8843%)**;
-VPP **27/100**; certified checkpoint **0508**;
+VPP **28/100**; certified checkpoint **0508**;
 fixed PRG31 frontier **$FB96**; room-loader R-002 **OPEN**.
 None measures the percentage of the playable game that works.

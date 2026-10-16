@@ -42,6 +42,7 @@ on:
       - "JP/tools/jp_sound_catalog_0652.py"
       - "JP/tools/jp_phrase_lookup_0653.py"
       - "JP/tools/jp_phrase_delta_0655.py"
+      - "JP/tools/jp_phrase_control_0656.py"
       - "JP/tools/jp_dpcm_memory_audit_0649.py"
       - "JP/tools/patch_cyc_dmc_dma_trace_0650.py"
       - "JP/tools/jp_dmc_dma_trace_verify_0650.py"
@@ -353,6 +354,15 @@ jobs:
           if (!(Test-Path -LiteralPath $test)) { throw 'JP0655 C11 regression executable missing' }
           & $test
           if ($LASTEXITCODE -ne 0) { throw 'JP0655 385536 native C11 cases failed' }
+      - name: Verify JP0656 complete sound control byte grammar and 327680 C11 cases (ROM-free)
+        shell: pwsh
+        run: |
+          python JP/tools/jp_phrase_control_0656.py --smoke
+          if ($LASTEXITCODE -ne 0) { throw 'JP0656 synthetic control-domain smoke failed' }
+          $test = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win/Release/jp_phrase_control_test_0656.exe'
+          if (!(Test-Path -LiteralPath $test)) { throw 'JP0656 native executable missing' }
+          & $test
+          if ($LASTEXITCODE -ne 0) { throw 'JP0656 complete C11 token-domain regression failed' }
       - name: Authenticate JP0648 DMC priority and indexed source, ROM-free negatives
         shell: pwsh
         run: |

@@ -8,9 +8,11 @@ The machine-readable score is `analysis/PROGRESS_SCORE.csv`; `tools/progress_sco
 
 ## Current score
 
-**VPP: 27 / 100 (27%)**
+**VPP: 28 / 100 (28%)**
 
-The newest point is a distinct reusable original-Stage-1 native actor collision subsystem: the 0514-0517 connected B1F8 to FDFE path matches original Mesen across 91 source CPU instructions and all 1,792 non-stack RAM bytes plus A/X/Y/P. A formal fixed-rubric review (analysis/0518_RECONCILIATION_AND_VPP_DECISION.md) advances gameplay movement/collision from 1/4 to 2/4. This is not full-frame parity or a strict PRG-byte promotion.
+The latest point is **Audio → music/SFX data formats (first of two)**: original-ROM authenticated 125 sound descriptors, 325 bank-qualified refs, 148 phrase pointers, and a complete bounded phrase byte grammar ($00–$FA arithmetic and $FB–$FF control branches), with 5,610 JP0655 ordinary and 1,827 JP0656 original-6502/native test cases. All outputs remain dormant and natural original-game audio parity is not proved. [JP0656 evidence](../analysis/0656_ORIGINAL_SOUND_CONTROL_COMPLETE.md).
+
+The preceding gameplay point is a distinct reusable original-Stage-1 native actor collision subsystem: the 0514-0517 connected B1F8 to FDFE path matches original Mesen across 91 source CPU instructions and all 1,792 non-stack RAM bytes plus A/X/Y/P. A formal fixed-rubric review (analysis/0518_RECONCILIATION_AND_VPP_DECISION.md) advances gameplay movement/collision from 1/4 to 2/4. This is not full-frame parity or a strict PRG-byte promotion.
 
 The preceding validation point was independent CPU state+cycle trace conformance: the project's ROM-fetched 6502 core plus a separate test-only stable undocumented opcode extension matches all **8,991** preinstruction PC/A/X/Y/P/SP/cycle states of the independently recorded Nintendulator nestest log. [Green SHA-pinned Actions run 38010689051](https://github.com/Hyperbog/CVIII-Decomp/actions/runs/38010689051). This earns **one of the existing two validation trace-harness points**; the second point and separate original Japanese VRC6 CPU/interrupt trace-parity point remain OPEN. Strict game PRG coverage is unchanged.
 
@@ -21,7 +23,7 @@ The preceding validation point was independent CPU state+cycle trace conformance
 | Rendering / PPU | 10 | 5 | OAM arrays, selector/master tables, variable descriptor encoding, exact sprite transforms/state, native OAM lift; background/CHR/PPU parity open |
 | Gameplay / object systems | 25 | 3 | original object dispatcher architecture, isolated collision-math architecture, and distinct connected B1F8-to-FDFE actor collision/follower pipeline with 91-instruction original Mesen parity; remaining player/combat/enemy/boss systems open |
 | Stage / world / progression | 20 | 0 | stage data, room/scrolling, collision maps, route/progression, menus/password/end flow not yet reconstructed |
-| Audio | 12 | 1 | NSF-to-ROM correlation is established; full driver/data/native APU+VRC6/parity work remains open |
+| Audio | 12 | 2 | NSF/retail correlation plus first original phrase/data-format point (JP0652–JP0656); second format, driver, native APU/VRC6 and parity work remain open |
 | Native runtime / platform | 10 | 1 | isolated faithful native OAM subsystem exists; native mapper/IRQ/collision primitives now exist but complete memory/PPU integration and executable are open |
 | Validation / tooling | 8 | 5 | ROM identity/subsystem audits, native tests and CI; independent Nintendulator CPU register/status/stack/cycle trace 8991/8991; original JP VRC6 mapper/IRQ trace and frame goldens open |
 | **Total** | **100** | **27** | |
@@ -94,7 +96,7 @@ Partial points in this category require a committed, reusable architectural resu
 
 - NSF/retail-ROM correlation: 1 — **earned**
 - music/SFX driver architecture: 3 — open
-- music/SFX data formats: 2 — open
+- music/SFX data formats: 2 — **1 earned / 2**, source-authenticated complete JP primary descriptor / secondary phrase format plus original-6502 versus native ordinary and control-byte interpreter (JP0652–JP0656); raw04/05 stream grammar and full producer ownership remain open
 - native 2A03 + VRC6 implementation/integration: 3 — open
 - game-side sound-event mapping: 2 — open
 - audio register/output parity: 1 — open

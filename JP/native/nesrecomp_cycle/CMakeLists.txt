@@ -64,6 +64,7 @@ if(JP_EDITION_HOST_EXTRAS)
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_dpcm_decode_0649.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_phrase_lookup_0653.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_phrase_delta_0655.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_phrase_control_0656.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_session_0614.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_levels_0618.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_virtual_audio_0647.c"
@@ -470,6 +471,12 @@ add_executable(jp_phrase_delta_test_0655
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_phrase_delta_0655.c"
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_phrase_delta_test_0655.c")
 set_property(TARGET jp_phrase_delta_test_0655 PROPERTY C_STANDARD 11)
+
+# JP0656 source-authenticated raw0C control command grammar, ROM-free native test.
+add_executable(jp_phrase_control_test_0656
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_phrase_control_0656.c"
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_phrase_control_test_0656.c")
+set_property(TARGET jp_phrase_control_test_0656 PROPERTY C_STANDARD 11)
 
 
 # JP0649: dormant bounded source/mapper8 + raw DPCM 7-bit decoder.

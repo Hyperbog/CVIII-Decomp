@@ -39,6 +39,7 @@ on:
       - "JP/tools/jp_sound_catalog_0652.py"
       - "JP/tools/jp_phrase_lookup_0653.py"
       - "JP/tools/jp_phrase_delta_0655.py"
+      - "JP/tools/jp_phrase_control_0656.py"
       - "JP/tools/jp_dpcm_memory_audit_0649.py"
       - "JP/tools/patch_cyc_dmc_dma_trace_0650.py"
       - "JP/tools/jp_dmc_dma_trace_verify_0650.py"
@@ -291,6 +292,14 @@ jobs:
             JP/native/enhanced/cviii_phrase_delta_test_0655.c \
             -o "${{ runner.temp }}/jp_phrase_delta_test_0655"
           "${{ runner.temp }}/jp_phrase_delta_test_0655"
+      - name: Verify JP0656 complete sound control grammar and 327680 native C11 cases (ROM-free)
+        run: |
+          python3 JP/tools/jp_phrase_control_0656.py --smoke
+          cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic -DNDEBUG \
+            JP/native/enhanced/cviii_phrase_control_0656.c \
+            JP/native/enhanced/cviii_phrase_control_test_0656.c \
+            -o "${{ runner.temp }}/jp_phrase_control_test_0656"
+          "${{ runner.temp }}/jp_phrase_control_test_0656"
       - name: Verify JP0648 original source DMC table boundaries and priority (ROM-free)
         run: |
           python3 JP/tools/jp_dmc_original_source_0648.py --smoke

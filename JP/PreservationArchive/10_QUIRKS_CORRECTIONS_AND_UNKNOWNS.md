@@ -106,3 +106,19 @@ claimed. The separate $FB/$FE/$FF handler beginning at $8D90
 remains undecoded by JP0655; treat it as active original control
 flow, not harmless padding. Strict PRG and VPP unchanged.
 
+## JP0656 — Source-proven FE control byte with wrapped parameter reads (Q/U)
+
+[Original 6502 and C11 exact replay](../analysis/0656_ORIGINAL_SOUND_CONTROL_COMPLETE.md)
+proves that byte FE at raw0C $8D90 controls an indexed repetition
+counter. Original `INY` is eight-bit: when cursor Y=$FF, the
+parameter fetch after FE wraps to offset $00 of the same phrase
+pointer, **not** the physical source location +1. A match against
+incremented $06AF,X clears two repeat fields and advances cursor
+twice; a mismatch restores the saved cursor $06A0,X. This is a
+**local original opcode behavior** under a conditional entry,
+not evidence of natural gameplay with cursor $FF. Bytes FC/FD
+are valid branch alternatives but absent in the original
+JP0653 pool; do not falsely classify either as observed sound events.
+The native helper preserves both cases without mutating actual
+gameplay. R-007 OPEN; strict PRG unchanged.
+

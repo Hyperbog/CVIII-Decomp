@@ -4,6 +4,6 @@ CPU / mapper / interrupts,10,8,"RESET; PRG helpers; top-level NMI; IRQ table; IR
 Rendering / PPU,10,5,"OAM arrays/permutation; selector/master tables; variable descriptors; exact sprite semantics; native OAM renderer"
 Gameplay / object systems,25,3,"partial object dispatcher architecture; isolated ROM collision arithmetic (first movement point); connected reusable original-JP B1F8-to-FDFE 91-instruction native actor collision/follower pipeline with independent Mesen exact state parity (second movement point); no whole-frame parity"
 Stage / world / progression,20,0,"not yet reconstructed"
-Audio,12,1,"NSF-to-ROM correlation"
+Audio,12,2,"NSF-to-ROM correlation; first of two original music/SFX data-format subpoints: all 125 JP program descriptors, 325 stream references, 148 phrase pointers, original ordinary + FB-FF source grammar, opcode/native parity JP0652-JP0656; other format/driver and audio parity open"
 Native runtime / platform,10,1,"faithful native OAM subsystem; mapper/IRQ lifts exist but full memory/PPU integration remains open"
 Validation / tooling,8,5,"ROM identity; subsystem ROM audits; native tests; green GitHub Actions C++20 eight-binary compile plus four ROM-free regressions and score/archive audit (run 37993214808); local JP-ROM tests; independent Nintendulator nestest 8991/8991 CPU registers status stack cycle trace green run 38010689051; 1 of 2 CPU/bank/IRQ trace subpoints earned, JP VRC6 mapper/interrupt comparison open"

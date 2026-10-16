@@ -143,3 +143,22 @@ No original audio timing, Music/SFX ownership, sound-event liveness
 or emulator-original parity has been established. R-007 OPEN;
 strict certification and VPP unchanged.
 
+## JP0656 — Completed bounded original raw0C phrase control source
+
+The [JP0656 source and native-parity proof](../analysis/0656_ORIGINAL_SOUND_CONTROL_COMPLETE.md)
+decodes source raw0C:$8D90–$8DCC for the entire $FB–$FF
+token domain. The original 6502 instruction runner and independently
+compiled C11 helper agree on 1,827 original-ROM-sourced control
+cases plus 42 synthetic altered-source cases for otherwise-unused
+$FC/$FD byte paths. The source-pool control census is 30 FB,
+0 FC, 0 FD, 30 FE, and 141 FF. The $FE branch is a conditional
+8-bit loop counter and pointer reset, not an invented musical note.
+Together with JP0652 primary records, JP0653 pointer/phrase
+structure and JP0655 ordinary byte arithmetic, the bounded
+original **phrase byte format now has a native, source-proven
+decoder contract**. This earns one of two audio *data-format*
+points (VPP total 28). The other data-format point, full original
+sound grammar modes/owner classification and all audio-driver,
+DMC/APU/VRC6 PCM/output parity points remain OPEN. Native decoder
+is dormant, no live sound output is altered.
+
