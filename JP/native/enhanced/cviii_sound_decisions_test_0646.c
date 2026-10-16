@@ -1,5 +1,10 @@
 /* JP0646: real C11 sound decision observer, synthetic machine values only. */
 #include "cviii_sound_decisions_0646.h"
+/* MSVC Release defines NDEBUG. This integration fixture uses assert to
+ * drive events as well as check them, so Release MUST execute assertions. */
+#ifdef NDEBUG
+#undef NDEBUG
+#endif
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
