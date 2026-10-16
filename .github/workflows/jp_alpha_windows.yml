@@ -39,6 +39,7 @@ on:
       - "JP/tools/patch_cyc_sound_requests_0612.py"
       - "JP/tools/patch_cyc_sound_decisions_0646.py"
       - "JP/tools/jp_dmc_original_source_0648.py"
+      - "JP/tools/jp_sound_catalog_0652.py"
       - "JP/tools/jp_dpcm_memory_audit_0649.py"
       - "JP/tools/patch_cyc_dmc_dma_trace_0650.py"
       - "JP/tools/jp_dmc_dma_trace_verify_0650.py"
@@ -331,6 +332,11 @@ jobs:
           if (!(Test-Path -LiteralPath $test)) { throw 'JP0612 request observer test missing' }
           & $test
           if ($LASTEXITCODE -ne 0) { throw 'JP0612 sound entry logger failed' }
+      - name: Verify JP0652 original 125-program directory and corruption guards (ROM-free)
+        shell: pwsh
+        run: |
+          python JP/tools/jp_sound_catalog_0652.py --smoke
+          if ($LASTEXITCODE -ne 0) { throw 'JP0652 full sound metadata catalog synthetic guard failed' }
       - name: Authenticate JP0648 DMC priority and indexed source, ROM-free negatives
         shell: pwsh
         run: |

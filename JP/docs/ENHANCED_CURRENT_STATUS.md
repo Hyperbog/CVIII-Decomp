@@ -260,6 +260,21 @@ The existing playable game audio stays untouched. Authentic Music/SFX
 producers are not yet implemented; JP0647 virtual mixer remains
 dormant. R-007 open; all modding still deferred.
 
+## JP0652 sound-program source directory (not independent playback)
+
+A ROM-authenticated, read-only catalog now enumerates every original JP indexed
+sound descriptor: **125 program IDs**, **325 bank-qualified source references**
+(139 raw0C, 102 raw04, 84 raw05), and **15 original DMC source slots**. Its
+private JSON output contains no stream payload or sample PCM but may expose
+reconstructible commercial descriptor metadata and must remain private.
+The full directory, stream pool and DMC table are individually SHA-pinned.
+See [JP0652 source catalog](../analysis/0652_COMPLETE_ORIGINAL_SOUND_DIRECTORY.md).
+
+This is not music/SFX voice ownership or a functioning separate audio bus.
+The game sound path remains unchanged, JP0647 independent virtual voices
+remain dormant, and original-game Mesen/native parity is unverified. R-007
+stays open; no source PRG/VPP promotion or new public mod API.
+
 ## Independent historical decompilation metrics
 
 Strict semantic PRG **49,504 / 262,144 (18.8843%)**;

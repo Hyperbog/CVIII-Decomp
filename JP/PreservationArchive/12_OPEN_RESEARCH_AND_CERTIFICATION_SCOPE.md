@@ -198,3 +198,8 @@ Original SHA-authenticated JP physical raw01 code now has a documented B87A→B9
 ## JP0640 — R-002 raw01 physical direct-call audit
 
 ROM-authenticated [JP0640](../analysis/0640_RAW01_SELECTOR_DIRECT_CALLS.md) verifies the raw01:$B801 JSR $B87A precursor of JP0634's bounded clamp and the separate raw01:$B807 JSR $B877; $B877 JMP $BB6B reaches the candidate code immediately after the nine-byte table. This confirms a static literal callsite arrangement, not Mesen gameplay, mapper preservation through fixed helpers or raw0A consumer causality. R-002 OPEN, no strict PRG/VPP change.
+
+## JP0652 — Source catalog closes directory shape, not original audio behavior
+
+[JP0652](../analysis/0652_COMPLETE_ORIGINAL_SOUND_DIRECTORY.md) independently catalogs all 125 indexed original sound records and all 325 physical-bank-qualified stream references. This improves inspectable source metadata, **not** confirmed playback. Original request-to-record liveness, phrase opcodes, mapper histories, independent sample fetches, note/voice classification and native Music/SFX ownership remain open. The catalog produces no host voices and no additional certified semantic PRG bytes/VPP points; owner-derived metadata JSON remains private.
+

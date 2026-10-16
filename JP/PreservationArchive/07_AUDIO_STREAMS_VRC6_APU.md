@@ -81,3 +81,8 @@ The [new private opcode-fetch overlay](../tools/patch_cyc_sound_requests_0612.py
 ## JP0620 — Interactive Enhanced Audio UI, source ownership not inferred
 
 [JP0620](../analysis/0620_PAUSED_ENHANCED_AUDIO_MENU.md) now wires an original-CHR health-bar/font F6 audio modal via a private pinned SDL host overlay: pause/input isolation, three 0–100 values with 1% keyboard/D-pad steps and saved preference updates. This is **not** evidence of independent original Music/SFX voice ownership; Music/SFX are explicitly marked PENDING and only Master attenuates final PCM. RGB palette still provisional. Local C11 registry and SDL patcher synthetic smoke PASS; actual Windows native SDL run or Mesen sound-source trace not claimed. R-007 remains OPEN.
+
+## JP0652 — Complete source-indexed sound directory, structural evidence only
+
+The [JP0652 owner-ROM catalog](../analysis/0652_COMPLETE_ORIGINAL_SOUND_DIRECTORY.md) authenticates physical raw PRG0C's 125 indexed descriptors (1,505 source bytes), their 325 bank-qualified producer references (raw0C 139, raw04 102, raw05 84), and the 15 special DMC command slots $6F–$7D. The original 3,523-byte addressed sound stream pool is fingerprinted, **not parsed command-by-command**. Private optional output uses internal source IDs and physical provenance, not independently witnessed active VRC6 mapper state; its reconstructed descriptor metadata must not be published as ROM-equivalent data. Synthetic corruption tests and owner-ROM source checks pass. No music/SFX identity or playable per-voice producer is inferred. R-007 open; semantic PRG/VPP unchanged.
+
