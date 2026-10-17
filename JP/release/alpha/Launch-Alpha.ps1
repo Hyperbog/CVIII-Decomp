@@ -5,6 +5,7 @@ param(
  [ValidateSet('Original','Enhanced')][string]$Edition='Enhanced',
  [switch]$UnlimitedSprites,
  [switch]$StableSprites,
+ [string]$ControlsProfile='',
  [switch]$SpriteTrace,
  [switch]$AudioTrace,
  [ValidateRange(0,100)][int]$MasterVolume,
@@ -60,6 +61,19 @@ if ($ChrAudit -or $SpriteTrace -or $AudioTrace) {
  }
  . $pythonResolver
  (Resolve-CviiiPython) | Out-Null
+}
+# JP0661: opt-in persistent keyboard Player 1 profile, applied BEFORE
+# NESRecomp reads config.ini. When absent, never change user controls.
+if ($ControlsProfile) {
+ $profileTool=Join-Path $PSScriptRoot 'Control-Profiles.py'
+ $pythonResolver=Join-Path $PSScriptRoot 'Resolve-Python.ps1'
+ if (!(Test-Path -LiteralPath $profileTool -PathType Leaf) -or
+     !(Test-Path -LiteralPath $pythonResolver -PathType Leaf)) {
+  throw 'Controls profile helper missing; rebuild the private AlphaCandidate.'
+ }
+ . $pythonResolver
+ Invoke-CviiiPython -Script $profileTool -Arguments @('--root',$PSScriptRoot,'--apply',$ControlsProfile)
+ Write-Host ('JP0661 native Player 1 keyboard profile: '+$ControlsProfile)
 }
 Push-Location $PSScriptRoot
 try {

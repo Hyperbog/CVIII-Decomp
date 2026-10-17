@@ -44,6 +44,7 @@ chronological decompilation notes.
 | Experimental sprite enhancement | Opt-in extra-OAM compositor and stable sprite history/priority; JP0645 now uses original PRG26 OAM-rotation emission identity to prevent duplicated animation ghosts, with 64-sprite synthetic CI; default off, owner gameplay acceptance pending; issue #1 stays closed |
 | Original ROM asset package | Authentic private CHR/package/index and read-only tracing are implemented, **not** an installable texture override |
 | F10 stage/companion tools | Debug-only checkpoint/password bootstrap, not public game progression |
+| JP0661 keyboard profile manager | **Implemented, ROM-free tested:** Controls.bat original/WASD presets, custom named Player 1 keyboard profiles, recoverable config.ini backups and opt-in launch selection; not an in-game rebinding screen or gamepad profile manager; owner GUI acceptance pending |
 | JP0641/JP0642 scenario/replay tools | Versioned preflight and private reference/native frame-budget orchestration; synthetic CI passed, genuine per-frame parity not demonstrated |
 
 The pinned seven-stage native SDL chain successfully passed Windows
@@ -60,7 +61,7 @@ on the owner's actual Windows desktop.
 - Player-installable, versioned symbolic-ID texture/resource override
   packs with deterministic fallback (issue #8).
 - True extended-world widescreen camera/view (issue #5).
-- Player-facing control-rebinding UI and persistent profiles (issue #7).
+- In-game control-rebinding UI and gamepad-specific profile controls (issue #7); JP0661 now supplies an external persistent Player 1 keyboard profile manager, but not the complete requested menu.
 - Optional multidirectional whip/new mechanics (issue #9), not part of
   faithful baseline behavior.
 - Full mod/plugin SDK, mod loader, editor and alternate soundtrack packs.
@@ -83,8 +84,7 @@ on the owner's actual Windows desktop.
    ownership and timing, then connect the decoded producers and real
    Music/SFX gains behind a reversible Enhanced-only setting. Keep
    original hardware emulation for CPU/gameplay state.
-4. **Custom controls:** complete player-facing keyboard/controller
-   rebinding and persistent profiles with a recoverable default.
+4. **Custom controls:** JP0661 now provides recoverable named keyboard profiles; follow with actual in-game keyboard/gamepad binding UI and owner verification without duplicating NESRecomp's existing persistent mapping system.
 5. **True widescreen:** render additional verified scene geometry;
    never stretch the 256x240 original bitmap as a substitute.
 6. **Full Enhanced Beta acceptance:** exercise stage routes,
@@ -406,3 +406,21 @@ Strict semantic PRG **49,504 / 262,144 (18.8843%)**;
 VPP **31/100**; certified checkpoint **0508**;
 fixed PRG31 frontier **$FB96**; room-loader R-002 **OPEN**.
 None measures the percentage of the playable game that works.
+
+## JP0661 — Native Enhanced keyboard profiles (product, not source VPP)
+
+The updated ROM-free Windows build kit and the private native executable
+folder contain `Controls.bat`, `Controls.ps1` and
+`Control-Profiles.py`. Player 1's existing NESRecomp
+`[Keyboard.Player1]` settings can be switched between stock
+arrows/Z/X and WASD/J/K, captured to stable custom JSON profiles,
+and restored before native boot; every change first makes a
+complete owner-local `config.ini` backup. The normal launcher
+path without an explicit profile leaves the saved mapping unchanged.
+**18/18 ROM-free tests pass**, including invalid profiles, shortcuts,
+duplicate settings, symlink/collision rejection, preserved unrelated
+host settings and rollback backups. This is a **working external
+keyboard-profile tool**, not an in-game rebinding UI and not
+gamepad-profile switching; private owner acceptance remains pending.
+[Native product report](../workstreams/native-recompilation/0661_NATIVE_KEYBOARD_PROFILE_MANAGER.md).
+No semantic VPP or strict PRG metric has changed.

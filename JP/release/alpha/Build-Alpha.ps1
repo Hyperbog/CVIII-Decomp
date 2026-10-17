@@ -101,7 +101,7 @@ Copy-Item -LiteralPath $launch -Destination $stage -Force
 $notes=Join-Path $repoPath 'JP/release/alpha/README_ALPHA.md'
 if (-not (Test-Path -LiteralPath $notes)) { throw 'Current repo README missing' }
 Copy-Item -LiteralPath $notes -Destination $stage -Force
-foreach ($name in @('Play-CVIII.bat','Debug-Stage-Companion.bat','Capture-QA-0602.ps1','Build-And-Play.ps1','Build-And-Play.bat','Resolve-Python.ps1')) {
+foreach ($name in @('Play-CVIII.bat','Debug-Stage-Companion.bat','Capture-QA-0602.ps1','Build-And-Play.ps1','Build-And-Play.bat','Resolve-Python.ps1','Control-Profiles.py','Controls.ps1','Controls.bat')) {
  $src=Join-Path $repoPath ('JP/release/alpha/'+$name)
  if (-not (Test-Path -LiteralPath $src)) {throw "Missing alpha launcher: $src"}
  Copy-Item -LiteralPath $src -Destination $stage -Force

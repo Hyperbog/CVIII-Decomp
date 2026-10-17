@@ -18,3 +18,12 @@ CVIII-Frame-Evidence.json
 # JP0602 private live scene QA captures and summary (not distributable)
 QA/
 CVIII-QA-Matrix.json
+
+# JP0661 private native keyboard/control profiles and host config.
+# Never accidentally publish the user's bindings or automatic config backups.
+**/AlphaCandidate/config.ini
+**/AlphaCandidate/control-profiles/
+**/AlphaCandidate/control-backups/
+JP/release/alpha/config.ini
+JP/release/alpha/control-profiles/
+JP/release/alpha/control-backups/

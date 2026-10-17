@@ -45,6 +45,7 @@ on:
       - "JP/tools/jp_room_clear_0658.py"
       - "JP/tools/jp_room_stream_0659.py"
       - "JP/tools/jp_room_resources_0659.py"
+      - "JP/tools/test_control_profiles_0661.py"
       - "JP/tools/jp_dpcm_memory_audit_0649.py"
       - "JP/tools/patch_cyc_dmc_dma_trace_0650.py"
       - "JP/tools/jp_dmc_dma_trace_verify_0650.py"
@@ -328,6 +329,10 @@ jobs:
             JP/native/enhanced/cviii_room_state0_test_0658.c \
             -o "${{ runner.temp }}/jp_room_state0_test_0658"
           "${{ runner.temp }}/jp_room_state0_test_0658"
+      - name: Verify JP0661 real native settings profiles on synthetic config.ini
+        run: |
+          python3 JP/tools/test_control_profiles_0661.py
+          python3 JP/tools/package_alpha_builder_0580.py --smoke
       - name: Verify JP0659 1280 native banked room-loader cases and stage extraction roundtrip (ROM-free)
         run: |
           python3 JP/tools/jp_room_stream_0659.py --smoke

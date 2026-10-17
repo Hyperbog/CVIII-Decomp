@@ -16,6 +16,44 @@ including experimental unlimited sprites, are **off by default**.
 Historical Stage A-01/sprite investigation notes below are not current
 reports of a current graphics defect; see [Enhanced status](../../docs/ENHANCED_CURRENT_STATUS.md).
 
+## JP0661 native keyboard controls: profiles and recoverable presets
+
+The working native game already supports persistent SDL keyboard/gamepad
+rebindings in NESRecomp's `config.ini`. The new **Controls.bat**
+lets you switch the Player 1 keyboard between the original
+arrows/Z/X layout and **WASD/J/K**, save your currently edited
+eight NES button bindings under a custom profile name, or
+restore a saved profile. This feature does **not** change the
+original game, sprites, mapper, emulation, saves, shortcuts or
+Player 2/gamepad bindings.
+
+1. Play the native game once, exit, then double-click
+   `Controls.bat` (available in the updated kit or private
+   `AlphaCandidate`). Profile configuration is **offline**:
+   close the game before switching.
+2. Choose `1` for original defaults, `2` for WASD,
+   `3` to capture the active custom keyboard mapping,
+   `4` to apply a saved one, or `5` to exit.
+3. Alternatively launch with
+   `Build-And-Play.bat -ControlsProfile wasd`, or use
+   `Controls.bat -Action Apply -Profile wasd`.
+   Without `-ControlsProfile`, normal Play-CVIII leaves
+   the currently chosen mapping alone.
+
+Before every change the manager creates a **unique full-file
+backup** of `config.ini` in the private `control-backups`
+folder and applies the edit atomically. The `default`
+profile restores stock Player 1 keys without resetting unrelated
+display/audio/gamepad settings. Saved profiles live under
+`control-profiles/*.json`, owner-local. Applying a profile
+chooses keyboard as Player 1's source; select your gamepad again
+from NESRecomp's original input settings when needed.
+No in-game control-rebinding page or gamepad profile manager is
+claimed. If `config.ini` does not exist yet, run the native
+game once to let its normal settings engine create it.
+
+[JP0661 product evidence and testing](../../workstreams/native-recompilation/0661_NATIVE_KEYBOARD_PROFILE_MANAGER.md).
+
 ## First-run setup — JP0603
 
 The public ZIP contains **only a ROM-free build kit**. It is NOT a

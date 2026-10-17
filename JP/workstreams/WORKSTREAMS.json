@@ -68,6 +68,26 @@
         {
           "path": ".github/workflows/jp_nesrecomp_cycle_mapper24.yml",
           "role": "linux_native_runtime_compile_gate"
+        },
+        {
+          "path": "JP/release/alpha/Control-Profiles.py",
+          "role": "native_profile_persistence"
+        },
+        {
+          "path": "JP/release/alpha/Controls.ps1",
+          "role": "owner_keyboard_profile_manager"
+        },
+        {
+          "path": "JP/release/alpha/Controls.bat",
+          "role": "owner_keyboard_profile_entry"
+        },
+        {
+          "path": "JP/tools/test_control_profiles_0661.py",
+          "role": "native_product_control_profile_regression"
+        },
+        {
+          "path": "JP/workstreams/native-recompilation/0661_NATIVE_KEYBOARD_PROFILE_MANAGER.md",
+          "role": "product_profile_feature_evidence"
         }
       ]
     },

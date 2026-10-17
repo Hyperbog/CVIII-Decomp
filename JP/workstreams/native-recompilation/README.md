@@ -17,6 +17,18 @@ The project already provides an owner-tested Windows **C11 NESRecomp/SDL2** buil
 
 **Product status source:** [Enhanced Edition current status](../../docs/ENHANCED_CURRENT_STATUS.md), [Alpha builder/controls](../../release/alpha/README_ALPHA.md), [release milestones](../../docs/RELEASE_MILESTONES.md), and [machine-readable product feature registry](PRODUCT_STATE.json).
 
+## JP0661 — Persistent keyboard controls
+
+An opt-in **Controls.bat** front end is now part of the
+ROM-free build kit and private native AlphaCandidate. It
+saves/restores named Player 1 keyboard profiles, offers
+original and WASD/J/K presets, maintains recoverable
+`config.ini` backups, and integrates with the existing
+build-and-play launcher via `-ControlsProfile NAME`.
+Gamepad mappings, player 2, audio, save states and original
+game execution are unaffected. This is not an in-game
+rebind UI. [Full product implementation evidence](0661_NATIVE_KEYBOARD_PROFILE_MANAGER.md).
+
 ## Relevant production code and validation
 
 - [Native original-ROM cycle build](../../native/nesrecomp_cycle/CMakeLists.txt) — linked external pinned NESRecomp C11 machine and authenticated private ROM.
