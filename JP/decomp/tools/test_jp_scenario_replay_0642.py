@@ -12,7 +12,7 @@ from jp_scenario_replay_0642 import (build_plan, execute, input_ranges,
     parse_mesen, png_identity, validate_core)
 
 ROOT = Path(__file__).resolve().parents[1]
-SAMPLE = ROOT / 'scenarios/title-start-preflight.json'
+SAMPLE = ROOT.parent / 'recomp/scenarios/title-start-preflight.json'
 ROM_SHA = '958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28'
 
 

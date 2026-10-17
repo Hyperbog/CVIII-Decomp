@@ -13,7 +13,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[3]
 WORK = Path("JP/decomp/workstreams")
 MANIFEST = WORK / "WORKSTREAMS.json"
-PRODUCT = WORK / "native-recompilation/PRODUCT_STATE.json"
+PRODUCT = Path("JP/recomp/workstreams/native-recompilation/PRODUCT_STATE.json")
 SEMANTIC = WORK / "semantic-decompilation/EVIDENCE_STATE.json"
 ROM_SHA = "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28"
 
@@ -48,9 +48,9 @@ def validate_manifest_shape(m: dict) -> dict[str, str]:
         require(type(stream) is dict and type(stream.get("files")) is list
                 and bool(stream["files"]), f"Empty/invalid owned files: {name}")
         if name != "shared":
-            require(safe_relative(stream["home"]).as_posix().startswith(f"JP/decomp/tools/{name.replace('_','-')}/"),
+            require(safe_relative(stream["home"]).as_posix().startswith(f"JP/{'recomp' if name == 'native_recompilation' else 'decomp'}/workstreams/{name.replace('_','-')}/"),
                     f"{name}: status home is outside canonical directory")
-            require(safe_relative(stream["status_file"]).as_posix().startswith(f"JP/decomp/tools/{name.replace('_','-')}/"),
+            require(safe_relative(stream["status_file"]).as_posix().startswith(f"JP/{'recomp' if name == 'native_recompilation' else 'decomp'}/workstreams/{name.replace('_','-')}/"),
                     f"{name}: machine state is outside canonical directory")
         for row in stream["files"]:
             require(type(row) is dict and set(row) == {"path", "role"} and

@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse,json,shutil,subprocess,sys
 from pathlib import Path
 from types import SimpleNamespace
+sys.path.insert(0,str(Path(__file__).resolve().parents[2] / 'decomp' / 'tools'))
 from nesrecomp_cycle_0568 import authenticated,run,validate_engine
 
 ROOT=Path(__file__).resolve().parents[3].resolve()
@@ -67,7 +68,7 @@ def build(rom:Path,out:Path,frames:int,windowed:bool,offline:bool,
 
 def smoke():
     assert len(PIN)==40 and all(c in "0123456789abcdef" for c in PIN)
-    try:output_directory(ROOT/"JP"/"native"/"retail-build")
+    try:output_directory(ROOT/"JP"/"recomp"/"native"/"retail-build")
     except ValueError:pass
     else:raise AssertionError("Private build output allowed in public repo")
     from nesrecomp_cycle_0568 import commands

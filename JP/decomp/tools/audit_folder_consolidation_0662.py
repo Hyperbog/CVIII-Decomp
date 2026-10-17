@@ -66,8 +66,8 @@ def audit(root: Path = ROOT) -> dict:
     source_0509=(root/'JP/decomp/legacy/native0509/CMakeLists.txt').read_text()
     source_standalone=(root/'JP/decomp/legacy/standalone0509/CMakeLists.txt').read_text()
     for s, n in ((source_0509,'native0509'),(source_standalone,'standalone0509')):
-        require('../../../src' in s and '../../../tools' in s and
-                '../../../tests' in s, 'CMake source directories broken: '+n)
+        require('../../src' in s and '../../tools' in s and
+                '../../tests' in s, 'CMake source directories broken: '+n)
     workflows={p:(root/p).read_text() for p in SCRIPTS}
     for p, content in workflows.items():
         for old in (*OLD_ROOTS,'JP/recomp/'):

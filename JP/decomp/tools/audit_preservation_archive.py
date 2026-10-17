@@ -23,7 +23,7 @@ EXPECTED = [
 ]
 ROM_SHA="958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28"
 def check(root: pathlib.Path) -> None:
-    here=root / "JP" / "PreservationArchive"
+    here=root / "JP" / "decomp" / "PreservationArchive"
     assert here.is_dir(), f"Missing {here}"
     actual=sorted(x.name for x in here.glob("[0-9][0-9]_*.md"))
     assert actual==EXPECTED, (actual,EXPECTED)

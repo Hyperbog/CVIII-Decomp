@@ -7,6 +7,7 @@ armed CI-only option accepts ONE exact, locally invented mapper24 fixture.
 from __future__ import annotations
 import argparse,json,sys
 from pathlib import Path
+sys.path.insert(0,str(Path(__file__).resolve().parents[2] / 'decomp' / 'tools'))
 from nesrecomp_cycle_0568 import authenticated
 from test_cycle_synthetic_rom_0569 import create,verify
 
