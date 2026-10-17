@@ -8,6 +8,8 @@ param(
  [string]$ControlsProfile='',
  [switch]$SpriteTrace,
  [switch]$AudioTrace,
+ [string]$InputReplayPath='',
+ [ValidateRange(0,12000)][int]$ExitAfterFrames=0,
  [ValidateRange(0,100)][int]$MasterVolume,
  [switch]$AudioUiPreview,
  [switch]$ChrAudit,
@@ -78,6 +80,18 @@ if ($ControlsProfile) {
 Push-Location $PSScriptRoot
 try {
  $gameArgs=@($romPath,'--edition',$Edition.ToLowerInvariant(),'--unlimited-sprites',$sprites,'--stable-sprites',$stable)
+ # JP0668: optional deterministic private comparison only, not default gameplay.
+ if ($InputReplayPath -or $ExitAfterFrames) {
+  if (-not $AudioTrace -or $Edition -ne 'Original') {
+   throw 'JP0668 deterministic capture requires -AudioTrace -Edition Original'
+  }
+  if (-not $InputReplayPath -or $ExitAfterFrames -ne 1100) {
+   throw 'JP0668 capture requires a replay file and exactly -ExitAfterFrames 1100'
+  }
+  $replay=(Resolve-Path -LiteralPath $InputReplayPath -ErrorAction Stop).Path
+  $gameArgs+=@('--window-input',$replay,'--exit-after','1100')
+  Write-Host ('JP0668 native deterministic input replay SHA256: '+(Get-FileHash -LiteralPath $replay -Algorithm SHA256).Hash.ToLowerInvariant())
+ }
  if ($PSBoundParameters.ContainsKey('MasterVolume')) {
   $gameArgs+=@('--master-volume',[string]$MasterVolume)
   Write-Host ('Enhanced master output gain override: '+$MasterVolume+'%')
