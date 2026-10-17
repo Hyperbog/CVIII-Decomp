@@ -96,7 +96,11 @@ def substitute_references(text: str) -> str:
         # Some calls use JP/tools/ as a bare directory.
         if original.endswith('/'):
             return 'JP/decomp/tools/'
-        return dest(original)
+        try:
+            return dest(original)
+        except ValueError:
+            # Prose may contain JP/<game title>, not a repository path.
+            return m.group(0)
     return JPREF.sub(repl,text)
 
 
