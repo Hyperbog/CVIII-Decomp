@@ -9,7 +9,7 @@ cmake -S JP/decomp/legacy/native0509 -B /tmp/cviii-native -DCMAKE_BUILD_TYPE=Rel
 cmake --build /tmp/cviii-native --parallel
 ctest --test-dir /tmp/cviii-native --output-on-failure
 /tmp/cviii-native/cviii-headless-0509 '/private/Akumajou Densetsu (Japan).nes' 10000
-python3 JP/tools/test_native_mesen_pc_0509.py /tmp/cviii-native/cviii-headless-0509 '/private/Akumajou Densetsu (Japan).nes'
+python3 JP/decomp/tools/test_native_mesen_pc_0509.py /tmp/cviii-native/cviii-headless-0509 '/private/Akumajou Densetsu (Japan).nes'
 ```
 
 The Python verifier checks SHA-256 for the exact JP ROM and the first **7,828** original-ROM PC addresses against an independent Mesen2 v2.1.1 golden digest. The same original machine's PPU vblank wait diverges at ordinal 7,829, **not** an instruction-semantic victory across 7,828 arbitrary opcodes; many of these instructions are repeated PPU polling. Cycle/PPU/mapper/IRQ and native game-frame parity remain **unproved**. The executable validates iNES shape and mapper but **does not check SHA-256 itself**; use the wrapper for authenticated ROM-locked evidence.

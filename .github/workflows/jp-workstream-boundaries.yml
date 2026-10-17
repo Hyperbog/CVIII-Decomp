@@ -4,34 +4,34 @@ on:
   push:
     branches: [decompilation]
     paths:
-      - 'JP/workstreams/**'
-      - 'JP/tools/audit_workstreams.py'
-      - 'JP/tools/test_workstreams.py'
+      - 'JP/decomp/workstreams/**'
+      - 'JP/decomp/tools/audit_workstreams.py'
+      - 'JP/decomp/tools/test_workstreams.py'
       - 'JP/README.md'
-      - 'JP/docs/PROGRESS_METRIC.md'
-      - 'JP/docs/ENHANCED_CURRENT_STATUS.md'
-      - 'JP/docs/PROGRESS.md'
-      - 'JP/docs/DECOMPILATION_CONTINUITY.md'
-      - 'JP/docs/RELEASE_MILESTONES.md'
-      - 'JP/analysis/PROGRESS_SCORE.csv'
-      - 'JP/analysis/RESUME_STATE.json'
-      - 'JP/analysis/NATIVE_EVIDENCE_LEDGER.json'
+      - 'JP/decomp/docs/PROGRESS_METRIC.md'
+      - 'JP/recomp/docs/ENHANCED_CURRENT_STATUS.md'
+      - 'JP/decomp/docs/PROGRESS.md'
+      - 'JP/decomp/docs/DECOMPILATION_CONTINUITY.md'
+      - 'JP/recomp/docs/RELEASE_MILESTONES.md'
+      - 'JP/decomp/analysis/PROGRESS_SCORE.csv'
+      - 'JP/decomp/analysis/RESUME_STATE.json'
+      - 'JP/decomp/analysis/NATIVE_EVIDENCE_LEDGER.json'
       - 'AGENTS.md'
       - '.github/workflows/jp-workstream-boundaries.yml'
   pull_request:
     paths:
-      - 'JP/workstreams/**'
-      - 'JP/tools/audit_workstreams.py'
-      - 'JP/tools/test_workstreams.py'
+      - 'JP/decomp/workstreams/**'
+      - 'JP/decomp/tools/audit_workstreams.py'
+      - 'JP/decomp/tools/test_workstreams.py'
       - 'JP/README.md'
-      - 'JP/docs/PROGRESS_METRIC.md'
-      - 'JP/docs/ENHANCED_CURRENT_STATUS.md'
-      - 'JP/docs/PROGRESS.md'
-      - 'JP/docs/DECOMPILATION_CONTINUITY.md'
-      - 'JP/docs/RELEASE_MILESTONES.md'
-      - 'JP/analysis/PROGRESS_SCORE.csv'
-      - 'JP/analysis/RESUME_STATE.json'
-      - 'JP/analysis/NATIVE_EVIDENCE_LEDGER.json'
+      - 'JP/decomp/docs/PROGRESS_METRIC.md'
+      - 'JP/recomp/docs/ENHANCED_CURRENT_STATUS.md'
+      - 'JP/decomp/docs/PROGRESS.md'
+      - 'JP/decomp/docs/DECOMPILATION_CONTINUITY.md'
+      - 'JP/recomp/docs/RELEASE_MILESTONES.md'
+      - 'JP/decomp/analysis/PROGRESS_SCORE.csv'
+      - 'JP/decomp/analysis/RESUME_STATE.json'
+      - 'JP/decomp/analysis/NATIVE_EVIDENCE_LEDGER.json'
       - 'AGENTS.md'
       - '.github/workflows/jp-workstream-boundaries.yml'
   workflow_dispatch:
@@ -44,8 +44,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Compile ROM-free workstream auditing code
-        run: python3 -m py_compile JP/tools/audit_workstreams.py JP/tools/test_workstreams.py
+        run: python3 -m py_compile JP/decomp/tools/audit_workstreams.py JP/decomp/tools/test_workstreams.py
       - name: Validate native product vs semantic source ownership and independent counters
-        run: python3 JP/tools/audit_workstreams.py
+        run: python3 JP/decomp/tools/audit_workstreams.py
       - name: Exercise double-ownership, path traversal and metric-conflation rejection cases
-        run: python3 JP/tools/test_workstreams.py
+        run: python3 JP/decomp/tools/test_workstreams.py

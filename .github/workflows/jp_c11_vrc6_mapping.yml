@@ -3,19 +3,19 @@ on:
   push:
     branches: [decompilation]
     paths:
-      - 'JP/native/c6502/**'
-      - 'JP/tools/static_recompile_boot_c_0564.py'
-      - 'JP/tools/build_retail_cycle_0575.py'
-      - 'JP/tools/nesrecomp_cycle_0568.py'
-      - 'JP/tools/test_cycle_build_stages_0577.py'
+      - 'JP/recomp/native/c6502/**'
+      - 'JP/decomp/tools/static_recompile_boot_c_0564.py'
+      - 'JP/recomp/tools/build_retail_cycle_0575.py'
+      - 'JP/decomp/tools/nesrecomp_cycle_0568.py'
+      - 'JP/decomp/tools/test_cycle_build_stages_0577.py'
       - '.github/workflows/jp_c11_vrc6_mapping.yml'
   pull_request:
     paths:
-      - 'JP/native/c6502/**'
-      - 'JP/tools/static_recompile_boot_c_0564.py'
-      - 'JP/tools/build_retail_cycle_0575.py'
-      - 'JP/tools/nesrecomp_cycle_0568.py'
-      - 'JP/tools/test_cycle_build_stages_0577.py'
+      - 'JP/recomp/native/c6502/**'
+      - 'JP/decomp/tools/static_recompile_boot_c_0564.py'
+      - 'JP/recomp/tools/build_retail_cycle_0575.py'
+      - 'JP/decomp/tools/nesrecomp_cycle_0568.py'
+      - 'JP/decomp/tools/test_cycle_build_stages_0577.py'
       - '.github/workflows/jp_c11_vrc6_mapping.yml'
   workflow_dispatch:
 permissions:
@@ -35,14 +35,14 @@ jobs:
         with:
           persist-credentials: false
       - name: Configure C11-only runtime
-        run: cmake -S JP/native/c6502 -B build/jp-c11-only -DJP_C6502_HOST_ONLY=ON
+        run: cmake -S JP/recomp/native/c6502 -B build/jp-c11-only -DJP_C6502_HOST_ONLY=ON
       - name: Compile C11 host CPU and mapper
         run: cmake --build build/jp-c11-only --config Release --parallel 2
       - name: Verify VRC6 mapper and official 6502 C semantics
         run: ctest --test-dir build/jp-c11-only -C Release --output-on-failure
       - name: Check physically qualified fixed-bank C emitter
-        run: python JP/tools/static_recompile_boot_c_0564.py --smoke
+        run: python JP/decomp/tools/static_recompile_boot_c_0564.py --smoke
       - name: Check original retail-JP pinned engine build command
-        run: python JP/tools/build_retail_cycle_0575.py --smoke
+        run: python JP/recomp/tools/build_retail_cycle_0575.py --smoke
       - name: Verify C11 binary-build evidence survives guest execution failure
-        run: python JP/tools/test_cycle_build_stages_0577.py
+        run: python JP/decomp/tools/test_cycle_build_stages_0577.py

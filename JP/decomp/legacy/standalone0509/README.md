@@ -60,7 +60,7 @@ enabled with `#undef NDEBUG` in both test entrypoints.
 With a privately supplied original Japanese ROM, additionally run:
 
 ```sh
-python3 JP/tools/audit_actor_slot_0509.py "$ORIGINAL_JP_ROM" /tmp/actor_slot_hash_only.json
+python3 JP/decomp/tools/audit_actor_slot_0509.py "$ORIGINAL_JP_ROM" /tmp/actor_slot_hash_only.json
 ```
 
 That hash-locks the original fixed `$FF06-$FF11` and `$FF14-$FF55` source bytes

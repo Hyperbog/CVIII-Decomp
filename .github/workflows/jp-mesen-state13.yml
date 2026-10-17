@@ -5,21 +5,21 @@ on:
     branches: [decompilation]
     paths:
       - '.github/workflows/jp-mesen-state13.yml'
-      - 'JP/tools/*0549*'
-      - 'JP/tools/*0551*'
-      - 'JP/tools/*0550*'
-      - 'JP/analysis/0549_*'
-      - 'JP/analysis/0551_*'
-      - 'JP/analysis/0550_*'
+      - 'JP/decomp/tools/*0549*'
+      - 'JP/decomp/tools/*0551*'
+      - 'JP/decomp/tools/*0550*'
+      - 'JP/decomp/analysis/0549_*'
+      - 'JP/decomp/analysis/0551_*'
+      - 'JP/decomp/analysis/0550_*'
   pull_request:
     paths:
       - '.github/workflows/jp-mesen-state13.yml'
-      - 'JP/tools/*0549*'
-      - 'JP/tools/*0551*'
-      - 'JP/tools/*0550*'
-      - 'JP/analysis/0549_*'
-      - 'JP/analysis/0551_*'
-      - 'JP/analysis/0550_*'
+      - 'JP/decomp/tools/*0549*'
+      - 'JP/decomp/tools/*0551*'
+      - 'JP/decomp/tools/*0550*'
+      - 'JP/decomp/analysis/0549_*'
+      - 'JP/decomp/analysis/0551_*'
+      - 'JP/decomp/analysis/0550_*'
   workflow_dispatch:
 
 permissions:
@@ -42,20 +42,20 @@ jobs:
           python-version: '3.12'
       - name: Validate passive Lua event schema and audit implementation
         run: |
-          python3 -m py_compile JP/tools/audit_mesen_state13_0549.py JP/tools/test_mesen_state13_0549.py
-          python3 JP/tools/test_mesen_state13_0549.py
+          python3 -m py_compile JP/decomp/tools/audit_mesen_state13_0549.py JP/decomp/tools/test_mesen_state13_0549.py
+          python3 JP/decomp/tools/test_mesen_state13_0549.py
       - name: Validate deterministic independent Stage-1 search forks (ROM-free)
         run: |
-          python3 -m py_compile JP/tools/search_mesen_state13_0550.py JP/tools/test_state13_search_0550.py
-          python3 JP/tools/test_state13_search_0550.py
-          python3 JP/tools/search_mesen_state13_0550.py --plan > /tmp/jp0550_plan.json
+          python3 -m py_compile JP/decomp/tools/search_mesen_state13_0550.py JP/decomp/tools/test_state13_search_0550.py
+          python3 JP/decomp/tools/test_state13_search_0550.py
+          python3 JP/decomp/tools/search_mesen_state13_0550.py --plan > /tmp/jp0550_plan.json
           python3 -c "import json; p=json.load(open('/tmp/jp0550_plan.json')); assert len(p['independent_forks'])==5 and p['total_emulated_frames_if_executed']==7100 and p['provenance']=='PLAN_ONLY_NO_NEW_GAMEPLAY_EVIDENCE'"
       - name: Validate user-provided Windows Mesen capture contracts (ROM-free only)
         run: |
-          python3 -m py_compile JP/tools/audit_mesen_windows_0551.py JP/tools/test_mesen_windows_0551.py
-          python3 JP/tools/test_mesen_windows_0551.py
+          python3 -m py_compile JP/decomp/tools/audit_mesen_windows_0551.py JP/decomp/tools/test_mesen_windows_0551.py
+          python3 JP/decomp/tools/test_mesen_windows_0551.py
       - name: Validate original 6502 reset interpreter (ROM-free only)
-        run: python3 JP/tools/test_reset_0548.py
+        run: python3 JP/decomp/tools/test_reset_0548.py
       - name: Assert no binary test media are bundled
         run: |
           test ! -e 'JP/Akumajou Densetsu (Japan).nes'

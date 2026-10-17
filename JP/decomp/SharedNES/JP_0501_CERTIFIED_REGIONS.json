@@ -1,0 +1,259 @@
+{
+  "schema": "nes-semantic-origin-regions/v1",
+  "source_rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "target_rom_sha256": "1c7b2ed2c1fb5839a6764006aa476f5c9d48f99465b6141980f3a5af1dfec0d6",
+  "source_evidence": "JP/decomp/analysis/NMI_FIXED_SCHEDULER_BANKED_0501.md",
+  "source_verified_checkpoint": "0501",
+  "source_evidence_type": "strict admitted code/operand byte spans: control/data entry proof in originating Japanese title ONLY",
+  "regions": [
+    {
+      "source_prg_offset": 261604,
+      "size": 262,
+      "sha256": "87cb2d7b62449573311d9a9aae13cdb072d3058d42faf82b9c7b81c5b6e3a3c1",
+      "source_cpu_start": "FDE4",
+      "source_bank": "1F",
+      "source_window": "fixed PRG31"
+    },
+    {
+      "source_prg_offset": 261974,
+      "size": 36,
+      "sha256": "3bc8a1cf86ea269287fe1133f416880d9c552654d537ab02676a968c4737124d",
+      "source_cpu_start": "FF56",
+      "source_bank": "1F",
+      "source_window": "fixed PRG31"
+    },
+    {
+      "source_prg_offset": 147457,
+      "size": 335,
+      "sha256": "2dd7d61df700b59351a3233b09df098f97f6c338828e74a54b349a0136006bc7",
+      "source_cpu_start": "8001",
+      "source_bank": "09",
+      "source_window": "VRC6 raw bank $09"
+    },
+    {
+      "source_prg_offset": 147794,
+      "size": 17,
+      "sha256": "52202e6406418453ccc7e56bf3eb725fd468e4f59b0cef10017baa06c1159b47",
+      "source_cpu_start": "8152",
+      "source_bank": "09",
+      "source_window": "VRC6 raw bank $09"
+    },
+    {
+      "source_prg_offset": 148048,
+      "size": 207,
+      "sha256": "9d1b0adbc05522dcbf64c234e41a96db047d86f35eec0f3bd35c5537705fdf7b",
+      "source_cpu_start": "8250",
+      "source_bank": "09",
+      "source_window": "VRC6 raw bank $09"
+    },
+    {
+      "source_prg_offset": 148311,
+      "size": 195,
+      "sha256": "6e4880f156a25ec9cc3629d85b02345b115a2f0899f6d92f1b062d7b474d3560",
+      "source_cpu_start": "8357",
+      "source_bank": "09",
+      "source_window": "VRC6 raw bank $09"
+    },
+    {
+      "source_prg_offset": 148540,
+      "size": 169,
+      "sha256": "18b0aeae2ef5979d33e052059c6dc827bd086f7588d6dc80e888e9e6d8eb9281",
+      "source_cpu_start": "843C",
+      "source_bank": "09",
+      "source_window": "VRC6 raw bank $09"
+    },
+    {
+      "source_prg_offset": 149138,
+      "size": 44,
+      "sha256": "23f97b589e7577cb68385e24c313f013774a71c74df7339ef207b0def906155c",
+      "source_cpu_start": "8692",
+      "source_bank": "09",
+      "source_window": "VRC6 raw bank $09"
+    },
+    {
+      "source_prg_offset": 149520,
+      "size": 83,
+      "sha256": "9cb9e1a5b221e5de3749feb2c2a45d9a141cd31bfcd6bba2d9b03bdf2d1d8b38",
+      "source_cpu_start": "8810",
+      "source_bank": "09",
+      "source_window": "VRC6 raw bank $09"
+    },
+    {
+      "source_prg_offset": 164817,
+      "size": 63,
+      "sha256": "f302ac2b3ac985520f5d7780d6583a5cbed3f9164b33136484b157b2c99f4a90",
+      "source_cpu_start": "83D1",
+      "source_bank": "0A",
+      "source_window": "VRC6 raw bank $0A"
+    },
+    {
+      "source_prg_offset": 165098,
+      "size": 57,
+      "sha256": "5190ad255e8121db4a4c4143c7965f0a5391391465e46618a39e9644fa992bfb",
+      "source_cpu_start": "84EA",
+      "source_bank": "0A",
+      "source_window": "VRC6 raw bank $0A"
+    },
+    {
+      "source_prg_offset": 180225,
+      "size": 74,
+      "sha256": "4f8acdadcc27a00278b799ca271122d46c05473d92f19e1f01ee505113fccef9",
+      "source_cpu_start": "8001",
+      "source_bank": "0B",
+      "source_window": "VRC6 raw bank $0B"
+    },
+    {
+      "source_prg_offset": 180403,
+      "size": 360,
+      "sha256": "8808b66fc5d79e67731f93e6b1fa6554d72262b9e5b29a1e4867ae2758c32ca7",
+      "source_cpu_start": "80B3",
+      "source_bank": "0B",
+      "source_window": "VRC6 raw bank $0B"
+    },
+    {
+      "source_prg_offset": 180819,
+      "size": 62,
+      "sha256": "970aa4064d4764e045bf51afb40cb64e7dcafa6fc65778db3e3bbc24555c3930",
+      "source_cpu_start": "8253",
+      "source_bank": "0B",
+      "source_window": "VRC6 raw bank $0B"
+    },
+    {
+      "source_prg_offset": 180941,
+      "size": 34,
+      "sha256": "1222fb43b483c3a0f3e1e2ad973cec228fc29f60a550d50bd0141d789fe92a75",
+      "source_cpu_start": "82CD",
+      "source_bank": "0B",
+      "source_window": "VRC6 raw bank $0B"
+    },
+    {
+      "source_prg_offset": 181001,
+      "size": 9,
+      "sha256": "ac7aded349ec49398a679d2da45eecb298b89b4581671c895599bd61768dd6ae",
+      "source_cpu_start": "8309",
+      "source_bank": "0B",
+      "source_window": "VRC6 raw bank $0B"
+    },
+    {
+      "source_prg_offset": 181013,
+      "size": 9,
+      "sha256": "25de7e8be3bee10543ef719c350ff4317d161faf3cc3e1709eb0c10716ae0be3",
+      "source_cpu_start": "8315",
+      "source_bank": "0B",
+      "source_window": "VRC6 raw bank $0B"
+    },
+    {
+      "source_prg_offset": 182339,
+      "size": 41,
+      "sha256": "c79cb2d2295368c2034f93615d0acf4aca20a24c3a338c9f3be0f7d54854d8eb",
+      "source_cpu_start": "8843",
+      "source_bank": "0B",
+      "source_window": "VRC6 raw bank $0B"
+    },
+    {
+      "source_prg_offset": 188756,
+      "size": 9,
+      "sha256": "b2bac4515e62017992e1cd8ff89a0a307871a8b8503a68f3d74625e5ac769cae",
+      "source_cpu_start": "A154",
+      "source_bank": "0B",
+      "source_window": "VRC6 raw bank $0B"
+    },
+    {
+      "source_prg_offset": 189129,
+      "size": 6,
+      "sha256": "f79e1d0981d284dfb551be33010685836f73901c76db0e97145bf45fa42feca1",
+      "source_cpu_start": "A2C9",
+      "source_bank": "0B",
+      "source_window": "VRC6 raw bank $0B"
+    },
+    {
+      "source_prg_offset": 189225,
+      "size": 61,
+      "sha256": "6825e459291b646417e7f1d918677e7f76453379a1560ae24fc933fd79485c2a",
+      "source_cpu_start": "A329",
+      "source_bank": "0B",
+      "source_window": "VRC6 raw bank $0B"
+    },
+    {
+      "source_prg_offset": 189350,
+      "size": 6,
+      "sha256": "b0098751a43af502824e9ac33341c0384a53559d6fcef54360b23682f2107adc",
+      "source_cpu_start": "A3A6",
+      "source_bank": "0B",
+      "source_window": "VRC6 raw bank $0B"
+    },
+    {
+      "source_prg_offset": 192774,
+      "size": 538,
+      "sha256": "ffbbafe28471a79bdb0f4b7b08b11a27ce8ce47ced545dbed205560658dc8f48",
+      "source_cpu_start": "B106",
+      "source_bank": "0B",
+      "source_window": "VRC6 raw bank $0B"
+    },
+    {
+      "source_prg_offset": 193315,
+      "size": 113,
+      "sha256": "ada777e3c5d6cff781f04cd8c1afdc4afedc27aa589d4ece91060189f8a618a5",
+      "source_cpu_start": "B323",
+      "source_bank": "0B",
+      "source_window": "VRC6 raw bank $0B"
+    },
+    {
+      "source_prg_offset": 193430,
+      "size": 319,
+      "sha256": "0356b104267a70383b750c09187209c282e7dd252fb518f11b56f65341c6b167",
+      "source_cpu_start": "B396",
+      "source_bank": "0B",
+      "source_window": "VRC6 raw bank $0B"
+    },
+    {
+      "source_prg_offset": 193751,
+      "size": 338,
+      "sha256": "d6ca1dcb716862996f99c2253f005b202eab7224e8dd6666c8cbbf1d2dae3e03",
+      "source_cpu_start": "B4D7",
+      "source_bank": "0B",
+      "source_window": "VRC6 raw bank $0B"
+    },
+    {
+      "source_prg_offset": 194098,
+      "size": 65,
+      "sha256": "efee106fa7f7651f999d6110514425dc8615da42f47de108b57a056224a807e0",
+      "source_cpu_start": "B632",
+      "source_bank": "0B",
+      "source_window": "VRC6 raw bank $0B"
+    },
+    {
+      "source_prg_offset": 194254,
+      "size": 180,
+      "sha256": "cb72dbf7c191a568d7fc61498a7b3a0038a16594fdc1767d8f56d6b9710927fd",
+      "source_cpu_start": "B6CE",
+      "source_bank": "0B",
+      "source_window": "VRC6 raw bank $0B"
+    },
+    {
+      "source_prg_offset": 194533,
+      "size": 399,
+      "sha256": "ef24909ade0b6e170c013403a7ba513f84d8109496bbcd17ddb47b70872cb896",
+      "source_cpu_start": "B7E5",
+      "source_bank": "0B",
+      "source_window": "VRC6 raw bank $0B"
+    },
+    {
+      "source_prg_offset": 194950,
+      "size": 186,
+      "sha256": "8a4c0047b50f6b7b7c8b843928334e6dd8197baff8ec7669c5939ce12b281559",
+      "source_cpu_start": "B986",
+      "source_bank": "0B",
+      "source_window": "VRC6 raw bank $0B"
+    },
+    {
+      "source_prg_offset": 195856,
+      "size": 87,
+      "sha256": "d4336919aa9623d6a468541ba5f578dc8127d494a781af95811994bec2eb04b9",
+      "source_cpu_start": "BD10",
+      "source_bank": "0B",
+      "source_window": "VRC6 raw bank $0B"
+    }
+  ],
+  "total_certified_source_bytes": 4364
+}

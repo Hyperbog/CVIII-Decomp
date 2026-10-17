@@ -10,5 +10,5 @@ Build paths were updated without changing their source algorithms:
 - [standalone0509](standalone0509/) — synthetic actor/sprite pipeline.
 - [native_demo0510](native_demo0510/) — authored preview demonstration.
 
-Active builds still use [native NESRecomp](../../native/nesrecomp_cycle/)
-and [the Enhanced launcher](../../release/alpha/).
+Active builds still use [native NESRecomp](../../recomp/native/nesrecomp_cycle/)
+and [the Enhanced launcher](../../recomp/release/alpha/).

@@ -24,6 +24,10 @@ CVIII-QA-Matrix.json
 **/AlphaCandidate/config.ini
 **/AlphaCandidate/control-profiles/
 **/AlphaCandidate/control-backups/
-JP/release/alpha/config.ini
-JP/release/alpha/control-profiles/
-JP/release/alpha/control-backups/
+JP/recomp/release/alpha/config.ini
+JP/recomp/release/alpha/control-profiles/
+JP/recomp/release/alpha/control-backups/
+
+# Generated Python caches are never source artifacts.
+__pycache__/
+*.py[cod]

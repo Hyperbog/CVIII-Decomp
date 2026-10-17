@@ -3,13 +3,13 @@ on:
   push:
     branches: [decompilation]
     paths:
-      - 'JP/native/boot/**'
-      - 'JP/native/bank0a/**'
+      - 'JP/recomp/native/boot/**'
+      - 'JP/recomp/native/bank0a/**'
       - '.github/workflows/jp-static-native-windows.yml'
   pull_request:
     paths:
-      - 'JP/native/boot/**'
-      - 'JP/native/bank0a/**'
+      - 'JP/recomp/native/boot/**'
+      - 'JP/recomp/native/bank0a/**'
       - '.github/workflows/jp-static-native-windows.yml'
   workflow_dispatch:
 
@@ -27,7 +27,7 @@ jobs:
           persist-credentials: false
       - name: Configure native 6502 instruction module
         shell: pwsh
-        run: cmake -S JP/native/boot -B build/jp-boot -A x64
+        run: cmake -S JP/recomp/native/boot -B build/jp-boot -A x64
       - name: Build real Windows native executable
         shell: pwsh
         run: cmake --build build/jp-boot --config Release --parallel 2

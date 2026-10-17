@@ -3,13 +3,13 @@ on:
   push:
     branches: [decompilation]
     paths:
-      - "JP/tools/jp_nsf_rom_crosswalk_0654.py"
-      - "JP/analysis/0654_ORIGINAL_JP_NSF_ROM_CROSSWALK.md"
+      - "JP/decomp/tools/jp_nsf_rom_crosswalk_0654.py"
+      - "JP/decomp/analysis/0654_ORIGINAL_JP_NSF_ROM_CROSSWALK.md"
       - ".github/workflows/jp0654_nsf_provenance.yml"
   pull_request:
     paths:
-      - "JP/tools/jp_nsf_rom_crosswalk_0654.py"
-      - "JP/analysis/0654_ORIGINAL_JP_NSF_ROM_CROSSWALK.md"
+      - "JP/decomp/tools/jp_nsf_rom_crosswalk_0654.py"
+      - "JP/decomp/analysis/0654_ORIGINAL_JP_NSF_ROM_CROSSWALK.md"
   workflow_dispatch:
 permissions:
   contents: read
@@ -29,4 +29,4 @@ jobs:
         with:
           python-version: "3.11"
       - name: Verify 13-bank physical provenance and eight corrupt inputs (no commercial media)
-        run: python JP/tools/jp_nsf_rom_crosswalk_0654.py --smoke
+        run: python JP/decomp/tools/jp_nsf_rom_crosswalk_0654.py --smoke

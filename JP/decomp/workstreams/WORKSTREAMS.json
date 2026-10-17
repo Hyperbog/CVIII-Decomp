@@ -1,0 +1,191 @@
+{
+  "schema": "JP-workstream-boundaries/v1",
+  "scope": "Japanese VRC6 Akumajou Densetsu",
+  "source_rom_sha256": "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28",
+  "note": "Path ownership is per-file, not per directory: JP/recomp/native/enhanced and JP/decomp/analysis contain both product and research artifacts. Do not relocate referenced historical files without a separate atomic path migration.",
+  "streams": {
+    "native_recompilation": {
+      "home": "JP/recomp/workstreams/native-recompilation/README.md",
+      "status_file": "JP/recomp/workstreams/native-recompilation/PRODUCT_STATE.json",
+      "scope": "Existing owner-tested playable Windows NESRecomp C11/SDL2 Alpha and Enhanced host features",
+      "files": [
+        {
+          "path": "JP/recomp/native/nesrecomp_cycle/CMakeLists.txt",
+          "role": "private_original_rom_native_build"
+        },
+        {
+          "path": "JP/recomp/native/enhanced/cviii_edition.c",
+          "role": "active_enhanced_presentation_host"
+        },
+        {
+          "path": "JP/recomp/release/alpha/README_ALPHA.md",
+          "role": "user_build_and_play"
+        },
+        {
+          "path": "JP/recomp/release/alpha/Build-And-Play.bat",
+          "role": "user_launcher"
+        },
+        {
+          "path": "JP/recomp/docs/ENHANCED_CURRENT_STATUS.md",
+          "role": "product_feature_status"
+        },
+        {
+          "path": "JP/recomp/docs/ORIGINAL_ENHANCED_EDITIONS.md",
+          "role": "single_product_decision"
+        },
+        {
+          "path": "JP/recomp/tools/patch_cyc_savestates_0591.py",
+          "role": "ten_slot_machine_savestates"
+        },
+        {
+          "path": "JP/recomp/tools/patch_cyc_stage_menu_0594.py",
+          "role": "f10_checkpoint_and_companion_picker"
+        },
+        {
+          "path": "JP/recomp/tools/patch_cyc_stage_bootstrap_0596.py",
+          "role": "password_stage_bootstrap"
+        },
+        {
+          "path": "JP/decomp/analysis/0591_SHARED_ORIGINAL_ENHANCED_SAVESTATES.md",
+          "role": "product_savestate_evidence"
+        },
+        {
+          "path": "JP/decomp/analysis/0594_NATIVE_F10_STAGE_CHECKPOINT_WARP.md",
+          "role": "product_checkpoint_evidence"
+        },
+        {
+          "path": "JP/decomp/analysis/0596_PASSWORD_SCREEN_BOOTSTRAP.md",
+          "role": "product_password_bootstrap_evidence"
+        },
+        {
+          "path": "JP/decomp/analysis/0645_STABLE_SPRITE_EMISSION_ANIMATION.md",
+          "role": "optional_sprite_presentation_evidence"
+        },
+        {
+          "path": ".github/workflows/jp_alpha_windows.yml",
+          "role": "windows_product_compile_gate"
+        },
+        {
+          "path": ".github/workflows/jp_nesrecomp_cycle_mapper24.yml",
+          "role": "linux_native_runtime_compile_gate"
+        },
+        {
+          "path": "JP/recomp/release/alpha/Control-Profiles.py",
+          "role": "native_profile_persistence"
+        },
+        {
+          "path": "JP/recomp/release/alpha/Controls.ps1",
+          "role": "owner_keyboard_profile_manager"
+        },
+        {
+          "path": "JP/recomp/release/alpha/Controls.bat",
+          "role": "owner_keyboard_profile_entry"
+        },
+        {
+          "path": "JP/recomp/tools/test_control_profiles_0661.py",
+          "role": "native_product_control_profile_regression"
+        },
+        {
+          "path": "JP/recomp/workstreams/native-recompilation/0661_NATIVE_KEYBOARD_PROFILE_MANAGER.md",
+          "role": "product_profile_feature_evidence"
+        }
+      ]
+    },
+    "semantic_decompilation": {
+      "home": "JP/decomp/workstreams/semantic-decompilation/README.md",
+      "status_file": "JP/decomp/workstreams/semantic-decompilation/EVIDENCE_STATE.json",
+      "scope": "Partial independently certified source reconstruction, strict physically unique PRG bytes, fixed VPP rubric",
+      "files": [
+        {
+          "path": "JP/decomp/analysis/RESUME_STATE.json",
+          "role": "authoritative_semantic_checkpoint_and_strict_prg"
+        },
+        {
+          "path": "JP/decomp/analysis/PROGRESS_SCORE.csv",
+          "role": "authoritative_semantic_vpp_score"
+        },
+        {
+          "path": "JP/decomp/analysis/NATIVE_EVIDENCE_LEDGER.json",
+          "role": "evidence_ledger"
+        },
+        {
+          "path": "JP/decomp/docs/PROGRESS_METRIC.md",
+          "role": "semantic_vpp_rubric_not_product_completion"
+        },
+        {
+          "path": "JP/decomp/docs/DECOMPILATION_CONTINUITY.md",
+          "role": "semantic_research_continuity"
+        },
+        {
+          "path": "JP/decomp/docs/PROGRESS.md",
+          "role": "historical_semantic_research_log"
+        },
+        {
+          "path": "JP/recomp/native/enhanced/cviii_room_stream_0659.c",
+          "role": "compiled_but_dormant_semantic_room_lift"
+        },
+        {
+          "path": "JP/recomp/native/enhanced/cviii_room_catalog_0657.c",
+          "role": "compiled_but_dormant_semantic_room_format"
+        },
+        {
+          "path": "JP/decomp/tools/jp_room_stream_0659.py",
+          "role": "conditional_original_opcode_native_replay"
+        },
+        {
+          "path": "JP/decomp/tools/jp_room_resources_0659.py",
+          "role": "private_source_stage_extraction"
+        },
+        {
+          "path": "JP/decomp/analysis/0659_FORMAL_VPP_STAGE_FORMAT_AND_EXTRACTION_DECISION.md",
+          "role": "most_recent_semantic_rubric_decision"
+        },
+        {
+          "path": "JP/decomp/analysis/0659_ORIGINAL_BANKED_ROOM_OBJECTS_AND_STAGE_EXTRACTOR.md",
+          "role": "source_research_report"
+        },
+        {
+          "path": "JP/decomp/tools/audit_native_evidence_ledger.py",
+          "role": "semantic_provenance_gate"
+        },
+        {
+          "path": ".github/workflows/jp-native-regressions.yml",
+          "role": "semantic_native_unit_regressions"
+        }
+      ]
+    },
+    "shared": {
+      "scope": "Common ROM identity, preservation material, and cross-workstream developer standards. Shared does not change the different product and research acceptance criteria.",
+      "files": [
+        {
+          "path": "AGENTS.md",
+          "role": "repository_contributor_rules"
+        },
+        {
+          "path": "MOD_FORWARD_METHODOLOGY.md",
+          "role": "cross_platform_modding_rules"
+        },
+        {
+          "path": "JP/decomp/docs/ROM_IDENTITY.md",
+          "role": "original_JP_cartridge_identity"
+        },
+        {
+          "path": "JP/decomp/PreservationArchive/README.md",
+          "role": "historical_archive_index"
+        },
+        {
+          "path": "JP/decomp/tools/audit_preservation_archive.py",
+          "role": "historical_archive_integrity"
+        }
+      ]
+    }
+  },
+  "policy": {
+    "future_native_product_material": "JP/decomp/tools/ for product status and owner QA; production code remains at JP/recomp/native/nesrecomp_cycle, JP/recomp/native/enhanced and JP/recomp/release/alpha until a separately validated atomic migration.",
+    "future_semantic_evidence": "JP/decomp/tools/ for status and indices; canonical original source evidence stays in JP/decomp/analysis and JP/decomp/tools until a separately validated migration.",
+    "native_product_metric": "Owner-observed gameplay and platform/release feature acceptance; not VPP or strict verified PRG.",
+    "semantic_metric": "VPP fixed 100-point semantic research rubric and de-duplicated independently certified physical PRG bytes; not percent of a native game playable.",
+    "bridge_rule": "Production NESRecomp and dormant original-source semantic C11 helpers may link in one host build, but dormant source parity does not constitute a player-facing feature; any promoted integration needs separate live runtime/QA evidence.",
+    "migration": "Do not move, duplicate or silently rewrite legacy research reports, score CSV, ROM identity records, production source or workflow files; move them only in a staged commit that rewrites every consumer and passes all platform/research CI."
+  }
+}
