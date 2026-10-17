@@ -8,6 +8,8 @@ param(
  [string]$ControlsProfile='',
  [switch]$SpriteTrace,
  [switch]$AudioTrace,
+ [string]$InputReplayPath='',
+ [ValidateRange(0,12000)][int]$ExitAfterFrames=0,
  [ValidateRange(0,100)][int]$MasterVolume,
  [switch]$AudioUiPreview,
  [switch]$ChrAudit,
@@ -78,6 +80,18 @@ if ($ControlsProfile) {
 Push-Location $PSScriptRoot
 try {
  $gameArgs=@($romPath,'--edition',$Edition.ToLowerInvariant(),'--unlimited-sprites',$sprites,'--stable-sprites',$stable)
+ # JP0668: optional deterministic private comparison only, not default gameplay.
+ if ($InputReplayPath -or $ExitAfterFrames) {
+  if (-not $AudioTrace -or $Edition -ne 'Original') {
+   throw 'JP0668 deterministic capture requires -AudioTrace -Edition Original'
+  }
+  if (-not $InputReplayPath -or $ExitAfterFrames -ne 1100) {
+   throw 'JP0668 capture requires a replay file and exactly -ExitAfterFrames 1100'
+  }
+  $replay=(Resolve-Path -LiteralPath $InputReplayPath -ErrorAction Stop).Path
+  $gameArgs+=@('--window-input',$replay,'--exit-after','1100')
+  Write-Host ('JP0668 native deterministic input replay SHA256: '+(Get-FileHash -LiteralPath $replay -Algorithm SHA256).Hash.ToLowerInvariant())
+ }
  if ($PSBoundParameters.ContainsKey('MasterVolume')) {
   $gameArgs+=@('--master-volume',[string]$MasterVolume)
   Write-Host ('Enhanced master output gain override: '+$MasterVolume+'%')
@@ -129,8 +143,19 @@ try {
    Write-Host 'No asset index found; Enhanced falls back to original ROM-driven graphics.'
   }
  } elseif ($ChrAudit -or $AudioUiPreview) { throw 'CHR UI preview and audit require Enhanced' }
- & $game @gameArgs
- if ($LASTEXITCODE -ne 0) {throw "Native game exited with $LASTEXITCODE"}
+ # Some pinned native runtimes print nonfatal diagnostics to stderr.
+ # Windows PowerShell 5.1 elevates them to NativeCommandError when the
+ # launcher has ErrorActionPreference=Stop. Do not terminate an otherwise
+ # valid audio capture. Preserve and check the real native exit code.
+ $nativeErrorPreference=$ErrorActionPreference
+ $ErrorActionPreference='Continue'
+ try {
+  & $game @gameArgs
+  $nativeExitCode=$LASTEXITCODE
+ } finally {
+  $ErrorActionPreference=$nativeErrorPreference
+ }
+ if ($nativeExitCode -ne 0) {throw "Native game exited with $nativeExitCode"}
  if ($AudioTrace) {
   $audioVerifier=Join-Path $PSScriptRoot 'jp_audio_session_verify_0614.py'
   if (!(Test-Path -LiteralPath $audioVerifier)) { throw 'JP0614 session validator missing; rebuild latest private AlphaCandidate' }
