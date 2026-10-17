@@ -71,6 +71,7 @@ python3 jp0668_capture_pair.py \
  --mesen-log /private/JP0668-Mesen.log \
  --native-csv /private/jp0668-native/CVIII-Audio-Registers.csv \
  --native-audio-dir /private/jp0668-native \
+ --repo-root /private/CVIII-Decomp \
  --input-replay /private/JP0668-window-input.txt \
  --manifest /private/JP0668-capture-manifest.json \
  --json /private/JP0668-aggregate-verdict.json
