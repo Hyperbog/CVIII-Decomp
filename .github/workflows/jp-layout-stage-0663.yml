@@ -1,0 +1,42 @@
+name: JP0663 Stage Full Layout Migration
+
+on:
+  push:
+    branches: [jp-layout-stage-0663]
+    paths:
+      - '.maintenance/jp_layout_migrate_0663.py'
+      - '.github/workflows/jp-layout-stage-0663.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  migrate-in-staging:
+    if: "!startsWith(github.event.head_commit.message, 'JP0663 physical root migration')"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          fetch-depth: 1
+      - name: Physically consolidate all JP source and build files
+        run: |
+          python3 -m py_compile .maintenance/jp_layout_migrate_0663.py
+          python3 .maintenance/jp_layout_migrate_0663.py
+          find JP -mindepth 1 -maxdepth 1 -printf '%f\n' | sort
+      - name: Quick pre-publish source smoke (diagnostic)
+        continue-on-error: true
+        run: |
+          python3 JP/decomp/tools/progress_score.py
+          python3 JP/recomp/tools/package_alpha_builder_0580.py --smoke
+          python3 JP/decomp/tools/audit_workstreams.py
+      - name: Publish transformation only to isolated staging branch
+        run: |
+          git config user.name "CVIII JP0663 migration"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --stat | tail -25
+          git diff --cached --check
+          git commit -m "JP0663 physical root migration: two Japanese workstreams"
+          git push origin "HEAD:refs/heads/jp-layout-stage-0663"
