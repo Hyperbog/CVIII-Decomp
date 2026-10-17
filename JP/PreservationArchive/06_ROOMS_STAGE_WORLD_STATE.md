@@ -172,3 +172,29 @@ is dormant. Source bytes were previously indexed.
 No new strict PRG credit or VPP point. Room
 producer bounds R-002 remain OPEN.
 
+## JP0659 — Complete conditional raw0A->raw0E original room-object stream installer
+
+[JP0659](../analysis/0659_ORIGINAL_BANKED_ROOM_OBJECTS_AND_STAGE_EXTRACTOR.md)
+fully reconstructs raw0A:$B7F7–$B872 as its actual
+original 6502 routine for a **bank-qualified source-data
+installer**, not a generic room-pointer lookup. Original
+fixed PRG31:$FB96 switches raw VRC6 bank0A→0E→0A
+for **each of 7+5×record_count source reads**. All
+five valid $07A0 source selectors have authenticated roots
+in raw0E:$BE8B–$BF39: 20 original header bytes,
+30 five-byte record instances, five FF terminators,
+**175 contiguous physical source bytes total**.
+Each record writes to the original indexed RAM fields
+$048C/$0400/$0438/$041C/$04A8 and enables $054E,X.
+There are 1,280/1,280 original 6502 vs C11 matches,
+including 2,293,760 nonstack RAM comparisons and
+94,720 ordered mapper events. A new stable-ID JSON
+resource extractor and validator privately roundtrip
+all 175 bytes exactly, with 7 negative gates.
+
+This earns stage/room format 2/5 and resource tooling
+1/2; VPP 31/100. These bounded conditional code/data
+bytes are **not** strict PRG promotions; R-002
+global $07A0 producer-domain liveness, original mapper
+frame scheduling and native stage rendering are unproved.
+

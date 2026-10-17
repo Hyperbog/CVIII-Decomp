@@ -141,3 +141,22 @@ These are conditionally executed source results,
 **not** proof of natural room stage liveness or
 frame-accurate PPU timing. R-002 OPEN.
 
+## JP0659 — Bank switching per source byte; the FF first-field boundary (Q/U)
+
+The authentic raw0A room-object loader $B7F7–$B872
+calls fixed $FB96 **twice at source offset zero and
+twice at offset one**, then again at offsets two/three,
+and once per field in each five-byte source record,
+plus a final FF sentinel read. Every call causes two
+mapper $8000 writes (raw0E then raw0A), even
+when the same header byte is read twice.
+Record termination is **first field $FF**; later
+positional fields may legitimately contain $FF data.
+The original source's five roots are not ascending in
+selector order and must never be flattened into a
+single sequence based on stage selector numbers.
+[JP0659](../analysis/0659_ORIGINAL_BANKED_ROOM_OBJECTS_AND_STAGE_EXTRACTOR.md).
+This is original opcode source behavior under a
+**conditional** $07A0 0..4 domain, not a traced
+natural-scene timing witness. R-002 OPEN.
+

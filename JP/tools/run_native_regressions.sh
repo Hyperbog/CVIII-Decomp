@@ -351,3 +351,6 @@ fi
 echo "PASS: native test binaries and original-ROM headless CLI compiled; ROM-free suites executed"
 # JP0658 bounded original room clear + PPU stream contract; media-free.
 python3 "$root/JP/tools/jp_room_clear_0658.py" --smoke
+# JP0659 synthetic stage-room source and exact reversible resource geometry.
+python3 "$root/JP/tools/jp_room_stream_0659.py" --smoke
+python3 "$root/JP/tools/jp_room_resources_0659.py" --smoke

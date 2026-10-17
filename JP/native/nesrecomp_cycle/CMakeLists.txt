@@ -69,6 +69,7 @@ if(JP_EDITION_HOST_EXTRAS)
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_room_coordinate_0657.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_room_ppu_stream_0658.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_room_state0_0658.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_room_stream_0659.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_session_0614.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_levels_0618.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_virtual_audio_0647.c"
@@ -496,6 +497,11 @@ add_executable(jp_room_state0_test_0658
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_room_state0_0658.c"
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_room_state0_test_0658.c")
 set_property(TARGET jp_room_state0_test_0658 PROPERTY C_STANDARD 11)
+# JP0659: original room0A->room0E banked five-record-source native lift.
+add_executable(jp_room_stream_test_0659
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_room_stream_0659.c"
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_room_stream_test_0659.c")
+set_property(TARGET jp_room_stream_test_0659 PROPERTY C_STANDARD 11)
 
 
 # JP0649: dormant bounded source/mapper8 + raw DPCM 7-bit decoder.

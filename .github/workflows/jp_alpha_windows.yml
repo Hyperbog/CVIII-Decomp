@@ -46,6 +46,8 @@ on:
       - "JP/tools/jp_room_catalog_0657.py"
       - "JP/tools/jp_room_coordinate_0657.py"
       - "JP/tools/jp_room_clear_0658.py"
+      - "JP/tools/jp_room_stream_0659.py"
+      - "JP/tools/jp_room_resources_0659.py"
       - "JP/tools/jp_dpcm_memory_audit_0649.py"
       - "JP/tools/patch_cyc_dmc_dma_trace_0650.py"
       - "JP/tools/jp_dmc_dma_trace_verify_0650.py"
@@ -389,6 +391,17 @@ jobs:
           if (!(Test-Path -LiteralPath $test)) { throw 'JP0658 C11 regression binary missing' }
           & $test
           if ($LASTEXITCODE -ne 0) { throw 'JP0658 C11 synthetic source/PPU regression failed' }
+      - name: Verify JP0659 five-source room loader, mapper events, reversible stage JSON (ROM-free)
+        shell: pwsh
+        run: |
+          python JP/tools/jp_room_stream_0659.py --smoke
+          if ($LASTEXITCODE -ne 0) { throw 'JP0659 original room stream contract smoke failed' }
+          python JP/tools/jp_room_resources_0659.py --smoke
+          if ($LASTEXITCODE -ne 0) { throw 'JP0659 reversible stage data extraction failed' }
+          $test = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win/Release/jp_room_stream_test_0659.exe'
+          if (!(Test-Path -LiteralPath $test)) { throw 'JP0659 native source test missing' }
+          & $test
+          if ($LASTEXITCODE -ne 0) { throw 'JP0659 1280 synthetic room loader tests failed' }
       - name: Authenticate JP0648 DMC priority and indexed source, ROM-free negatives
         shell: pwsh
         run: |

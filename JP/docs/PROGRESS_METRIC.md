@@ -8,9 +8,11 @@ The machine-readable score is `analysis/PROGRESS_SCORE.csv`; `tools/progress_sco
 
 ## Current score
 
-**VPP: 29 / 100 (29%)**
+**VPP: 31 / 100 (31%)**
 
-The latest point is **Stage/world → stage/room data formats (first of five)**: full native raw0A room catalog (15/64/135 selectors, 709 four-byte cells and 163 seven-byte records), 135 original-6502/native selector matches and 131,072 original-native coordinate checks. Stage/room field semantics, gameplay reachability and PPU frame parity remain unproven. [JP0657 source proof](../analysis/0657_STAGE_ROOM_NATIVE_CATALOG_AND_COORDINATE.md).
+The newest two subpoints are **Stage/world stage/room data formats (second of five)** and **stage-data extraction tooling (first of two)**. Source original raw0A B7F7-B872 calls fixed FB96 to read the complete 175-byte five-stream raw0E room records; 1,280 original-opcode/native comparisons agree across 879,360 CPU instructions, 2,293,760 RAM bytes and 94,720 mapper transactions. A stable-ID editor JSON extractor/packer roundtrips the entire 175-byte original region with independent corruption rejection. Original gameplay Mesen traces and full ROM runtime edits are still not established. [JP0659 full source](../analysis/0659_ORIGINAL_BANKED_ROOM_OBJECTS_AND_STAGE_EXTRACTOR.md); [formal scoring decision](../analysis/0659_FORMAL_VPP_STAGE_FORMAT_AND_EXTRACTION_DECISION.md).
+ 
+The preceding point is **Stage/world → stage/room data formats (first of five)**: full native raw0A room catalog (15/64/135 selectors, 709 four-byte cells and 163 seven-byte records), 135 original-6502/native selector matches and 131,072 original-native coordinate checks. Stage/room field semantics, gameplay reachability and PPU frame parity remain unproven. [JP0657 source proof](../analysis/0657_STAGE_ROOM_NATIVE_CATALOG_AND_COORDINATE.md).
 
 The preceding point is **Audio → music/SFX data formats (first of two)**: original-ROM authenticated 125 sound descriptors, 325 bank-qualified refs, 148 phrase pointers, and a complete bounded phrase byte grammar ($00–$FA arithmetic and $FB–$FF control branches), with 5,610 JP0655 ordinary and 1,827 JP0656 original-6502/native test cases. All outputs remain dormant and natural original-game audio parity is not proved. [JP0656 evidence](../analysis/0656_ORIGINAL_SOUND_CONTROL_COMPLETE.md).
 
@@ -24,11 +26,11 @@ The preceding validation point was independent CPU state+cycle trace conformance
 | CPU / mapper / interrupts | 10 | 8 | RESET path, PRG helpers, top-level NMI, IRQ table/state machine, control-vs-ack behavior, native VRC6 PRG/CHR mapper, native VRC6 IRQ scheduler; trace parity still open |
 | Rendering / PPU | 10 | 5 | OAM arrays, selector/master tables, variable descriptor encoding, exact sprite transforms/state, native OAM lift; background/CHR/PPU parity open |
 | Gameplay / object systems | 25 | 3 | original object dispatcher architecture, isolated collision-math architecture, and distinct connected B1F8-to-FDFE actor collision/follower pipeline with 91-instruction original Mesen parity; remaining player/combat/enemy/boss systems open |
-| Stage / world / progression | 20 | 1 | original raw0A 15/64/135 stage/room data hierarchy, 709 four-byte and 163 seven-byte typed records, 135 original-6502/native pointer matches, 131,072 original/native room-coordinate matches; real gameplay/PPU parity open |
+| Stage / world / progression | 20 | 3 | 2/5 original stage-source formats: JP0657 bank0A hierarchy, JP0659 bank0E five-byte room resource/install source; first of two reproducible stage resource extraction tools with original 175-byte JSON roundtrip; scrolling/frame parity open |
 | Audio | 12 | 2 | NSF/retail correlation plus first original phrase/data-format point (JP0652–JP0656); second format, driver, native APU/VRC6 and parity work remain open |
 | Native runtime / platform | 10 | 1 | isolated faithful native OAM subsystem exists; native mapper/IRQ/collision primitives now exist but complete memory/PPU integration and executable are open |
 | Validation / tooling | 8 | 5 | ROM identity/subsystem audits, native tests and CI; independent Nintendulator CPU register/status/stack/cycle trace 8991/8991; original JP VRC6 mapper/IRQ trace and frame goldens open |
-| **Total** | **100** | **27** | |
+| **Total** | **100** | **31** | |
 
 ## Fixed rubric
 
@@ -87,12 +89,12 @@ Partial points in this category require a committed, reusable architectural resu
 
 ### 5. Stage / world / progression — 20 points
 
-- stage/room data formats: 5 — **1 earned / 5**, JP0657 full raw0A native typed room-source hierarchy and original 6502 selector parity; actual stage field usage and natural producer domains open
+- stage/room data formats: 5 — **2 earned / 5**, JP0657 raw0A three-level source hierarchy plus JP0659 distinct original raw0E five-byte room resource stream and banked installer with 1,280 authentic 6502/native replay cases; live selector producer domains remain open
 - scrolling/room transitions: 4 — open
 - collision/environment maps: 4 — open
 - route/stage progression: 3 — open
 - menus/password/ending flow: 2 — open
-- reproducible stage-data extraction tooling: 2 — open
+- reproducible stage-data extraction tooling: 2 — **1 earned / 2**, JP0659 original JP SHA-authenticated 175-byte structured JSON export and validated exact private source repack; full world editor/integrated runtime export open
 
 ### 6. Audio — 12 points
 

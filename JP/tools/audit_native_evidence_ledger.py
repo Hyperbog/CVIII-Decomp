@@ -118,6 +118,17 @@ def validate() -> dict:
            "PRG byte floor changed without overlap-deduplicated audit/ledger review")
     insist(state["vpp"]["earned"] == expected["vpp_earned"],
            "VPP changed without evidence/rubric ledger review")
+    # JP0659: an earned VPP increment must be accounted by a real rubric
+    # decision file, not only a coincidentally matching integer.
+    if expected["vpp_earned"] > 29:
+        insist(expected.get("vpp_decision") ==
+               "analysis/0659_FORMAL_VPP_STAGE_FORMAT_AND_EXTRACTION_DECISION.md",
+               "JP0659 stage-format/extraction decision must be linked in ledger")
+        rubric_decision = ROOT / expected["vpp_decision"]
+        decision_text = rubric_decision.read_text(encoding="utf-8") if rubric_decision.is_file() else ""
+        insist("2/5" in decision_text and "1/2" in decision_text and
+               "49,504" in decision_text and "31/100" in decision_text,
+               "JP0659 VPP decision lacks distinct subpoint evidence and strict PRG caveat")
     if "vpp_decision" in expected:
         decision = ROOT / expected["vpp_decision"]
         insist(decision.is_file() and f'{expected["vpp_earned"]}/100' in decision.read_text(encoding="utf-8"),

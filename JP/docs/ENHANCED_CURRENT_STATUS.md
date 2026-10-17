@@ -374,9 +374,32 @@ and the global room producer domain remain open.
 Strict PRG **49,504/262,144 (18.8843%)**, VPP **29/100**
 unchanged, fixed frontier $FB96.
 
+## JP0659 — Source-backed banked room-object loader and reversible resources
+
+Native C11 now implements the original JP raw0A room-object
+installation routine, fetching five source data streams from
+raw0E through the original fixed-bank $FB96 mapper helper.
+All five pointer roots and 30 five-byte original record
+instances are indexed with actual per-field guest RAM
+destinations. 1,280 original-6502/native replays pass over
+879,360 instructions and 94,720 mapper transitions.
+A private reversible, stable-ID JSON resource converter
+roundtrips the complete original 175-byte physical source.
+[JP0659 evidence](../analysis/0659_ORIGINAL_BANKED_ROOM_OBJECTS_AND_STAGE_EXTRACTOR.md).
+
+These separate new source format and extraction tool
+milestones raise **VPP to 31/100 (Stage/world 3/20)**.
+The native helper remains **dormant** and there is still no
+natural-Mesen gameplay confirmation of the loader entry,
+native object execution or room pixel/frame parity. The
+299 physical source bytes analyzed here are **not**
+299 newly certified strict PRG bytes. Strict PRG stays
+49,504/262,144 (18.8843%), certified checkpoint 0508,
+frontier $FB96. R-002 OPEN.
+
 ## Independent historical decompilation metrics
 
 Strict semantic PRG **49,504 / 262,144 (18.8843%)**;
-VPP **29/100**; certified checkpoint **0508**;
+VPP **31/100**; certified checkpoint **0508**;
 fixed PRG31 frontier **$FB96**; room-loader R-002 **OPEN**.
 None measures the percentage of the playable game that works.

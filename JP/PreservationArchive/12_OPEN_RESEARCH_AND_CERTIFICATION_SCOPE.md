@@ -297,3 +297,22 @@ dormant. VPP 29/100 and strict PRG
 49,504/262,144 remain unchanged; R-001 and
 R-002 OPEN.
 
+## JP0659 — Full five-source room-object install closure; $07A0 natural domain remains OPEN
+
+[JP0659 source](../analysis/0659_ORIGINAL_BANKED_ROOM_OBJECTS_AND_STAGE_EXTRACTOR.md)
+proves the original physical raw0A:$B7F7–$B872
+bank0E room-object script installer and the complete
+175-byte five-resource data span under conditional
+input selector values 0..4. Original 6502 ↔ native
+postcondition replay passes 1,280 cases, each mapper
+write and 1,792 nonstack RAM bytes; a private
+stage-resource JSON schema can re-encode all records.
+Stage data-format rubric earns a second point, extraction
+tooling earns its first: VPP now 31/100.
+But the natural source producer for $07A0, original
+Mesen stage loader entry, unbounded selectors 5..255,
+$B6A4 carry gate and actual native runtime entity
+spawn/update/render are not proved. R-002 OPEN.
+The 299 code/data source bytes are only conditionally
+semantically interpreted, and strict PRG 49,504 unchanged.
+

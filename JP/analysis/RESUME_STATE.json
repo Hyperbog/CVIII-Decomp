@@ -10,7 +10,7 @@
   "last_completed_checkpoint_commit": "62b3cae1c7e46876edec2f635e00469e2cd8bc1a",
   "previous_checkpoint_audit": "tools/audit_mesen_fixed_live_0508.py",
   "vpp": {
-    "earned": 29,
+    "earned": 31,
     "total": 100
   },
   "execution_context": {
