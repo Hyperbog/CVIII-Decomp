@@ -13,6 +13,8 @@ import io
 import json
 import re
 from pathlib import Path
+import sys
+sys.path.insert(0,str(Path(__file__).resolve().parents[2]/'recomp'/'tools'))
 import jp_audio_bus_report_0610 as chip
 
 REQUEST_FIELDS=("cycle","pc","command","x","y","s","p",

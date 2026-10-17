@@ -13,6 +13,8 @@ import re
 
 import jp_mesen_sound_requests_0615 as reference_pin
 import jp_sound_priority_paths_0616 as original
+import sys
+sys.path.insert(0,str(Path(__file__).resolve().parents[2]/'recomp'/'tools'))
 import jp_audio_session_verify_0614 as session
 
 ENTRY = re.compile(r'^JP0617_ENTRY ([0-9]+) 8852 ((?:[0-9A-F]{2} ){3}[0-9A-F]{2})$')
