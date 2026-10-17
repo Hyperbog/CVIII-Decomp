@@ -1,5 +1,8 @@
 # Japanese Castlevania III — Release milestones
 
+**Workstream classification: native recompilation/product release.** The owner-tested NESRecomp native game and Enhanced feature acceptance are tracked [here](../workstreams/native-recompilation/README.md). The independent [partial semantic source-recovery rubric](../workstreams/semantic-decompilation/README.md) does **not** require 100% decompilation before an existing native build can play the game.
+
+
 The project now prioritizes **playable deliverables**, not arbitrary
 counts of reconstructed ROM bytes. Retain original ROM authentication,
 the C11 native cycle compiler, and the proven C++ implementation as a

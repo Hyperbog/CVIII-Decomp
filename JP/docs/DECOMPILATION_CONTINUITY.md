@@ -1,5 +1,8 @@
 # Akumajou Densetsu decomp/recomp continuity playbook
 
+**Workstream classification: semantic source-research continuity only.** Historical 6502/mapper/PRG certification is distinct from [the playable native recompilation](../workstreams/native-recompilation/README.md). [Research workstream status](../workstreams/semantic-decompilation/README.md). This is not a product release QA checklist.
+
+
 Durable handoff for `Hyperbog/CVIII-Decomp`, branch `decompilation`.
 
 ## Recovery

@@ -1,5 +1,8 @@
 # Decompilation progress ledger
 
+**Workstream classification: semantic decompilation and original-ROM evidence.** [Research status](../workstreams/semantic-decompilation/README.md) and [separately playable native product](../workstreams/native-recompilation/README.md). Historical VPP/strict PRG numbers below are **not** the native game's playability or release completion.
+
+
 ## Current dashboard
 
 ```text

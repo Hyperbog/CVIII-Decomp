@@ -1,0 +1,22 @@
+# Japanese Castlevania III — two independent workstreams
+
+This repository contains **an already playable, owner-tested Japanese NESRecomp C11 native game** and **a separate, partially completed original-ROM semantic decompilation**. They have different goals, acceptance tests, and metrics.
+
+| Workstream | Primary output | Authoritative status | Meaning of progress |
+| --- | --- | --- | --- |
+| [Native recompilation and Enhanced Edition](native-recompilation/README.md) | Owner-built Windows game, launcher, saves, debug stage/partner tools, optional presentation enhancements | [Product state](native-recompilation/PRODUCT_STATE.json); [Enhanced status](../docs/ENHANCED_CURRENT_STATUS.md) | The game runs and its player-facing features work under owner and CI testing |
+| [Semantic decompilation / verified source recovery](semantic-decompilation/README.md) | Source-accurate 6502 code/data interpretation, native C11/C++ subsystem lifts, original/reference replay and certification | [Evidence state](semantic-decompilation/EVIDENCE_STATE.json); [original checkpoint](../analysis/RESUME_STATE.json); [VPP score](../analysis/PROGRESS_SCORE.csv) | Independently certified semantic coverage and a fixed rubric; **not** how playable the game is |
+
+**The native recompilation does not require 100% semantic decompilation to run the original game.** Conversely, compiling a source-parity helper into the game target does not make it an active gameplay replacement.
+
+[Machine-readable per-file ownership](WORKSTREAMS.json) identifies representative product, research and shared files, including the mixed legacy `JP/analysis` and `JP/native/enhanced` directories. It does not pretend every historical file has already moved.
+
+## Existing paths deliberately preserved
+
+- Product runtime and packaging: `JP/native/nesrecomp_cycle/`, active host parts of `JP/native/enhanced/`, and `JP/release/alpha/`.
+- Source research: historical `JP/analysis/`, `JP/src/`, `JP/tests/`, `JP/recomp/`, and research parts of `JP/native/` and `JP/tools/`.
+- Common archive, original ROM identity and rules remain at their historical paths.
+
+These paths have extensive CMake, workflow, source-script, report, and Markdown dependencies. This first separation is **non-destructive**: it creates two canonical workstream status areas and a checked index instead of blindly moving source assets and breaking builds. A later physical move requires a specific dependency graph, mechanical reference rewrite, and clean Windows/Linux/source-regression gates.
+
+Run `python3 JP/tools/audit_workstreams.py` (or `python3 JP/tools/test_workstreams.py`) to validate that product QA is not represented as VPP, the semantic counters still reconcile, and all tracked source paths exist.

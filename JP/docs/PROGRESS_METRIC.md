@@ -1,6 +1,6 @@
 # Verified Parity Progress (VPP)
 
-This project uses **Verified Parity Progress (VPP)** as its primary high-level progress metric.
+The **semantic decompilation workstream** uses **Verified Parity Progress (VPP)** as its source-reconstruction evidence metric. The [existing playable native recompilation](../workstreams/native-recompilation/README.md) is a separate owner-tested C11 game product. **VPP and strict certified PRG do not measure its playable-game completion.** [Semantic research status](../workstreams/semantic-decompilation/README.md).
 
 VPP is a fixed 100-point evidence rubric. It is **not** an estimate of remaining labor, calendar time, lines of code, or percentage of ROM bytes disassembled. A point is earned only when the corresponding behavior/structure is supported by the authoritative ROM and a durable repository artifact (analysis, source, test, or audit).
 
@@ -114,6 +114,8 @@ Partial points in this category require a committed, reusable architectural resu
 - audio backend integration: 1 — open
 - bootable/playable native executable: 1 — open
 - reproducible cross-platform build/package: 1 — open
+
+**Workstream boundary:** The “Native runtime / platform” subsection of this *semantic source-recovery rubric* counts independent source-reconstructed systems, **not** the already running NESRecomp/SDL2 Alpha's existing emulated CPU, mapper/PPU, audio, frame loop, input or executable. Unearned rubric points must not be described as missing features in the playable product.
 
 The standalone mapper, IRQ and collision-math source do not themselves earn additional native-runtime integration credit; that requires wiring them into the CPU/memory/PPU frame runtime.
 

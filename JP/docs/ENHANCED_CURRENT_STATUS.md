@@ -1,5 +1,8 @@
 # Enhanced Edition — Current status (JP0643)
 
+**Workstream: [functioning native recompilation and Enhanced product](../workstreams/native-recompilation/README.md).** This is the playable game's product status. The separate [semantic-decompilation VPP/PRG scores](../workstreams/semantic-decompilation/README.md) are **not** measurements of native game completion. The title retains its historical JP0643 identifier, with subsequent entries documenting later features.
+
+
 Reconciled with the owner's October 2026 gameplay feedback.
 This is the **current product status**, not a replacement for the
 chronological decompilation notes.

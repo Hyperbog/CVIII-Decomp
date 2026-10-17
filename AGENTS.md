@@ -1,5 +1,7 @@
 # Agent rules for CVIII-Decomp (NES Japanese and North American cartridges)
 
+**Two separate Japanese workstreams:** [existing playable NESRecomp Enhanced Edition](JP/workstreams/native-recompilation/README.md) and [partial semantic source decompilation](JP/workstreams/semantic-decompilation/README.md). [Per-file ownership](JP/workstreams/WORKSTREAMS.json) separates player-tested product functionality from independent source VPP/PRG certification. **VPP and strict PRG are not native-game playability percentages.** Retain historic build paths and ledger paths until an audited atomic migration. Run `python3 JP/tools/audit_workstreams.py` when changing boundaries.
+
 **Universal, cross-platform mod-forward requirement:** Read and apply [MOD_FORWARD_METHODOLOGY.md](MOD_FORWARD_METHODOLOGY.md) to all new runtime, asset, UI, audio, gameplay, settings, save, and tooling work. It applies equally to DOS, NES, SNES, SMS, Genesis/Mega Drive, and future projects. Preserve vanilla gameplay as the default reference; add stable IDs, replaceable data, validated registries, and editor-ready formats without pretending unsupported mod interfaces are already implemented.
 
 Use [SharedDecomp/AGENT_RULES.md](SharedDecomp/AGENT_RULES.md) and the executable [evidence/replay gates](SharedDecomp/README.md). The active whole-bank target is Japanese VRC6 physical raw0A; other regions must not be substituted for small byte-count wins.
