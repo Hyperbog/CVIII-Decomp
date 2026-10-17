@@ -162,8 +162,8 @@ int main(void)
 
 def fixture()->str:
     old=imp(TOOLS/"jp_start_pause_shell_test_0624.py")
-    first=imp(TOOLS/"patch_cyc_start_menu_0623.py")
-    slots=imp(TOOLS/"patch_cyc_slot_picker_0625.py")
+    first=imp((TOOLS.parents[1]/"recomp"/"tools")/"patch_cyc_start_menu_0623.py")
+    slots=imp((TOOLS.parents[1]/"recomp"/"tools")/"patch_cyc_slot_picker_0625.py")
     base=old.PREFIX
     base=base.replace("SDL_SCANCODE_SPACE, SDL_SCANCODE_A",
                       "SDL_SCANCODE_SPACE, SDL_SCANCODE_A, SDL_SCANCODE_LEFT, SDL_SCANCODE_RIGHT")

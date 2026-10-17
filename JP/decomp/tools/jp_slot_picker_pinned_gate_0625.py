@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any
 
 HERE=Path(__file__).resolve().parent
+PRODUCT=HERE.parents[1]/'recomp'/'tools'
 
 def imp(path:Path)->Any:
     spec=importlib.util.spec_from_file_location("_jp0625_"+path.stem,path)
@@ -77,7 +78,7 @@ def final_check(src:str)->dict:
             "live_windows_gameplay_verified":False}
 
 def smoke()->None:
-    patch=imp(HERE/"patch_cyc_slot_picker_0625.py")
+    patch=imp(PRODUCT/"patch_cyc_slot_picker_0625.py")
     patch.smoke()
     assert patch.MARKER=="CVIII_SLOT_SELECTOR_0625"
     # JP0623 has a space after 'if', while JP0625's nested branches
@@ -104,7 +105,7 @@ def main()->None:
     if args.source is None:parser.error("--source required; --smoke is not pinned verification")
     previous=imp(HERE/"jp_audio_menu_pinned_gate_0621.py")
     gate=imp(HERE/"jp_start_menu_pinned_gate_0623.py")
-    slot=imp(HERE/"patch_cyc_slot_picker_0625.py")
+    slot=imp(PRODUCT/"patch_cyc_slot_picker_0625.py")
     data=previous.canonical_checkout_bytes(args.source.read_bytes())
     blob=previous.git_blob_sha(data)
     require(blob==previous.PINNED_SDL_GIT_BLOB,
@@ -112,7 +113,7 @@ def main()->None:
     original=data.decode("utf-8")
     four=previous.chain(original)
     previous.verify_final(original,four)
-    fifth=imp(HERE/"patch_cyc_start_menu_0623.py").generate(four[3])
+    fifth=imp(PRODUCT/"patch_cyc_start_menu_0623.py").generate(four[3])
     gate.final_check(fifth)
     sixth=slot.generate(fifth)
     result=final_check(sixth)

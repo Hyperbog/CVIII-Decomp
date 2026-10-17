@@ -14,7 +14,7 @@ from typing import Any
 TOOLS=Path(__file__).resolve().parent
 
 def load(filename:str)->Any:
-    path=TOOLS/filename
+    path=(TOOLS.parents[1]/'recomp'/'tools' if filename.startswith('patch_cyc_') else TOOLS)/filename
     spec=importlib.util.spec_from_file_location("_jp0626_"+path.stem,path)
     if spec is None or spec.loader is None:
         raise ValueError("missing module: "+filename)

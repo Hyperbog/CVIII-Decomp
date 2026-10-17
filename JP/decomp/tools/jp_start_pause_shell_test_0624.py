@@ -142,7 +142,7 @@ int main(void)
 }
 '''
 def shell_source()->str:
-    patcher_path=TOOLS/"patch_cyc_start_menu_0623.py"
+    patcher_path=(TOOLS.parents[1]/"recomp"/"tools")/"patch_cyc_start_menu_0623.py"
     spec=importlib.util.spec_from_file_location("jp0623_action_shell",patcher_path)
     if spec is None or spec.loader is None:
         raise ValueError("missing JP0623 source patcher")

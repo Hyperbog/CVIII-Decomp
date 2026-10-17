@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any
 
 HERE=Path(__file__).resolve().parent
+PRODUCT=HERE.parents[1]/'recomp'/'tools'
 def imp(path:Path)->Any:
     spec=importlib.util.spec_from_file_location("_jp0623_"+path.stem,path)
     if spec is None or spec.loader is None:raise ValueError("Module missing")
@@ -76,7 +77,7 @@ def final_check(src:str)->dict:
 
 def smoke()->None:
     gate=imp(HERE/"jp_audio_menu_pinned_gate_0621.py")
-    patch=imp(HERE/"patch_cyc_start_menu_0623.py")
+    patch=imp(PRODUCT/"patch_cyc_start_menu_0623.py")
     gate.smoke()
     patch.smoke()
     assert gate.canonical_checkout_bytes(b"a\r\nb\r\n")==b"a\nb\n"
@@ -90,7 +91,7 @@ def main()->None:
     if a.smoke:smoke();return
     if a.source is None:p.error("--source required; synthetic smoke is not enough")
     gate=imp(HERE/"jp_audio_menu_pinned_gate_0621.py")
-    patch=imp(HERE/"patch_cyc_start_menu_0623.py")
+    patch=imp(PRODUCT/"patch_cyc_start_menu_0623.py")
     data=gate.canonical_checkout_bytes(a.source.read_bytes())
     git_sha=gate.git_blob_sha(data)
     require(git_sha==gate.PINNED_SDL_GIT_BLOB,
