@@ -1,5 +1,11 @@
 # JP0668 — Independent original-game vs native audio register captures
 
+## Native owner test — installed executable mismatch (2026-10-17)
+
+The first native run rejected a missing replay option in the installed launcher. Replacing only the owner-local launcher allowed the capture runner to start, but the installed private game executable then rejected `--audio-reg-trace` as an unknown argument. These are **two separate version mismatches**, not an actual register-event divergence. The owner ROM and deterministic input replay SHA checks succeeded. The original Mesen2 1,100-frame reference remains valid; native comparison has **zero qualifying registered events** until a trace-capable binary is built.
+
+**Important build-source trap:** `JP/recomp/release/alpha/Build-Alpha.ps1` defaults to pulling the older `decompilation` branch when no `-ProjectRoot` is supplied. A standard rebuild therefore does *not* guarantee the JP0668 PR instrumentation is present. The owner-facing helper `JP0668-Build-And-Capture.ps1` (distributed separately, not committed with any private ROM, executable or events) clones `jp0664-famistudio-reference`, checks out source commit `cd67bb225dbe9b969489a46ac93498b973d96689` into a separate clean source tree, then calls the branch builder with an **explicit** `-ProjectRoot`, a unique private `-OutDir`, and the existing JP0668 native input/audio runner. It does not replace the working AlphaCandidate, saves or original reference. Windows execution of this new helper is still pending.
+
 ## Owner-observed original Japanese Mesen2 run — v2 (2026-10-17)
 
 **LIVE ORIGINAL Mesen2 trace obtained and independently validated from owner-uploaded private files.** The original remains owner-private and is never committed. This corrects the older v1 tool assumptions and historical status below; no native comparison run has yet been received.
