@@ -62,6 +62,12 @@ def bridge(rom: bytes, nsf: bytes, m3u: bytes, txt: bytes,
     table = bytes(rip_byte(nsf, a) for a in range(0xE100, 0xE100 + TRACK_COUNT))
     command = selected_id(init, table, 0, True)
     require(command == 0x51, "Beginning NSF command selection changed")
+    # NSF payload banks 4–7 are byte-identical copies of physical raw05.
+    # This specifically protects the six original $51 program source roots.
+    raw05 = rom[16 + 5 * 0x4000:16 + 6 * 0x4000]
+    nsf05 = nsf[128 + 4 * 0x1000:128 + 8 * 0x1000]
+    require(len(raw05) == 0x4000 and raw05 == nsf05,
+            "original $51 source bank 05 is not byte-identical in NSF")
     original = catalog(original_bank(rom), authenticate=True)
     entry = original["entries"][command - 1]
     require(entry["original_sound_id"] == "51" and
@@ -83,6 +89,7 @@ def bridge(rom: bytes, nsf: bytes, m3u: bytes, txt: bytes,
         "nsf_rip_command_mapping_evidence": "exact NSF wrapper and lookup bytes, not original game execution",
         "original_command_id_hex": entry["original_sound_id"],
         "original_sound_directory_verified": True,
+        "original_program_bank05_byte_identical_in_nsf": True,
         "original_program_variant_raw_bank16": entry["raw_variant"],
         "original_program_source_reference_count": len(entry["references"]),
         "original_program_refs_are_opaque_not_verified_voices": True,
