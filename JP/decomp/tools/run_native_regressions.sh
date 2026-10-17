@@ -356,6 +356,8 @@ python3 "$root/JP/decomp/tools/jp_room_clear_0658.py" --smoke
 python3 "$root/JP/decomp/tools/jp_famistudio_reference_0664.py" --smoke
 python3 "$root/JP/decomp/tools/jp_famistudio_driver_bridge_0664.py" --smoke
 python3 "$root/JP/decomp/tools/jp_beginning_stream_graph_0664.py" --smoke
+# JP0668 cross-emulator replay schedule: ROM-free inputs, no original live trace.
+python3 "$root/JP/decomp/tools/jp0668_input_replay.py" --smoke
 # JP0665: ROM-free detached original note/control parser and optional chip preview.
 cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic -DNDEBUG \
   "$root/JP/recomp/native/enhanced/cviii_jp_music_0665.c" \
