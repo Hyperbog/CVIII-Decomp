@@ -367,6 +367,21 @@ cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic -DNDEBUG \
   "$root/JP/recomp/native/enhanced/cviii_jp_chip_test_0665.c" \
   -o "$build/jp0665-chip"
 "$build/jp0665-chip"
+# JP0666: original-JP melodic register store planner. The C11 tests are
+# synthetic; the genuine ROM-vs-original-6502 oracle runs only owner-locally.
+cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic -DNDEBUG \
+  "$root/JP/recomp/native/enhanced/cviii_jp_register_plan_0666.c" \
+  "$root/JP/recomp/native/enhanced/cviii_jp_register_test_0666.c" \
+  -o "$build/jp0666-register"
+"$build/jp0666-register"
+python3 -m py_compile "$root/JP/decomp/tools/jp0666_original_cpu_compare.py"
+if [[ -n "$rom" ]]; then
+  cc -std=c11 -O2 -fPIC -shared \
+    "$root/JP/recomp/native/enhanced/cviii_jp_register_plan_0666.c" \
+    -o "$build/libjp0666.so"
+  python3 "$root/JP/decomp/tools/jp0666_original_cpu_compare.py" \
+    --rom "$rom" --lib "$build/libjp0666.so"
+fi
 # JP0659 synthetic stage-room source and exact reversible resource geometry.
 python3 "$root/JP/decomp/tools/jp_room_stream_0659.py" --smoke
 python3 "$root/JP/decomp/tools/jp_room_resources_0659.py" --smoke
