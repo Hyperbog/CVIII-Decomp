@@ -69,7 +69,8 @@ def as_int(value: str | None, kind: str, limit: int = 1_000_000) -> int:
     return n
 
 
-def census(content: bytes, track: int) -> dict:
+def census(content: bytes, track: int, rom: bytes | None = None,
+           nsf: bytes | None = None) -> dict:
     check(len(content) <= MAX_TXT, "FamiStudio TXT exceeds size limit")
     try:
         raw = content.decode("utf-8-sig")
@@ -87,6 +88,9 @@ def census(content: bytes, track: int) -> dict:
     summary: dict[str, Counter] = {}
     instruments = 0
     sample_count = 0
+    samples: list[bytes] = []
+    famistudio_version = None
+    exported_song_name = None
     for line_no, line in enumerate(raw.splitlines(), 1):
         check(line_no <= 300_000 and len(line) <= 1_000_000,
               "FamiStudio TXT bounds exceeded")
@@ -99,9 +103,18 @@ def census(content: bytes, track: int) -> dict:
             check(not project and songs == 0, "multiple or late TXT projects")
             check("VRC6" in a.get("Expansions", "").split(","),
                   "reference export does not declare VRC6")
+            famistudio_version = a.get("Version")
+            check(famistudio_version is None or
+                  re.fullmatch(r"[0-9]+(?:\.[0-9]+){1,3}", famistudio_version) is not None,
+                  "invalid FamiStudio version metadata")
             project = True
         elif tag == "DPCMSample":
             sample_count += 1
+            sample_hex = a.get("Data", "")
+            check(0 < len(sample_hex) <= 32768 and len(sample_hex) % 2 == 0 and
+                  re.fullmatch(r"[0-9A-Fa-f]+", sample_hex) is not None,
+                  "invalid DPCM sample data")
+            samples.append(bytes.fromhex(sample_hex))
         elif tag == "Instrument":
             instruments += 1
         elif tag == "Song":
@@ -110,6 +123,9 @@ def census(content: bytes, track: int) -> dict:
             selected_song = songs == 1
             channel = pattern = None
             if selected_song:
+                exported_song_name = a.get("Name")
+                check(bool(exported_song_name) and len(exported_song_name) <= 128,
+                      "missing/oversized song name")
                 check(as_int(a.get("Length"), "Song Length") > 0, "empty song")
         elif tag == "Channel" and selected_song:
             channel = a.get("Type")
@@ -145,7 +161,19 @@ def census(content: bytes, track: int) -> dict:
     check(all(p in patterns[ch] for ch, p in instances), "PatternInstance references missing Pattern")
     check(sum(s["pitched_or_triggered_notes"] for s in summary.values()) > 0,
           "reference contains no note triggers")
+    check((rom is None) == (nsf is None), "both source ROM and NSF required")
+    dpcm_matching_sources = None
+    if rom is not None and nsf is not None:
+        check(len(rom) == 393232 and len(nsf) == 53376,
+              "unexpected source lengths for sample comparison")
+        dpcm_matching_sources = sum(s in rom[16:16 + 262144] and s in nsf[128:]
+                                    for s in samples)
     return {"status": "external_famistudio_txt_parsed_not_gameplay_verified",
+            "famistudio_version": famistudio_version,
+            "exported_song_name": exported_song_name,
+            "nsf_track_index_present_in_export": False,
+            "dpcm_payloads_matching_both_original_rom_and_nsf": dpcm_matching_sources,
+            "active_channel_count": sum(bool(s["note_rows"]) for s in summary.values()),
             "famistudio_txt_sha256": sha(content),
             "song_count": songs, "instrument_count": instruments,
             "dpcm_sample_declarations": sample_count,
@@ -180,7 +208,8 @@ def smoke() -> None:
            fixture.replace(b'Note Time="2"', b'Note Time="-1"'),
            fixture.replace(b'Note Time="0"', b'Note Time="0" Time="1"'),
            fixture.replace(b'Value="C4"', b'').replace(b'Value="E4"', b''),
-           fixture + b'\nSong Name="Extra" Length="1"\n']
+           fixture + b'\nSong Name="Extra" Length="1"\n',
+           fixture.replace(b'Project ', b'DPCMSample Name="bad" Data="xyz"\nProject ')]
     for idx, changed in enumerate(bad):
         try:
             census(changed, 0)
@@ -216,7 +245,8 @@ def main() -> None:
               "retail_gameplay_trace_parity": "not_exercised",
               "independent_music_sfx_playback": "not_implemented"}
     if args.famistudio_txt:
-        result["capture"] = census(args.famistudio_txt.read_bytes(), args.song_index)
+        result["capture"] = census(args.famistudio_txt.read_bytes(), args.song_index,
+                                   args.rom.read_bytes(), args.nsf.read_bytes())
     if args.json:
         args.json.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print("PASS JP0664 authenticated private ROM+NSF" +
