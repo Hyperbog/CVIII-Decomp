@@ -399,6 +399,18 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'JP0661 native original-config profile regression failed' }
           python JP/tools/package_alpha_builder_0580.py --smoke
           if ($LASTEXITCODE -ne 0) { throw 'JP0661 ROM-free public controls kit contents invalid' }
+          # Parse the actual shipped PowerShell entrypoints on a Windows host.
+          foreach ($name in @('Controls.ps1','Build-And-Play.ps1','Launch-Alpha.ps1','Build-Alpha.ps1')) {
+            $path = Join-Path 'JP/release/alpha' $name
+            $tokens = $null
+            $parseErrors = $null
+            [void][System.Management.Automation.Language.Parser]::ParseFile(
+              $path,[ref]$tokens,[ref]$parseErrors)
+            if ($parseErrors.Count -gt 0) {
+              throw ('JP0661 Windows native launcher syntax invalid: '+$name+': '+($parseErrors | Out-String))
+            }
+          }
+
       - name: Verify JP0659 five-source room loader, mapper events, reversible stage JSON (ROM-free)
         shell: pwsh
         run: |

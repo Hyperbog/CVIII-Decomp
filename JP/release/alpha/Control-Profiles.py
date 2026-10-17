@@ -225,8 +225,18 @@ def execute(root: Path, action: str, name: str = '') -> str:
         if backups.is_symlink():
             fail('Refusing symlink control-backups folder')
         backups.mkdir(exist_ok=True)
-        backup = backups / ('config-' + str(time.time_ns()) + '.ini.bak')
-        exclusive_write(backup, original)
+        # Windows system time may have much coarser resolution than time_ns.
+        # O_EXCL + an attempt suffix guarantees no prior backup is clobbered.
+        for attempt in range(100):
+            backup = backups / ('config-' + str(time.time_ns()) +
+                                '-' + str(attempt) + '.ini.bak')
+            try:
+                exclusive_write(backup, original)
+                break
+            except FileExistsError:
+                continue
+        else:
+            fail('Could not allocate a unique settings backup; config unchanged')
         atomic_replace(config, patched)
         return f'Applied {name}; prior settings backed up as {backup.name}'
     fail('Expected list, show, save or apply action')

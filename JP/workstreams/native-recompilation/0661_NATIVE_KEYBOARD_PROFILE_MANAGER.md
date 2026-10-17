@@ -106,3 +106,24 @@ accepted; no synthetic CI run can certify user comfort or actual
 controller-specific behavior. No semantic source VPP or strict
 PRG credit: **31/100 VPP** and **49,504/262,144 strict PRG**
 remain separate research metrics, unchanged by this product update.
+
+## JP0661a — Windows coarse-clock collision correction
+
+The first real Windows CI execution caught a defect not reproduced
+by Linux: Windows `time.time_ns()` may return **identical
+timestamps** on two immediately consecutive calls. Using only
+the timestamp in a backup filename caused an `O_EXCL`
+`FileExistsError` on the second profile change. **No existing
+backup or owner config.ini was overwritten:** the fail-closed
+operation aborted before atomic config replacement.
+
+The corrected backup allocator uses an original timestamp plus
+an **exclusive-create retry suffix** (0–99) and refuses to
+change `config.ini` if no unique backup can be allocated.
+The 18-test suite now deliberately forces `time.time_ns()` to
+the **same fixed value on both sequential profile changes**,
+asserting two preserved backups and successful WASD→default
+restoration. The Windows product CI also parses all four
+PowerShell entrypoint scripts before packaging acceptance.
+Do not call the Windows build green until the corrected
+workflow finishes successfully.

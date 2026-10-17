@@ -8,6 +8,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 MODULE = Path(__file__).resolve().parents[1] / 'release' / 'alpha' / 'Control-Profiles.py'
 spec = importlib.util.spec_from_file_location('cviii_control_profiles_0661', MODULE)
@@ -58,8 +59,10 @@ class ControlProfilesTest(unittest.TestCase):
         self.assertEqual(backups[0].read_bytes(), HEADER)
 
     def test_default_restores_player1_after_wasd(self):
-        profiles.execute(self.root, 'apply', 'wasd')
-        profiles.execute(self.root, 'apply', 'default')
+        # Windows clock granularity can return the SAME nanoseconds twice.
+        with mock.patch.object(profiles.time, 'time_ns', return_value=12345):
+            profiles.execute(self.root, 'apply', 'wasd')
+            profiles.execute(self.root, 'apply', 'default')
         self.assertEqual(profiles.active_profile(self.original()), profiles.DEFAULT)
         self.assertEqual(len(list((self.root/'control-backups').glob('*.bak'))), 2)
         self.assertIn(b'Player1Source = 1', self.original())
