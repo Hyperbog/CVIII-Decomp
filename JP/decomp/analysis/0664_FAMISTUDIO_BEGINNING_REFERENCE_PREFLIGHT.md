@@ -70,6 +70,33 @@ A private owner upload `CV3JP.txt` was audited locally using the JP0664 tool (SH
 
 **Owner-private test performed:** `python3 JP/decomp/tools/jp_famistudio_reference_0664.py --rom ORIGINAL_JP.nes --nsf JAPANESE.nsf --m3u JAPANESE.m3u --famistudio-txt CV3JP.txt --json PRIVATE_METADATA_ONLY.json`. This tests structural parsing and byte-source membership; it **does not execute FamiStudio 4.5.1, MesenCE, or the playable game**.
 
+## JP0664 continuation — confirmed Beginning and rip-to-original program (2026-10-17)
+
+**Owner explicitly confirmed** that uploaded private FamiStudio 4.5.1 `CV3JP.txt` is **Beginning (Block-1)**, one-based NSF track 1 / zero-based FamiStudio index 0. This resolves the human export selection; the TXT's generic `Song 1` label still does not encode track number. The owner statement is recorded as owner confirmation, **not independently attested by the TXT**.
+
+**New source-authenticated static bridge:**
+
+1. In the authenticated modified VRC6 NSF, the 32-byte initialization wrapper at NSF virtual `$E0E0–$E0FF` has SHA-256 `dcb05368b636ff14a9125bea67fd9489bc8d78466eec0ecc7a32f326a0906aeb`. Its trailing 6502 instructions restore the track-index A from the stack into X, load `[$E100+X]`, then dispatch via `JMP $8850`.
+2. The complete 28-byte ripped-NSF track lookup at virtual `$E100–$E11B` has SHA-256 `6a1931c4ffa9b7e300d32264b0b461bae9d13b38935b620d5912598cb441c178`. **Zero-based track 0 maps to command `$51`**. This table and wrapper are **rip-authored**, not original game source or an observed gameplay request.
+3. The **independently SHA-authenticated original-JP raw0C sound directory** maps sound ID **`$51`** to one bank-qualified descriptor containing **six opaque references to physical 16KiB PRG bank `$05`**. Their mode bytes/CPU roots are not asserted to be FamiStudio channels, and proprietary source pointer lists remain owner-private.
+4. All 16 KiB of the original physical raw05 containing those six source streams are **byte-identical** to the corresponding four 4KiB NSF payload banks (4–7). This is an **exact source-byte** relationship, not per-note semantic parity. The code `jp_famistudio_driver_bridge_0664.py` requires exact ROM/NSF/M3U identities, pinned NSF wrapper/table bytes, original program structure and the full raw05 equality; it also counts source-matched DPCM and FamiStudio channels only as **private aggregate evidence**.
+
+**Local actual-media verification:** Authenticated NSF wrapper/table hashes and original ROM raw0C sound metadata matched, selected NSF index0 sound ID `$51` matched original six-root raw05 program, and original raw05/NSF 16KiB copy matched byte-for-byte. A ROM-free source-independent selector smoke (with seven corrupt synthetic cases) is registered for CI.
+
+**Evidence boundary:** The `$51` link supplies a concrete historical program target for further semantic work. It does **not** prove original game live command ingress, decoded raw05 token semantics, exact 2A03/VRC6 register writes, song repeat/loop control, original Mesen parity, or independent sound effect playback. Original gameplay instrumentation from JP0610/JP0646 and matched original/runtime event traces remain required before activating JP0647.
+
+### Owner-private reproduction
+
+```sh
+python3 JP/decomp/tools/jp_famistudio_driver_bridge_0664.py --smoke
+python3 JP/decomp/tools/jp_famistudio_driver_bridge_0664.py \
+  --rom '/private/Akumajou Densetsu (Japan).nes' \
+  --nsf '/private/Akumajou.nsf' \
+  --m3u '/private/Akumajou.m3u' \
+  --famistudio-txt '/private/CV3JP.txt' \
+  --owner-confirmed --json '/private/JP0664-Beginning-source-bridge.json'
+```
+
 ## Next evidence step
 
 After an authentic *Beginning* FamiStudio capture, compare its **channel envelopes and note/volume/pitch changes** against owner-private APU/VRC6 register events from JP0610 and music-program source decode via JP0652–JP0656. The original game source / live sound requests remain authority; FamiStudio's NSF notes are a lossy reference. A reference per-channel match does not establish original-event ownership. First genuine product proof requires one authenticated song and an overlapping original whip SFX played independently through JP0647, with reversibility, resynchronization after save/load and original APU/VRC6 hardware behavior preserved.
