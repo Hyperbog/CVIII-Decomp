@@ -1,5 +1,22 @@
 # JP0668 — Independent original-game vs native audio register captures
 
+## Owner-observed original Japanese Mesen2 run — v2 (2026-10-17)
+
+**LIVE ORIGINAL Mesen2 trace obtained and independently validated from owner-uploaded private files.** The original remains owner-private and is never committed. This corrects the older v1 tool assumptions and historical status below; no native comparison run has yet been received.
+
+- Original retail Japanese ROM: SHA-256 `958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28`, independently checked against owner ROM.
+- Owner Mesen binary SHA-256 `8ef403d6b9af32075416193914d7993ce8480b347fe1f20a0cfd9815374933e7`. Source of executable bytes remains owner-private.
+- Executed v2 Lua observer SHA-256 `f2855b678957882107bf4eeb382d54c363588a36559042f246edee0db2a9af39`; owner log SHA-256 `fa09b1a4333ebc642e3099fc9bb6a3397ac115c61c8fe54f251afa2fe94924b3`. Neither log nor copyrighted original register values are present in Git.
+- Real original Mesen2 callback support established: `emu.getCpuCycleCount()`, flat `state["cpu.cycleCount"]`, hardware-write callbacks, frame and controller poll callbacks. The earlier nested `state.cpu.cycleCount`, `emu.log` redirected-to-stdout, reset-callback-at-start and one-poll-per-frame assumptions are wrong for this owner build.
+- Observed original v2 results: `JP0668_BEGIN` at CPU cycle **7**; **1,100 / 1,100 continuous end-frame callbacks**, **1,099 actual controller polls** (frame-1 poll is absent; each remaining poll labels its upcoming frame), **2,029 original hardware register writes**, final CPU cycle **32,756,049**. Consecutive NTSC frame-cycle deltas are 29,780 cycles (548) and 29,781 cycles (551). Native zero-based input schedule is intended to match these observed masks, but cannot prove actual native input sampling until its own capture is obtained.
+- VRC6 register writes: **1,320**; 2A03 `$4000–$4013` writes: **705**; `$4015/$4017` writes: **4**. **No `$4010–$4013` DPCM descriptor write occurred in the captured 1,100 frames**. Do not claim DPCM register or DMA parity from this test.
+- The v2 original-capture parser from the owner-private JP0668 v2 kit and its **eight synthetic corrupt-case tests passed locally**. Real log has no invalid/truncated markers; counts, ordering, cycle monotonicity, input masks and END record all pass. Emulator returned **exit code -1** despite a completed end marker, so independent process-exit normality is NOT certified; trace structural acceptance does not imply correct emulator shutdown.
+- Boot attach at cycle 7 is compatible with an early original-ROM testRunner session, but does not independently prove identical power-on boundary to the compiled C11 Alpha. Music-program selection, exact original *Beginning* liveness, SFX ownership, and full register/CPU-cycle/PCM parity are NOT inferred.
+
+**Required next:** run privately compiled **Original Edition** Alpha using the same 1,100-frame replay with `-AudioTrace -InputReplayPath <path> -ExitAfterFrames 1100`, capture all three original JP0614 session CSVs plus session JSON, retain compiled EXE/launcher hashes, then use a **v2-aware** (not the older v1-only) pair checker to compare unshifted register address/value/order/cycles. Do not turn on independent audio or promote R-007 based on the source-only trace.
+
+### Historical v1 plan (superseded for Mesen capture protocol)
+
 **Status (2026-10-17): Capture tooling completed and synthetic tests passed; actual private Mesen2 and compiled C11 Alpha executables are not present in this environment, so no original/native gameplay trace and NO CPU-cycle parity verdict exists.**
 
 This set never contains or writes ROM, NSF, FamiStudio notes, compiled commercial game, PCM, or raw game audio events to GitHub. The owner-provided source ROM SHA-256 is `958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28`. All capture artifacts stay outside the repo.
