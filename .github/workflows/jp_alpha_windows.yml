@@ -1,5 +1,10 @@
 name: CVIII Windows Alpha Candidate Builder
 on:
+  pull_request:
+    paths:
+      - "JP/decomp/**"
+      - "JP/recomp/**"
+      - ".github/workflows/jp_alpha_windows.yml"
   push:
     branches: [decompilation]
     paths:

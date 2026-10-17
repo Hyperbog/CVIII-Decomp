@@ -1,5 +1,10 @@
 name: JP External NESRecomp C11 Cycle Mapper24 Smoke
 on:
+  pull_request:
+    paths:
+      - "JP/decomp/**"
+      - "JP/recomp/**"
+      - ".github/workflows/jp_nesrecomp_cycle_mapper24.yml"
   push:
     branches: [decompilation]
     paths:

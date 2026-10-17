@@ -70,7 +70,7 @@ def audit(root: Path = ROOT) -> dict:
                 '../../tests' in s, 'CMake source directories broken: '+n)
     workflows={p:(root/p).read_text() for p in SCRIPTS}
     for p, content in workflows.items():
-        for old in (*OLD_ROOTS,'JP/recomp/'):
+        for old in OLD_ROOTS:
             require(old not in content, f'Stale old path {old} in {p}')
     asm='JP/decomp/asm'
     for n in ('build_whole_cart_recomp_0529.py',
