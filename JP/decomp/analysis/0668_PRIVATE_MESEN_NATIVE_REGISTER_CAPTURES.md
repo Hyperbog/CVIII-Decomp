@@ -21,6 +21,12 @@ The first native run rejected a missing replay option in the installed launcher.
 
 **Required next:** run privately compiled **Original Edition** Alpha using the same 1,100-frame replay with `-AudioTrace -InputReplayPath <path> -ExitAfterFrames 1100`, capture all three original JP0614 session CSVs plus session JSON, retain compiled EXE/launcher hashes, then use a **v2-aware** (not the older v1-only) pair checker to compare unshifted register address/value/order/cycles. Do not turn on independent audio or promote R-007 based on the source-only trace.
 
+## Owner recovery result — genuine private binary built, native stderr interrupted launcher (2026-10-17)
+
+Owner's separate pinned `cd67bb2` build **compiled successfully** and generated executable SHA-256 `9039b9b8bce775249a765a2fad100b286b91168fb6defc5404503f1ab5c9d8ed`; 29 helper files were restored to the isolated diagnostic AlphaCandidate after packaging path repair (`b71d07f`). No audio CSVs were collected. The exact native capture failure in the uploaded private run was the NESRecomp stderr line `[mods] this program is built without mod support; .../mods is not read`.
+
+Pinned upstream `runner/cyc/cyc_session.c` actually **returns true** after this informational stderr message when mod support is compiled out, so it is not evidence of failed emulator startup. The Alpha PowerShell wrapper's global `$ErrorActionPreference='Stop'` can promote stderr to a terminating `NativeCommandError` before writing the JP0614 manifest. The source launcher fix (commit `3d558353`) temporarily applies `Continue` **only during native execution**, restores the previous preference and enforces the process's numeric `$LASTEXITCODE`. This does not suppress or forgive a nonzero program exit. A separate owner-private patch-and-capture helper applies only this narrow edit to the existing diagnostic launcher after authenticating its old SHA-256, ROM/replay/executable SHA values, and backing it up. **Windows capture retest pending.** Original-Mesen reference 2,029 writes unchanged; cross-CPU-cycle parity still NOT VERIFIED.
+
 ### Historical v1 plan (superseded for Mesen capture protocol)
 
 **Status (2026-10-17): Capture tooling completed and synthetic tests passed; actual private Mesen2 and compiled C11 Alpha executables are not present in this environment, so no original/native gameplay trace and NO CPU-cycle parity verdict exists.**
