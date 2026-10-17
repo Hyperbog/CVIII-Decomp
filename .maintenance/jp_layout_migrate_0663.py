@@ -184,6 +184,14 @@ def migrate():
     current=current.replace('**The physical migration is not yet complete:**',
                             '**JP0663 root-level physical migration is complete.**')
     root_readme.write_text(current,encoding='utf-8')
+    # git mv removes files, not every now-empty nested directory on the
+    # runner filesystem. Refuse to delete any surviving file, then prune.
+    for name in sorted(DECOMP_DIRS | RECOMP_DIRS):
+        legacy=JP/name
+        if legacy.exists():
+            leftover=[str(p) for p in legacy.rglob('*') if p.is_file() or p.is_symlink()]
+            assert not leftover, ('Unmigrated original files',name,leftover[:8])
+            shutil.rmtree(legacy)
     dirs={p.name for p in JP.iterdir() if p.is_dir()}
     assert dirs=={'decomp','recomp'}, ('Unexpected JP root directories',sorted(dirs))
     assert (JP/'recomp/native/nesrecomp_cycle/CMakeLists.txt').is_file()
