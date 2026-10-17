@@ -143,8 +143,19 @@ try {
    Write-Host 'No asset index found; Enhanced falls back to original ROM-driven graphics.'
   }
  } elseif ($ChrAudit -or $AudioUiPreview) { throw 'CHR UI preview and audit require Enhanced' }
- & $game @gameArgs
- if ($LASTEXITCODE -ne 0) {throw "Native game exited with $LASTEXITCODE"}
+ # Some pinned native runtimes print nonfatal diagnostics to stderr.
+ # Windows PowerShell 5.1 elevates them to NativeCommandError when the
+ # launcher has ErrorActionPreference=Stop. Do not terminate an otherwise
+ # valid audio capture. Preserve and check the real native exit code.
+ $nativeErrorPreference=$ErrorActionPreference
+ $ErrorActionPreference='Continue'
+ try {
+  & $game @gameArgs
+  $nativeExitCode=$LASTEXITCODE
+ } finally {
+  $ErrorActionPreference=$nativeErrorPreference
+ }
+ if ($nativeExitCode -ne 0) {throw "Native game exited with $nativeExitCode"}
  if ($AudioTrace) {
   $audioVerifier=Join-Path $PSScriptRoot 'jp_audio_session_verify_0614.py'
   if (!(Test-Path -LiteralPath $audioVerifier)) { throw 'JP0614 session validator missing; rebuild latest private AlphaCandidate' }
