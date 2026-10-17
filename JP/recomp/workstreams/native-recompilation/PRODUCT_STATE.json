@@ -1,0 +1,57 @@
+{
+  "schema": "JP-native-product-state/v1",
+  "stream": "native_recompilation",
+  "release": "0.2.0-alpha.1",
+  "release_type": "ROM-free owner-authenticated private Windows build kit, not a distributable copyrighted game executable",
+  "runtime": "Japanese Mapper24 VRC6 NESRecomp C11 with SDL2 and a single public Enhanced launcher",
+  "product_status": "Owner-tested playable native Windows Alpha; full end-credits completion is not independently documented in repository",
+  "owner_qa_scope": "Documented through Stage 4-0A with Sypha and character switching; owner confirmed prior graphics defect resolved and issue #1 closed.",
+  "capabilities": [
+    {
+      "id": "native_original_game",
+      "state": "owner_tested_baseline",
+      "source": "JP/recomp/release/alpha/README_ALPHA.md"
+    },
+    {
+      "id": "save_states",
+      "state": "implemented_pending_full_owner_file_roundtrip",
+      "source": "JP/decomp/analysis/0591_SHARED_ORIGINAL_ENHANCED_SAVESTATES.md",
+      "controls": "F8/F9 and Ctrl+0..9; full-machine snapshots"
+    },
+    {
+      "id": "stage_companion_select",
+      "state": "implemented_debug_tool_owner_acceptance_pending",
+      "source": "JP/decomp/analysis/0594_NATIVE_F10_STAGE_CHECKPOINT_WARP.md",
+      "constraint": "F10 18 checkpoints and four companion choices; loads pre-captured machine state, password bootstrap supported; not fabricated unconditional stage jump"
+    },
+    {
+      "id": "sprite_flicker_correction",
+      "state": "optional_enhancement_owner_scene_qa_pending",
+      "source": "JP/decomp/analysis/0645_STABLE_SPRITE_EMISSION_ANIMATION.md",
+      "constraint": "64-OAM postpresentation and stable emission identity, optional and off by default"
+    },
+    {
+      "id": "enhanced_pause_audio_slots",
+      "state": "implemented_synthetic_ci_pending_owner_ui_acceptance",
+      "source": "JP/recomp/docs/ENHANCED_CURRENT_STATUS.md"
+    },
+    {
+      "id": "keyboard_profile_manager",
+      "state": "implemented_ROM_free_18_case_test_pending_owner_acceptance",
+      "source": "JP/recomp/release/alpha/Control-Profiles.py",
+      "controls": "external Owner Controls.bat profile manager and optional Build-And-Play.bat -ControlsProfile NAME; engine native rebind UI unchanged",
+      "constraint": "Keyboard Player1 profile switching only; gamepad shortcuts and live in-game rebinding not overridden; config.ini backup before change"
+    }
+  ],
+  "product_metrics": "Not a product completion percentage: measure working gameplay, builds, owner QA, platform acceptance, and feature correctness; never infer completion from independently certified source-reconstruction counters.",
+  "independent_original_gameplay_semantic_parity": "Tracked separately in the semantic-decompilation stream.",
+  "known_open_items": [
+    "owner final pass of latest F4/F6 and save/load dialogs",
+    "real save-file roundtrip on current private owner executable",
+    "optional sprite overlay scenes",
+    "independent music/SFX gain routing",
+    "mod/resource SDK and widescreen"
+  ],
+  "canonical_product_status": "JP/recomp/docs/ENHANCED_CURRENT_STATUS.md",
+  "launch_docs": "JP/recomp/release/alpha/README_ALPHA.md"
+}

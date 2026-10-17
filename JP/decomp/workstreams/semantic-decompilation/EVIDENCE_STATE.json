@@ -1,0 +1,27 @@
+{
+  "schema": "JP-semantic-research-state/v1",
+  "stream": "semantic_decompilation",
+  "project": "Partial original-ROM semantic decompilation and native subsystem lifts",
+  "canonical_sources": {
+    "vpp_csv": "JP/decomp/analysis/PROGRESS_SCORE.csv",
+    "strict_prg_and_checkpoint": "JP/decomp/analysis/RESUME_STATE.json",
+    "evidence_ledger": "JP/decomp/analysis/NATIVE_EVIDENCE_LEDGER.json",
+    "rubric": "JP/decomp/docs/PROGRESS_METRIC.md",
+    "historical_log": "JP/decomp/docs/PROGRESS.md",
+    "latest_formal_decision": "JP/decomp/analysis/0659_FORMAL_VPP_STAGE_FORMAT_AND_EXTRACTION_DECISION.md"
+  },
+  "metric_semantics": {
+    "vpp": "Fixed-rubric source-semantic evidence, NOT percent playable or of the native recompilation finished.",
+    "strict_prg": "De-duplicated historical source bytes with independent original execution and semantic certification, NOT ROM bytes used by the existing runnable recompilation.",
+    "verified_native_lifts": "Independent source-replay tests of bounded code under stated producer/context constraints; compiled/dormant native code is not player-facing integration.",
+    "natural_execution": "A separate original Mesen/real-game route is required where certification calls for liveness."
+  },
+  "gameplay_runtime_ownership": "native_recompilation",
+  "open_evidence": [
+    "original live mapper/room selector producer-domain proofs",
+    "strict unique historical physical PRG overlap ledger",
+    "frame-state and PPU pixel/cycle parity between independent original and native",
+    "stage-loader native source replacement in active executable"
+  ],
+  "do_not_duplicate_live_counters": true
+}

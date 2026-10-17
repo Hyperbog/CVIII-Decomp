@@ -3,10 +3,10 @@
 This is the new **semantic decompilation** source area. The complete
 research score/ledger, original 6502 mapping evidence and program lifts
 remain in their established locations during the staged migration:
-[canonical semantic workstream](../workstreams/semantic-decompilation/README.md),
-[certification state](../analysis/RESUME_STATE.json),
-[rigorous score rubric](../docs/PROGRESS_METRIC.md), and
-[existing source/tools](../src).
+[canonical semantic workstream](workstreams/semantic-decompilation/README.md),
+[certification state](analysis/RESUME_STATE.json),
+[rigorous score rubric](docs/PROGRESS_METRIC.md), and
+[existing source/tools](src).
 
 ## Moved out of the JP root — JP0662
 

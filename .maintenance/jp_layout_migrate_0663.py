@@ -93,7 +93,7 @@ def relative_markdown(old_path: str,new_path: str,text: str) -> str:
 def substitute_references(text: str) -> str:
     def repl(m):
         original='JP/'+m.group(1)
-        # Some calls use JP/tools/ as a bare directory.
+        # Some calls use JP/decomp/tools/ as a bare directory.
         if original.endswith('/'):
             return 'JP/decomp/tools/'
         try:
@@ -119,17 +119,17 @@ def fix_python(old_path: str,new_path: str,text: str) -> str:
     # index 2 used to mean repository root; change to 3. A parent-index 1
     # originally meant JP; after the move it means the workstream root and
     # remains correct for source-local data/tools.
-    if old_path.startswith(('JP/tools/','JP/tests/','JP/src/','JP/analysis/',
-                            'JP/SharedNES/','JP/PreservationArchive/','JP/docs/',
-                            'JP/release/','JP/workstreams/','JP/scenarios/')):
+    if old_path.startswith(('JP/decomp/tools/','JP/decomp/tools/','JP/decomp/tools/','JP/decomp/tools/',
+                            'JP/decomp/tools/','JP/decomp/tools/','JP/decomp/tools/',
+                            'JP/decomp/tools/','JP/decomp/tools/','JP/decomp/tools/')):
         text=PARENTS.sub(lambda m: '.parents['+str(int(m.group(1))+1)+']'
                          if int(m.group(1))>=2 else m.group(0),text)
     if new_path=='JP/decomp/tools/run_native_regressions.sh':
         text=text.replace('")/../.." && pwd)', '")/../../.." && pwd)')
-    if old_path=='JP/tools/audit_workstreams.py':
-        text=text.replace('f"JP/workstreams/{name.replace(\'_\',\'-\')}/"',
+    if old_path=='JP/decomp/tools/audit_workstreams.py':
+        text=text.replace('f"JP/decomp/tools/{name.replace(\'_\',\'-\')}/"',
                           'f"JP/{\'recomp\' if name == \'native_recompilation\' else \'decomp\'}/workstreams/{name.replace(\'_\',\'-\')}/"')
-    if old_path=='JP/tools/audit_folder_consolidation_0662.py':
+    if old_path=='JP/decomp/tools/audit_folder_consolidation_0662.py':
         text=text.replace("sorted(p.name for p in (root/'JP/recomp').iterdir()) == ['README.md']",
                           "set(p.name for p in (root/'JP/recomp').iterdir()) >= {'README.md','native','release','tools'}")
     return text
