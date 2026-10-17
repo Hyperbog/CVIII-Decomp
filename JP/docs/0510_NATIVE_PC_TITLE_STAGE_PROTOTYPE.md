@@ -2,7 +2,7 @@
 
 **Status: playable provisional host-native prototype. NOT original Castlevania III runtime/gameplay parity.**
 
-Source: [C++ host-native runtime](../native_demo0510/src/main.cpp), [CMake project](../native_demo0510/CMakeLists.txt), [build/run guide](../native_demo0510/README.md). The user-specific Linux x86-64 package has the playable binary and offline Japanese Mesen screen-reference asset pack. The public Git source does not embed the original retail ROM, original image stills, savestates, code/data logger, external emulator or lossless game data.
+Source: [C++ host-native runtime](../decomp/legacy/native_demo0510/src/main.cpp), [CMake project](../decomp/legacy/native_demo0510/CMakeLists.txt), [build/run guide](../decomp/legacy/native_demo0510/README.md). The user-specific Linux x86-64 package has the playable binary and offline Japanese Mesen screen-reference asset pack. The public Git source does not embed the original retail ROM, original image stills, savestates, code/data logger, external emulator or lossless game data.
 
 ## Implemented / tested
 

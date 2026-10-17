@@ -2,6 +2,22 @@
 
 This branch contains **two distinct deliverables** for Japanese *Akumajou Densetsu* (Mapper 24 / Konami VRC6a). The original, SHA-authenticated Japanese cartridge is never committed.
 
+## Source folders, in migration
+
+The canonical folder labels are now **[decomp/](decomp/)** (original
+6502 source reconstruction) and **[recomp/](recomp/)** (existing playable
+NESRecomp Enhanced product). JP0662 moved the old CPU/actor demos to
+`decomp/legacy/`, and the old `JP/recomp` assembly snippets to
+`decomp/asm/`. All historical source was preserved, build references
+updated, and original game logic left untouched.
+
+**The physical migration is not yet complete:** existing active
+`JP/native`, `JP/tools`, `JP/analysis`, `JP/docs`,
+`JP/src` and `JP/tests` still hold canonical build/research files.
+Do not delete or bulk rename them; dependent scripts and CI must first
+be rewritten and regression-tested. [Directory audit and staged
+migration limits](decomp/README.md).
+
 ## Choose the correct workstream
 
 | Goal | Start here | Status/metric |

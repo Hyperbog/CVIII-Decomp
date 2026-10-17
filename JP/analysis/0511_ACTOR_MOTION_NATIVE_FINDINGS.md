@@ -19,7 +19,7 @@ Original Mesen2 2.1.1 with authenticated agent/core independently steps both act
 Replay on the authenticated private state and original Japanese ROM:
 
 ```sh
-cmake -S JP/standalone0509 -B build/standalone0509 -DCMAKE_BUILD_TYPE=Release
+cmake -S JP/decomp/legacy/standalone0509 -B build/standalone0509 -DCMAKE_BUILD_TYPE=Release
 cmake --build build/standalone0509 --parallel
 ctest --test-dir build/standalone0509 --output-on-failure
 python3 JP/tools/audit_mesen_actor_motion_0511.py "$ORIGINAL_JP_ROM" \

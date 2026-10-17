@@ -90,7 +90,7 @@ def audit(rom_path=None):
     else:prg=None
     total=0
     for source,regions in TARGETS.items():
-        code=compile_source(ROOT/"recomp"/source)
+        code=compile_source(ROOT/"decomp"/"asm"/source)
         for cpu,size,offset,digest in regions:
             try:result=bytes(code[pos] for pos in range(cpu,cpu+size))
             except KeyError as error:raise ValueError("Missing recompiled source byte") from error

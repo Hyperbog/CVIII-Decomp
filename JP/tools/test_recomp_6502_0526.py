@@ -125,7 +125,7 @@ def audit(rom=None):
         prg=raw[16:16+262144]
     total=0
     for source,regions in TARGETS.items():
-        code=assemble(ROOT/'recomp'/source)
+        code=assemble(ROOT/'decomp'/'asm'/source)
         for cpu,size,offset,digest in regions:
             try:actual=bytes(code[x] for x in range(cpu,cpu+size))
             except KeyError as e:raise ValueError('Missing original code bytes '+str(e)) from e

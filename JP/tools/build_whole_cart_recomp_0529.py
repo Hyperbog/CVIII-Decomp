@@ -188,7 +188,7 @@ def mnemonic(mn,mode,arg):
 def handwritten():
     groups={};labels={};count=0
     for name,(bank,compile_source) in SRC.items():
-        path=ROOT/'recomp'/name;code=compile_source(path);count+=len(code)
+        path=ROOT/'decomp'/'asm'/name;code=compile_source(path);count+=len(code)
         fragments=[];g=None
         for line in path.read_text(encoding='ascii').splitlines():
             clean=line.split(';',1)[0].strip().lower()

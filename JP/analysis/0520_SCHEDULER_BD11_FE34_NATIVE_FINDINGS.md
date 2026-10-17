@@ -48,7 +48,7 @@ Native actor scheduler X domain is **1..18**. The source entry guards this domai
 Reproduction requires the user's private original ROM, matching independent Mesen-agent/core and original 0519 private natural `$FDFE` savestate:
 
 ```sh
-cmake -S JP/standalone0509 -B build/standalone0509 -DCMAKE_BUILD_TYPE=Release
+cmake -S JP/decomp/legacy/standalone0509 -B build/standalone0509 -DCMAKE_BUILD_TYPE=Release
 cmake --build build/standalone0509 --parallel
 ctest --test-dir build/standalone0509 --output-on-failure
 python3 JP/tools/audit_scheduler_followup_0520.py "$ORIGINAL_JP_ROM" \

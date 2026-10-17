@@ -28,7 +28,7 @@ The ROM-free C++ [unit test](../tests/actor_event_row32_0510_test.cpp) covers **
 The original-JP-ROM optional audit separately hash-locks seven raw-bank `$0A/$0B` code/data spans and five original indexed data values. Reproduce with the user-supplied ROM and matching Mesen-agent 2.1.1:
 
 ```sh
-cmake -S JP/standalone0509 -B build/standalone0509 -DCMAKE_BUILD_TYPE=Release
+cmake -S JP/decomp/legacy/standalone0509 -B build/standalone0509 -DCMAKE_BUILD_TYPE=Release
 cmake --build build/standalone0509 --parallel
 ctest --test-dir build/standalone0509 --output-on-failure
 python3 JP/tools/audit_native_row32_live_0510.py "$ORIGINAL_JP_ROM" \

@@ -3,7 +3,7 @@ on:
   push:
     branches: [decompilation]
     paths:
-      - 'JP/native_demo0510/**'
+      - 'JP/decomp/legacy/native_demo0510/**'
       - '.github/workflows/jp_native_pc_demo.yml'
   workflow_dispatch:
 jobs:
@@ -15,7 +15,7 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y libx11-dev
-          cmake -S JP/native_demo0510 -B build/jp-native-pc -DCMAKE_BUILD_TYPE=Release
+          cmake -S JP/decomp/legacy/native_demo0510 -B build/jp-native-pc -DCMAKE_BUILD_TYPE=Release
           cmake --build build/jp-native-pc --parallel
       - name: Run native scene-state regression
         run: ctest --test-dir build/jp-native-pc --output-on-failure
@@ -28,7 +28,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Configure and compile native Windows demo
-        run: cmake -S JP/native_demo0510 -B build/jp-native-pc -G "Visual Studio 18 2026" -A x64
+        run: cmake -S JP/decomp/legacy/native_demo0510 -B build/jp-native-pc -G "Visual Studio 18 2026" -A x64
       - name: Build
         run: cmake --build build/jp-native-pc --config Release --parallel
       - name: Native state-machine regression
@@ -36,7 +36,7 @@ jobs:
       - name: Exercise native Win32 GDI window and art loading
         shell: pwsh
         run: |
-          python JP/native_demo0510/tools/make_test_assets.py build/jp-native-pc/synthetic-assets
+          python JP/decomp/legacy/native_demo0510/tools/make_test_assets.py build/jp-native-pc/synthetic-assets
           & ".\\build\\jp-native-pc\\Release\\cviii-jp-native-demo.exe" --assets "build/jp-native-pc/synthetic-assets" --headless --scene stage --frames 120 --script r
           if ($LASTEXITCODE -ne 0) { throw "Windows native headless asset smoke failed: $LASTEXITCODE" }
           & ".\\build\\jp-native-pc\\Release\\cviii-jp-native-demo.exe" --assets "build/jp-native-pc/synthetic-assets" --window-test

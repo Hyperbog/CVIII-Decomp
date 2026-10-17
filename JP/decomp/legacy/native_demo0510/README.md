@@ -91,7 +91,7 @@ Everything else in this new demo is explicitly **preview-only**:
   exit are **not source-authenticated Trevor Belmont physics/combat/AI**.
   There is no NES APU/VRC6 sound output, password/menu, bosses or alternate
   character gameplay.
-- The old `JP/standalone0509` ROM-free actor/OAM technical demonstration is
+- The old `JP/decomp/legacy/standalone0509` ROM-free actor/OAM technical demonstration is
   still the project's separate vetted proof of the actual OAM assembler; this
   title/stage preview uses a host bitmap presenter, **not** that verified OAM
   pipeline. Porting actor/OAM and original stage rendering into the native

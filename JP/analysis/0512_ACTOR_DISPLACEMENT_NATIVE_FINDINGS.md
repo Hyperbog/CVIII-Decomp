@@ -26,7 +26,7 @@ Independent Mesen2 2.1.1 runs from the **unchanged original Japanese ROM** and a
 ## Replay and limitations
 
 ```sh
-cmake -S JP/standalone0509 -B build/standalone0509 -DCMAKE_BUILD_TYPE=Release
+cmake -S JP/decomp/legacy/standalone0509 -B build/standalone0509 -DCMAKE_BUILD_TYPE=Release
 cmake --build build/standalone0509 --parallel
 ctest --test-dir build/standalone0509 --output-on-failure
 python3 JP/tools/audit_mesen_displacement_0512.py "$ORIGINAL_JP_ROM" \

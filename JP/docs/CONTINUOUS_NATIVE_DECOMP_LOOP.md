@@ -33,7 +33,7 @@ With no ROM, run from repository root:
 python3 JP/tools/audit_native_evidence_ledger.py --json
 python3 JP/tools/audit_native_coverage_0518.py
 bash JP/tools/run_native_regressions.sh
-cmake -S JP/standalone0509 -B build/standalone0509 -DCMAKE_BUILD_TYPE=Release
+cmake -S JP/decomp/legacy/standalone0509 -B build/standalone0509 -DCMAKE_BUILD_TYPE=Release
 cmake --build build/standalone0509 --parallel
 ctest --test-dir build/standalone0509 --output-on-failure
 ```

@@ -19,7 +19,7 @@ The [reproducible original-ROM differential](../tools/audit_animation_ef93_0521.
 To reproduce with the matching private natural state, original Japanese ROM and Mesen agent/core:
 
 ```sh
-cmake -S JP/standalone0509 -B build/standalone0509 -DCMAKE_BUILD_TYPE=Release
+cmake -S JP/decomp/legacy/standalone0509 -B build/standalone0509 -DCMAKE_BUILD_TYPE=Release
 cmake --build build/standalone0509 --parallel
 ctest --test-dir build/standalone0509 --output-on-failure
 python3 JP/tools/audit_animation_ef93_0521.py "$ORIGINAL_JP_ROM" \

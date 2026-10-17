@@ -29,7 +29,7 @@ other original-game behavior.
 ## Build and run without any ROM
 
 ```sh
-cmake -S JP/standalone0509 -B build/standalone0509 -DCMAKE_BUILD_TYPE=Release
+cmake -S JP/decomp/legacy/standalone0509 -B build/standalone0509 -DCMAKE_BUILD_TYPE=Release
 cmake --build build/standalone0509 --parallel
 ctest --test-dir build/standalone0509 --output-on-failure
 build/standalone0509/cviii-standalone-preview 120 R /tmp/native_sprite_preview.ppm

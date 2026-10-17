@@ -8,6 +8,7 @@ trap 'rm -rf "$build"' EXIT
 cxx="${CXX:-g++}"
 flags=(-std=c++20 -O2 -Wall -Wextra -Werror -pedantic -I "$src")
 rom="${1:-}"
+python3 "$root/JP/tools/audit_folder_consolidation_0662.py"
 # Shared AI decomp/recomp semantic-evidence and native-source gates (ROM free).
 python3 -m unittest discover -s "$root/SharedDecomp" -p 'test_*.py' -v
 python3 "$root/SharedDecomp/workflow.py" bank "$root/JP/analysis/0539_RAW0A_BANK_MAP.json"

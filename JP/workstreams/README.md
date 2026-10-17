@@ -14,7 +14,8 @@ This repository contains **an already playable, owner-tested Japanese NESRecomp 
 ## Existing paths deliberately preserved
 
 - Product runtime and packaging: `JP/native/nesrecomp_cycle/`, active host parts of `JP/native/enhanced/`, and `JP/release/alpha/`.
-- Source research: historical `JP/analysis/`, `JP/src/`, `JP/tests/`, `JP/recomp/`, and research parts of `JP/native/` and `JP/tools/`.
+- Source research: [new JP/decomp/](../decomp/), including the four 0525/0526 hand-assembled 6502 fragments in `JP/decomp/asm/` and historical 0509/0510 native experiments in `JP/decomp/legacy/`, plus current research files in `JP/analysis/`, `JP/src/`, `JP/tests/`, and research parts of `JP/native/` and `JP/tools/`.
+- The old `JP/recomp/` assembly naming collision is resolved: [JP/recomp/](../recomp/) is now reserved for the **existing playable product**; current build code still lives at stable `JP/native/nesrecomp_cycle/` and `JP/release/alpha/` paths.
 - Common archive, original ROM identity and rules remain at their historical paths.
 
 These paths have extensive CMake, workflow, source-script, report, and Markdown dependencies. This first separation is **non-destructive**: it creates two canonical workstream status areas and a checked index instead of blindly moving source assets and breaking builds. A later physical move requires a specific dependency graph, mechanical reference rewrite, and clean Windows/Linux/source-regression gates.

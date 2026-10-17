@@ -21,7 +21,7 @@ An original-Mesen *injected-state* matrix of **54 configurations** covers every 
 To reproduce with private original JP ROM, matching Mesen-agent binary and the original naturally reached state:
 
 ```sh
-cmake -S JP/standalone0509 -B build/standalone0509 -DCMAKE_BUILD_TYPE=Release
+cmake -S JP/decomp/legacy/standalone0509 -B build/standalone0509 -DCMAKE_BUILD_TYPE=Release
 cmake --build build/standalone0509 --parallel
 ctest --test-dir build/standalone0509 --output-on-failure
 python3 JP/tools/audit_vertical_synthetic_0513.py "$ORIGINAL_JP_ROM" \

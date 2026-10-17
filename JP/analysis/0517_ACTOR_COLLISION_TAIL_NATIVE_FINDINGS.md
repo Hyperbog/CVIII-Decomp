@@ -41,7 +41,7 @@ The independently executed [original Mesen audit](../tools/audit_actor_collision
 Reproduce using a locally obtained original JP ROM, qualified Mesen agent/core and the original natural private Stage 1 `$B1F8` state:
 
 ```sh
-cmake -S JP/standalone0509 -B build/standalone0509 -DCMAKE_BUILD_TYPE=Release
+cmake -S JP/decomp/legacy/standalone0509 -B build/standalone0509 -DCMAKE_BUILD_TYPE=Release
 cmake --build build/standalone0509 --parallel
 ctest --test-dir build/standalone0509 --output-on-failure
 python3 JP/tools/audit_actor_collision_tail_0517.py "$ORIGINAL_JP_ROM" \

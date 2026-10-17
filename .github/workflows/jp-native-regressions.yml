@@ -4,6 +4,8 @@ on:
     branches: [decompilation]
     paths:
       - 'JP/src/**'
+      - 'JP/decomp/**'
+      - 'JP/tools/audit_folder_consolidation_0662.py'
       - 'JP/native0509/**'
       - 'JP/standalone0509/**'
       - 'JP/tools/native_probe_0509.cpp'
@@ -95,6 +97,8 @@ on:
   pull_request:
     paths:
       - 'JP/src/**'
+      - 'JP/decomp/**'
+      - 'JP/tools/audit_folder_consolidation_0662.py'
       - 'JP/native0509/**'
       - 'JP/standalone0509/**'
       - 'JP/tools/native_probe_0509.cpp'

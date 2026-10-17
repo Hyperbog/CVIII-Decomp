@@ -33,7 +33,7 @@ The independent [ROM-locked Mesen regression](../tools/audit_b217_original_mesen
 Local reproduction (the separately supplied original ROM, matching Mesen 2.1.1 agent/core, private natural original state and native replay executable are required):
 
 ```sh
-cmake -S JP/standalone0509 -B build/standalone0509 -DCMAKE_BUILD_TYPE=Release
+cmake -S JP/decomp/legacy/standalone0509 -B build/standalone0509 -DCMAKE_BUILD_TYPE=Release
 cmake --build build/standalone0509 --parallel
 ctest --test-dir build/standalone0509 --output-on-failure
 python3 JP/tools/audit_b217_original_mesen_0515.py "$ORIGINAL_JP_ROM" \

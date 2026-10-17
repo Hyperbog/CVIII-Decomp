@@ -37,7 +37,7 @@ The authenticated [Mesen differential audit](../tools/audit_collision_measure_05
 Reproduce with the original authenticated Japanese ROM and independent Mesen 2.1.1 executable/core:
 
 ```sh
-cmake -S JP/standalone0509 -B build/standalone0509 -DCMAKE_BUILD_TYPE=Release
+cmake -S JP/decomp/legacy/standalone0509 -B build/standalone0509 -DCMAKE_BUILD_TYPE=Release
 cmake --build build/standalone0509 --parallel
 ctest --test-dir build/standalone0509 --output-on-failure
 python3 JP/tools/audit_collision_measure_0516.py "$ORIGINAL_JP_ROM" \

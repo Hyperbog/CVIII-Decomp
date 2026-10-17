@@ -38,7 +38,7 @@ The [authenticated original-Mesen replay script](../tools/audit_actor_preflight_
 To reproduce locally (matching Mesen-agent 2.1.1 and the two original source-input savestates are required):
 
 ```sh
-cmake -S JP/standalone0509 -B build/standalone0509 -DCMAKE_BUILD_TYPE=Release
+cmake -S JP/decomp/legacy/standalone0509 -B build/standalone0509 -DCMAKE_BUILD_TYPE=Release
 cmake --build build/standalone0509 --parallel
 ctest --test-dir build/standalone0509 --output-on-failure
 python3 JP/tools/audit_actor_preflight_0514.py "$ORIGINAL_JP_ROM" \
