@@ -355,6 +355,7 @@ python3 "$root/JP/decomp/tools/jp_room_clear_0658.py" --smoke
 # JP0664: ROM-free FamiStudio VRC6 reference and corrupt TXT gates; no music assets.
 python3 "$root/JP/decomp/tools/jp_famistudio_reference_0664.py" --smoke
 python3 "$root/JP/decomp/tools/jp_famistudio_driver_bridge_0664.py" --smoke
+python3 "$root/JP/decomp/tools/jp_beginning_stream_graph_0664.py" --smoke
 # JP0659 synthetic stage-room source and exact reversible resource geometry.
 python3 "$root/JP/decomp/tools/jp_room_stream_0659.py" --smoke
 python3 "$root/JP/decomp/tools/jp_room_resources_0659.py" --smoke
