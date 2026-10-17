@@ -342,7 +342,7 @@ fi
 # Native title -> intro -> Stage-1 prototype executes real host C++, but
 # source assets/physics are provisional. Never fetch commercial art in CI.
 if command -v cmake >/dev/null 2>&1 && command -v pkg-config >/dev/null 2>&1 && pkg-config --exists x11; then
-  cmake -S "$root/JP/native_demo0510" -B "$build/native_demo0510" -DCMAKE_BUILD_TYPE=Release
+  cmake -S "$root/JP/decomp/legacy/native_demo0510" -B "$build/native_demo0510" -DCMAKE_BUILD_TYPE=Release
   cmake --build "$build/native_demo0510" --parallel
   ctest --test-dir "$build/native_demo0510" --output-on-failure
   echo "TEST PASS ROM-free native title/intro/stage state machine"

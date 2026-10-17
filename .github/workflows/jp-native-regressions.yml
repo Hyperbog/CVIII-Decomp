@@ -6,8 +6,8 @@ on:
       - 'JP/src/**'
       - 'JP/decomp/**'
       - 'JP/tools/audit_folder_consolidation_0662.py'
-      - 'JP/native0509/**'
-      - 'JP/standalone0509/**'
+      - 'JP/decomp/legacy/native0509/**'
+      - 'JP/decomp/legacy/standalone0509/**'
       - 'JP/tools/native_probe_0509.cpp'
       - 'JP/tools/standalone_preview_0509.cpp'
       - 'JP/tools/audit_actor_slot_0509.py'
@@ -82,7 +82,7 @@ on:
       - 'JP/tools/test_bank0c_sound_0533.py'
       - 'JP/tools/test_bank04_parser_0532.py'
       - 'JP/tools/test_recomp_6502_0526.py'
-      - 'JP/recomp/**'
+      - 'JP/decomp/asm/**'
       - 'JP/tools/audit_native_evidence_ledger.py'
       - 'JP/tools/audit_native_coverage_0518.py'
       - 'JP/tools/audit_animation_ef93_0521.py'
@@ -99,8 +99,8 @@ on:
       - 'JP/src/**'
       - 'JP/decomp/**'
       - 'JP/tools/audit_folder_consolidation_0662.py'
-      - 'JP/native0509/**'
-      - 'JP/standalone0509/**'
+      - 'JP/decomp/legacy/native0509/**'
+      - 'JP/decomp/legacy/standalone0509/**'
       - 'JP/tools/native_probe_0509.cpp'
       - 'JP/tools/standalone_preview_0509.cpp'
       - 'JP/tools/audit_actor_slot_0509.py'
@@ -166,7 +166,7 @@ on:
       - 'JP/tools/test_bank0c_sound_0533.py'
       - 'JP/tools/test_bank04_parser_0532.py'
       - 'JP/tools/test_recomp_6502_0526.py'
-      - 'JP/recomp/**'
+      - 'JP/decomp/asm/**'
       - 'JP/tools/audit_native_evidence_ledger.py'
       - 'JP/tools/audit_native_coverage_0518.py'
       - 'JP/tools/audit_animation_ef93_0521.py'
@@ -193,12 +193,12 @@ jobs:
         run: bash JP/tools/run_native_regressions.sh
       - name: Configure headless native CMake package and run CTest
         run: |
-          cmake -S JP/native0509 -B /tmp/cviii-native0509 -DCMAKE_BUILD_TYPE=Release
+          cmake -S JP/decomp/legacy/native0509 -B /tmp/cviii-native0509 -DCMAKE_BUILD_TYPE=Release
           cmake --build /tmp/cviii-native0509 --parallel 2
           ctest --test-dir /tmp/cviii-native0509 --output-on-failure
       - name: Build ROM-independent native actor and sprite pipeline
         run: |
-          cmake -S JP/standalone0509 -B /tmp/cviii-standalone0509 -DCMAKE_BUILD_TYPE=Release
+          cmake -S JP/decomp/legacy/standalone0509 -B /tmp/cviii-standalone0509 -DCMAKE_BUILD_TYPE=Release
           cmake --build /tmp/cviii-standalone0509 --parallel 2
           ctest --test-dir /tmp/cviii-standalone0509 --output-on-failure
       - name: Audit preservation archive
