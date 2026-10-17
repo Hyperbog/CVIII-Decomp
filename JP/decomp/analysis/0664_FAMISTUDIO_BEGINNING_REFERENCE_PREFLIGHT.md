@@ -97,6 +97,45 @@ python3 JP/decomp/tools/jp_famistudio_driver_bridge_0664.py \
   --owner-confirmed --json '/private/JP0664-Beginning-source-bridge.json'
 ```
 
+## Original six-stream graph decoding (JP0664 continuation)
+
+**Authority:** original-Japanese ROM sound ID `$51`, its source directory pointer, and all six original raw05 stream bodies. The preceding static NSF wrapper/index0 -> `$51` bridge and owner-confirmed FamiStudio `Beginning` reference are unchanged.
+
+The new ROM-authenticated utility `JP/decomp/tools/jp_beginning_stream_graph_0664.py` reuses the **previously admitted 04FB alternate-parser grammar** for the `$87AE–$9A6A` bank05 stream span (source SHA-256 `58f4a24e41ba95766529e1eaa531c63fc666ca51abc668ec4eb3ba3f4e50eb6b`). It traverses each of the six descriptor-rooted streams without assuming musical note meaning:
+
+- Modes are still the **opaque, original descriptor mode bytes** `0,1,2,3,4,7`, **not** mapped to the six FamiStudio non-DPCM channel names.
+- Non-mode7 byte widths: upper nibble `0–C` is one byte, `D` consumes four, and `E` has its inherited one/two/variable-length cases. Mode7 consumes each non-`F` byte singly. `FB` anchors, `FD` call/return, `FE nn` counted repeats (both possible paths abstractly), `FE FF lo hi` absolute pointer transfers, and `FF` termination follow historical audited 04FB syntax. This does **not** decode tempo, pitches, APU writes or exact conditional-repeat counts.
+- Every source-read byte and branch target is bounded to the authenticated 04FB stream region; the tool rejects missing loop anchors, invalid pointer targets, truncated operands, wrong cartridge/region and changed source graph fingerprints.
+- Only aggregate state/command/control counts go into reports; raw ROM operands and reconstructible stream/source-pointer lists stay owner-private.
+
+| Original opaque mode | Abstract parser states | Distinct command-byte addresses | Distinct command+operand addresses | Distinct `E7` sites |
+| --- | ---: | ---: | ---: | ---: |
+| `$00` | 759 | 345 | 457 | 2 |
+| `$01` | 813 | 364 | 473 | 2 |
+| `$02` | 781 | 385 | 462 | 3 |
+| `$03` | 927 | 510 | 651 | 1 |
+| `$04` | 820 | 371 | 510 | 1 |
+| `$07` | 366 | 320 | 332 | 0 |
+
+**All six** graphs contain a source-authenticated `FE FF lo hi` absolute transfer back into their stream graph and **no visited `FF` terminator**. A recurring code path is therefore structurally present, which is **not** a proven song loop duration or an audible loop point. `E7` high nibble parameters across all six are within previously certified `$0/$5/$8` domains; no new parameter bounds are assumed.
+
+### Comparison against owner-confirmed FamiStudio
+
+The original program has **six source streams**; the FamiStudio tracker has **six active non-DPCM channels, one active DPCM channel, and an empty Triangle channel**. The equal six-vs-six count is a **hypothesis-generating coincidence**, **not** a verified mode-to-chip/channel mapping. Likewise, the FamiStudio `LoopPoint=0` is not proof that these six original control-flow cycles complete with the same tick/sample timing. FamiStudio reports **8,216 source-independent note-trigger rows** across all its channels. The original parsed byte-stream graphs are **unique syntax sites / possible abstract states**, so their counters must never be compared one-to-one with tracker trigger counts.
+
+**Verified now:** owner-authenticated ROM, six stream roots, 04FB source span/hash, six bounded cyclic control graphs, parser token widths/control pointers, and local synthetic graph regression (including three deliberately corrupt streams). **Remaining unknown:** first-byte/note semantics, mode-to-hardware register mapping, tick scheduling and tempo, counted-repeat execution cadence, active-game original sound requests, SFX preemption, exact FamiStudio note/pitch/volume correspondence, and independent native PCM mixing.
+
+Reproduce **locally** with the owner ROM; JSON stores aggregate counts only:
+
+```sh
+python3 JP/decomp/tools/jp_beginning_stream_graph_0664.py --smoke
+python3 JP/decomp/tools/jp_beginning_stream_graph_0664.py \
+  --rom '/private/Akumajou Densetsu (Japan).nes' \
+  --json '/private/JP0664-Beginning-six-stream-graph.json'
+```
+
+No new VPP or strict PRG credit; no player audio, mixer or save-state changes.
+
 ## Next evidence step
 
 After an authentic *Beginning* FamiStudio capture, compare its **channel envelopes and note/volume/pitch changes** against owner-private APU/VRC6 register events from JP0610 and music-program source decode via JP0652–JP0656. The original game source / live sound requests remain authority; FamiStudio's NSF notes are a lossy reference. A reference per-channel match does not establish original-event ownership. First genuine product proof requires one authenticated song and an overlapping original whip SFX played independently through JP0647, with reversibility, resynchronization after save/load and original APU/VRC6 hardware behavior preserved.
