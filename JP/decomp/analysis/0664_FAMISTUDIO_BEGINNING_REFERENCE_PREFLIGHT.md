@@ -48,6 +48,28 @@ python3 JP/decomp/tools/jp_famistudio_reference_0664.py \
 
 Locally performed in JP0664: **ROM-free invented 2A03+VRC6 reference and seven corrupt fixtures PASS**, and uploaded user-provided ROM/NSF/M3U identities **PASS**, yielding `capture.status = not_exercised`. The actual FamiStudio application is not present in this environment; FamiStudio TXT import, register/audio comparison, original retail MesenCE trace, genuine gameplay, native audio producer and independent audible SFX are **NOT EXERCISED**. No application output was fabricated.
 
+## Owner-supplied FamiStudio 4.5.1 structural capture (2026-10-17)
+
+A private owner upload `CV3JP.txt` was audited locally using the JP0664 tool (SHA-256 `df25db714eb378072e797230a8d90ff105a3d010d4ea63b36e7a39950ebffd30`). **The TXT contains actual licensed music/sample data and is NOT committed.** Only this aggregate evidence is committed.
+
+- Export metadata: `Project Version="4.5.1"`, `Expansions="VRC6"`, one song labeled **`Song 1`**, `Length="29"`, `PatternLength="32"`, `NoteLength="8"`, `LoopPoint="0"`.
+- All eight standard Japanese-CVIII APU/VRC6 channels are declared. **Seven contain note/effect data; Triangle is empty**.
+- **20,083** tracker note/effect rows across 29 distinct patterns per channel, including **8,216** pitch/sample-trigger rows. Count is of FamiStudio's exported representation, **not** original ROM note-script opcodes, not unique instruments, and not a runtime sound-event count.
+- Three sample payloads defined in the export (256, 64, and 512 bytes) each occur **byte-for-byte** in both the authenticated original ROM PRG and modified Japanese NSF payload. Sample bytes and raw source offsets are excluded from Git. This supports **DPCM asset provenance** but does not prove those samples were triggered in the retail game's Beginning stage.
+- Full aggregate channel census (rows/triggers):
+  - Square1: 3,657 / 1,236
+  - Square2: 2,978 / 1,343
+  - Triangle: 0 / 0
+  - Noise: 2,329 / 1,770
+  - DPCM: 717 / 717
+  - VRC6Square1: 3,912 / 1,424
+  - VRC6Square2: 2,331 / 1,232
+  - VRC6Saw: 4,159 / 494
+- The TXT does **not encode the original NSF track number**, and its `Song 1` label is generic. Thus the intended **Beginning** track association remains **owner-export-step assumed, not independently attested**. Do not infer sound-command IDs, original source-note envelopes or gameplay parity from it.
+- The updated tool parses sample hex only owner-locally, reports the number of source-matched samples without their data, and adds a synthetic malformed-DPCM input test: **8 intentionally corrupt fixtures rejected**, plus synthetic valid fixture and uploaded-source checks PASS.
+
+**Owner-private test performed:** `python3 JP/decomp/tools/jp_famistudio_reference_0664.py --rom ORIGINAL_JP.nes --nsf JAPANESE.nsf --m3u JAPANESE.m3u --famistudio-txt CV3JP.txt --json PRIVATE_METADATA_ONLY.json`. This tests structural parsing and byte-source membership; it **does not execute FamiStudio 4.5.1, MesenCE, or the playable game**.
+
 ## Next evidence step
 
 After an authentic *Beginning* FamiStudio capture, compare its **channel envelopes and note/volume/pitch changes** against owner-private APU/VRC6 register events from JP0610 and music-program source decode via JP0652–JP0656. The original game source / live sound requests remain authority; FamiStudio's NSF notes are a lossy reference. A reference per-channel match does not establish original-event ownership. First genuine product proof requires one authenticated song and an overlapping original whip SFX played independently through JP0647, with reversibility, resynchronization after save/load and original APU/VRC6 hardware behavior preserved.
