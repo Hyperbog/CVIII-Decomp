@@ -12,6 +12,8 @@ import json
 from pathlib import Path
 import re
 import tempfile
+import sys
+sys.path.insert(0,str(Path(__file__).resolve().parents[2]/"recomp"/"tools"))
 import jp_audio_session_verify_0614 as session
 
 JP='958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28'

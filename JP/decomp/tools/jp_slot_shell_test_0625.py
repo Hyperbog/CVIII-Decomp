@@ -14,7 +14,7 @@ import tempfile
 from typing import Any
 
 TOOLS=Path(__file__).resolve().parent
-SOURCE=TOOLS.parent/"native"/"enhanced"
+SOURCE=TOOLS.parents[1]/"recomp"/"native"/"enhanced"
 
 def imp(path:Path)->Any:
     spec=importlib.util.spec_from_file_location("_jp0625test_"+path.stem,path)

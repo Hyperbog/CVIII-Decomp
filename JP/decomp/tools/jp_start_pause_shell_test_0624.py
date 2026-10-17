@@ -15,7 +15,7 @@ import subprocess
 import tempfile
 
 TOOLS=Path(__file__).resolve().parent
-ENHANCED=TOOLS.parent/"native"/"enhanced"
+ENHANCED=TOOLS.parents[1]/"recomp"/"native"/"enhanced"
 PREFIX=r'''
 #include <stdbool.h>
 #include <stdint.h>

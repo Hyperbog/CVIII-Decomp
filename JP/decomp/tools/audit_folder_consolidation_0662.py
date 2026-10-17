@@ -76,8 +76,7 @@ def audit(root: Path = ROOT) -> dict:
     for n in ('build_whole_cart_recomp_0529.py',
               'test_recomp_6502_0525.py','test_recomp_6502_0526.py'):
         content=workflows['JP/decomp/tools/'+n]
-        require("'decomp'" in content and "'asm'" in content or
-                '"decomp"' in content and '"asm"' in content,
+        require(("'asm'" in content or '"asm"' in content) and "ROOT" in content,
                 'Mnemonic source consumer was not migrated: '+n)
     for p in ('JP/decomp/analysis/RESUME_STATE.json','JP/decomp/analysis/PROGRESS_SCORE.csv',
               'JP/recomp/native/nesrecomp_cycle/CMakeLists.txt',
