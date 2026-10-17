@@ -14,6 +14,8 @@ import json
 import re
 import tempfile
 from pathlib import Path
+import sys
+sys.path.insert(0,str(Path(__file__).resolve().parents[2]/'recomp'/'tools'))
 from jp_chr_fetch_report_0600 import FIELDS as FETCH_FIELDS, invented_row, summarize as summarize_fetch
 from jp_frame_evidence_report_0601 import EVIDENCE_FIELDS, analyze, read_evidence
 from jp_mapper_audit_0602 import FIELDS as MAPPER_FIELDS, inspect_csv as inspect_mapper

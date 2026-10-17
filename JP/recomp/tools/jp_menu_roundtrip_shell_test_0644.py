@@ -13,6 +13,8 @@ from pathlib import Path
 import subprocess
 import tempfile
 
+import sys
+sys.path.insert(0,str(Path(__file__).resolve().parents[2]/'decomp'/'tools'))
 import jp_slot_shell_test_0625 as slot
 
 TOOLS = Path(__file__).resolve().parent
