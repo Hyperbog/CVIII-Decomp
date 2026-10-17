@@ -3,73 +3,73 @@ on:
   push:
     branches: [decompilation]
     paths:
-      - "JP/tools/build_private_asm_reference_0627.py"
-      - "JP/tools/test_private_asm_reference_0627.py"
-      - "JP/tools/audit_room_selector_window_0628.py"
-      - "JP/tools/audit_room_selector_table_0629.py"
-      - "JP/tools/audit_mesen_room_selector_trace_0629.py"
-      - "JP/tools/mesen_jp_room_selector_provenance_0629.lua"
-      - "JP/tools/mesen_jp_room_chain_0630.lua"
-      - "JP/tools/audit_mesen_room_chain_0630.py"
-      - "JP/tools/test_cycle_synthetic_rom_0569.py"
-      - "JP/tools/check_cycle_stats_0571.py"
-      - "JP/tools/validate_cycle_media_0576.py"
-      - "JP/tools/validate_frame_artifacts_0578.py"
-      - "JP/native/enhanced/**"
-      - "JP/tools/jp_sprite_emission_source_0645.py"
-      - "JP/tools/patch_cyc_savestates_0591.py"
-      - "JP/tools/patch_cyc_audio_menu_0620.py"
-      - "JP/tools/patch_cyc_start_menu_0623.py"
-      - "JP/tools/jp_start_menu_pinned_gate_0623.py"
-      - "JP/tools/jp_start_pause_shell_test_0624.py"
-      - "JP/tools/patch_cyc_slot_picker_0625.py"
-      - "JP/tools/jp_slot_picker_pinned_gate_0625.py"
-      - "JP/tools/jp_slot_shell_test_0625.py"
-      - "JP/tools/jp_menu_roundtrip_shell_test_0644.py"
-      - "JP/tools/patch_cyc_audio_return_0626.py"
-      - "JP/tools/jp_audio_return_pinned_gate_0626.py"
-      - "JP/tools/jp_audio_menu_pinned_gate_0621.py"
-      - "JP/tools/patch_cyc_chr_fetch_0600.py"
-      - "JP/tools/patch_cyc_ppu_nt_0606.py"
-      - "JP/tools/jp_nt_trace_report_0606.py"
-      - "JP/tools/patch_cyc_audio_bus_0610.py"
-      - "JP/tools/patch_cyc_sound_requests_0612.py"
-      - "JP/tools/patch_cyc_sound_decisions_0646.py"
-      - "JP/tools/jp_dmc_original_source_0648.py"
-      - "JP/tools/jp_sound_catalog_0652.py"
-      - "JP/tools/jp_phrase_lookup_0653.py"
-      - "JP/tools/jp_phrase_delta_0655.py"
-      - "JP/tools/jp_phrase_control_0656.py"
-      - "JP/tools/jp_room_catalog_0657.py"
-      - "JP/tools/jp_room_coordinate_0657.py"
-      - "JP/tools/jp_room_clear_0658.py"
-      - "JP/tools/jp_room_stream_0659.py"
-      - "JP/tools/jp_room_resources_0659.py"
-      - "JP/tools/test_control_profiles_0661.py"
-      - "JP/tools/jp_dpcm_memory_audit_0649.py"
-      - "JP/tools/patch_cyc_dmc_dma_trace_0650.py"
-      - "JP/tools/jp_dmc_dma_trace_verify_0650.py"
-      - "JP/tools/patch_mesen_dmc_reference_0651.py"
-      - "JP/tools/jp_mesen_dmc_dma_compare_0651.py"
-      - "JP/tools/jp_audio_bus_report_0610.py"
-      - "JP/tools/jp_audio_session_verify_0614.py"
-      - "JP/tools/jp_mesen_sound_requests_0615.py"
-      - "JP/tools/jp_sound_priority_paths_0616.py"
-      - "JP/tools/jp_mesen_gate_report_0616.py"
-      - "JP/tools/jp_sound_decision_reference_0617.py"
-      - "JP/tools/jp_audio_ui_chr_0619.py"
-      - "JP/tools/mesen_jp_sound_decisions_0617.lua"
-      - "JP/tools/mesen_jp_sound_gates_0616.lua"
-      - "JP/tools/mesen_jp_sound_requests_0615.lua"
-      - "JP/tools/jp_sound_request_report_0613.py"
-      - "JP/tools/jp_chr_fetch_report_0600.py"
-      - "JP/tools/jp_frame_evidence_report_0601.py"
-      - "JP/tools/jp_qa_matrix_0602.py"
-      - "JP/tools/jp_mapper_audit_0602.py"
-      - "JP/tools/test_ppu_backend_0590.py"
-      - "JP/tools/nesrecomp_cycle_0568.py"
-      - "JP/tools/build_retail_cycle_0575.py"
-      - "JP/native/nesrecomp_cycle/**"
+      - "JP/decomp/tools/build_private_asm_reference_0627.py"
+      - "JP/decomp/tools/test_private_asm_reference_0627.py"
+      - "JP/decomp/tools/audit_room_selector_window_0628.py"
+      - "JP/decomp/tools/audit_room_selector_table_0629.py"
+      - "JP/decomp/tools/audit_mesen_room_selector_trace_0629.py"
+      - "JP/decomp/tools/mesen_jp_room_selector_provenance_0629.lua"
+      - "JP/decomp/tools/mesen_jp_room_chain_0630.lua"
+      - "JP/decomp/tools/audit_mesen_room_chain_0630.py"
+      - "JP/decomp/tools/test_cycle_synthetic_rom_0569.py"
+      - "JP/decomp/tools/check_cycle_stats_0571.py"
+      - "JP/recomp/tools/validate_cycle_media_0576.py"
+      - "JP/decomp/tools/validate_frame_artifacts_0578.py"
+      - "JP/recomp/native/enhanced/**"
+      - "JP/decomp/tools/jp_sprite_emission_source_0645.py"
+      - "JP/recomp/tools/patch_cyc_savestates_0591.py"
+      - "JP/recomp/tools/patch_cyc_audio_menu_0620.py"
+      - "JP/recomp/tools/patch_cyc_start_menu_0623.py"
+      - "JP/decomp/tools/jp_start_menu_pinned_gate_0623.py"
+      - "JP/decomp/tools/jp_start_pause_shell_test_0624.py"
+      - "JP/recomp/tools/patch_cyc_slot_picker_0625.py"
+      - "JP/decomp/tools/jp_slot_picker_pinned_gate_0625.py"
+      - "JP/decomp/tools/jp_slot_shell_test_0625.py"
+      - "JP/recomp/tools/jp_menu_roundtrip_shell_test_0644.py"
+      - "JP/recomp/tools/patch_cyc_audio_return_0626.py"
+      - "JP/decomp/tools/jp_audio_return_pinned_gate_0626.py"
+      - "JP/decomp/tools/jp_audio_menu_pinned_gate_0621.py"
+      - "JP/recomp/tools/patch_cyc_chr_fetch_0600.py"
+      - "JP/recomp/tools/patch_cyc_ppu_nt_0606.py"
+      - "JP/recomp/tools/jp_nt_trace_report_0606.py"
+      - "JP/recomp/tools/patch_cyc_audio_bus_0610.py"
+      - "JP/recomp/tools/patch_cyc_sound_requests_0612.py"
+      - "JP/recomp/tools/patch_cyc_sound_decisions_0646.py"
+      - "JP/decomp/tools/jp_dmc_original_source_0648.py"
+      - "JP/decomp/tools/jp_sound_catalog_0652.py"
+      - "JP/decomp/tools/jp_phrase_lookup_0653.py"
+      - "JP/decomp/tools/jp_phrase_delta_0655.py"
+      - "JP/decomp/tools/jp_phrase_control_0656.py"
+      - "JP/decomp/tools/jp_room_catalog_0657.py"
+      - "JP/decomp/tools/jp_room_coordinate_0657.py"
+      - "JP/decomp/tools/jp_room_clear_0658.py"
+      - "JP/decomp/tools/jp_room_stream_0659.py"
+      - "JP/decomp/tools/jp_room_resources_0659.py"
+      - "JP/recomp/tools/test_control_profiles_0661.py"
+      - "JP/decomp/tools/jp_dpcm_memory_audit_0649.py"
+      - "JP/recomp/tools/patch_cyc_dmc_dma_trace_0650.py"
+      - "JP/decomp/tools/jp_dmc_dma_trace_verify_0650.py"
+      - "JP/decomp/tools/patch_mesen_dmc_reference_0651.py"
+      - "JP/decomp/tools/jp_mesen_dmc_dma_compare_0651.py"
+      - "JP/recomp/tools/jp_audio_bus_report_0610.py"
+      - "JP/recomp/tools/jp_audio_session_verify_0614.py"
+      - "JP/decomp/tools/jp_mesen_sound_requests_0615.py"
+      - "JP/decomp/tools/jp_sound_priority_paths_0616.py"
+      - "JP/decomp/tools/jp_mesen_gate_report_0616.py"
+      - "JP/decomp/tools/jp_sound_decision_reference_0617.py"
+      - "JP/decomp/tools/jp_audio_ui_chr_0619.py"
+      - "JP/decomp/tools/mesen_jp_sound_decisions_0617.lua"
+      - "JP/decomp/tools/mesen_jp_sound_gates_0616.lua"
+      - "JP/decomp/tools/mesen_jp_sound_requests_0615.lua"
+      - "JP/decomp/tools/jp_sound_request_report_0613.py"
+      - "JP/recomp/tools/jp_chr_fetch_report_0600.py"
+      - "JP/recomp/tools/jp_frame_evidence_report_0601.py"
+      - "JP/decomp/tools/jp_qa_matrix_0602.py"
+      - "JP/decomp/tools/jp_mapper_audit_0602.py"
+      - "JP/decomp/tools/test_ppu_backend_0590.py"
+      - "JP/decomp/tools/nesrecomp_cycle_0568.py"
+      - "JP/recomp/tools/build_retail_cycle_0575.py"
+      - "JP/recomp/native/nesrecomp_cycle/**"
       - ".github/workflows/jp_nesrecomp_cycle_mapper24.yml"
   workflow_dispatch:
 permissions:
@@ -92,36 +92,36 @@ jobs:
         run: |
           grep -q "PolyForm Noncommercial License 1.0.0" _external_nesrecomp/LICENSE
           test -f _external_nesrecomp/runner/cyc/project.cmake
-          python3 JP/tools/test_cycle_synthetic_rom_0569.py --smoke
+          python3 JP/decomp/tools/test_cycle_synthetic_rom_0569.py --smoke
       - name: Verify JP0627 private bank-addressed ROM source generator (synthetic only)
         run: |
-          python3 JP/tools/test_private_asm_reference_0627.py
+          python3 JP/decomp/tools/test_private_asm_reference_0627.py
       - name: Verify JP0629 original-Mesen trace validation guards (ROM-free)
         run: |
-          python3 JP/tools/audit_mesen_room_selector_trace_0629.py --smoke
-          python3 -m py_compile JP/tools/audit_room_selector_table_0629.py
-          python3 JP/tools/audit_mesen_room_chain_0630.py --smoke
+          python3 JP/decomp/tools/audit_mesen_room_selector_trace_0629.py --smoke
+          python3 -m py_compile JP/decomp/tools/audit_room_selector_table_0629.py
+          python3 JP/decomp/tools/audit_mesen_room_chain_0630.py --smoke
       - name: Verify JP0628 raw0A room selector guard (ROM-free)
-        run: python3 JP/tools/audit_room_selector_window_0628.py --smoke
+        run: python3 JP/decomp/tools/audit_room_selector_window_0628.py --smoke
       - name: Validate PPU diagnostic backend choice (no ROM)
-        run: python3 JP/tools/test_ppu_backend_0590.py
+        run: python3 JP/decomp/tools/test_ppu_backend_0590.py
       - name: Verify Original/Enhanced ten-slot save state host patch (no ROM)
         run: |
-          python3 JP/tools/patch_cyc_savestates_0591.py --smoke
-          python3 JP/tools/patch_cyc_audio_menu_0620.py --smoke
-          python3 JP/tools/jp_audio_menu_pinned_gate_0621.py --smoke
-          python3 JP/tools/jp_audio_menu_pinned_gate_0621.py \
+          python3 JP/recomp/tools/patch_cyc_savestates_0591.py --smoke
+          python3 JP/recomp/tools/patch_cyc_audio_menu_0620.py --smoke
+          python3 JP/decomp/tools/jp_audio_menu_pinned_gate_0621.py --smoke
+          python3 JP/decomp/tools/jp_audio_menu_pinned_gate_0621.py \
             --source _external_nesrecomp/runner/cyc/cyc_sdl.c
-          python3 JP/tools/jp_start_menu_pinned_gate_0623.py --smoke
-          python3 JP/tools/jp_start_menu_pinned_gate_0623.py \
+          python3 JP/decomp/tools/jp_start_menu_pinned_gate_0623.py --smoke
+          python3 JP/decomp/tools/jp_start_menu_pinned_gate_0623.py \
             --source _external_nesrecomp/runner/cyc/cyc_sdl.c
-          python3 JP/tools/jp_slot_picker_pinned_gate_0625.py --smoke
-          python3 JP/tools/jp_slot_picker_pinned_gate_0625.py \
+          python3 JP/decomp/tools/jp_slot_picker_pinned_gate_0625.py --smoke
+          python3 JP/decomp/tools/jp_slot_picker_pinned_gate_0625.py \
             --source _external_nesrecomp/runner/cyc/cyc_sdl.c
-          python3 JP/tools/jp_audio_return_pinned_gate_0626.py --smoke
-          python3 JP/tools/jp_audio_return_pinned_gate_0626.py \
+          python3 JP/decomp/tools/jp_audio_return_pinned_gate_0626.py --smoke
+          python3 JP/decomp/tools/jp_audio_return_pinned_gate_0626.py \
             --source _external_nesrecomp/runner/cyc/cyc_sdl.c
-          python3 JP/tools/patch_cyc_savestates_0591.py \
+          python3 JP/recomp/tools/patch_cyc_savestates_0591.py \
             --source _external_nesrecomp/runner/cyc/cyc_sdl.c \
             --out _external_nesrecomp/runner/cyc/cviii_cyc_sdl_slots.c
           test -f _external_nesrecomp/runner/cyc/cviii_cyc_sdl_slots.c
@@ -129,291 +129,291 @@ jobs:
         run: |
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
             -I _external_nesrecomp/runner/cyc \
-            JP/native/enhanced/cviii_edition.c JP/native/enhanced/cviii_chr_index_0598.c JP/native/enhanced/cviii_chr_audit_0599.c JP/native/enhanced/cviii_chr_fetch_0600.c JP/native/enhanced/cviii_frame_evidence_0601.c JP/native/enhanced/cviii_nt_trace_0606.c JP/native/enhanced/cviii_sprite_layers_0608.c JP/native/enhanced/cviii_object_oam_trace_0609.c JP/native/enhanced/cviii_audio_bus_0610.c JP/native/enhanced/cviii_sound_requests_0612.c JP/native/enhanced/cviii_sound_decisions_0646.c JP/native/enhanced/cviii_dmc_dma_trace_0650.c JP/native/enhanced/cviii_audio_session_0614.c JP/native/enhanced/cviii_audio_levels_0618.c JP/native/enhanced/cviii_virtual_audio_0647.c JP/native/enhanced/cviii_audio_ui_0619.c JP/native/enhanced/cviii_menu_registry_0620.c JP/native/enhanced/cviii_audio_menu_state_0622.c JP/native/enhanced/cviii_start_menu_0623.c JP/native/enhanced/cviii_start_ui_0623.c JP/native/enhanced/cviii_slot_picker_0625.c JP/native/enhanced/cviii_menu_stack_0626.c JP/native/enhanced/test_cviii_edition.c \
+            JP/recomp/native/enhanced/cviii_edition.c JP/recomp/native/enhanced/cviii_chr_index_0598.c JP/recomp/native/enhanced/cviii_chr_audit_0599.c JP/recomp/native/enhanced/cviii_chr_fetch_0600.c JP/recomp/native/enhanced/cviii_frame_evidence_0601.c JP/recomp/native/enhanced/cviii_nt_trace_0606.c JP/recomp/native/enhanced/cviii_sprite_layers_0608.c JP/recomp/native/enhanced/cviii_object_oam_trace_0609.c JP/recomp/native/enhanced/cviii_audio_bus_0610.c JP/recomp/native/enhanced/cviii_sound_requests_0612.c JP/recomp/native/enhanced/cviii_sound_decisions_0646.c JP/recomp/native/enhanced/cviii_dmc_dma_trace_0650.c JP/recomp/native/enhanced/cviii_audio_session_0614.c JP/recomp/native/enhanced/cviii_audio_levels_0618.c JP/recomp/native/enhanced/cviii_virtual_audio_0647.c JP/recomp/native/enhanced/cviii_audio_ui_0619.c JP/recomp/native/enhanced/cviii_menu_registry_0620.c JP/recomp/native/enhanced/cviii_audio_menu_state_0622.c JP/recomp/native/enhanced/cviii_start_menu_0623.c JP/recomp/native/enhanced/cviii_start_ui_0623.c JP/recomp/native/enhanced/cviii_slot_picker_0625.c JP/recomp/native/enhanced/cviii_menu_stack_0626.c JP/recomp/native/enhanced/test_cviii_edition.c \
             -o "${{ runner.temp }}/test_cviii_edition"
           "${{ runner.temp }}/test_cviii_edition"
       - name: Verify JP0618 enhanced PCM master level and 1-percent settings (ROM-free)
         run: |
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
-            JP/native/enhanced/cviii_audio_levels_0618.c \
-            JP/native/enhanced/cviii_audio_levels_test_0618.c \
+            JP/recomp/native/enhanced/cviii_audio_levels_0618.c \
+            JP/recomp/native/enhanced/cviii_audio_levels_test_0618.c \
             -o "${{ runner.temp }}/test_audio_levels_0618"
           "${{ runner.temp }}/test_audio_levels_0618"
       - name: Verify JP0647 8+24 independent virtual-voice mixer (ROM-free)
         run: |
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic -DNDEBUG \
-            JP/native/enhanced/cviii_virtual_audio_0647.c \
-            JP/native/enhanced/cviii_virtual_audio_test_0647.c \
+            JP/recomp/native/enhanced/cviii_virtual_audio_0647.c \
+            JP/recomp/native/enhanced/cviii_virtual_audio_test_0647.c \
             -o "${{ runner.temp }}/test_virtual_audio_0647"
           "${{ runner.temp }}/test_virtual_audio_0647"
       - name: Verify JP0647 separate bus scenario with overlapping sound effects and no interrupted music (ROM-free)
         run: |
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic -DNDEBUG \
-            JP/native/enhanced/cviii_audio_levels_0618.c \
-            JP/native/enhanced/cviii_virtual_audio_0647.c \
-            JP/native/enhanced/cviii_virtual_scene_test_0647.c \
+            JP/recomp/native/enhanced/cviii_audio_levels_0618.c \
+            JP/recomp/native/enhanced/cviii_virtual_audio_0647.c \
+            JP/recomp/native/enhanced/cviii_virtual_scene_test_0647.c \
             -o "${{ runner.temp }}/test_virtual_scene_0647"
           "${{ runner.temp }}/test_virtual_scene_0647"
       - name: Verify JP0619 CHR-faithful audio health bar preview (ROM-free)
         run: |
-          python3 JP/tools/jp_audio_ui_chr_0619.py --smoke
+          python3 JP/decomp/tools/jp_audio_ui_chr_0619.py --smoke
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
-            JP/native/enhanced/cviii_audio_ui_0619.c \
-            JP/native/enhanced/cviii_audio_levels_0618.c \
-            JP/native/enhanced/cviii_audio_ui_test_0619.c \
+            JP/recomp/native/enhanced/cviii_audio_ui_0619.c \
+            JP/recomp/native/enhanced/cviii_audio_levels_0618.c \
+            JP/recomp/native/enhanced/cviii_audio_ui_test_0619.c \
             -o "${{ runner.temp }}/test_audio_ui_0619"
           "${{ runner.temp }}/test_audio_ui_0619"
       - name: Verify JP0620 mod-forward host menu registry and 1-percent controls
         run: |
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
-            JP/native/enhanced/cviii_menu_registry_0620.c \
-            JP/native/enhanced/cviii_audio_levels_0618.c \
-            JP/native/enhanced/cviii_menu_registry_test_0620.c \
+            JP/recomp/native/enhanced/cviii_menu_registry_0620.c \
+            JP/recomp/native/enhanced/cviii_audio_levels_0618.c \
+            JP/recomp/native/enhanced/cviii_menu_registry_test_0620.c \
             -o "${{ runner.temp }}/test_menu_registry_0620"
           "${{ runner.temp }}/test_menu_registry_0620"
       - name: Verify JP0622 actual F6 modal state and original volume engine (ROM-free)
         run: |
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
-            JP/native/enhanced/cviii_audio_menu_state_0622.c \
-            JP/native/enhanced/cviii_audio_levels_0618.c \
-            JP/native/enhanced/cviii_audio_menu_state_test_0622.c \
+            JP/recomp/native/enhanced/cviii_audio_menu_state_0622.c \
+            JP/recomp/native/enhanced/cviii_audio_levels_0618.c \
+            JP/recomp/native/enhanced/cviii_audio_menu_state_test_0622.c \
             -o "${{ runner.temp }}/test_audio_menu_state_0622"
           "${{ runner.temp }}/test_audio_menu_state_0622"
       - name: Verify JP0623 namespaced Pause actions and authentic font layout
         run: |
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
-            JP/native/enhanced/cviii_start_menu_0623.c \
-            JP/native/enhanced/cviii_start_menu_test_0623.c \
+            JP/recomp/native/enhanced/cviii_start_menu_0623.c \
+            JP/recomp/native/enhanced/cviii_start_menu_test_0623.c \
             -o "${{ runner.temp }}/test_start_menu_0623"
           "${{ runner.temp }}/test_start_menu_0623"
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
-            JP/native/enhanced/cviii_start_menu_0623.c \
-            JP/native/enhanced/cviii_start_ui_0623.c \
-            JP/native/enhanced/cviii_slot_picker_0625.c \
-            JP/native/enhanced/cviii_start_ui_test_0623.c \
+            JP/recomp/native/enhanced/cviii_start_menu_0623.c \
+            JP/recomp/native/enhanced/cviii_start_ui_0623.c \
+            JP/recomp/native/enhanced/cviii_slot_picker_0625.c \
+            JP/recomp/native/enhanced/cviii_start_ui_test_0623.c \
             -o "${{ runner.temp }}/test_start_ui_0623"
           "${{ runner.temp }}/test_start_ui_0623"
       - name: Verify JP0624 real generated F4 action shell under mock host (ROM-free)
         run: |
-          python3 JP/tools/jp_start_pause_shell_test_0624.py --smoke
-          python3 JP/tools/jp_start_pause_shell_test_0624.py
+          python3 JP/decomp/tools/jp_start_pause_shell_test_0624.py --smoke
+          python3 JP/decomp/tools/jp_start_pause_shell_test_0624.py
       - name: Verify JP0625 real Save/Load slot picker state 0-9 (ROM-free)
         run: |
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
-            JP/native/enhanced/cviii_slot_picker_0625.c \
-            JP/native/enhanced/cviii_slot_picker_test_0625.c \
+            JP/recomp/native/enhanced/cviii_slot_picker_0625.c \
+            JP/recomp/native/enhanced/cviii_slot_picker_test_0625.c \
             -o "${{ runner.temp }}/test_slot_picker_0625"
           "${{ runner.temp }}/test_slot_picker_0625"
       - name: Verify JP0625 exact generated Save/Load SDL shell offline and netplay
         run: |
-          python3 JP/tools/jp_slot_shell_test_0625.py --smoke
-          python3 JP/tools/jp_slot_shell_test_0625.py
+          python3 JP/decomp/tools/jp_slot_shell_test_0625.py --smoke
+          python3 JP/decomp/tools/jp_slot_shell_test_0625.py
       - name: Execute JP0644 generated seventh-layer Save Load Audio interaction offline and netplay
         run: |
-          python3 JP/tools/jp_menu_roundtrip_shell_test_0644.py --smoke
-          python3 JP/tools/jp_menu_roundtrip_shell_test_0644.py
+          python3 JP/recomp/tools/jp_menu_roundtrip_shell_test_0644.py --smoke
+          python3 JP/recomp/tools/jp_menu_roundtrip_shell_test_0644.py
       - name: Verify JP0626 Audio child return preserves Pause focus (ROM-free)
         run: |
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
-            JP/native/enhanced/cviii_menu_stack_0626.c \
-            JP/native/enhanced/cviii_start_menu_0623.c \
-            JP/native/enhanced/cviii_audio_menu_state_0622.c \
-            JP/native/enhanced/cviii_audio_levels_0618.c \
-            JP/native/enhanced/cviii_menu_stack_test_0626.c \
+            JP/recomp/native/enhanced/cviii_menu_stack_0626.c \
+            JP/recomp/native/enhanced/cviii_start_menu_0623.c \
+            JP/recomp/native/enhanced/cviii_audio_menu_state_0622.c \
+            JP/recomp/native/enhanced/cviii_audio_levels_0618.c \
+            JP/recomp/native/enhanced/cviii_menu_stack_test_0626.c \
             -o "${{ runner.temp }}/test_menu_stack_0626"
           "${{ runner.temp }}/test_menu_stack_0626"
       - name: Verify VRC6 CHR register mapping modes and physical offsets (ROM-free)
         run: |
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
-            JP/native/enhanced/cviii_chr_audit_0599.c \
-            JP/native/enhanced/cviii_chr_audit_test_0599.c \
+            JP/recomp/native/enhanced/cviii_chr_audit_0599.c \
+            JP/recomp/native/enhanced/cviii_chr_audit_test_0599.c \
             -o "${{ runner.temp }}/test_chr_banks_0599"
           "${{ runner.temp }}/test_chr_banks_0599"
       - name: Validate read-only PPU fetch patch and synthetic bank-timeline parser
         run: |
-          python3 JP/tools/patch_cyc_chr_fetch_0600.py --smoke
-          python3 JP/tools/patch_cyc_ppu_nt_0606.py --smoke
-          python3 JP/tools/jp_nt_trace_report_0606.py --smoke
-          python3 JP/tools/jp_chr_fetch_report_0600.py --smoke
-          python3 JP/tools/jp_frame_evidence_report_0601.py --smoke
-          python3 JP/tools/jp_mapper_audit_0602.py --smoke
-          python3 JP/tools/jp_qa_matrix_0602.py --smoke
+          python3 JP/recomp/tools/patch_cyc_chr_fetch_0600.py --smoke
+          python3 JP/recomp/tools/patch_cyc_ppu_nt_0606.py --smoke
+          python3 JP/recomp/tools/jp_nt_trace_report_0606.py --smoke
+          python3 JP/recomp/tools/jp_chr_fetch_report_0600.py --smoke
+          python3 JP/recomp/tools/jp_frame_evidence_report_0601.py --smoke
+          python3 JP/decomp/tools/jp_mapper_audit_0602.py --smoke
+          python3 JP/decomp/tools/jp_qa_matrix_0602.py --smoke
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
-            JP/native/enhanced/cviii_chr_fetch_0600.c \
-            JP/native/enhanced/cviii_chr_fetch_test_0600.c \
+            JP/recomp/native/enhanced/cviii_chr_fetch_0600.c \
+            JP/recomp/native/enhanced/cviii_chr_fetch_test_0600.c \
             -o "${{ runner.temp }}/test_chr_fetch_0600"
           "${{ runner.temp }}/test_chr_fetch_0600"
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
-            JP/native/enhanced/cviii_frame_evidence_0601.c \
-            JP/native/enhanced/cviii_frame_evidence_test_0601.c \
+            JP/recomp/native/enhanced/cviii_frame_evidence_0601.c \
+            JP/recomp/native/enhanced/cviii_frame_evidence_test_0601.c \
             -o "${{ runner.temp }}/test_frame_evidence_0601"
           "${{ runner.temp }}/test_frame_evidence_0601"
       - name: Verify real PPU nametable fetch counters on invented bus data
         run: |
-          cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic             JP/native/enhanced/cviii_nt_trace_0606.c             JP/native/enhanced/cviii_nt_trace_test_0606.c             -o "${{ runner.temp }}/test_nt_trace_0606"
+          cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic             JP/recomp/native/enhanced/cviii_nt_trace_0606.c             JP/recomp/native/enhanced/cviii_nt_trace_test_0606.c             -o "${{ runner.temp }}/test_nt_trace_0606"
           "${{ runner.temp }}/test_nt_trace_0606"
       - name: Verify JP0609 object/OAM rotation and logical drawing order
         run: |
-          python3 JP/tools/jp_object_oam_report_0609.py --smoke
+          python3 JP/recomp/tools/jp_object_oam_report_0609.py --smoke
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
-            JP/native/enhanced/cviii_object_oam_trace_0609.c \
-            JP/native/enhanced/cviii_object_oam_trace_test_0609.c \
+            JP/recomp/native/enhanced/cviii_object_oam_trace_0609.c \
+            JP/recomp/native/enhanced/cviii_object_oam_trace_test_0609.c \
             -o "${{ runner.temp }}/test_object_oam_0609"
           "${{ runner.temp }}/test_object_oam_0609"
       - name: Verify actual 2A03 + VRC6 audio register observation (ROM-free)
         run: |
-          python3 JP/tools/patch_cyc_audio_bus_0610.py --smoke
-          python3 JP/tools/jp_audio_bus_report_0610.py --smoke
+          python3 JP/recomp/tools/patch_cyc_audio_bus_0610.py --smoke
+          python3 JP/recomp/tools/jp_audio_bus_report_0610.py --smoke
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
-            JP/native/enhanced/cviii_audio_bus_0610.c \
-            JP/native/enhanced/cviii_audio_bus_test_0610.c \
+            JP/recomp/native/enhanced/cviii_audio_bus_0610.c \
+            JP/recomp/native/enhanced/cviii_audio_bus_test_0610.c \
             -o "${{ runner.temp }}/test_audio_bus_0610"
           "${{ runner.temp }}/test_audio_bus_0610"
       - name: Validate JP0613 sound request/register proximity parser (ROM-free)
-        run: python3 JP/tools/jp_sound_request_report_0613.py --smoke
+        run: python3 JP/decomp/tools/jp_sound_request_report_0613.py --smoke
       - name: Verify JP0612 sound entry dual fetch observer and logger (ROM-free)
         run: |
-          python3 JP/tools/patch_cyc_sound_requests_0612.py --smoke
+          python3 JP/recomp/tools/patch_cyc_sound_requests_0612.py --smoke
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
-            JP/native/enhanced/cviii_sound_requests_0612.c \
-            JP/native/enhanced/cviii_sound_requests_test_0612.c \
+            JP/recomp/native/enhanced/cviii_sound_requests_0612.c \
+            JP/recomp/native/enhanced/cviii_sound_requests_test_0612.c \
             -o "${{ runner.temp }}/test_sound_requests_0612"
           "${{ runner.temp }}/test_sound_requests_0612"
       - name: Verify JP0652 complete source-indexed sound directory (ROM-free)
         run: |
-          python3 JP/tools/jp_sound_catalog_0652.py --smoke
+          python3 JP/decomp/tools/jp_sound_catalog_0652.py --smoke
       - name: Verify JP0653 148-entry phrase index, 512 CPU smokes and native C11 (ROM-free)
         run: |
-          python3 JP/tools/jp_phrase_lookup_0653.py --smoke
+          python3 JP/decomp/tools/jp_phrase_lookup_0653.py --smoke
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic -DNDEBUG \
-            JP/native/enhanced/cviii_phrase_lookup_0653.c \
-            JP/native/enhanced/cviii_phrase_lookup_test_0653.c \
+            JP/recomp/native/enhanced/cviii_phrase_lookup_0653.c \
+            JP/recomp/native/enhanced/cviii_phrase_lookup_test_0653.c \
             -o "${{ runner.temp }}/jp_phrase_lookup_test_0653"
           "${{ runner.temp }}/jp_phrase_lookup_test_0653"
       - name: Verify JP0655 original sound arithmetic and 385536 C11 input cases (ROM-free)
         run: |
-          python3 JP/tools/jp_phrase_delta_0655.py --smoke
+          python3 JP/decomp/tools/jp_phrase_delta_0655.py --smoke
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic -DNDEBUG \
-            JP/native/enhanced/cviii_phrase_delta_0655.c \
-            JP/native/enhanced/cviii_phrase_delta_test_0655.c \
+            JP/recomp/native/enhanced/cviii_phrase_delta_0655.c \
+            JP/recomp/native/enhanced/cviii_phrase_delta_test_0655.c \
             -o "${{ runner.temp }}/jp_phrase_delta_test_0655"
           "${{ runner.temp }}/jp_phrase_delta_test_0655"
       - name: Verify JP0656 complete sound control grammar and 327680 native C11 cases (ROM-free)
         run: |
-          python3 JP/tools/jp_phrase_control_0656.py --smoke
+          python3 JP/decomp/tools/jp_phrase_control_0656.py --smoke
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic -DNDEBUG \
-            JP/native/enhanced/cviii_phrase_control_0656.c \
-            JP/native/enhanced/cviii_phrase_control_test_0656.c \
+            JP/recomp/native/enhanced/cviii_phrase_control_0656.c \
+            JP/recomp/native/enhanced/cviii_phrase_control_test_0656.c \
             -o "${{ runner.temp }}/jp_phrase_control_test_0656"
           "${{ runner.temp }}/jp_phrase_control_test_0656"
       - name: Verify JP0657 room-hierarchy and 131072 coordinate C11 cases (ROM-free)
         run: |
-          python3 JP/tools/jp_room_catalog_0657.py --smoke
-          python3 JP/tools/jp_room_coordinate_0657.py --smoke
+          python3 JP/decomp/tools/jp_room_catalog_0657.py --smoke
+          python3 JP/decomp/tools/jp_room_coordinate_0657.py --smoke
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic -DNDEBUG \
-            JP/native/enhanced/cviii_room_catalog_0657.c \
-            JP/native/enhanced/cviii_room_catalog_test_0657.c \
+            JP/recomp/native/enhanced/cviii_room_catalog_0657.c \
+            JP/recomp/native/enhanced/cviii_room_catalog_test_0657.c \
             -o "${{ runner.temp }}/jp_room_catalog_test_0657"
           "${{ runner.temp }}/jp_room_catalog_test_0657"
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic -DNDEBUG \
-            JP/native/enhanced/cviii_room_coordinate_0657.c \
-            JP/native/enhanced/cviii_room_coordinate_test_0657.c \
+            JP/recomp/native/enhanced/cviii_room_coordinate_0657.c \
+            JP/recomp/native/enhanced/cviii_room_coordinate_test_0657.c \
             -o "${{ runner.temp }}/jp_room_coordinate_test_0657"
           "${{ runner.temp }}/jp_room_coordinate_test_0657"
       - name: Verify JP0658 512 synthetic full room-state and 2048 PPU events (ROM-free)
         run: |
-          python3 JP/tools/jp_room_clear_0658.py --smoke
+          python3 JP/decomp/tools/jp_room_clear_0658.py --smoke
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic -DNDEBUG \
-            JP/native/enhanced/cviii_room_ppu_stream_0658.c \
-            JP/native/enhanced/cviii_room_state0_0658.c \
-            JP/native/enhanced/cviii_room_state0_test_0658.c \
+            JP/recomp/native/enhanced/cviii_room_ppu_stream_0658.c \
+            JP/recomp/native/enhanced/cviii_room_state0_0658.c \
+            JP/recomp/native/enhanced/cviii_room_state0_test_0658.c \
             -o "${{ runner.temp }}/jp_room_state0_test_0658"
           "${{ runner.temp }}/jp_room_state0_test_0658"
       - name: Verify JP0661 real native settings profiles on synthetic config.ini
         run: |
-          python3 JP/tools/test_control_profiles_0661.py
-          python3 JP/tools/package_alpha_builder_0580.py --smoke
+          python3 JP/recomp/tools/test_control_profiles_0661.py
+          python3 JP/recomp/tools/package_alpha_builder_0580.py --smoke
       - name: Verify JP0659 1280 native banked room-loader cases and stage extraction roundtrip (ROM-free)
         run: |
-          python3 JP/tools/jp_room_stream_0659.py --smoke
-          python3 JP/tools/jp_room_resources_0659.py --smoke
+          python3 JP/decomp/tools/jp_room_stream_0659.py --smoke
+          python3 JP/decomp/tools/jp_room_resources_0659.py --smoke
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic -DNDEBUG \
-            JP/native/enhanced/cviii_room_stream_0659.c \
-            JP/native/enhanced/cviii_room_stream_test_0659.c \
+            JP/recomp/native/enhanced/cviii_room_stream_0659.c \
+            JP/recomp/native/enhanced/cviii_room_stream_test_0659.c \
             -o "${{ runner.temp }}/jp_room_stream_test_0659"
           "${{ runner.temp }}/jp_room_stream_test_0659"
       - name: Verify JP0648 original source DMC table boundaries and priority (ROM-free)
         run: |
-          python3 JP/tools/jp_dmc_original_source_0648.py --smoke
+          python3 JP/decomp/tools/jp_dmc_original_source_0648.py --smoke
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic -DNDEBUG \
-            JP/native/enhanced/cviii_dmc_source_0648.c \
-            JP/native/enhanced/cviii_dmc_source_test_0648.c \
+            JP/recomp/native/enhanced/cviii_dmc_source_0648.c \
+            JP/recomp/native/enhanced/cviii_dmc_source_test_0648.c \
             -o "${{ runner.temp }}/jp_dmc_source_test_0648"
           "${{ runner.temp }}/jp_dmc_source_test_0648"
       - name: Verify JP0649 bounded source-driven 2A03 DPCM decode and mapper bank (ROM-free)
         run: |
-          python3 JP/tools/jp_dpcm_memory_audit_0649.py --smoke
+          python3 JP/decomp/tools/jp_dpcm_memory_audit_0649.py --smoke
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic -DNDEBUG \
-            JP/native/enhanced/cviii_dmc_source_0648.c \
-            JP/native/enhanced/cviii_dpcm_decode_0649.c \
-            JP/native/enhanced/cviii_dpcm_decode_test_0649.c \
+            JP/recomp/native/enhanced/cviii_dmc_source_0648.c \
+            JP/recomp/native/enhanced/cviii_dpcm_decode_0649.c \
+            JP/recomp/native/enhanced/cviii_dpcm_decode_test_0649.c \
             -o "${{ runner.temp }}/jp_dpcm_decode_test_0649"
           "${{ runner.temp }}/jp_dpcm_decode_test_0649"
       - name: Verify JP0650 mapper24 physical DMC DMA-get source and owner CSV integrity (ROM-free)
         run: |
-          python3 JP/tools/patch_cyc_dmc_dma_trace_0650.py --smoke
-          python3 JP/tools/jp_dmc_dma_trace_verify_0650.py --smoke
+          python3 JP/recomp/tools/patch_cyc_dmc_dma_trace_0650.py --smoke
+          python3 JP/decomp/tools/jp_dmc_dma_trace_verify_0650.py --smoke
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic -DNDEBUG \
-            JP/native/enhanced/cviii_dmc_dma_trace_0650.c \
-            JP/native/enhanced/cviii_dmc_dma_trace_test_0650.c \
+            JP/recomp/native/enhanced/cviii_dmc_dma_trace_0650.c \
+            JP/recomp/native/enhanced/cviii_dmc_dma_trace_test_0650.c \
             -o "${{ runner.temp }}/jp_dmc_dma_trace_test_0650"
           "${{ runner.temp }}/jp_dmc_dma_trace_test_0650"
       - name: Verify JP0651 independently sourced MesenCE DMC DMA callback and lossless source/cycle comparator (ROM-free)
         run: |
-          python3 JP/tools/patch_mesen_dmc_reference_0651.py --smoke
-          python3 JP/tools/jp_mesen_dmc_dma_compare_0651.py --smoke
+          python3 JP/decomp/tools/patch_mesen_dmc_reference_0651.py --smoke
+          python3 JP/decomp/tools/jp_mesen_dmc_dma_compare_0651.py --smoke
       - name: Verify JP0646 native original sound decision hook + five driver outcomes (ROM-free)
         run: |
-          python3 JP/tools/patch_cyc_sound_decisions_0646.py --smoke
+          python3 JP/recomp/tools/patch_cyc_sound_decisions_0646.py --smoke
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
-            JP/native/enhanced/cviii_sound_decisions_0646.c \
-            JP/native/enhanced/cviii_sound_decisions_test_0646.c \
+            JP/recomp/native/enhanced/cviii_sound_decisions_0646.c \
+            JP/recomp/native/enhanced/cviii_sound_decisions_test_0646.c \
             -o "${{ runner.temp }}/test_sound_decisions_0646"
           "${{ runner.temp }}/test_sound_decisions_0646"
       - name: Validate JP0614 audio capture session and save-state epochs (ROM-free)
         run: |
-          python3 JP/tools/jp_sound_priority_paths_0616.py --smoke
-          python3 JP/tools/jp_sound_decision_reference_0617.py --smoke
-          python3 JP/tools/jp_mesen_gate_report_0616.py --smoke
-          python3 JP/tools/jp_mesen_sound_requests_0615.py --smoke
-          python3 JP/tools/jp_audio_session_verify_0614.py --smoke
+          python3 JP/decomp/tools/jp_sound_priority_paths_0616.py --smoke
+          python3 JP/decomp/tools/jp_sound_decision_reference_0617.py --smoke
+          python3 JP/decomp/tools/jp_mesen_gate_report_0616.py --smoke
+          python3 JP/decomp/tools/jp_mesen_sound_requests_0615.py --smoke
+          python3 JP/recomp/tools/jp_audio_session_verify_0614.py --smoke
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
-            JP/native/enhanced/cviii_audio_session_0614.c \
-            JP/native/enhanced/cviii_audio_session_test_0614.c \
+            JP/recomp/native/enhanced/cviii_audio_session_0614.c \
+            JP/recomp/native/enhanced/cviii_audio_session_test_0614.c \
             -o "${{ runner.temp }}/test_audio_session_0614"
           "${{ runner.temp }}/test_audio_session_0614"
       - name: Verify independent sprite layers and bounded OAM continuity
         run: |
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
-            JP/native/enhanced/cviii_sprite_layers_0608.c \
-            JP/native/enhanced/cviii_sprite_layers_test_0608.c \
+            JP/recomp/native/enhanced/cviii_sprite_layers_0608.c \
+            JP/recomp/native/enhanced/cviii_sprite_layers_test_0608.c \
             -o "${{ runner.temp }}/test_sprite_layers_0608"
           "${{ runner.temp }}/test_sprite_layers_0608"
       - name: Verify JP0645 original PRG26 emission arithmetic and malformed motifs (ROM-free)
-        run: python3 JP/tools/jp_sprite_emission_source_0645.py --smoke
+        run: python3 JP/decomp/tools/jp_sprite_emission_source_0645.py --smoke
       - name: Verify JP0645 original logical sprite OAM rotation and 64-object animation (ROM-free)
         run: |
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
-            JP/native/enhanced/cviii_sprite_layers_0608.c \
-            JP/native/enhanced/cviii_sprite_identity_test_0645.c \
+            JP/recomp/native/enhanced/cviii_sprite_layers_0608.c \
+            JP/recomp/native/enhanced/cviii_sprite_identity_test_0645.c \
             -o "${{ runner.temp }}/jp_sprite_identity_test_0645"
           "${{ runner.temp }}/jp_sprite_identity_test_0645"
       - name: Generate noncommercial synthetic mapper24 VRC6 ROM
-        run: python3 JP/tools/test_cycle_synthetic_rom_0569.py --out "${{ runner.temp }}/jp_mapper24_fixture.nes"
+        run: python3 JP/decomp/tools/test_cycle_synthetic_rom_0569.py --out "${{ runner.temp }}/jp_mapper24_fixture.nes"
       - name: Configure CVIII external C11 cycle wrapper with exact synthetic fixture
         run: |
-          python3 JP/tools/validate_cycle_media_0576.py --smoke
-          cmake -S JP/native/nesrecomp_cycle \
+          python3 JP/recomp/tools/validate_cycle_media_0576.py --smoke
+          cmake -S JP/recomp/native/nesrecomp_cycle \
                 -B "${{ runner.temp }}/jp-vrc6-cycle" -G Ninja \
                 -DCMAKE_BUILD_TYPE=Release \
                 -DJP_ORIGINAL_JP_ROM="${{ runner.temp }}/jp_mapper24_fixture.nes" \
@@ -430,9 +430,9 @@ jobs:
              --hash-out "${{ runner.temp }}/jp_vrc6_frame_hashes.txt" \
              --screenshot "${{ runner.temp }}/jp_vrc6_final_frame.png" \
              | tee "${{ runner.temp }}/jp_cycle_stdout.log"
-          python3 JP/tools/check_cycle_stats_0571.py \
+          python3 JP/decomp/tools/check_cycle_stats_0571.py \
              --log "${{ runner.temp }}/jp_cycle_stdout.log" --frames 3
-          python3 JP/tools/validate_frame_artifacts_0578.py \
+          python3 JP/decomp/tools/validate_frame_artifacts_0578.py \
              --hash-out "${{ runner.temp }}/jp_vrc6_frame_hashes.txt" \
              --screenshot "${{ runner.temp }}/jp_vrc6_final_frame.png" --frames 3
       - name: Verify synthetic save/load resumes exact machine frame hashes
@@ -460,7 +460,7 @@ jobs:
           sudo apt-get install -y -qq libsdl2-dev
       - name: Configure real windowed C11 host with numbered save slots
         run: |
-          cmake -S JP/native/nesrecomp_cycle \
+          cmake -S JP/recomp/native/nesrecomp_cycle \
             -B "${{ runner.temp }}/jp-vrc6-window" -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DSDL2_DIR=/usr/lib/x86_64-linux-gnu/cmake/SDL2 \

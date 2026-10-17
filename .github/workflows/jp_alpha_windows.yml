@@ -3,74 +3,74 @@ on:
   push:
     branches: [decompilation]
     paths:
-      - "JP/release/alpha/**"
-      - "JP/tools/build_private_asm_reference_0627.py"
-      - "JP/tools/test_private_asm_reference_0627.py"
-      - "JP/tools/audit_room_selector_window_0628.py"
-      - "JP/tools/audit_room_selector_table_0629.py"
-      - "JP/tools/audit_mesen_room_selector_trace_0629.py"
-      - "JP/tools/mesen_jp_room_selector_provenance_0629.lua"
-      - "JP/tools/mesen_jp_room_chain_0630.lua"
-      - "JP/tools/audit_mesen_room_chain_0630.py"
-      - "JP/tools/package_alpha_builder_0580.py"
-      - "JP/tools/test_alpha_arguments_0604.ps1"
-      - "JP/tools/test_alpha_python_0607.ps1"
-      - "JP/tools/jp_password_*0593.py"
-      - "JP/tools/jp_asset_pack_0597.py"
-      - "JP/tools/jp_asset_runtime_0598.py"
-      - "JP/tools/patch_cyc_stage_menu_0594.py"
-      - "JP/tools/patch_cyc_stage_bootstrap_0596.py"
-      - "JP/tools/patch_cyc_audio_menu_0620.py"
-      - "JP/tools/patch_cyc_start_menu_0623.py"
-      - "JP/tools/jp_start_menu_pinned_gate_0623.py"
-      - "JP/tools/jp_start_pause_shell_test_0624.py"
-      - "JP/tools/patch_cyc_slot_picker_0625.py"
-      - "JP/tools/jp_slot_picker_pinned_gate_0625.py"
-      - "JP/tools/jp_slot_shell_test_0625.py"
-      - "JP/tools/jp_menu_roundtrip_shell_test_0644.py"
-      - "JP/tools/patch_cyc_audio_return_0626.py"
-      - "JP/tools/jp_audio_return_pinned_gate_0626.py"
-      - "JP/tools/jp_audio_menu_pinned_gate_0621.py"
-      - "JP/tools/patch_cyc_chr_fetch_0600.py"
-      - "JP/tools/patch_cyc_ppu_nt_0606.py"
-      - "JP/tools/jp_nt_trace_report_0606.py"
-      - "JP/tools/jp_object_oam_report_0609.py"
-      - "JP/tools/patch_cyc_audio_bus_0610.py"
-      - "JP/tools/patch_cyc_sound_requests_0612.py"
-      - "JP/tools/patch_cyc_sound_decisions_0646.py"
-      - "JP/tools/jp_dmc_original_source_0648.py"
-      - "JP/tools/jp_sound_catalog_0652.py"
-      - "JP/tools/jp_phrase_lookup_0653.py"
-      - "JP/tools/jp_phrase_delta_0655.py"
-      - "JP/tools/jp_phrase_control_0656.py"
-      - "JP/tools/jp_room_catalog_0657.py"
-      - "JP/tools/jp_room_coordinate_0657.py"
-      - "JP/tools/jp_room_clear_0658.py"
-      - "JP/tools/jp_room_stream_0659.py"
-      - "JP/tools/jp_room_resources_0659.py"
-      - "JP/tools/test_control_profiles_0661.py"
-      - "JP/tools/jp_dpcm_memory_audit_0649.py"
-      - "JP/tools/patch_cyc_dmc_dma_trace_0650.py"
-      - "JP/tools/jp_dmc_dma_trace_verify_0650.py"
-      - "JP/tools/patch_mesen_dmc_reference_0651.py"
-      - "JP/tools/jp_mesen_dmc_dma_compare_0651.py"
-      - "JP/tools/jp_audio_bus_report_0610.py"
-      - "JP/tools/jp_audio_session_verify_0614.py"
-      - "JP/tools/jp_mesen_sound_requests_0615.py"
-      - "JP/tools/jp_sound_priority_paths_0616.py"
-      - "JP/tools/jp_mesen_gate_report_0616.py"
-      - "JP/tools/jp_sound_decision_reference_0617.py"
-      - "JP/tools/jp_audio_ui_chr_0619.py"
-      - "JP/tools/mesen_jp_sound_decisions_0617.lua"
-      - "JP/tools/mesen_jp_sound_gates_0616.lua"
-      - "JP/tools/mesen_jp_sound_requests_0615.lua"
-      - "JP/tools/jp_chr_fetch_report_0600.py"
-      - "JP/tools/jp_frame_evidence_report_0601.py"
-      - "JP/tools/jp_qa_matrix_0602.py"
-      - "JP/tools/jp_mapper_audit_0602.py"
-      - "JP/native/nesrecomp_cycle/**"
-      - "JP/native/enhanced/**"
-      - "JP/tools/jp_sprite_emission_source_0645.py"
+      - "JP/recomp/release/alpha/**"
+      - "JP/decomp/tools/build_private_asm_reference_0627.py"
+      - "JP/decomp/tools/test_private_asm_reference_0627.py"
+      - "JP/decomp/tools/audit_room_selector_window_0628.py"
+      - "JP/decomp/tools/audit_room_selector_table_0629.py"
+      - "JP/decomp/tools/audit_mesen_room_selector_trace_0629.py"
+      - "JP/decomp/tools/mesen_jp_room_selector_provenance_0629.lua"
+      - "JP/decomp/tools/mesen_jp_room_chain_0630.lua"
+      - "JP/decomp/tools/audit_mesen_room_chain_0630.py"
+      - "JP/recomp/tools/package_alpha_builder_0580.py"
+      - "JP/recomp/tools/test_alpha_arguments_0604.ps1"
+      - "JP/recomp/tools/test_alpha_python_0607.ps1"
+      - "JP/decomp/tools/jp_password_*0593.py"
+      - "JP/recomp/tools/jp_asset_pack_0597.py"
+      - "JP/recomp/tools/jp_asset_runtime_0598.py"
+      - "JP/recomp/tools/patch_cyc_stage_menu_0594.py"
+      - "JP/recomp/tools/patch_cyc_stage_bootstrap_0596.py"
+      - "JP/recomp/tools/patch_cyc_audio_menu_0620.py"
+      - "JP/recomp/tools/patch_cyc_start_menu_0623.py"
+      - "JP/decomp/tools/jp_start_menu_pinned_gate_0623.py"
+      - "JP/decomp/tools/jp_start_pause_shell_test_0624.py"
+      - "JP/recomp/tools/patch_cyc_slot_picker_0625.py"
+      - "JP/decomp/tools/jp_slot_picker_pinned_gate_0625.py"
+      - "JP/decomp/tools/jp_slot_shell_test_0625.py"
+      - "JP/recomp/tools/jp_menu_roundtrip_shell_test_0644.py"
+      - "JP/recomp/tools/patch_cyc_audio_return_0626.py"
+      - "JP/decomp/tools/jp_audio_return_pinned_gate_0626.py"
+      - "JP/decomp/tools/jp_audio_menu_pinned_gate_0621.py"
+      - "JP/recomp/tools/patch_cyc_chr_fetch_0600.py"
+      - "JP/recomp/tools/patch_cyc_ppu_nt_0606.py"
+      - "JP/recomp/tools/jp_nt_trace_report_0606.py"
+      - "JP/recomp/tools/jp_object_oam_report_0609.py"
+      - "JP/recomp/tools/patch_cyc_audio_bus_0610.py"
+      - "JP/recomp/tools/patch_cyc_sound_requests_0612.py"
+      - "JP/recomp/tools/patch_cyc_sound_decisions_0646.py"
+      - "JP/decomp/tools/jp_dmc_original_source_0648.py"
+      - "JP/decomp/tools/jp_sound_catalog_0652.py"
+      - "JP/decomp/tools/jp_phrase_lookup_0653.py"
+      - "JP/decomp/tools/jp_phrase_delta_0655.py"
+      - "JP/decomp/tools/jp_phrase_control_0656.py"
+      - "JP/decomp/tools/jp_room_catalog_0657.py"
+      - "JP/decomp/tools/jp_room_coordinate_0657.py"
+      - "JP/decomp/tools/jp_room_clear_0658.py"
+      - "JP/decomp/tools/jp_room_stream_0659.py"
+      - "JP/decomp/tools/jp_room_resources_0659.py"
+      - "JP/recomp/tools/test_control_profiles_0661.py"
+      - "JP/decomp/tools/jp_dpcm_memory_audit_0649.py"
+      - "JP/recomp/tools/patch_cyc_dmc_dma_trace_0650.py"
+      - "JP/decomp/tools/jp_dmc_dma_trace_verify_0650.py"
+      - "JP/decomp/tools/patch_mesen_dmc_reference_0651.py"
+      - "JP/decomp/tools/jp_mesen_dmc_dma_compare_0651.py"
+      - "JP/recomp/tools/jp_audio_bus_report_0610.py"
+      - "JP/recomp/tools/jp_audio_session_verify_0614.py"
+      - "JP/decomp/tools/jp_mesen_sound_requests_0615.py"
+      - "JP/decomp/tools/jp_sound_priority_paths_0616.py"
+      - "JP/decomp/tools/jp_mesen_gate_report_0616.py"
+      - "JP/decomp/tools/jp_sound_decision_reference_0617.py"
+      - "JP/decomp/tools/jp_audio_ui_chr_0619.py"
+      - "JP/decomp/tools/mesen_jp_sound_decisions_0617.lua"
+      - "JP/decomp/tools/mesen_jp_sound_gates_0616.lua"
+      - "JP/decomp/tools/mesen_jp_sound_requests_0615.lua"
+      - "JP/recomp/tools/jp_chr_fetch_report_0600.py"
+      - "JP/recomp/tools/jp_frame_evidence_report_0601.py"
+      - "JP/decomp/tools/jp_qa_matrix_0602.py"
+      - "JP/decomp/tools/jp_mapper_audit_0602.py"
+      - "JP/recomp/native/nesrecomp_cycle/**"
+      - "JP/recomp/native/enhanced/**"
+      - "JP/decomp/tools/jp_sprite_emission_source_0645.py"
       - ".github/workflows/jp_alpha_windows.yml"
   workflow_dispatch:
 permissions:
@@ -97,105 +97,105 @@ jobs:
         shell: pwsh
         run: |
           if (!(Select-String -LiteralPath '_external_nesrecomp/LICENSE' -Pattern 'PolyForm Noncommercial License 1.0.0' -Quiet)) { throw 'Wrong upstream license' }
-          python JP/tools/test_cycle_synthetic_rom_0569.py --out "$env:RUNNER_TEMP\alpha-vrc6.nes"
+          python JP/decomp/tools/test_cycle_synthetic_rom_0569.py --out "$env:RUNNER_TEMP\alpha-vrc6.nes"
           if ($LASTEXITCODE -ne 0) { throw 'Synthetic VRC6 media generation failed' }
       - name: Check stage and companion password debug selector
         shell: pwsh
         run: |
-          python JP/tools/jp_password_debug_menu_0593.py --self-test
+          python JP/decomp/tools/jp_password_debug_menu_0593.py --self-test
           if ($LASTEXITCODE -ne 0) { throw "Stage/companion debug contract failed" }
       - name: Verify JP0627 full cartridge assembly round-trip generator (synthetic only)
         shell: pwsh
         run: |
-          python JP/tools/test_private_asm_reference_0627.py
+          python JP/decomp/tools/test_private_asm_reference_0627.py
           if ($LASTEXITCODE -ne 0) { throw 'JP0627 bank reference regeneration failed' }
       - name: Verify JP0629 source-identified Mesen event parser (ROM-free)
         shell: pwsh
         run: |
-          python JP/tools/audit_mesen_room_selector_trace_0629.py --smoke
+          python JP/decomp/tools/audit_mesen_room_selector_trace_0629.py --smoke
           if ($LASTEXITCODE -ne 0) { throw 'JP0629 Mesen trace validator smoke failed' }
-          python -m py_compile JP/tools/audit_room_selector_table_0629.py
+          python -m py_compile JP/decomp/tools/audit_room_selector_table_0629.py
           if ($LASTEXITCODE -ne 0) { throw 'JP0629 room selector table audit compile failed' }
-          python JP/tools/audit_mesen_room_chain_0630.py --smoke
+          python JP/decomp/tools/audit_mesen_room_chain_0630.py --smoke
           if ($LASTEXITCODE -ne 0) { throw 'JP0630 Mesen room chain parser smoke failed' }
       - name: Verify JP0628 mapper-aware selector hazard guard (ROM-free)
         shell: pwsh
         run: |
-          python JP/tools/audit_room_selector_window_0628.py --smoke
+          python JP/decomp/tools/audit_room_selector_window_0628.py --smoke
           if ($LASTEXITCODE -ne 0) { throw 'JP0628 selector audit smoke failed' }
       - name: Test deterministic ROM-free asset cache and copyright boundary
         shell: pwsh
         run: |
-          python JP/tools/jp_asset_pack_0597.py --smoke
+          python JP/recomp/tools/jp_asset_pack_0597.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "JP0597 asset pack contract failed" }
-          python JP/tools/jp_asset_runtime_0598.py --smoke
+          python JP/recomp/tools/jp_asset_runtime_0598.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "JP0598 native CHR index contract failed" }
       - name: Validate F10 stage menu overlay against pinned SDL host contract
         shell: pwsh
         run: |
-          python JP/tools/patch_cyc_stage_menu_0594.py --smoke
+          python JP/recomp/tools/patch_cyc_stage_menu_0594.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "F10 stage menu patch test failed" }
-          python JP/tools/patch_cyc_stage_bootstrap_0596.py --smoke
+          python JP/recomp/tools/patch_cyc_stage_bootstrap_0596.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "F10 password bootstrap patch test failed" }
-          python JP/tools/patch_cyc_audio_menu_0620.py --smoke
+          python JP/recomp/tools/patch_cyc_audio_menu_0620.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "JP0620 F6 paused authentic audio menu patch test failed" }
-          python JP/tools/jp_audio_menu_pinned_gate_0621.py --smoke
+          python JP/decomp/tools/jp_audio_menu_pinned_gate_0621.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "JP0621 layered audio menu source smoke failed" }
-          python JP/tools/jp_audio_menu_pinned_gate_0621.py --source _external_nesrecomp/runner/cyc/cyc_sdl.c
+          python JP/decomp/tools/jp_audio_menu_pinned_gate_0621.py --source _external_nesrecomp/runner/cyc/cyc_sdl.c
           if ($LASTEXITCODE -ne 0) { throw "JP0621 pinned SDL four-overlay source contract failed" }
-          python JP/tools/jp_start_menu_pinned_gate_0623.py --smoke
+          python JP/decomp/tools/jp_start_menu_pinned_gate_0623.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "JP0623 Start/Pause patch smoke failed" }
-          python JP/tools/jp_start_menu_pinned_gate_0623.py --source _external_nesrecomp/runner/cyc/cyc_sdl.c
+          python JP/decomp/tools/jp_start_menu_pinned_gate_0623.py --source _external_nesrecomp/runner/cyc/cyc_sdl.c
           if ($LASTEXITCODE -ne 0) { throw "JP0623 five-overlay SDL source regression failed" }
-          python JP/tools/jp_slot_picker_pinned_gate_0625.py --smoke
+          python JP/decomp/tools/jp_slot_picker_pinned_gate_0625.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "JP0625 source patch smoke failed" }
-          python JP/tools/jp_slot_picker_pinned_gate_0625.py --source _external_nesrecomp/runner/cyc/cyc_sdl.c
+          python JP/decomp/tools/jp_slot_picker_pinned_gate_0625.py --source _external_nesrecomp/runner/cyc/cyc_sdl.c
           if ($LASTEXITCODE -ne 0) { throw "JP0625 six-layer pinned SDL source gate failed" }
-          python JP/tools/jp_audio_return_pinned_gate_0626.py --smoke
+          python JP/decomp/tools/jp_audio_return_pinned_gate_0626.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "JP0626 Audio return patch smoke failed" }
-          python JP/tools/jp_audio_return_pinned_gate_0626.py --source _external_nesrecomp/runner/cyc/cyc_sdl.c
+          python JP/decomp/tools/jp_audio_return_pinned_gate_0626.py --source _external_nesrecomp/runner/cyc/cyc_sdl.c
           if ($LASTEXITCODE -ne 0) { throw "JP0626 seventh-layer pinned SDL source gate failed" }
-          python JP/tools/patch_cyc_chr_fetch_0600.py --smoke
+          python JP/recomp/tools/patch_cyc_chr_fetch_0600.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "PPU CHR observer anchor test failed" }
-          python JP/tools/patch_cyc_ppu_nt_0606.py --smoke
+          python JP/recomp/tools/patch_cyc_ppu_nt_0606.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "JP0606 PPU nametable observer contract failed" }
-          python JP/tools/jp_nt_trace_report_0606.py --smoke
+          python JP/recomp/tools/jp_nt_trace_report_0606.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "JP0606 background bus report test failed" }
-          python JP/tools/jp_object_oam_report_0609.py --smoke
+          python JP/recomp/tools/jp_object_oam_report_0609.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "JP0609 logical OAM-priority inversion report failed" }
-          python JP/tools/patch_cyc_audio_bus_0610.py --smoke
+          python JP/recomp/tools/patch_cyc_audio_bus_0610.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "JP0610 audio backend observer patch rejected" }
-          python JP/tools/patch_cyc_dmc_dma_trace_0650.py --smoke
+          python JP/recomp/tools/patch_cyc_dmc_dma_trace_0650.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "JP0650 real DMA-source private overlay contract rejected" }
-          python JP/tools/patch_cyc_sound_requests_0612.py --smoke
+          python JP/recomp/tools/patch_cyc_sound_requests_0612.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "JP0612 sound fetch gate failed" }
-          python JP/tools/patch_cyc_sound_decisions_0646.py --smoke
+          python JP/recomp/tools/patch_cyc_sound_decisions_0646.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "JP0646 exact original driver sound-decision patch failed" }
           if ($LASTEXITCODE -ne 0) { throw "JP0612 sound request CPU-fetch patch rejected" }
-          python JP/tools/jp_sound_priority_paths_0616.py --smoke
+          python JP/decomp/tools/jp_sound_priority_paths_0616.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "JP0616 sound-gate branch fixture failed" }
-          python JP/tools/jp_sound_decision_reference_0617.py --smoke
+          python JP/decomp/tools/jp_sound_decision_reference_0617.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "JP0617 original sound-decision parser failed" }
-          python JP/tools/jp_mesen_gate_report_0616.py --smoke
+          python JP/decomp/tools/jp_mesen_gate_report_0616.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "JP0616 original gate pairing validation failed" }
-          python JP/tools/jp_mesen_sound_requests_0615.py --smoke
+          python JP/decomp/tools/jp_mesen_sound_requests_0615.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "JP0615 Mesen sound request proof parser failed" }
-          python JP/tools/jp_audio_session_verify_0614.py --smoke
+          python JP/recomp/tools/jp_audio_session_verify_0614.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "JP0614 audio session validator rejected" }
-          python JP/tools/jp_audio_bus_report_0610.py --smoke
+          python JP/recomp/tools/jp_audio_bus_report_0610.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "JP0610 audio traffic report failed" }
-          python JP/tools/jp_chr_fetch_report_0600.py --smoke
+          python JP/recomp/tools/jp_chr_fetch_report_0600.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "Private PPU CHR CSV report parser test failed" }
-          python JP/tools/jp_frame_evidence_report_0601.py --smoke
+          python JP/recomp/tools/jp_frame_evidence_report_0601.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "Paired original PPU/frame evidence report failed" }
-          python JP/tools/jp_mapper_audit_0602.py --smoke
+          python JP/decomp/tools/jp_mapper_audit_0602.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "JP0602 mapper/palette alignment smoke failed" }
-          python JP/tools/jp_qa_matrix_0602.py --smoke
+          python JP/decomp/tools/jp_qa_matrix_0602.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "Owner-local gameplay QA matrix contract failed" }
       - name: Validate private QA capture and build launcher PowerShell syntax
         shell: pwsh
         run: |
-          foreach ($file in @('JP/release/alpha/Capture-QA-0602.ps1','JP/release/alpha/Launch-Alpha.ps1','JP/release/alpha/Build-Alpha.ps1')) {
+          foreach ($file in @('JP/recomp/release/alpha/Capture-QA-0602.ps1','JP/recomp/release/alpha/Launch-Alpha.ps1','JP/recomp/release/alpha/Build-Alpha.ps1')) {
             $tokens = $null
             $parseErrors = $null
             [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path -LiteralPath $file).Path,[ref]$tokens,[ref]$parseErrors) | Out-Null
@@ -204,41 +204,41 @@ jobs:
       - name: Validate JP0603 ROM-free first-run builder and launcher contract
         shell: pwsh
         run: |
-          python JP/tools/package_alpha_builder_0580.py --smoke
+          python JP/recomp/tools/package_alpha_builder_0580.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "ROM-free first-run build kit test failed" }
-          foreach ($file in @('JP/release/alpha/Build-And-Play.ps1','JP/release/alpha/Build-Alpha.ps1','JP/release/alpha/Launch-Alpha.ps1')) {
+          foreach ($file in @('JP/recomp/release/alpha/Build-And-Play.ps1','JP/recomp/release/alpha/Build-Alpha.ps1','JP/recomp/release/alpha/Launch-Alpha.ps1')) {
             $tokens = $null
             $errs = $null
             [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $file).Path,[ref]$tokens,[ref]$errs) | Out-Null
             if ($errs.Count -ne 0) { throw ("PowerShell syntax error: "+$file+": "+($errs | Out-String)) }
           }
-          $source = Get-Content -LiteralPath 'JP/release/alpha/Build-And-Play.ps1' -Raw
+          $source = Get-Content -LiteralPath 'JP/recomp/release/alpha/Build-And-Play.ps1' -Raw
           if ($source -notmatch 'Get-FileHash' -or $source -notmatch 'Test-PrivateGame' -or $source -notmatch 'Build-Alpha.ps1' -or $source -notmatch 'LastRomPath.txt') {
             throw "Missing first-run original-ROM authentication and build fallback"
           }
       - name: Verify JP0604 real Git clone/pull argument forwarding
         shell: pwsh
         run: |
-          & JP/tools/test_alpha_arguments_0604.ps1
+          & JP/recomp/tools/test_alpha_arguments_0604.ps1
           if ($LASTEXITCODE -ne 0) { throw "Actual native builder argument forwarding failed" }
       - name: Test actual Python3 discovery and reject Windows Store alias 9009
         shell: pwsh
         run: |
-          & JP/tools/test_alpha_python_0607.ps1
+          & JP/recomp/tools/test_alpha_python_0607.ps1
           if ($LASTEXITCODE -ne 0) { throw 'JP0607 Python resolution regression' }
-          $builder = Get-Content -LiteralPath 'JP/release/alpha/Build-Alpha.ps1' -Raw
+          $builder = Get-Content -LiteralPath 'JP/recomp/release/alpha/Build-Alpha.ps1' -Raw
           if ($builder -match "Invoke-Checked -Program 'python'" -or
               $builder -notmatch 'Resolve-CviiiPython' -or
-              $builder -notmatch 'JP/release/alpha/Resolve-Python.ps1') {
+              $builder -notmatch 'JP/recomp/release/alpha/Resolve-Python.ps1') {
             throw 'Builder bypasses verified Python interpreter'
           }
       - name: Verify single public Enhanced entry and internal reference isolation
         shell: pwsh
         run: |
-          $kit = Get-Content -LiteralPath 'JP/tools/package_alpha_builder_0580.py' -Raw
-          $launcher = Get-Content -LiteralPath 'JP/release/alpha/Play-CVIII.bat' -Raw
-          $entry = Get-Content -LiteralPath 'JP/release/alpha/Build-And-Play.ps1' -Raw
-          $script = Get-Content -LiteralPath 'JP/release/alpha/Launch-Alpha.ps1' -Raw
+          $kit = Get-Content -LiteralPath 'JP/recomp/tools/package_alpha_builder_0580.py' -Raw
+          $launcher = Get-Content -LiteralPath 'JP/recomp/release/alpha/Play-CVIII.bat' -Raw
+          $entry = Get-Content -LiteralPath 'JP/recomp/release/alpha/Build-And-Play.ps1' -Raw
+          $script = Get-Content -LiteralPath 'JP/recomp/release/alpha/Launch-Alpha.ps1' -Raw
           if ($launcher -notmatch 'Edition Enhanced') { throw 'Main Play shortcut must be Enhanced' }
           if ($entry -notmatch '\$Edition=''Enhanced''') { throw 'First-run default must be Enhanced' }
           if ($script -notmatch '\$Edition=''Enhanced''') { throw 'Private launcher default must be Enhanced' }
@@ -246,12 +246,12 @@ jobs:
             # Only the ROM-free smoke assertion may reference this name.
             if ($kit -notmatch 'not in kit.namelist') { throw 'Original included in public kit' }
           }
-          $builder = Get-Content -LiteralPath 'JP/release/alpha/Build-Alpha.ps1' -Raw
+          $builder = Get-Content -LiteralPath 'JP/recomp/release/alpha/Build-Alpha.ps1' -Raw
           if ($builder.IndexOf('Remove-Item -LiteralPath $obsolete') -lt 0 -or
               $builder.IndexOf('Remove-Item -LiteralPath $obsolete') -gt $builder.IndexOf('Compress-Archive -Path')) {
             throw 'Legacy public edition shortcuts must be removed BEFORE packaging'
           }
-          python JP/tools/package_alpha_builder_0580.py --smoke
+          python JP/recomp/tools/package_alpha_builder_0580.py --smoke
           if ($LASTEXITCODE -ne 0) { throw 'Public Enhanced-only packaging test failed' }
       - name: Compile SDL2 windowed C11 alpha target
         shell: pwsh
@@ -259,7 +259,7 @@ jobs:
           $build = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win'
           $rom = Join-Path $env:RUNNER_TEMP 'alpha-vrc6.nes'
           $engine = (Resolve-Path '_external_nesrecomp').Path
-          cmake -S JP/native/nesrecomp_cycle -B $build -G "Visual Studio 17 2022" -A x64 -DJP_ORIGINAL_JP_ROM="$rom" -DNESRECOMP_EXTERNAL_ROOT="$engine" -DJP_CYCLE_SYNTHETIC_MEDIA=ON -DJP_CYCLE_HEADLESS=OFF -DNESRECOMP_RECOMP_UI=OFF
+          cmake -S JP/recomp/native/nesrecomp_cycle -B $build -G "Visual Studio 17 2022" -A x64 -DJP_ORIGINAL_JP_ROM="$rom" -DNESRECOMP_EXTERNAL_ROOT="$engine" -DJP_CYCLE_SYNTHETIC_MEDIA=ON -DJP_CYCLE_HEADLESS=OFF -DNESRECOMP_RECOMP_UI=OFF
           if ($LASTEXITCODE -ne 0) { throw 'Windowed CMake generation failed' }
           cmake --build $build --config Release --parallel 4
           if ($LASTEXITCODE -ne 0) { throw 'Windows C11 cycle build failed' }
@@ -311,7 +311,7 @@ jobs:
       - name: Verify JP0645 PRG26 emission permutation original-byte smoke
         shell: pwsh
         run: |
-          python JP/tools/jp_sprite_emission_source_0645.py --smoke
+          python JP/decomp/tools/jp_sprite_emission_source_0645.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "JP0645 original-emission arithmetic smoke failed" }
       - name: Verify JP0645 original gameplay OAM rotation, animation and held-sprite rejection
         shell: pwsh
@@ -344,17 +344,17 @@ jobs:
       - name: Verify JP0652 original 125-program directory and corruption guards (ROM-free)
         shell: pwsh
         run: |
-          python JP/tools/jp_sound_catalog_0652.py --smoke
+          python JP/decomp/tools/jp_sound_catalog_0652.py --smoke
           if ($LASTEXITCODE -ne 0) { throw 'JP0652 full sound metadata catalog synthetic guard failed' }
       - name: Verify JP0653 complete original phrase-pointer source partition (ROM-free)
         shell: pwsh
         run: |
-          python JP/tools/jp_phrase_lookup_0653.py --smoke
+          python JP/decomp/tools/jp_phrase_lookup_0653.py --smoke
           if ($LASTEXITCODE -ne 0) { throw 'JP0653 source phrase CPU lookup smoke failed' }
       - name: Verify JP0655 original phrase arithmetic, synthetic complete byte domain (ROM-free)
         shell: pwsh
         run: |
-          python JP/tools/jp_phrase_delta_0655.py --smoke
+          python JP/decomp/tools/jp_phrase_delta_0655.py --smoke
           if ($LASTEXITCODE -ne 0) { throw 'JP0655 original phrase arithmetic Python smoke failed' }
           $test = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win/Release/jp_phrase_delta_test_0655.exe'
           if (!(Test-Path -LiteralPath $test)) { throw 'JP0655 C11 regression executable missing' }
@@ -363,7 +363,7 @@ jobs:
       - name: Verify JP0656 complete sound control byte grammar and 327680 C11 cases (ROM-free)
         shell: pwsh
         run: |
-          python JP/tools/jp_phrase_control_0656.py --smoke
+          python JP/decomp/tools/jp_phrase_control_0656.py --smoke
           if ($LASTEXITCODE -ne 0) { throw 'JP0656 synthetic control-domain smoke failed' }
           $test = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win/Release/jp_phrase_control_test_0656.exe'
           if (!(Test-Path -LiteralPath $test)) { throw 'JP0656 native executable missing' }
@@ -372,9 +372,9 @@ jobs:
       - name: Verify JP0657 original stage hierarchy and coordinate C11 on Windows (ROM-free)
         shell: pwsh
         run: |
-          python JP/tools/jp_room_catalog_0657.py --smoke
+          python JP/decomp/tools/jp_room_catalog_0657.py --smoke
           if ($LASTEXITCODE -ne 0) { throw 'JP0657 synthetic room hierarchy failed' }
-          python JP/tools/jp_room_coordinate_0657.py --smoke
+          python JP/decomp/tools/jp_room_coordinate_0657.py --smoke
           if ($LASTEXITCODE -ne 0) { throw 'JP0657 synthetic coordinate original logic failed' }
           $base = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win/Release'
           foreach ($test in @('jp_room_catalog_test_0657.exe','jp_room_coordinate_test_0657.exe')) {
@@ -386,7 +386,7 @@ jobs:
       - name: Verify JP0658 original room-state nametable clear and native C11 RAM plan (ROM-free)
         shell: pwsh
         run: |
-          python JP/tools/jp_room_clear_0658.py --smoke
+          python JP/decomp/tools/jp_room_clear_0658.py --smoke
           if ($LASTEXITCODE -ne 0) { throw 'JP0658 Python source contract smoke failed' }
           $test = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win/Release/jp_room_state0_test_0658.exe'
           if (!(Test-Path -LiteralPath $test)) { throw 'JP0658 C11 regression binary missing' }
@@ -395,13 +395,13 @@ jobs:
       - name: Verify JP0661 18 native keyboard control profile, backup and recovery cases
         shell: pwsh
         run: |
-          python JP/tools/test_control_profiles_0661.py
+          python JP/recomp/tools/test_control_profiles_0661.py
           if ($LASTEXITCODE -ne 0) { throw 'JP0661 native original-config profile regression failed' }
-          python JP/tools/package_alpha_builder_0580.py --smoke
+          python JP/recomp/tools/package_alpha_builder_0580.py --smoke
           if ($LASTEXITCODE -ne 0) { throw 'JP0661 ROM-free public controls kit contents invalid' }
           # Parse the actual shipped PowerShell entrypoints on a Windows host.
           foreach ($name in @('Controls.ps1','Build-And-Play.ps1','Launch-Alpha.ps1','Build-Alpha.ps1')) {
-            $path = Join-Path 'JP/release/alpha' $name
+            $path = Join-Path 'JP/recomp/release/alpha' $name
             $tokens = $null
             $parseErrors = $null
             [void][System.Management.Automation.Language.Parser]::ParseFile(
@@ -414,9 +414,9 @@ jobs:
       - name: Verify JP0659 five-source room loader, mapper events, reversible stage JSON (ROM-free)
         shell: pwsh
         run: |
-          python JP/tools/jp_room_stream_0659.py --smoke
+          python JP/decomp/tools/jp_room_stream_0659.py --smoke
           if ($LASTEXITCODE -ne 0) { throw 'JP0659 original room stream contract smoke failed' }
-          python JP/tools/jp_room_resources_0659.py --smoke
+          python JP/decomp/tools/jp_room_resources_0659.py --smoke
           if ($LASTEXITCODE -ne 0) { throw 'JP0659 reversible stage data extraction failed' }
           $test = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win/Release/jp_room_stream_test_0659.exe'
           if (!(Test-Path -LiteralPath $test)) { throw 'JP0659 native source test missing' }
@@ -425,7 +425,7 @@ jobs:
       - name: Authenticate JP0648 DMC priority and indexed source, ROM-free negatives
         shell: pwsh
         run: |
-          python JP/tools/jp_dmc_original_source_0648.py --smoke
+          python JP/decomp/tools/jp_dmc_original_source_0648.py --smoke
           if ($LASTEXITCODE -ne 0) { throw 'JP0648 sound source guard simulation failed' }
       - name: Verify JP0648 exact six-write DMC event builder on Windows Release (ROM-free)
         shell: pwsh
@@ -437,7 +437,7 @@ jobs:
       - name: Verify JP0649 bounded mapper8 sample-region original source smoke (ROM-free)
         shell: pwsh
         run: |
-          python JP/tools/jp_dpcm_memory_audit_0649.py --smoke
+          python JP/decomp/tools/jp_dpcm_memory_audit_0649.py --smoke
           if ($LASTEXITCODE -ne 0) { throw 'JP0649 DPCM mapper bounds regression' }
       - name: Verify JP0649 NTSC PAL read-only raw DAC decoder (ROM-free)
         shell: pwsh
@@ -453,14 +453,14 @@ jobs:
           if (!(Test-Path -LiteralPath $test)) { throw 'JP0650 real DMA observation logger test missing' }
           & $test
           if ($LASTEXITCODE -ne 0) { throw 'JP0650 physical DMC DMA mapping observation regression' }
-          python JP/tools/jp_dmc_dma_trace_verify_0650.py --smoke
+          python JP/decomp/tools/jp_dmc_dma_trace_verify_0650.py --smoke
           if ($LASTEXITCODE -ne 0) { throw 'JP0650 private DMA trace verifier invalid' }
       - name: Verify JP0651 MesenCE original DMC-specific observer and exact event-pair comparator (ROM-free)
         shell: pwsh
         run: |
-          python JP/tools/patch_mesen_dmc_reference_0651.py --smoke
+          python JP/decomp/tools/patch_mesen_dmc_reference_0651.py --smoke
           if ($LASTEXITCODE -ne 0) { throw 'JP0651 independent MesenCE source-patch contract failed' }
-          python JP/tools/jp_mesen_dmc_dma_compare_0651.py --smoke
+          python JP/decomp/tools/jp_mesen_dmc_dma_compare_0651.py --smoke
           if ($LASTEXITCODE -ne 0) { throw 'JP0651 original-native DMC event pairing negative tests failed' }
       - name: Verify JP0646 real native sound-driver branch logger (ROM-free)
         shell: pwsh
@@ -500,7 +500,7 @@ jobs:
       - name: Verify JP0619 original font and health-meter renderer (ROM-free)
         shell: pwsh
         run: |
-          python JP/tools/jp_audio_ui_chr_0619.py --smoke
+          python JP/decomp/tools/jp_audio_ui_chr_0619.py --smoke
           if ($LASTEXITCODE -ne 0) { throw 'JP0619 CHR mapping fixture failed' }
           $test = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win/Release/jp_audio_ui_test_0619.exe'
           if (!(Test-Path -LiteralPath $test)) { throw 'JP0619 UI test missing' }
@@ -533,7 +533,7 @@ jobs:
       - name: Verify JP0624 exact generated F4 SDL source extraction (ROM-free)
         shell: pwsh
         run: |
-          python JP/tools/jp_start_pause_shell_test_0624.py --smoke
+          python JP/decomp/tools/jp_start_pause_shell_test_0624.py --smoke
           if ($LASTEXITCODE -ne 0) { throw 'JP0624 action shell source extraction failed' }
       - name: Verify JP0625 original-ROM-font Save/Load slot controller (ROM-free)
         shell: pwsh
@@ -545,12 +545,12 @@ jobs:
       - name: Verify JP0625 generated slot SDL shell extraction (ROM-free)
         shell: pwsh
         run: |
-          python JP/tools/jp_slot_shell_test_0625.py --smoke
+          python JP/decomp/tools/jp_slot_shell_test_0625.py --smoke
           if ($LASTEXITCODE -ne 0) { throw 'JP0625 generated slot SDL source extraction failed' }
       - name: Verify JP0644 seven-layer executable menu harness extraction
         shell: pwsh
         run: |
-          python JP/tools/jp_menu_roundtrip_shell_test_0644.py --smoke
+          python JP/recomp/tools/jp_menu_roundtrip_shell_test_0644.py --smoke
           if ($LASTEXITCODE -ne 0) { throw 'JP0644 seventh-layer SDL harness failed' }
       - name: Verify JP0626 Pause to Audio to Pause focus regression (ROM-free)
         shell: pwsh
@@ -570,14 +570,14 @@ jobs:
           $png = Join-Path $env:RUNNER_TEMP 'alpha-last.png'
           & $exe $rom --frames 3 --hash-out $hash --screenshot $png | Tee-Object -FilePath $log
           if ($LASTEXITCODE -ne 0) { throw 'Synthetic mapper24 game execution failed' }
-          python JP/tools/check_cycle_stats_0571.py --log $log --frames 3
+          python JP/decomp/tools/check_cycle_stats_0571.py --log $log --frames 3
           if ($LASTEXITCODE -ne 0) { throw 'Native-cycle counts invalid' }
-          python JP/tools/validate_frame_artifacts_0578.py --hash-out $hash --screenshot $png --frames 3
+          python JP/decomp/tools/validate_frame_artifacts_0578.py --hash-out $hash --screenshot $png --frames 3
           if ($LASTEXITCODE -ne 0) { throw 'Frame hashes/PNG invalid' }
       - name: Create ROM-free Windows alpha build kit
         shell: pwsh
         run: |
-          python JP/tools/package_alpha_builder_0580.py --out CVIII-Alpha-Builder-0.2.0-alpha.1.zip
+          python JP/recomp/tools/package_alpha_builder_0580.py --out CVIII-Alpha-Builder-0.2.0-alpha.1.zip
           if ($LASTEXITCODE -ne 0) { throw 'ROM-free packaging failed' }
       - name: Upload build kit, not commercial ROM or game executable
         uses: actions/upload-artifact@v4
