@@ -38,7 +38,7 @@ py -3 JP/recomp/tools/jp0672_audio_cycle_audit.py `
   --replay C:\Tools\Mesen2\Private\JP0668NativeKit\JP0668-window-input.txt `
   --out C:\Tools\Mesen2\Private\JP0672-timing-report.json
 
-py -3 -m unittest JP/recomp/tools/test_jp0672_audio_cycle_audit.py -v
+py -3 -m unittest discover -s JP/recomp/tools -p "test_jp0672_audio_cycle_audit.py" -v
 ```
 
 The command outputs only aggregate counts, histogram and evidence hashes; **never copies register events/values, ROMs, audio assets, or CSV contents to the public repository**. The strict original/native comparison always uses raw, unshifted event clocks. A source-phase +1 diagnostic is deliberately excluded from the verdict and never rewrites any trace.
