@@ -356,6 +356,17 @@ python3 "$root/JP/decomp/tools/jp_room_clear_0658.py" --smoke
 python3 "$root/JP/decomp/tools/jp_famistudio_reference_0664.py" --smoke
 python3 "$root/JP/decomp/tools/jp_famistudio_driver_bridge_0664.py" --smoke
 python3 "$root/JP/decomp/tools/jp_beginning_stream_graph_0664.py" --smoke
+# JP0665: ROM-free detached original note/control parser and optional chip preview.
+cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic -DNDEBUG \
+  "$root/JP/recomp/native/enhanced/cviii_jp_music_0665.c" \
+  "$root/JP/recomp/native/enhanced/cviii_jp_music_test_0665.c" \
+  -o "$build/jp0665-music"
+"$build/jp0665-music"
+cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic -DNDEBUG \
+  "$root/JP/recomp/native/enhanced/cviii_jp_chip_0665.c" \
+  "$root/JP/recomp/native/enhanced/cviii_jp_chip_test_0665.c" \
+  -o "$build/jp0665-chip"
+"$build/jp0665-chip"
 # JP0659 synthetic stage-room source and exact reversible resource geometry.
 python3 "$root/JP/decomp/tools/jp_room_stream_0659.py" --smoke
 python3 "$root/JP/decomp/tools/jp_room_resources_0659.py" --smoke
