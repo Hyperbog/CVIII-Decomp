@@ -382,6 +382,41 @@ if [[ -n "$rom" ]]; then
   python3 "$root/JP/decomp/tools/jp0666_original_cpu_compare.py" \
     --rom "$rom" --lib "$build/libjp0666.so"
 fi
+# JP0667: original D/E state / local frame gate / percussion request plans.
+# ROM-free tests must never require or emit copyrighted music assets.
+python3 "$root/JP/decomp/tools/jp0667_owner_source_auth.py" --smoke
+python3 "$root/JP/decomp/tools/jp0667_cycle_trace_compare.py" --smoke
+python3 -m py_compile "$root/JP/decomp/tools/jp0667_original_effect_compare.py" \
+  "$root/JP/decomp/tools/jp0667_frame_gate_compare.py"
+cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic -DNDEBUG \
+  "$root/JP/recomp/native/enhanced/cviii_jp_effect_state_0667.c" \
+  "$root/JP/recomp/native/enhanced/cviii_jp_effect_test_0667.c" \
+  -o "$build/jp0667-effects"
+"$build/jp0667-effects"
+cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic -DNDEBUG \
+  "$root/JP/recomp/native/enhanced/cviii_jp_frame_gate_0667.c" \
+  "$root/JP/recomp/native/enhanced/cviii_jp_frame_test_0667.c" \
+  -o "$build/jp0667-frame"
+"$build/jp0667-frame"
+cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic -DNDEBUG \
+  "$root/JP/recomp/native/enhanced/cviii_dmc_source_0648.c" \
+  "$root/JP/recomp/native/enhanced/cviii_jp_percussion_plan_0667.c" \
+  "$root/JP/recomp/native/enhanced/cviii_jp_percussion_test_0667.c" \
+  -o "$build/jp0667-percussion"
+"$build/jp0667-percussion"
+if [[ -n "$rom" ]]; then
+  python3 "$root/JP/decomp/tools/jp0667_owner_source_auth.py" --rom "$rom"
+  cc -std=c11 -O2 -fPIC -shared \
+    "$root/JP/recomp/native/enhanced/cviii_jp_effect_state_0667.c" \
+    -o "$build/libjp0667-effects.so"
+  python3 "$root/JP/decomp/tools/jp0667_original_effect_compare.py" \
+    --rom "$rom" --lib "$build/libjp0667-effects.so"
+  cc -std=c11 -O2 -fPIC -shared \
+    "$root/JP/recomp/native/enhanced/cviii_jp_frame_gate_0667.c" \
+    -o "$build/libjp0667-frame.so"
+  python3 "$root/JP/decomp/tools/jp0667_frame_gate_compare.py" \
+    --rom "$rom" --lib "$build/libjp0667-frame.so"
+fi
 # JP0659 synthetic stage-room source and exact reversible resource geometry.
 python3 "$root/JP/decomp/tools/jp_room_stream_0659.py" --smoke
 python3 "$root/JP/decomp/tools/jp_room_resources_0659.py" --smoke
