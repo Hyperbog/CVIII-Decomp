@@ -35,6 +35,9 @@ jobs:
         run: |
           git config user.name "CVIII JP0663 migration"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # The job token lacks workflow-edit scope; publish source moves first.
+          # Workflow paths are migrated in a separate authorized GitHub commit.
+          git restore --staged --worktree -- .github/workflows
           git add -A
           git diff --cached --stat | tail -25
           git diff --cached --check
