@@ -15,6 +15,8 @@ import tempfile
 import zipfile
 from pathlib import Path
 
+import sys
+sys.path.insert(0,str(Path(__file__).resolve().parents[2] / 'decomp' / 'tools'))
 from jp_password_stage_0593 import JP_SHA, JP_TABLES, load_tables
 
 SCHEMA = "cviii.jp.assets/v1"

@@ -13,7 +13,7 @@ import importlib.util
 from pathlib import Path
 import sys
 
-TOOLS = Path(__file__).resolve().parent
+TOOLS = Path(__file__).resolve().parents[2] / 'recomp' / 'tools'
 PINNED_SDL_GIT_BLOB = "a10d0fce1d1e568a2ef672738cbee7eded323fdb"
 STAGES = (
     ("0591", "patch_cyc_savestates_0591.py"),
