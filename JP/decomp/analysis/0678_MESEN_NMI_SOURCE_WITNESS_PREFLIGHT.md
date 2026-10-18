@@ -2,6 +2,19 @@
 
 Status 2026-10-17: **owner has successfully rebuilt the complete pinned Mesen2 C++ solution** in Visual Studio 2022 Release | x64, with all 8 projects succeeding and 0 failures/skips. Native `MesenCore.dll`, `Core.lib`, `Windows.lib` and managed `Mesen.dll` are produced under the owner's independent `Mesen2-master\bin\win-x64\Release` directory. This confirms that owner-side source-level instrumentation is now feasible; it does **not** certify same-ROM replay equivalence or emulator timing parity.
 
+## JP0678 second-stage bounded frame differential (owner aggregate, 2026-10-17)
+
+Owner uploaded `JP0678-Mesen-frame-delta.json` (schema `JP0678-private-frame-marker-delta/v1`). The owner-side delta analyzer verified **both** the pinned original JP0673 seven-frame Mesen witness SHA-256 and the rebuilt/instrumented witness SHA-256 from the prior baseline report. It establishes:
+
+- Seven `JP0673_FRAME` markers, ordered: **instrumented-minus-original CPU cycle deltas `[+1,+1,0,+1,+1,0,+1]`** (no constant offset).
+- `JP0673_END`: `cycle` differs by **+1**; `frames`, `exec`, `bus`, and `audio` END fields each differ by **0**.
+- Earlier baseline comparison already found **30,070/30,070 `JP0673_EXEC` records exact**, all selected `JP0673_BUS` records exact and **19/19 `JP0673_AUDIO` records exact**.
+- No raw ROM bytes, PC/opcode data or full CPU witness have been publicly included.
+
+**Interpretation:** The observed residual is confined to an alternating **0/1-cycle frame/end callback clock value**, with no recorded instruction/bus/audio stream divergence between the two Mesen2 builds. Its repeating `+1,+1,0` pattern is *consistent* with reporting a fractional NTSC PPU frame boundary in integer CPU clocks (the nominal NTSC frame spans about 29,780⅔ CPU cycles). This is a **clock API/callback-phase hypothesis**, not a proof that the frame engine or its NMI edge timing matches the authenticated original Mesen2 EXE. In upstream source `NesPpu::SendFrame` calls `ProcessEvent(EventType::EndFrame)` during PPU execution; the JP0678 compatibility Lua API directly exposes `NesCpu::GetCycleCount()`, whereas the original authenticated EXE's `emu.getCpuCycleCount` implementation has not been source-verified. That API semantic difference alone could explain a one-cycle callback discrepancy, but still needs a common-clock calibration to prove.
+
+**Decision:** classify JP0678 Mesen stage A as **instruction/selected-bus/audio equivalence PASS; strict frame/end cycle equivalence FAIL, bounded ≤1 cycle**. Keep `eligible_for_nmi_edge_cycle_comparison=false` and `do_not_certify_native_cpu_parity=true`; do **not** massage frame values, modify CPU timing or declare original EXE physical NMI-edge equivalence. Do not repeat the full seven-frame capture merely to observe the same bounded frame delta. If strict cycle parity remains a required milestone, instrument and align the original/NESRecomp interrupt edge and poll signals on a demonstrably common CPU-cycle convention; otherwise archive this as an outstanding timing-fidelity item and resume modifiable native game system work.
+
 ## JP0678 post-hotfix baseline comparator: CPU/bus/audio exact; frame/end DIFFERENT (owner aggregate, 2026-10-17)
 
 The owner submitted `JP0678-Mesen-baseline-equivalence.json` (schema `JP0678-mesen-build-baseline-equivalence/v1`), generated locally by the original-vs-rebuilt CPU witness comparator. This verifies original reference SHA-256 `a063546419c9c4c86a24cde00c19af4517f935cd5c6d9f3892f3f291f60791bc` and compares an instrumented witness SHA-256 `1f13d7d5f45e1eb319ced108d4faa96a1619b917fedc5311460f26444e64ee8f`.
