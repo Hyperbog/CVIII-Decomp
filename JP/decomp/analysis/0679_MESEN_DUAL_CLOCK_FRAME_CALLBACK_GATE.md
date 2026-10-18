@@ -2,6 +2,14 @@
 
 Status: **owner run pending**. The completed JP0678 report finds exact selected CPU instruction/bus/audio streams between original Mesen2 and rebuilt JP0678 Mesen2, but frame callback CPU timestamps differ `[+1,+1,0,+1,+1,0,+1]`; final END differs only `cycle:+1`. This is a bounded observational difference, **not a certified frame-timing source bug**. The separate native NESRecomp one-additional-instruction-before-NMI discrepancy remains open.
 
+## Owner JP0679 preflight: changed managed DLL SHA; v2 narrow allowlist (2026-10-18)
+
+The owner uploaded `JP0679-status.txt` (schema `JP0679-private-dual-clock-status/v1`) reporting `INCOMPLETE_NOT_PROVEN` before either new dual-clock probe ran. The runner rejected `C:\Users\hyper\Downloads\Mesen2-JP0678-NMI\bin\win-x64\Release\Mesen.dll` because its observed SHA-256 was `4311442e1bc94096d36890f6af9e3d5666eed24a5f9295f79272eb31b146fc6f`, not the earlier JP0678-captured `65e6105611ffe809ad31ceb5a49458f482e845c507b428284f598f809202c6b8`. The reason the managed app DLL changed has **not** been established; do not claim bitwise executable equivalence.
+
+V2 owner-local `JP0679-Mesen-Dual-Clock-Frame-Audit-Kit-v2.zip` updates both PowerShell capture runner and Python sanitizer to allow **exactly these two observed Mesen.dll digests** and to record whether the app artifact matches the earlier JP0678 capture or the subsequently observed Release DLL. The original ROM SHA, original authenticated Mesen EXE SHA, instrumented `MesenCore.dll` SHA, prior original+instrumented CPU witness hashes, seven-frame READY/BEGIN/END checks, and all private clock comparison gates remain strictly enforced. New unknown app digests still fail closed. The Lua dual-clock probe and emulator source are **unchanged**, and no native binary was rebuilt for v2.
+
+Verification: **18 local ROM-independent tests** passed (15 original plus three regression checks for accepting the one new observed app hash while rejecting all other digests and preserving hard ROM/core/original guards). No new Windows capture or NMI clock result is yet available. Owner should replace the JP0679 kit files in `C:\Tools\Mesen2\JP0673Kit`, rerun the identical `JP0679-Run-Dual-Clock.ps1` command, then run `jp0679_analyze.py` only on `CAPTURED_NEEDS_SANITIZED_ANALYSIS`. All raw logs remain owner-local.
+
 ## Source-grounded correction to proposed dual-clock comparison
 
 The top-level `emu.getState().masterClock` is **not** an independent PPU clock for NES in pinned Mesen2. `Core/Debugger/LuaApi.cpp::GetState` reads `Emulator::GetMasterClock()`, which calls `NesConsole::GetMasterClock()`, which returns `_cpu->GetCycleCount()`. The JP0678 compatibility API `emu.getCpuCycleCount()` also reads `NesCpu::GetCycleCount()`. Therefore comparing just those two values in the rebuilt app is circular.
