@@ -2,6 +2,29 @@
 
 Status: **owner run pending**. The completed JP0678 report finds exact selected CPU instruction/bus/audio streams between original Mesen2 and rebuilt JP0678 Mesen2, but frame callback CPU timestamps differ `[+1,+1,0,+1,+1,0,+1]`; final END differs only `cycle:+1`. This is a bounded observational difference, **not a certified frame-timing source bug**. The separate native NESRecomp one-additional-instruction-before-NMI discrepancy remains open.
 
+## JP0679 owner result — PPU frame clock exact, CPU callback count differs by 0/1 (2026-10-18)
+
+The owner supplied the sanitized local analyzer report `JP0679-dual-clock-audit.json` (schema `JP0679-sanitized-dual-clock-frame-audit/v1`; SHA-256 of uploaded JSON `c4185a0c93426d0c119b0cc946424fe13cb61af89ec765a0c24e3b1d7e129bb5`). The report affirms exact original and rebuilt provenance checks, 7 frame pairs, strict reproduction of the previously verified JP0678 frame deltas, and recognized post-hotfix rebuilt managed DLL provenance.
+
+| Owner-side aggregate | Frame positions 1–7 |
+| --- | --- |
+| Rebuilt − original `ppu.masterClock` | `[0,0,0,0,0,0,0]` |
+| Rebuilt − original PPU scanline | `[0,0,0,0,0,0,0]` |
+| Rebuilt − original PPU dot | `[0,0,0,0,0,0,0]` |
+| Rebuilt − original PPU frame index | `[0,0,0,0,0,0,0]` |
+| Rebuilt − original `cpu.cycleCount` | `[+1,+1,0,+1,+1,0,+1]` |
+| Rebuilt − original `emu.getCpuCycleCount()` | `[+1,+1,0,+1,+1,0,+1]` |
+| API − `cpu.cycleCount` (original and rebuilt) | `[0,0,0,0,0,0,0]` each |
+| `getState().masterClock` − CPU counter (original and rebuilt) | `[0,0,0,0,0,0,0]` each |
+| `ppu.masterClock % 12` (original and rebuilt) | `[0,8,4,0,8,4,0]` each |
+| Current probe API − respective earlier JP0673/JP0678 witness marker | `[0,0,0,0,0,0,0]` each |
+
+**Revised conclusion:** **Exact PPU-based frame-boundary timing gate PASSES (all seven frame ticks and positions agree).** The original stricter **CPU-cycle-at-EndFrame gate still FAILS** and must not be silently re-labeled as exact. The finding **disproves the narrow conjecture that a difference between Lua's exposed CPU API and the internal `cpu.cycleCount` value caused the residual**: those fields are identical in both builds. A difference in CPU-cycle accounting or CPU↔PPU execution/callback phase remains; it may be a clock-origin/convention mismatch rather than a change in executed program behavior, but that root cause is **not directly determined**. Previous JP0678 30,070/30,070 exact instruction, selected bus and 19/19 audio event comparisons remain intact. No CPU code/hardware timing patch authorized.
+
+The seven PPU clock residues repeat `0,8,4` on the 12-master-tick NTSC CPU cycle grid; this is consistent with fractional frame/CPU-clock alignment but does not *by itself* prove a particular floor/ceil formula or clock offset. The original and rebuilt Mesen2 builds may have different callback timing conventions or effective CPU/PPU sync. Direct original-versus-NESRecomp NMI pin equivalence and exact native CPU-cycle parity remain unproven. Avoid conflating Mesen-vs-Mesen frame-clock agreement with native-vs-original NMI parity.
+
+**Engineering gate recommendation:** Preserve two separately labeled validations in the project: (A) `EndFrame_PPU_time_exact: PASS` (meaningfully relevant to rendered frame timing) and (B) `EndFrame_CPU_cycle_exact: FAIL_bounded_0_or_1`, with actual sample offsets and provenance. If changing the engine to achieve hardware CPU-cycle exactness later, independently calibrate CPU endFrame callback phase and NMI edge/poll signals; do **not** adjust event timestamps just to satisfy the comparison. This bounded Mesen-only validation investigation can now close without another Mesen2 rebuild, freeing effort for native gameplay/modifiability. If a user explicitly wants the stricter CPU-count gate resolved too, a narrow next diagnostic is to log the CPU `StartCpuCycle`/ `EndCpuCycle` phase as `EndFrame` fires, in a private rebuilt diagnostic, rather than recapturing long bus traces.
+
 ## Owner JP0679 preflight: changed managed DLL SHA; v2 narrow allowlist (2026-10-18)
 
 The owner uploaded `JP0679-status.txt` (schema `JP0679-private-dual-clock-status/v1`) reporting `INCOMPLETE_NOT_PROVEN` before either new dual-clock probe ran. The runner rejected `C:\Users\hyper\Downloads\Mesen2-JP0678-NMI\bin\win-x64\Release\Mesen.dll` because its observed SHA-256 was `4311442e1bc94096d36890f6af9e3d5666eed24a5f9295f79272eb31b146fc6f`, not the earlier JP0678-captured `65e6105611ffe809ad31ceb5a49458f482e845c507b428284f598f809202c6b8`. The reason the managed app DLL changed has **not** been established; do not claim bitwise executable equivalence.
