@@ -2,6 +2,22 @@
 
 Status 2026-10-17: **owner has successfully rebuilt the complete pinned Mesen2 C++ solution** in Visual Studio 2022 Release | x64, with all 8 projects succeeding and 0 failures/skips. Native `MesenCore.dll`, `Core.lib`, `Windows.lib` and managed `Mesen.dll` are produced under the owner's independent `Mesen2-master\bin\win-x64\Release` directory. This confirms that owner-side source-level instrumentation is now feasible; it does **not** certify same-ROM replay equivalence or emulator timing parity.
 
+## JP0678 post-hotfix baseline comparator: CPU/bus/audio exact; frame/end DIFFERENT (owner aggregate, 2026-10-17)
+
+The owner submitted `JP0678-Mesen-baseline-equivalence.json` (schema `JP0678-mesen-build-baseline-equivalence/v1`), generated locally by the original-vs-rebuilt CPU witness comparator. This verifies original reference SHA-256 `a063546419c9c4c86a24cde00c19af4517f935cd5c6d9f3892f3f291f60791bc` and compares an instrumented witness SHA-256 `1f13d7d5f45e1eb319ced108d4faa96a1619b917fedc5311460f26444e64ee8f`.
+
+| Measured stream | Original count | Instrumented count | Exact |
+| --- | ---: | ---: | --- |
+| `JP0673_EXEC` instructions | 30,070 | 30,070 | **true** |
+| `JP0673_BUS` selected bus sequence | not included in aggregate | not included | **true** |
+| `JP0673_AUDIO` events | 19 | 19 | **true** |
+| `JP0673_FRAME` marker sequence | seven-frame test | seven-frame test | **false** |
+| `JP0673_END` marker | — | — | **false** |
+
+The owner's report explicitly sets `eligible_for_nmi_edge_cycle_comparison=false` and `do_not_certify_native_cpu_parity=true`. Do **not** relax these gates without further evidence. Matching instruction/bus/audio streams do not establish frame callback timing or internal NMI phase equivalence. The owner's uploaded report omits the differing FRAME/END values and therefore cannot distinguish a fixed endFrame callback phase offset, an API clock semantics discrepancy, or a genuine frame clock divergence.
+
+To avoid rebuilding or recapturing, an owner-local `JP0678-Mesen-Frame-End-Delta-Audit-Kit.zip` reads only the two already captured CPU witnesses, requires the reference SHA-256, can verify the rebuilt witness against the prior report, and reports seven sanitized frame cycle offsets plus END marker field/count differences (no PC/opcode, bus values, ROM bytes or absolute CPU cycle series). Eight synthetic local tests passed; **the owner's actual offsets have not yet been measured**. The diagnostic ZIP and raw traces remain private/off Git. Await `JP0678-Mesen-frame-delta.json` before attributing cause or changing hardware timing code.
+
 ## Owner capture finding and Lua API hotfix (2026-10-17)
 
 Owner privately uploaded three JP0678 files: `JP0678-Mesen-7frame-private.log`, `JP0678-Mesen-NMI-private.log`, and `JP0678-Mesen-NMI-status.txt`. The verified ROM and instrumented Windows Release x64 MesenCore hashes prove the instrumented core **launched**, but `MesenProcessExitCode: -1` and `INCOMPLETE_NOT_PROVEN` mean the seven-frame CPU witness did not finish. The CPU log contains `JP0673_READY v1` then immediately `JP0673_INVALID cycle_api_failed_or_regressed` before its BEGIN marker. The NMI instrumentation nonetheless emitted **two** assertion/CPU-edge/eligibility/acceptance groups. Those cycles are preliminary *instrumented-run-only* readings, not a verified match to the original reference; no parity inference from them.
