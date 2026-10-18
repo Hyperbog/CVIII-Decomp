@@ -1,5 +1,25 @@
 # JP0676 — NMI polling and discarded-fetch source review
 
+## JP0676 owner-private runtime classification — COMPLETE (2026-10-17)
+
+The owner submitted a sanitized `JP0676-discarded-fetch.json` (schema `JP0676-discarded-fetch-and-NMI-poll-boundary/v1`, private aggregate file SHA-256 `3c28c96aacf70d7ed51f8e2a677375ef6b723c20cc3f882643f6a77364134f4b`). Its local comparator reports `JP0673_JP0674_JP0675_gates_reproduced=true` and classification **`native_completed_one_additional_instruction_before_discarded_NMI_fetch`**. The previously validated original/native 3,401/3,401 audio write **addresses/values** remain unchanged. This is a private-trace-derived finding: the assistant reviewed the sanitized aggregate, **not** the original owner's raw CPU trace.
+
+Precisely, the extra unmatched native instruction-start at **+3 CPU cycles relative to previous matched native instruction** completed on a three-cycle boundary, while the second unmatched `INSN` record at **+6 cycles** is the NMI-discarded opcode fetch. The second read accesses the **same PC**; native shows a continuous seven-cycle interrupt-entry sequence: discarded fetch, same-PC preliminary read, three sequential stack writes, `$FFFA/$FFFB` vector reads, and a valid final `done` cycle. Both previous and subsequent matched PCs agree across implementations. Thus **exactly one unmatched native `INSN` entry represents a completed additional instruction**, and the other is a trace record for a discarded fetch rather than an extra executed opcode. This classification is supported by the private analyzer's bus-sequence checks, not by the instruction count alone.
+
+The prior → first NMI stack push interval remains Mesen **6** vs native **8** CPU cycles; those pushes and subsequent vector reads are **native +2** relative to Mesen, while the next matched instruction-start timestamp is **native +3**. The difference between +2 bus and +3 next-instruction offsets is consistent with already documented per-core trace timestamp conventions and is **not** itself a third extra executed CPU cycle.
+
+**Root cause not yet proved:** The first actual divergent boundary involves NMI admission, but the private reports do not show the NMI pin assertion CPU-cycle, the CPU's edge-latch/poll cycles, or their relationship to the relevant instruction boundary on *both* emulators. PPU NMI assertion phase, CPU sampling/poll phase, or initial PPU/CPU master-clock alignment could explain one extra completed native instruction. No CPU or audio timing patch is authorized; no full-bus/cycle-exact, DPCM DMA or PCM output parity is certified. Native's seven-cycle NMI handling meets its expected bus contract.
+
+### One remaining causal test: NMI assertion → sample/latch → poll → discarded fetch
+
+Source review identifies exact observation points:
+
+- **Native pinned NESRecomp**, `runner/cyc/hw_machine.c`: `sample_nmi()` at NTSC **master tick 4** calls `cpu_nmi_input(ppu_nmi_output())`; `runner/cyc/cpu6502.c` latches rising `nmi_edge` in `cpu_nmi_input`; `runner/cyc/cpu6502.h` `cpu_poll()` promotes a latched edge to `do_nmi`, and `cpu_fetch()` checks `do_nmi | do_irq | do_reset` after recording the fetch. Instrument edge, promotion, fetch acceptance as distinct phases; remember the trace `INSN` record can represent a discarded opcode.
+- **Mesen2 source baseline** `b9fa69ddc6d0a331fb103fdb5eef6904305703c2`: `Core/NES/NesPpu.cpp` `TriggerNmi()` calls `GetCpu()->SetNmiFlag()`; `Core/NES/NesCpu.cpp` `EndCpuCycle()` observes the CPU flag edge into `_needNmi` / `_prevNeedNmi`; `NesCpu::Exec()` checks `_prevNeedNmi` after the instruction and enters `IRQ()`. Observe assertion, end-cycle sampling, and interrupt-entry decision separately.
+- A credible A/B diagnosis needs either **matched source-instrumented core traces** or a ROM-independent NMI edge/poll timing test that deliberately drives identical edge phases in both cores. The currently captured original Lua bus callback is selective and `emu.addEventCallback(nmi)` fires *after* interrupt processing, so it does not independently timestamp the NMI line's rise. A new core-level experiment may involve rebuilding instrumented diagnostics; do **not** claim it can be done using existing captures alone.
+
+Next action should be a **single tightly targeted JP0677 NMI-edge/poll witness**, not a broad audio recapture. Prefer testing the common phase model first; only if a real model discrepancy is confirmed should a runtime timing change and eventual 1,100-frame validation be considered. Keep owner ROM, raw trace, compiled binaries and private captures off GitHub.
+
 Status: **pinned-source analysis completed, 15 synthetic ROM-independent tests PASS; owner-local JP0676 raw-trace classification pending**. No change to CPU execution, write timestamps, or original 3,401/3,401 ordered 2A03/VRC6 register/value parity. No private original ROM or CPU bus data published.
 
 ## What the current JP0675 aggregate proves
