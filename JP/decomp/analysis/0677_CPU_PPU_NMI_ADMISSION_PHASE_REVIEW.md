@@ -1,5 +1,33 @@
 # JP0677 — First NMI acceptance difference: test CPU/PPU alignment before patching the CPU
 
+## JP0677 owner four-alignment result — COMPLETE, no alignment fixes NMI (2026-10-17)
+
+The owner submitted `JP0677-NMI-alignment-sweep.json` (schema `JP0677-CPU-PPU-phase-sweep/v1`; safe aggregate SHA-256 `2e75c6bbba3ec218997ceff012b7dfe592a06620a541925346de704668ce6df2`). The assistant directly parsed the uploaded aggregate and independently checked the four rows' consistency; full raw Windows traces were **not** uploaded and hence have **not** been independently replayed here. All row-level tests below refer to gates reported by the owner's private local analyzer.
+
+| Native alignment | Native extra completed instruction | Valid discarded NMI fetch | Native-Mesen first NMI push | Native-Mesen matched instruction interval | First 13 audio cycle offsets |
+| --- | --- | --- | ---: | ---: | --- |
+| `--align 0` | 1 | true | +2 CPU cycles | +3 CPU cycles | first 12 at −1, 13th +1 |
+| `--align 1` | 1 | true | +2 CPU cycles | +3 CPU cycles | same |
+| `--align 2` | 1 | true | +2 CPU cycles | +3 CPU cycles | same |
+| `--align 3` | 1 | true | +2 CPU cycles | +3 CPU cycles | same |
+
+All four runs preserve the first thirteen audio-register address/value pairs, and the `--align 0` native trace reproduces JP0673 exactly. The report sets `alignment_phase_sensitivity_observed=false`, `alignment_settings_without_extra_native_instruction=[]`, `NO_ALTERNATIVE_ALIGNMENT_REMOVED_EXTRA_INSTRUCTION`, and `CPU_timing_patch_authorized=false`.
+
+**Inference:** The tested `--align` startup setting does not resolve or affect the first differing NMI acceptance boundary. The initial clock-phase-selector hypothesis is **rejected as a practical explanation or correction** for this specific case, though this does not establish that all PPU timing/phase implementations are identical. **The exact CPU cycle at which the PPU's NMI output changes and the CPU samples/promotes the NMI has not been observed on both engines**, so the causal choice remains open.
+
+### JP0678 single discriminating test (not yet collected)
+
+A conclusive differential witness must identify these events on the *same CPU-cycle convention*, over a very short bracket around the **first** NMI, not collect a new broad trace:
+
+1. **PPU source edge:** PPU asserts the NMI output (with scanline/dot and CPU master-clock phase).
+2. **CPU edge sample:** the CPU samples the PPU NMI signal and latches the rising edge.
+3. **CPU poll / pending promotion:** the instruction-specific point where the pending NMI becomes eligible for the next opcode fetch/interrupt entry, with neighboring instruction-boundary ordinal.
+4. **Discarded opcode fetch:** CPU fetch rejected because NMI is pending; next two preliminary reads, stack pushes and `$FFFA/$FFFB` vector reads can reuse JP0676 proven bus signature.
+
+Pinned native source observation sites: `runner/cyc/hw_machine.c::sample_nmi` (`cpu_nmi_input(ppu_nmi_output())` at NTSC CPU master tick 4), `runner/cyc/cpu6502.c::cpu_nmi_input`, `runner/cyc/cpu6502.h::cpu_poll` and `cpu_fetch`/`cpu_fetch_rom`. Original Mesen2 source observation sites: `Core/NES/NesPpu.cpp::TriggerNmi`/`SetNmiFlag`, `Core/NES/NesCpu.cpp::EndCpuCycle` (`_state.NmiFlag`, `_needNmi`, `_prevNeedNmi`) and `Exec`/`IRQ`. Mesen2's existing Lua NMI callback occurs *after* interrupt delivery and cannot alone timestamp the assertion/sample/poll sequence. Either diagnostic source instrumentation of both cores or an independently calibrated equivalent witness is required. Compile diagnostics privately; never commit third-party modified cores, original ROM, raw traces or binaries. Instrumentation must **only observe**, never modify CPU/PPU execution or shift timestamps.
+
+Decision gate: if PPU assertion/sample timestamp already differs, investigate PPU source/latch clock phase; if assertion/sample agree but pending-poll differs, investigate per-instruction `CYC_POLL` flags / Mesen `_prevNeedNmi` instruction-end sampling; if both agree, re-check trace PC pairing/callback phases before patching. Preserve 3,401/3,401 ordered audio address/value parity while addressing CPU-cycle parity.
+
 ## Owner v3 PowerShell Python-launcher fix (2026-10-17)
 
 Owner's next `JP0677-status.txt` again returned `INCOMPLETE_NOT_PROVEN`: the v2 PowerShell runner resolved **two** `py.exe` `ApplicationInfo` objects (Python Launcher plus a WindowsApps alias). Using `(Get-Command 'py.exe' -CommandType Application).Source` yielded a list that PowerShell interpolated into one malformed command string (`path1 path2`), so the phase sweep still never ran. The file hashes in the status remain the expected private ROM, native EXE and original Mesen witness; they do not establish a timing result.
