@@ -1,5 +1,11 @@
 # JP0677 — First NMI acceptance difference: test CPU/PPU alignment before patching the CPU
 
+## Owner v3 PowerShell Python-launcher fix (2026-10-17)
+
+Owner's next `JP0677-status.txt` again returned `INCOMPLETE_NOT_PROVEN`: the v2 PowerShell runner resolved **two** `py.exe` `ApplicationInfo` objects (Python Launcher plus a WindowsApps alias). Using `(Get-Command 'py.exe' -CommandType Application).Source` yielded a list that PowerShell interpolated into one malformed command string (`path1 path2`), so the phase sweep still never ran. The file hashes in the status remain the expected private ROM, native EXE and original Mesen witness; they do not establish a timing result.
+
+**v3 fix:** select exactly one existing launcher executable using `Get-Command 'py.exe' -All -CommandType Application` piped through `Test-Path -PathType Leaf` and `Select-Object -First 1`; require one candidate, then use the selected object's `Source` converted to a single string. The wrapper remains `Invoke-JP0677Python`, never a function named `Py`. No CPU/PPU code, native binary, ROM, trace parsing, emulator command flags, frame replay or parity thresholds changed. Local tests passed: **11 ROM-independent JP0677 analyzer tests plus 7 static launcher checks** (18 total). This is **not** an end-to-end Windows PowerShell test. Owner rerun with private `JP0677-NMI-Alignment-Phase-Sweep-Kit-v3.zip` remains pending.
+
 ## Owner JP0677 launcher failure and hotfix v2 (2026-10-17)
 
 The owner supplied `JP0677-status.txt` (schema `JP0677-private-alignment-sweep-status/v1`) reporting `INCOMPLETE_NOT_PROVEN` / `The script failed due to call depth overflow.` The status verified the expected private original ROM, native executable and original Mesen witness SHA-256, but **does not report any successful alignment runs**. Do not interpret this as support for or against the CPU/PPU phase hypothesis.
