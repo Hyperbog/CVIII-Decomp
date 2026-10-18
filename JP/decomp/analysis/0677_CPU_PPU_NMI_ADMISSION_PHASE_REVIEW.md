@@ -1,5 +1,13 @@
 # JP0677 — First NMI acceptance difference: test CPU/PPU alignment before patching the CPU
 
+## Owner JP0677 launcher failure and hotfix v2 (2026-10-17)
+
+The owner supplied `JP0677-status.txt` (schema `JP0677-private-alignment-sweep-status/v1`) reporting `INCOMPLETE_NOT_PROVEN` / `The script failed due to call depth overflow.` The status verified the expected private original ROM, native executable and original Mesen witness SHA-256, but **does not report any successful alignment runs**. Do not interpret this as support for or against the CPU/PPU phase hypothesis.
+
+The local PowerShell runner's wrapper was defined `function Py([string[]]$arguments)` and executed `& py -3 @arguments` from inside the wrapper. PowerShell command resolution is case-insensitive, so `py` resolved back to the `Py` function, recursively invoking itself until call-depth overflow; the Python analysis did not execute. The correction **renames the wrapper** to `Invoke-JP0677Python` and resolves `py.exe` explicitly with `Get-Command py.exe -CommandType Application`, executing its absolute path. The four-alignment native commands, input ROM/executable SHA checks, CPU traces, audio-prefix gates, and Python analysis are unchanged. The owner should extract `JP0677-NMI-Alignment-Phase-Sweep-Kit-v2.zip` and rerun the same PowerShell command.
+
+**Verification:** eleven existing ROM-independent JP0677 analyzer tests and five new static PowerShell launcher regression checks passed (16/16). These are local tests; the corrected Windows PowerShell runner and native four-phase sweep have **not** yet been executed by the owner. The only conclusion supported remains the earlier JP0676 completed extra instruction, followed by a discarded native NMI fetch. No CPU timing change is warranted.
+
 ## What is proven from the prior private witnesses
 
 The JP0673–JP0676 owner-local audits validate the corrected 1,100-frame Japanese original/native ordered audio-write address/value stream (**3,401/3,401**) and isolate the first *instruction* difference at matched instruction ordinal **3,300**: native completed one additional three-cycle instruction, then discarded the next opcode fetch due to pending NMI. Native's seven-cycle interrupt entry then performs the correct two preliminary reads, three stack pushes, and two `$FFFA/$FFFB` vector reads. Native minus Mesen vector and stack bus cycles are **+2**, while the next matched instruction-start offset is **+3**, partly due to differing callback timestamp phases.
