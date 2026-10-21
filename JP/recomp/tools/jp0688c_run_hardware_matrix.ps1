@@ -21,7 +21,7 @@ foreach ($pair in @(@($src, $sourcePin), @($roms, $testPin))) {
 }
 
 # Rebuild the host from the specified source; a stale executable is not evidence.
-& cmake -S (Join-Path $src 'runner\cyc') -B $build 
+& cmake -S (Join-Path $src 'runner\cyc') -B $build `
     -DNESRECOMP_HEADLESS=ON -DNESRECOMP_RECOMP_UI=OFF
 if ($LASTEXITCODE -ne 0) { throw 'CMake configuration failed' }
 & cmake --build $build --config Release --target cyc_interp --parallel 4
@@ -81,7 +81,7 @@ foreach ($test in $tests) {
         $log = Join-Path $private "$id.log"
         Remove-Item $dump, $log -ErrorAction SilentlyContinue
         $watch = [System.Diagnostics.Stopwatch]::StartNew()
-        & $exePath $patched --headless --align $align 
+        & $exePath $patched --headless --align $align `
             --frames 900 --mem-frame 899 --mem-out $dump *> $log
         $code = $LASTEXITCODE
         $watch.Stop()
