@@ -13,9 +13,9 @@ Status: **OWNER EXECUTION REPORTED; EVIDENCE CHECKED: 16/16 PASS.** See [verifie
 ## Owner execution (Windows PowerShell)
 
 1. Keep the pinned NESRecomp and test ROM clones under `C:\Tools\Mesen2\Private\JP0688-Hardware-Validation\` and the existing JP0684 working folder.
-2. Run `JP0688c-run-hardware-matrix.ps1`. It validates both Git pins, builds the standalone host, checks public ROM geometry and records all 16 results. Only private public-test header copies, WRAM dumps and stdout logs are written under `Private\JP0688-Hardware-Validation\JP0688c\`.
+2. Run [`jp0688c_run_hardware_matrix.ps1`](../tools/jp0688c_run_hardware_matrix.ps1) from a Windows PowerShell session. It validates both Git pins, builds the standalone host, checks public ROM geometry and records all 16 results. Only private public-test header copies, WRAM dumps and stdout logs are written under `Private\JP0688-Hardware-Validation\JP0688c\`.
 3. Upload **both** `JP0688c-hardware-matrix.json` and `JP0688c-wram-evidence.txt` from `C:\Tools\Mesen2\JP0684-Native-Clock-Logging-Fix\` for independent review.
-4. Independently check `python JP0688c-validate-evidence.py JP0688c-hardware-matrix.json JP0688c-wram-evidence.txt`. This cross-checks 16 unique `(test, alignment)` cases, expected pins, $6000 signatures and reported codes against the captured WRAM excerpts. It does **not** independently execute the hardware core or compare output with real hardware.
+4. Independently check `python JP/recomp/tools/jp0688c_validate_evidence.py JP0688c-hardware-matrix.json JP0688c-wram-evidence.txt`. This cross-checks 16 unique `(test, alignment)` cases, expected pins, $6000 signatures and reported codes against the captured WRAM excerpts. It does **not** independently execute the hardware core or compare output with real hardware.
 
 ## Result interpretation and release gate
 
