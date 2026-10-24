@@ -32,6 +32,16 @@ The Linux synthetic mapper24 workflow now builds both the ROM-specialized compil
 
 Windows MSVC CI builds the same standalone executable with no ROM or code-generator input. Windowed SDL support is optional at build time; release packaging, original-game visual certification and performance remain open.
 
+## JP0733 — Production ROM verification before first CPU instruction
+
+`cviii_runtime_entry_0733.c` supplies a game-owned `main()`. Only in the new JP0732 target, a per-source CMake definition renames the pinned upstream `cyc_host.c` entry point to `cviii_upstream_main_0733`; no third-party source is edited or vendored. The wrapper verifies the exact 393,232-byte original Japanese Mapper24 SHA256 **before** the upstream CPU/mapper loader is invoked, then passes the same verified path through `--stage1-world-rom` to the existing in-game Stage 1/CHR resource importer. No user-facing compiler or Python step is involved.
+
+A separate build-only `JP0733_ALLOW_SYNTHETIC_FIXTURE=ON` flag permits completely invented mapper24 source data **only for public CI**. The default production target never enables it; Windows CI explicitly runs the *production* target against that synthetic cartridge and requires exit code **3** (wrong ROM refused before gameplay). The test-only flag is not a mode the retail user can enable at runtime. The original-ROM identity check is independent of the private Stage 1 resource cache checksum.
+
+The two PPU/CHR observation callbacks which the developer-generated backend installs via private source overlays are deliberately inert in this standalone engine, and the six overlay-dependent audit options explicitly reject with a diagnostic. This prevents fabricated empty audit reports while leaving actual CPU, mapper, PPU, sprite and audio behavior unmodified.
+
+The new Linux CI compares 20 frame-by-frame observable synthetic Mapper24 hashes between (a) generated native game, (b) forced interpreter in that game and (c) the independent ROM-at-launch executable, and all 20 agree. Windows MSVC builds the full enhanced interpreter host without an original ROM at compile time. A separate SDL2-linked native runtime target is also compiled and compared on synthetic frames. None of these outcomes alone prove original-Japanese retail Stage 1 pixel parity.
+
 ## Separation still required
 
 - Import the authenticated original ROM from the final native install's first-launch picker and preserve the path in per-user settings. The existing Windows Alpha PowerShell launcher already supports picker and source validation; a standalone GUI installation/picker without PowerShell is later work.
