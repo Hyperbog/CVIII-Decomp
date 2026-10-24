@@ -71,13 +71,18 @@ def convert(raw:str):
     encoded='\n'.join(out)+'\n'
     first_start=next((int(line.split()[0]) for line in out
                       if line.endswith('1:START')),None)
-    if origin!=1 or first_start!=393:
-        raise ValueError('source original START/epoch witness did not verify')
+    first_right=next((int(line.split()[0]) for line in out
+                      if line.endswith('1:RIGHT')),None)
+    # JP0744: authenticated real CPU-read traces show RIGHT in original
+    # local 1684, whereas legacy absolute-frame native input used 1685.
+    if origin!=1 or first_start!=393 or first_right!=1684:
+        raise ValueError('source original START/RIGHT frame-epoch witness failed')
     return encoded,{
         'schema':'JP0743-original-local-frame-controller-input/v1',
         'rom_sha1':SHA1,'owner_input_polls':count,
         'original_absolute_frame_origin':origin,
         'first_start_native_frame':first_start,
+        'first_right_native_frame':first_right,
         'conversion':'native_frame = original_local_frame = original_absolute_frame - header_origin',
         'owner_input_sha256':hashlib.sha256(raw.encode('ascii')).hexdigest(),
         'native_input_sha256':hashlib.sha256(encoded.encode('ascii')).hexdigest(),
@@ -87,7 +92,7 @@ def convert(raw:str):
 def smoke():
     assert buttons(16)=='START'
     assert buttons(129)=='A+RIGHT'
-    assert 394-1==393
+    assert 394-1==393 and 1685-1==1684
     text='JP0718INPUT\t1\t'+SHA1+'\t20261023-213546\t1\n'
     text+='P\t2\t1\t1\t00\t00\t27392\nEND\tUSER_STOP\t1\n'
     try:convert(text)
@@ -113,7 +118,7 @@ def main():
     report['source_member']=name
     a.output.write_text(result,encoding='ascii')
     a.report.write_text(json.dumps(report,indent=2,sort_keys=True)+'\n')
-    print('PASS JP0743: 17,562 owner input polls -> local native frames; START local frame 393')
+    print('PASS JP0744: 17,562 owner input polls -> local native frames; START 393, RIGHT 1684')
 
 
 if __name__=='__main__':
