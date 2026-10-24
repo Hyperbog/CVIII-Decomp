@@ -54,6 +54,10 @@ def patch(s: str, kind: str) -> str:
     if kind == 'machine':
         s=replace_once(s, '#include "hw_internal.h"',
                        '#include "hw_internal.h"\n'+HEADER)
+        # hw_machine.c lives in runner/cyc upstream; its quoted relative
+        # common header must become an explicit include from the copied build dir.
+        s=replace_once(s, '#include "../../common/nes_fds.h"',
+                       '#include "nes_fds.h"')
         s=replace_once(s, MACHINE_START, MACHINE_NEW)
         s=replace_once(s, READ_START, READ_NEW)
     elif kind == 'run':
@@ -64,7 +68,7 @@ def patch(s: str, kind: str) -> str:
     return s
 
 def smoke() -> None:
-    machine='#include "hw_internal.h"\n'+READ_START+'\n'+MACHINE_START+'\n}'
+    machine='#include "hw_internal.h"\n#include "../../common/nes_fds.h"\n'+READ_START+'\n'+MACHINE_START+'\n}'
     run='#include "cyc_run.h"\n'+RUN_START+'\n}'
     m=patch(machine,'machine')
     r=patch(run,'run')
