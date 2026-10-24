@@ -367,3 +367,10 @@ python3 "$root/JP/decomp/tools/jp0738_compare_jp0719_zip.py" --smoke
 # JP0739: ROM-free fail-closed original $62 static writer candidate census.
 # Synthetic matches do not prove naturally executed stores or source credit.
 python3 "$root/JP/decomp/tools/jp0739_mode62_writer_census.py" --smoke
+
+# JP0740: synthetic-only original/native CPU-write capture provenance.
+# The ROM-locked original replay is PRIVATE and is not executed in CI.
+python3 "$root/JP/decomp/tools/jp0740_trace_verify.py" --smoke
+python3 "$root/JP/recomp/tools/jp0740_native_write_overlay.py" --smoke
+"${CC:-cc}" -std=c11 -Wall -Wextra -Werror -pedantic -fsyntax-only \
+  "$root/JP/recomp/native/rom_runtime_0732/cviii_jp0740_native_trace.c"
