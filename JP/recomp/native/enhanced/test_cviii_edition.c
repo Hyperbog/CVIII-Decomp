@@ -64,6 +64,7 @@ static int wide_video_mode;
 void cyc_video_set_mode(int mode) { wide_video_mode=mode; }
 int cyc_render_line_scroll_x(int y) { (void)y; return 0; }
 int cyc_render_line_scroll_y(int y) { return y; }
+uint8_t cyc_render_nametable(uint16_t a) { (void)a; return 0; }
 uint16_t cyc_render_line_bg_table(int y) { (void)y; return 0x1000; }
 void cyc_render_capture_background(bool enabled) { capture_enabled=enabled; }
 bool cyc_render_background(uint32_t *out) {
