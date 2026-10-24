@@ -547,6 +547,16 @@ jobs:
           grep -Eq 'JP0735 original-boot native CLD=[1-9][0-9]* SEI=[1-9][0-9]* LDX=[1-9][0-9]* TXS=[1-9][0-9]*' \
             "${{ runner.temp }}/jp0735_native.log"
           echo "PASS JP0735: 4 original fixed-bank instructions executed natively; 20 complete frame hashes identical"
+      # JP0735 private local verification: this is an engine-only binary.
+      # No original ROM, input schedule, extracted assets, game screenshot,
+      # or cache enters this one-day diagnostic artifact.
+      - name: JP0735 stage ROM-independent interpreter for owner-local retail validation
+        uses: actions/upload-artifact@v4
+        with:
+          name: jp0735-linux-engine-only
+          path: ${{ runner.temp }}/jp0735_native/jp_akumajou_runtime_0732
+          retention-days: 1
+          if-no-files-found: error
       - name: Run and verify synthetic mapper24 native CPU cycles
         run: |
           set -eo pipefail
