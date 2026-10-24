@@ -38,3 +38,10 @@ foreach(JP_RESOURCE_TEST variant_production variant_synthetic)
  add_test(NAME jp_runtime_resources_0727_${JP_RESOURCE_TEST}
   COMMAND jp_runtime_resources_0727_${JP_RESOURCE_TEST})
 endforeach()
+
+# JP0730: cross-stage ROM TSA pattern tables; explicit uncertainty guard.
+add_executable(jp_tsa_catalog_test_0730
+ ../cviii_rom_tsa_catalog_0730.c
+ ../cviii_rom_tsa_catalog_test_0730.c)
+set_property(TARGET jp_tsa_catalog_test_0730 PROPERTY C_STANDARD 11)
+add_test(NAME jp0730_source_bounded_tilesets COMMAND jp_tsa_catalog_test_0730)
