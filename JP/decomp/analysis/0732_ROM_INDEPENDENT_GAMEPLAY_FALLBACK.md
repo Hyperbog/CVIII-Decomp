@@ -42,6 +42,19 @@ The two PPU/CHR observation callbacks which the developer-generated backend inst
 
 The new Linux CI compares 20 frame-by-frame observable synthetic Mapper24 hashes between (a) generated native game, (b) forced interpreter in that game and (c) the independent ROM-at-launch executable, and all 20 agree. Windows MSVC builds the full enhanced interpreter host without an original ROM at compile time. A separate SDL2-linked native runtime target is also compiled and compared on synthetic frames. None of these outcomes alone prove original-Japanese retail Stage 1 pixel parity.
 
+## JP0734 — Executable native/interpreter instruction-boundary seam (synthetic-only)
+
+The separate `cviii_test_native_lda_0734.c` backend proves that upstream `cyc_run.c` can dispatch a verified C instruction from the actual CPU core while all other guest instructions still take the cycle-accurate interpreter path.
+
+For `LDA #imm` (opcode $A9) the test backend:
+- Accepts only a **currently mapped ROM location at $8000 or above**, verified by `hw_prg_is_rom` and `cyc_debug_peek` at the current bank/address; CPU RAM/PRG RAM never dispatches to this handler.
+- Performs the original real `cpu_fetch` cycle and interrupt arbitration, the operand `cpu_read(pc+1,CYC_POLL|CYC_DONE)`, then sets A/N/Z/PC exactly as NESRecomp's generated interpreter case for $A9.
+- All other opcodes return false from `cyc_native_has`, continuing through `cpu_interp_step`. The scheduler separately refuses native dispatch on `hw_prg_modified`.
+- Emits a **test-only** count of native instructions executed at process exit. A zero count fails the CI gate, so hash parity cannot pass merely because the handler was never selected.
+- Runs on the wholly invented JP0569 VRC6 fixture for 20 frames. Native-execution output must match both generated-game and interpreter-only frame hashes, not just a final screenshot.
+
+The test implementation is gated behind `JP0734_TEST_NATIVE_LDA=ON` **AND** `JP0733_ALLOW_SYNTHETIC_FIXTURE=ON`. Both are OFF in the production executable, which continues to use upstream `cyc_native_none.c`. This is proof of the mechanism, **not a license to reinterpret original retail PRG instructions**, and it contributes zero newly certified original semantic bytes or VPP points. Native region handlers must later carry stronger cartridge SHA identity, mapped physical bank verification and original-game cycle-level parity.
+
 ## Separation still required
 
 - Import the authenticated original ROM from the final native install's first-launch picker and preserve the path in per-user settings. The existing Windows Alpha PowerShell launcher already supports picker and source validation; a standalone GUI installation/picker without PowerShell is later work.
