@@ -17,9 +17,9 @@ int main(void){
     assert(rom);
     memcpy(rom,"NES\x1a",4);
     rom[4]=16;rom[5]=16;rom[6]=0x80;rom[7]=0x10;
-    const unsigned headers[]={0x200BA,0x2014B,0x20039,0x2017C,
-                              0x201DD,0x2026E,0x202FF,0x20390};
-    const unsigned screens[]={3,1,2,2,3,3,3,4};
+    const unsigned headers[]={0x200BA,0x2014B,0x20039,0x201DD,
+                              0x2017C,0x2026E,0x202FF,0x20390};
+    const unsigned screens[]={3,1,2,3,2,3,3,4};
     for(unsigned i=0;i<8;i++)rom[headers[i]]=(uint8_t)(screens[i]-1);
     for(unsigned i=0;i<145;i++){
         for(unsigned j=0;j<16;j++)rom[0x20451+i*16+j]=(uint8_t)(i+j);
