@@ -1,4 +1,9 @@
 #include "cviii_stage1_atlas_0724.h"
+/* Windows/CI Release adds NDEBUG; tests must never silently skip checks
+ * or suppress setup side effects written inside assert expressions. */
+#ifdef NDEBUG
+#undef NDEBUG
+#endif
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
