@@ -33,6 +33,20 @@ target_compile_definitions(jp_akumajou_runtime_0732 PRIVATE
  _CRT_SECURE_NO_WARNINGS)
 
 if(JP0732_ENHANCED)
+ # An independent game-owned entry point checks full ROM SHA256 before
+ # delegating to the unchanged upstream host. Rename only upstream main
+ # on this target; no code generation, patching or media at build time.
+ set_source_files_properties(
+  "${NESRECOMP_EXTERNAL_ROOT}/runner/cyc/cyc_host.c"
+  PROPERTIES COMPILE_DEFINITIONS "main=cviii_upstream_main_0733")
+ target_sources(jp_akumajou_runtime_0732 PRIVATE
+  "${CMAKE_CURRENT_LIST_DIR}/cviii_runtime_entry_0733.c")
+ option(JP0733_ALLOW_SYNTHETIC_FIXTURE
+   "Testing ONLY: allow invented Mapper24 media (never use in release)" OFF)
+ if(JP0733_ALLOW_SYNTHETIC_FIXTURE)
+  target_compile_definitions(jp_akumajou_runtime_0732 PRIVATE
+    CVIII_JP0733_TEST_SYNTHETIC_ROM=1)
+ endif()
  target_compile_definitions(jp_akumajou_runtime_0732 PRIVATE
    CVIII_0732_NO_PRIVATE_OBSERVERS=1)
  target_sources(jp_akumajou_runtime_0732 PRIVATE
