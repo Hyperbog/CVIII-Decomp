@@ -104,6 +104,7 @@ void cviii_jp0740_write(uint16_t addr,uint8_t old,uint8_t value,uint64_t cycles)
 {
     uint16_t a=(uint16_t)(addr&0x07FFu);
     if(addr==0x4016u || a==0x0028u || a==0x002Au ||
+       a==0x0036u || a==0x0065u ||
        a==0x0062u || a==0x0053u ||
        a==0x0054u || a==0x0055u || a==0x0063u || a==0x006Bu ||
        a==0x041Cu || a==0x0438u || a==0x04C4u || a==0x04F2u ||
