@@ -93,7 +93,8 @@ if(JP0740_TRACE_CPU_WRITES)
  target_sources(jp_akumajou_runtime_0732 PRIVATE
   "${CMAKE_CURRENT_LIST_DIR}/cviii_jp0740_native_trace.c")
  target_include_directories(jp_akumajou_runtime_0732 PRIVATE
-  "${CMAKE_CURRENT_LIST_DIR}")
+  "${CMAKE_CURRENT_LIST_DIR}"
+  "${NESRECOMP_EXTERNAL_ROOT}/common")
 endif()
 target_link_libraries(jp_akumajou_runtime_0732 PRIVATE
  ${NESRECOMP_CYC_LIBRARIES})
