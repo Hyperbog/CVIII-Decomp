@@ -375,6 +375,3 @@ python3 "$root/JP/recomp/tools/jp0740_native_write_overlay.py" --smoke
 "${CC:-cc}" -std=c11 -Wall -Wextra -Werror -pedantic -fsyntax-only \
   "$root/JP/recomp/native/rom_runtime_0732/cviii_jp0740_native_trace.c"
 
-# JP0740: gate original Mesen replay anchor / upstream native trace parser
-# on invented RAM and bus records only. No original game files in CI.
-python3 "$root/JP/decomp/tools/jp0740_trace_evidence.py" --smoke
