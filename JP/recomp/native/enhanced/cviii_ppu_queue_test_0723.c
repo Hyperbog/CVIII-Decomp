@@ -1,5 +1,8 @@
 /* ROM-free tests: invented queues only; no original assets. */
 #include "cviii_ppu_queue_0723.h"
+#ifdef NDEBUG
+#undef NDEBUG
+#endif
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
