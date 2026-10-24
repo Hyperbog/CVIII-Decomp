@@ -25,6 +25,10 @@ include("${NESRECOMP_EXTERNAL_ROOT}/runner/cyc/cyc.cmake")
 # is a separate mutually exclusive mode. Neither path uses generated code.
 option(JP0735_ENABLE_ORIGINAL_BOOT_NATIVE
  "Original JP fixed PRG31 boot native instructions (4 guarded entries)" ON)
+if(JP0735_ENABLE_ORIGINAL_BOOT_NATIVE AND NOT JP0732_ENHANCED)
+ message(FATAL_ERROR
+  "JP0735 native original instruction dispatch requires authenticated JP0733 game entry; enable JP0732_ENHANCED")
+endif()
 option(JP0734_TEST_NATIVE_LDA
  "Testing ONLY: generic native LDA #imm on invented Mapper24 ROM" OFF)
 option(JP0733_ALLOW_SYNTHETIC_FIXTURE
