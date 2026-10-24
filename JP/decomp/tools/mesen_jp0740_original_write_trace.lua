@@ -98,8 +98,12 @@ emu.addEventCallback(function(c)
   local v=inputs[fr]
   if not v then finish('INPUT_FRAME_MISSING');return end
   -- This requests identical button intent, NOT verified $4016 bus phase.
-  emu.setInput(buttons(v[1]),0)
-  emu.setInput(buttons(v[2]),1)
+  -- MesenCE LuaApi::SetInput reads the port from argument position 3.
+  -- Two-argument calls both select port 0, so the empty player-2 mask
+  -- clears player-1 START/other buttons after the first call.
+  -- Three-argument form proven by original frame 416,664,832 replay.
+  emu.setInput(buttons(v[1]),0,0)
+  emu.setInput(buttons(v[2]),1,1)
   observed=observed+1
 end,emu.eventType.inputPolled)
 -- Record executing PC, rather than assuming write-callback PC is opcode PC.
