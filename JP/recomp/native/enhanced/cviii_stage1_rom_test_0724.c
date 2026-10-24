@@ -1,5 +1,10 @@
 /* ROM-free synthetic JP0724 room map/palette decoder regression. */
 #include "cviii_stage1_rom_0724.h"
+/* Windows/CI Release adds NDEBUG; tests must never silently skip checks
+ * or suppress setup side effects written inside assert expressions. */
+#ifdef NDEBUG
+#undef NDEBUG
+#endif
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
