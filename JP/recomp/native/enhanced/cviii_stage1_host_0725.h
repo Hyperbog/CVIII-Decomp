@@ -8,6 +8,7 @@
 enum { CVIII_STAGE1_WIDE_0725=426, CVIII_STAGE1_ORIGIN_0725=85 };
 typedef struct {
     CviiiStage1Atlas0724 atlas;
+    CviiiChrIndex *runtime_assets; /* optional JP0728 preloaded original CHR index */
     uint32_t pixels[CVIII_STAGE1_WIDE_0725*240];
     char rom_path[1024];
     int enabled, attempted, video_wide;
