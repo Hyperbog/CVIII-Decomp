@@ -19,6 +19,43 @@ option(JP0732_ENHANCED "Compile the existing game-owned Enhanced host presentati
 set(NESRECOMP_PPU_IMPL "LLE" CACHE STRING "Cycle PPU rendering implementation")
 include("${NESRECOMP_EXTERNAL_ROOT}/runner/cyc/cyc.cmake")
 
+# JP0740 private diagnostic option; OFF for all normal production builds.
+# Create copy-only overlays of the exact pinned NESRecomp sources.
+option(JP0740_TRACE_CPU_WRITES
+ "Internal original-JP mapped opcode and CPU bus write trace" OFF)
+if(JP0740_TRACE_CPU_WRITES)
+ if(NOT JP0732_ENHANCED)
+  message(FATAL_ERROR "JP0740 requires JP0733 SHA-verified original ROM entry")
+ endif()
+ find_package(Python3 COMPONENTS Interpreter REQUIRED)
+ set(JP0740_OVERLAY_DIR "${CMAKE_CURRENT_BINARY_DIR}/jp0740_private_overlay")
+ execute_process(
+  COMMAND "${Python3_EXECUTABLE}"
+   "${CMAKE_CURRENT_LIST_DIR}/../../tools/jp0740_native_write_overlay.py"
+   --machine "${NESRECOMP_CYC_DIR}/hw_machine.c"
+   --run "${NESRECOMP_CYC_DIR}/cyc_run.c"
+   --output-directory "${JP0740_OVERLAY_DIR}"
+  RESULT_VARIABLE JP0740_PATCH_EXIT
+  OUTPUT_VARIABLE JP0740_PATCH_OUTPUT
+  ERROR_VARIABLE JP0740_PATCH_ERROR)
+ if(NOT JP0740_PATCH_EXIT EQUAL 0)
+  message(FATAL_ERROR "JP0740 pinned overlay failed: ${JP0740_PATCH_ERROR}")
+ endif()
+ foreach(JP0740_ORIGINAL hw_machine.c cyc_run.c)
+  list(FIND NESRECOMP_CYC_SOURCES
+   "${NESRECOMP_CYC_DIR}/${JP0740_ORIGINAL}" JP0740_SRC_INDEX)
+  if(JP0740_SRC_INDEX LESS 0)
+   message(FATAL_ERROR "JP0740 original CYC source missing")
+  endif()
+  list(REMOVE_ITEM NESRECOMP_CYC_SOURCES
+   "${NESRECOMP_CYC_DIR}/${JP0740_ORIGINAL}")
+ endforeach()
+ list(APPEND NESRECOMP_CYC_SOURCES
+  "${JP0740_OVERLAY_DIR}/cviii_jp0740_hw_machine.c"
+  "${JP0740_OVERLAY_DIR}/cviii_jp0740_cyc_run.c")
+ message(STATUS "JP0740 opt-in private CPU trace: ${JP0740_PATCH_OUTPUT}")
+endif()
+
 # JP0735: the four independently ROM-authenticated reset instructions
 # default to narrow native handlers. All other original guest instructions
 # remain interpreted. The existing single-opcode JP0734 synthetic-only proof
@@ -52,6 +89,12 @@ add_executable(jp_akumajou_runtime_0732
  ${CVIII_0734_NATIVE_SOURCE})
 target_include_directories(jp_akumajou_runtime_0732 PRIVATE
  ${NESRECOMP_CYC_INCLUDE_DIRS})
+if(JP0740_TRACE_CPU_WRITES)
+ target_sources(jp_akumajou_runtime_0732 PRIVATE
+  "${CMAKE_CURRENT_LIST_DIR}/cviii_jp0740_native_trace.c")
+ target_include_directories(jp_akumajou_runtime_0732 PRIVATE
+  "${CMAKE_CURRENT_LIST_DIR}")
+endif()
 target_link_libraries(jp_akumajou_runtime_0732 PRIVATE
  ${NESRECOMP_CYC_LIBRARIES})
 target_compile_definitions(jp_akumajou_runtime_0732 PRIVATE
