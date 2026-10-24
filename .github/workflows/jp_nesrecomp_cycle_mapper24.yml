@@ -497,6 +497,26 @@ jobs:
           cmp "${{ runner.temp }}/jp0732_compiled.txt" "${{ runner.temp }}/jp0732_compiled_interp.txt"
           cmp "${{ runner.temp }}/jp0732_compiled.txt" "${{ runner.temp }}/jp0732_runtime.txt"
           echo "PASS: JP0732 prebuilt no-game-code interpreter matched all 20 native mapper24 frames"
+      - name: JP0734 prove bank-checked native LDA execution and interpreter fallback
+        run: |
+          set -euo pipefail
+          cmake -S JP/recomp/native/rom_runtime_0732 \
+            -B "${{ runner.temp }}/jp0734-native-opcode" -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DNESRECOMP_EXTERNAL_ROOT="$PWD/_external_nesrecomp" \
+            -DJP0732_WINDOWED=OFF -DJP0732_ENHANCED=ON \
+            -DJP0733_ALLOW_SYNTHETIC_FIXTURE=ON \
+            -DJP0734_TEST_NATIVE_LDA=ON
+          cmake --build "${{ runner.temp }}/jp0734-native-opcode" --parallel 4
+          "${{ runner.temp }}/jp0734-native-opcode/jp_akumajou_runtime_0732" \
+            "${{ runner.temp }}/jp_mapper24_fixture.nes" --frames 20 --edition original \
+            --hash-out "${{ runner.temp }}/jp0734_native.txt" \
+            > "${{ runner.temp }}/jp0734_native.log"
+          cmp "${{ runner.temp }}/jp0732_compiled.txt" \
+              "${{ runner.temp }}/jp0734_native.txt"
+          grep -Eq 'JP0734 test-native-lda hits=[1-9][0-9]*' \
+            "${{ runner.temp }}/jp0734_native.log"
+          echo "PASS: native opcode really executed; all 20 mapper24 frame hashes identical"
       - name: Run and verify synthetic mapper24 native CPU cycles
         run: |
           set -eo pipefail
