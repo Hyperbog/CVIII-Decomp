@@ -79,8 +79,9 @@ static int camera(const CviiiStage1Host0725 *h,uint8_t sel[3],
         (cyc_render_line_mask(120)&0x08u)==0 ||
         cyc_render_line_bg_table(120)!=0x1000u) return 0;
     sel[0]=ram[0x34u];sel[1]=ram[0x35u];sel[2]=ram[0x36u];
-    /* The two-screen vertical room needs separate Y mapping proof. */
-    if (sel[0]!=0 || (sel[1]==1u && sel[2]==1u)) return 0;
+    /* Original $65 bit7 marks vertical room orientation. There $53/$54\n     * tracks Y instead of X, and the static room is only 256px wide.\n     * Side scenery is therefore deliberately suppressed. */
+    if (sel[0]!=0 || (ram[0x65u]&0x80u) ||
+        (sel[1]==1u && sel[2]==1u)) return 0;
     uint8_t tile,palette;
     if (!cviii_stage1_atlas_get_0724(&h->atlas,sel,0,0,&tile,&palette))
         return 0;
