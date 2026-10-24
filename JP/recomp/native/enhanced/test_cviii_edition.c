@@ -85,7 +85,7 @@ int main(void) {
     assert(e && e->options && e->option && e->present);
     /* JP0646: all diagnostic CLI options must be advertised to the host,
      * rather than silently unreachable despite an implemented callback. */
-    assert(e->option_count == 21);
+    assert(e->option_count == 22);
     const char *const required[]={
         "--sound-request-trace","--sound-decision-trace",
         "--dmc-dma-trace","--audio-session-id","--audio-epoch-trace"
@@ -102,6 +102,8 @@ int main(void) {
     assert(e->option(e->ctx,"--stage1-world","0"));
     assert(!e->option(e->ctx,"--stage1-world","bogus"));
     assert(e->option(e->ctx,"--stage1-world","1"));
+    assert(!e->option(e->ctx,"--stage1-resource-cache",NULL));
+    assert(e->option(e->ctx,"--stage1-resource-cache","jp0729-test-private-cache.dat"));
     assert(!cviii_audio_menu_active());
     assert(!cviii_audio_menu_toggle()); /* no authenticated original CHR */
     assert(!cviii_audio_menu_active());
