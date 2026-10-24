@@ -129,6 +129,47 @@ CYCFRAME evidence reported original/native camera checkpoints 9440 10/9,
 a different native executable, has nominal periodic sample times, and
 must not be presented as fresh JP0737 execution.
 
+
+### JP0738D — Original Japanese fixed-bank scroll-gate semantics
+
+Independent actual-cartridge byte inspection extends the existing
+JP0514 authenticated fixed-bank source window with original physical
+PRG offset $3D30D–$3D348 (CPU $D30D–$D348, 60 bytes), SHA-256
+**3f5339caeff220c436bca6124c685d35bf0e74648b764b69d9aa6dd6d91f8e8b**.
+The complete $D2FE–$D348 75-byte local window hashes to
+**ffa88774d3c97eb6d7fa337d4ea1b37fc6fa64155dc27f25da01979c1353d435**.
+These are source identity hashes, **not new strict PRG admission**.
+
+Exact original 6502 branches from $D2FE:
+- LDY $62; BEQ $D311 when $62=0, choosing LDA #$FF to
+  initialize signed high byte scratch $00; otherwise DEY; BEQ $D30D
+  for $62=1, choosing LDA #$00.
+- For $62>=2, the $D305–$D30C path sets $6B=$53-$08
+  and returns. **It does not advance $53/$54/$55.**
+- The $62=0 or 1 camera motion continuation at $D315–$D328
+  adds original subpixel X speed RAM $0509 to $55, then integer X speed
+  RAM $04F2 to $53, with carry/sign high RAM $00 to $54.
+- At $D340–$D348, source LDA $53; AND #$E0; CMP $63; BEQ $D305
+  checks a **32-pixel camera boundary**; the non-equal continuation
+  writes $63 and changes the scroll-boundary handling path.
+
+At original 9504, captured RAM camera X=49, $63=$20, $62=0.
+At original 9576, X=93, $63=$40, $62=1. The JP0719 native
+9496 snapshot has X=54, $63=$20, $62=0; its 9560 and 9592
+snapshots both have X=56, $63=$20, $62=2. **Conditionally, when
+$D2FE runs**, the native mode 2 is consistent with skipping the
+camera-advancement path, while original mode 1 selects it. This
+does not establish which CPU instruction first wrote the divergent $62,
+whether the $62 state was wrong, or whether an earlier collision/player
+state legitimately selected that mode in the native run. All sampled
+times remain non-cycle-aligned.
+
+**Priority therefore moves to the original JP $62 mode producer and
+player Y/action/collision chain before the $D2FE call;** separately
+check the $63 32-pixel boundary and $6B displacement result.
+Do not patch the source $D2FE semantics or the player renderer on
+the basis of this static/archived evidence alone.
+
 **Next certification gate:** locate the first player-state/scroll-delta
 CPU writer with a physically mapped PRG PC on an authentically
 synchronized trace, including actor Y, Y speed, $0565 action, $05C1
