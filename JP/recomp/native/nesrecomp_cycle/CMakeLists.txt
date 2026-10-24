@@ -59,6 +59,7 @@ if(JP_EDITION_HOST_EXTRAS)
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_stage1_host_0725.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_runtime_resources_0727.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_resource_cache_0729.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_rom_tsa_catalog_0730.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_sprite_layers_0608.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_object_oam_trace_0609.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_bus_0610.c"
@@ -615,3 +616,10 @@ add_executable(jp_stage1_atlas_test_0724
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_stage1_atlas_0724.c"
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_stage1_atlas_test_0724.c")
 set_property(TARGET jp_stage1_atlas_test_0724 PROPERTY C_STANDARD 11)
+ 
+# JP0730: independent cross-stage original ROM TSA-definition catalog.
+# Synthetic-only tests; no original CHR, pattern tiles or owner ROM in Git.
+add_executable(jp_tsa_catalog_test_0730
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_rom_tsa_catalog_0730.c"
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_rom_tsa_catalog_test_0730.c")
+set_property(TARGET jp_tsa_catalog_test_0730 PROPERTY C_STANDARD 11)
