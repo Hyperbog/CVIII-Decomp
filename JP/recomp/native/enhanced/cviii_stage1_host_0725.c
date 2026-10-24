@@ -25,8 +25,8 @@ static int load(CviiiStage1Host0725 *h)
      * authenticated ROM read used for the Stage 1 background geometry. */
     CviiiChrIndex *assets=h->runtime_assets && !h->runtime_assets->pixels ?
         h->runtime_assets : NULL;
-    CviiiResourceStatus0727 result=cviii_game_resources_open_0727(
-        h->rom_path,&h->atlas,assets);
+    CviiiResourceStatus0727 result=cviii_game_resources_cached_open_0729(
+        h->rom_path,h->resource_cache_path,&h->atlas,assets);
     if(result==CVIII_RESOURCE_READY_0727) return 1;
     fprintf(stderr,"CVIII JP0727: runtime Stage 1 resource load rejected (status %d); stock presentation retained\\n",
             (int)result);
@@ -39,6 +39,13 @@ int cviii_stage1_host_rom_0725(CviiiStage1Host0725 *h,const char *path)
     memcpy(h->rom_path,path,strlen(path)+1u);
     h->attempted=0;
     h->atlas.loaded=0;
+    return 1;
+}
+int cviii_stage1_host_cache_0729(CviiiStage1Host0725 *h,const char *path)
+{
+    if(!h||!path||!*path||strlen(path)>=sizeof h->resource_cache_path)
+        return 0;
+    memcpy(h->resource_cache_path,path,strlen(path)+1u);
     return 1;
 }
 void cviii_stage1_host_mode_0725(CviiiStage1Host0725 *h,int enabled)
