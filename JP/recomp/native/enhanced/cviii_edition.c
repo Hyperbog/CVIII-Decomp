@@ -6,6 +6,7 @@
 #include "cyc_host_extras.h"
 #include "cyc_core.h"
 #include "cyc_render.h"
+#include "cviii_stage1_host_0725.h"
 #include "cviii_chr_index_0598.h"
 #include "cviii_chr_audit_0599.h"
 #include "cviii_chr_fetch_0600.h"
@@ -43,6 +44,7 @@ typedef struct {
     int enhanced;
     int sprite_unlimited;
     int stable_sprites; /* optional host-only temporal presentation; off by default */
+    CviiiStage1Host0725 stage1_world; /* ROM-only pregame Stage 1 side scene */
     CviiiSpriteLayers sprite_layers;
     CviiiObjectOamTrace object_trace; /* read-only JP PRG26 object/OAM correlation */
     CviiiAudioBus audio_bus; /* opt-in nonmutating 2A03/VRC6 sound writes */
@@ -66,7 +68,7 @@ typedef struct {
     uint32_t presentation[CVIII_W * CVIII_H];
 } CviiiEdition;
 
-static CviiiEdition cviii = { .volume = CVIII_AUDIO_LEVELS_DEFAULT };
+static CviiiEdition cviii = { .volume = CVIII_AUDIO_LEVELS_DEFAULT, .stage1_world = { .enabled = 1 } };
 static int cviii_start_ready;
 
 /* JP0620: optional built-in paused runtime menu rows for recomp-ui builds.
@@ -194,6 +196,8 @@ static void load_setting(void *context, const char *key, const char *value)
         (void)parse_boolean(value, &cviii.sprite_unlimited);
     else if (!strcmp(key, "StableSprites"))
         (void)parse_boolean(value, &cviii.stable_sprites);
+    else if (!strcmp(key, "Stage1World"))
+        (void)parse_boolean(value, &cviii.stage1_world.enabled);
     else (void)cviii_audio_levels_load(&cviii.volume,key,value);
 }
 
@@ -203,6 +207,7 @@ static void save_settings(void *context, FILE *file)
     fprintf(file, "Edition = %s\nUnlimitedSprites = %d\nStableSprites = %d\n",
             cviii.enhanced ? "Enhanced" : "Original",
             cviii.sprite_unlimited, cviii.stable_sprites);
+    fprintf(file, "Stage1World = %d\n", cviii.stage1_world.enabled);
     cviii_audio_levels_save(&cviii.volume,file);
 }
 
@@ -214,6 +219,10 @@ static bool option(void *context, const char *name, const char *value)
         return value && parse_boolean(value, &cviii.sprite_unlimited);
     if (!strcmp(name, "--stable-sprites"))
         return value && parse_boolean(value, &cviii.stable_sprites);
+    if (!strcmp(name, "--stage1-world"))
+        return value && parse_boolean(value, &cviii.stage1_world.enabled);
+    if (!strcmp(name, "--stage1-world-rom"))
+        return cviii_stage1_host_rom_0725(&cviii.stage1_world,value);
     /* Developer overrides only; final interface will use HUD-art sliders.
      * Music/SFX levels persist but do not yet affect the unsplit PCM bus. */
     if (!strcmp(name,"--audio-ui-preview"))
@@ -578,23 +587,23 @@ static const uint32_t *present(void *context,int *width,int *height)
         if(cviii_pause_slot_active() &&
            cviii_start_slot_ui_draw(settings->presentation,CVIII_W,CVIII_H,
                                     &settings->assets,&settings->slot_menu))
-            return settings->presentation;
+            return cviii_stage1_host_present_0725(&settings->stage1_world,settings->presentation,width,height,settings->enhanced);
         if(cviii_start_ui_draw(settings->presentation,CVIII_W,CVIII_H,
                                &settings->assets,&settings->start_menu))
-            return settings->presentation;
+            return cviii_stage1_host_present_0725(&settings->stage1_world,settings->presentation,width,height,settings->enhanced);
     }
     if (!settings->enhanced ||
         (!settings->audio_ui_preview && !settings->audio_ui.open) ||
         !settings->assets.pixels || *width!=CVIII_W || *height!=CVIII_H)
-        return frame;
+        return cviii_stage1_host_present_0725(&settings->stage1_world,frame,width,height,settings->enhanced);
     if (frame!=settings->presentation)
         memcpy(settings->presentation,frame,sizeof settings->presentation);
     if (!cviii_audio_ui_render_mode(settings->presentation,CVIII_W,CVIII_H,
                                     &settings->assets,&settings->volume,
                                     settings->audio_ui.open ? settings->audio_ui.selected : 0u,
                                     settings->audio_ui.open!=0))
-        return frame;
-    return settings->presentation;
+        return cviii_stage1_host_present_0725(&settings->stage1_world,frame,width,height,settings->enhanced);
+    return cviii_stage1_host_present_0725(&settings->stage1_world,settings->presentation,width,height,settings->enhanced);
 }
 static void audio_mix(void *context,int16_t *samples,size_t count)
 {
@@ -609,6 +618,8 @@ static const CycHostOption cviii_options[] = {
      "Enhanced experimental 64-OAM sprite compositor (0/1, default 0)"},
     {"--stable-sprites", true,
      "EXPERIMENTAL logical sprite-object layer order with 1-frame history (0/1, default 0)"},
+    {"--stage1-world", true, "Enhanced preloaded original-ROM Stage 1 widescreen (0/1)"},
+    {"--stage1-world-rom", true, "Owner-private Japanese cartridge path override"},
     {"--sprite-object-trace", true,
      "Developer owner-local per-frame 28 object fields and 64 hardware OAM entries"},
     {"--audio-ui-preview", true, "Developer only: draw noninteractive authentic health-bar UI"},
