@@ -114,6 +114,16 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'JP0725 Windows native build failed' }
           ctest --test-dir $out -C Release --output-on-failure
           if ($LASTEXITCODE -ne 0) { throw 'JP0725 Windows native framebuffer test failed' }
+      - name: JP0731 MSVC build content-only runtime without ROM/compiler
+        shell: pwsh
+        run: |
+          $out=Join-Path $env:RUNNER_TEMP 'jp0731-content-only'
+          cmake -S JP/recomp/native/content_runtime -B $out -A x64
+          if ($LASTEXITCODE -ne 0) { throw 'ROM-free content-only configure failed' }
+          cmake --build $out --config Release --parallel 2
+          if ($LASTEXITCODE -ne 0) { throw 'ROM-free content-only MSVC build failed' }
+          ctest --test-dir $out -C Release --output-on-failure
+          if ($LASTEXITCODE -ne 0) { throw 'JP0731 runtime/cache/TSA regression failed' }
       - name: Check stage and companion password debug selector
         shell: pwsh
         run: |
