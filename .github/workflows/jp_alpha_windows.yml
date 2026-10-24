@@ -124,6 +124,14 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'ROM-free content-only MSVC build failed' }
           ctest --test-dir $out -C Release --output-on-failure
           if ($LASTEXITCODE -ne 0) { throw 'JP0731 runtime/cache/TSA regression failed' }
+      - name: JP0732 MSVC build complete ROM-independent interpreter game host
+        shell: pwsh
+        run: |
+          $out=Join-Path $env:RUNNER_TEMP 'jp0732-interpreter-game'
+          cmake -S JP/recomp/native/rom_runtime_0732 -B $out -A x64 "-DNESRECOMP_EXTERNAL_ROOT=$pwd/_external_nesrecomp" -DJP0732_WINDOWED=OFF -DJP0732_ENHANCED=ON
+          if ($LASTEXITCODE -ne 0) { throw 'JP0732 no-ROM gameplay host configure failed' }
+          cmake --build $out --config Release --parallel 2
+          if ($LASTEXITCODE -ne 0) { throw 'JP0732 no-ROM gameplay host MSVC build failed' }
       - name: Check stage and companion password debug selector
         shell: pwsh
         run: |
