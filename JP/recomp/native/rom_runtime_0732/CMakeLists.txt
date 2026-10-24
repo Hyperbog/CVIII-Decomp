@@ -33,7 +33,10 @@ target_compile_definitions(jp_akumajou_runtime_0732 PRIVATE
  _CRT_SECURE_NO_WARNINGS)
 
 if(JP0732_ENHANCED)
+ target_compile_definitions(jp_akumajou_runtime_0732 PRIVATE
+   CVIII_0732_NO_PRIVATE_OBSERVERS=1)
  target_sources(jp_akumajou_runtime_0732 PRIVATE
+   "${CMAKE_CURRENT_LIST_DIR}/cviii_uninstrumented_observers_0732.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_edition.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_chr_index_0598.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_chr_audit_0599.c"
