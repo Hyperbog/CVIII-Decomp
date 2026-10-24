@@ -1,6 +1,7 @@
 #ifndef CVIII_RUNTIME_RESOURCES_0727_H
 #define CVIII_RUNTIME_RESOURCES_0727_H
 #include "cviii_stage1_atlas_0724.h"
+#include "cviii_chr_index_0598.h"
 #include <stddef.h>
 #include <stdint.h>
 
@@ -29,4 +30,13 @@ void cviii_sha256_0727(const uint8_t *data, size_t length, uint8_t digest[32]);
  */
 CviiiResourceStatus0727 cviii_stage1_resource_open_0727(
     const char *rom_path, CviiiStage1Atlas0724 *destination);
+
+/* Combined one-pass importer: produces both Stage 1 tile geometry and
+ * the existing authenticated 8,192-tile CHR pixel index from the same
+ * owner-ROM input. Both outputs are transactional. When chr_destination is
+ * NULL, no CHR index is generated. The ROM is read and SHA256-checked once.
+ */
+CviiiResourceStatus0727 cviii_game_resources_open_0727(
+    const char *rom_path, CviiiStage1Atlas0724 *atlas_destination,
+    CviiiChrIndex *chr_destination);
 #endif
