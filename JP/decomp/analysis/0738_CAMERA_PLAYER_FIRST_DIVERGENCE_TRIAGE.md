@@ -56,6 +56,83 @@ A particularly useful authentic JP ROM source window is physical PRG $3D2FE-$3D3
 
 The prior JP0738 script has now been extended to label internal game-side $0028/$002A input hypotheses, view subpixel $0055, view offset $006C, movement/transition/room-state fields, optional CHR selection/mode hypotheses, and player action/fall hypotheses. It calculates SHA-256 of the private capture files (if passed) for future exact-run reproducibility; those digests alone do **not** independently authenticate the source emulator, clock, input sampling, or archive provenance. The script continues to refuse to claim $4016 bus parity, actual CHR bank timeline, or earliest CPU-write causality from sampled RAM.
 
-There are no original/private MesenCE ZIP or native CYCFRAME logs in the current Project/Library file inventory or mounted workspace. The publicly available CI engine-only ELF is not a replacement for the archived controller schedule or missing capture pair. Therefore the augmented comparator has **not** been used to assert a new retail player-state result.
+**2026-10-24 recovery update:** The authentic original JP0718 Mesen RAW-INPUT ZIP and older JP0719 native FULL-NATIVE-REPLAY ZIP, plus the JP0719 forensic report, are now supplied and ZIP CRC-verified. They have been compared below. The later JP0737 native CYCFRAME v2 recording remains unavailable here; it must not be conflated with the separate older JP0719 executable.
 
 **Certification unchanged: VPP 31/100, strictly certified PRG 49,504/262,144 (18.8843%), checkpoint 0508.** ROM-free synthetic tests are not a real game parity pass.
+
+
+## JP0738B — Authenticated original/native archived replay comparison
+
+**Archive provenance (SHA-256):** JP0718 original Mesen ZIP
+d2a54d01cbec9d4257d99df7a13a7b628fb41d59d5220bba66eb80c2a2f52878;
+JP0719 native ZIP
+ea18d677e232cb9fcc574d9453f064f335eacaa00e7ce2c567968ca0f2842aeb.
+Both ZIP CRC checks passed. Original retail Japanese ROM SHA-256
+958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28
+rechecked. The JP0719 native executable SHA-256 in the archived run details is
+5e7039fb74fc8423cd340e212a1f7b822a6d112d07140c28e967a94fafd7a710.
+
+**Original input intent verified, not inferred:** the original Mesen input
+absolute-frame column (first integer after P, not its local frame index) and
+the JP0719 native replay's exact input epochs produce identical button masks
+for both controller ports at **17,562/17,562** original poll records.
+Mismatch count = **0**. The native input file SHA-256 is
+27b502aaeca9f5d5381f9f9a812cc188043d083d8ac8b3a89bc40c70f3c30196.
+This proves schedule conversion only: $4016/$4017 CPU-cycle sampling parity
+is still unmeasured.
+
+### Observed original versus older native state
+
+| Run | Frame | Camera RAM $53/$54 | Player Y $041C | Mode $62 | Delta $6B | Action $0565 | Y speed $0520 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Mesen original | 9440 | 10 | 80 | 1 | 1 | 4 | 0 |
+| JP0719 native | nominal 9432 | 0 | 80 | 2 | 0 | 4 | 0 |
+| Mesen original | 9504 | 49 | 101 | 0 | 0 | 12 | 5 |
+| JP0719 native | nominal 9496 | 54 | 80 | 0 | 255 | 4 | 0 |
+| JP0719 native | nominal 9560 | 56 | 44 | 2 | 0 | 26 | 0 |
+| Mesen original | 9576 | 93 | 155 | 1 | 1 | 8 | 5 |
+| JP0719 native | nominal 9592 | 56 | 80 | 2 | 0 | 24 | 0 |
+| Mesen original | 9760 | 176 | 96 | 2 | 0 | 20 | 255 |
+| JP0719 native | nominal 9752 | 57 | 160 | 2 | 0 | 2 | 0 |
+
+**TIMING LIMIT:** Mesen end-frame observations are event-driven. The
+nominal native sample_tick*8 observation at 9432 precedes the original
+9440 observation by **267,907 CPU cycles** (not aligned). Original frame
+9576 is bracketed by native nominal samples 9560 and 9592. Do not
+relabel these as exact-frame matches. However the *native recording itself*
+shows camera 56 at both 9560 and 9592 while the original progresses from
+49 at 9504 to 93 at 9576. The player Y/action and scrolling mode are
+also substantially different, strongly prioritizing player-motion,
+collision-state and scroll boundary / producer timing over extra native
+boot handlers.
+
+### PPU/CHR controls at nearby but unequal times
+
+| Original / native nominal | Differing CPU RAM bytes | Differing 4KiB nametable bytes | Physical 8 CHR pages equal | Nonalias palette mismatches |
+| --- | ---: | ---: | --- | ---: |
+| 9440 / 9432 | 257 | 0 | yes | 0 |
+| 9504 / 9496 | 294 | 8 | yes | 0 |
+| 9576 / 9560 | 404 | 194 | yes | 0 |
+| 9576 / 9592 | 389 | 194 | yes | 0 |
+| 9760 / 9752 | 353 | 526 | yes | 0 |
+
+Both captures' end-frame physical 1KiB CHR page IDs in the selected
+window are **00 01 12 0F 40 45 47 43**. Original/native sprite palette
+universal-color aliases may store 0F vs 00; nonalias logical palettes
+agree. This does not certify per-scanline CHR bank parity. Increasing
+nametable mismatches after the movement split may be a consequence
+of scrolling and scene mutations, not necessarily their cause.
+
+**Separate native generations:** The later JP0737 ROM-at-launch
+CYCFRAME evidence reported original/native camera checkpoints 9440 10/9,
+9504 49/48, 9576 93/56. The JP0719 ZIP analyzed here was produced by
+a different native executable, has nominal periodic sample times, and
+must not be presented as fresh JP0737 execution.
+
+**Next certification gate:** locate the first player-state/scroll-delta
+CPU writer with a physically mapped PRG PC on an authentically
+synchronized trace, including actor Y, Y speed, $0565 action, $05C1
+fall/collision state and $62/$6B camera producer. Saved traces establish
+state divergence but do not identify the first divergent CPU instruction,
+a controller-bus timing defect, or a CHR render defect. No new gameplay
+code or handlers; VPP remains 31/100 and strict PRG 49,504/262,144.
