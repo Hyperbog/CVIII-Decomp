@@ -69,6 +69,36 @@ void cviii_stage1_host_mode_0725(CviiiStage1Host0725 *h,int enabled)
 {
     if (h) h->enabled=!!enabled;
 }
+/* JP0726: authenticate the visible PPU nametable against the private
+ * original-ROM atlas before extending the sides. This rejects old selector
+ * values whose name tables still contain the previous room. The original
+ * hardware may use nametable page 0 OR page 1 as the current room's first
+ * screen. RAM $53/$54 remains room-local in both cases.
+ */
+static int room_loaded(const CviiiStage1Host0725 *h,
+    const uint8_t sel[3],int world_x,int ppu_x)
+{
+    static const int screen_x[]={24,88,152,216};
+    static const int tile_y[]={8,14,20}; /* ROM map starts at PPU row 4 */
+    unsigned total=0,agree=0;
+    for (unsigned y=0;y<3;y++) for (unsigned x=0;x<4;x++) {
+        const int wx=world_x+screen_x[x];
+        if (wx<0) continue;
+        uint8_t tile,palette;
+        if (!cviii_stage1_atlas_get_0724(&h->atlas,sel,
+                (unsigned)wx/8u,(unsigned)tile_y[y],&tile,&palette))
+            continue;
+        const unsigned px=(unsigned)((ppu_x+screen_x[x])&511);
+        const unsigned page=(px>>8u)&1u, col=(px>>3u)&31u;
+        const uint16_t address=(uint16_t)(0x2000u+page*0x400u+
+                                (unsigned)(tile_y[y]+4)*32u+col);
+        total++;
+        agree+=(cyc_render_nametable(address)==tile);
+    }
+    /* Deliberately fail closed on a partly populated/transitioning room.
+     * Limited mutable tiles are allowed, wholesale wrong layout is not. */
+    return total>=6u && agree*4u>=total*3u;
+}
 static int camera(const CviiiStage1Host0725 *h,uint8_t sel[3],
                   int *x,int *y)
 {
@@ -79,24 +109,27 @@ static int camera(const CviiiStage1Host0725 *h,uint8_t sel[3],
         (cyc_render_line_mask(120)&0x08u)==0 ||
         cyc_render_line_bg_table(120)!=0x1000u) return 0;
     sel[0]=ram[0x34u];sel[1]=ram[0x35u];sel[2]=ram[0x36u];
-    /* Original $65 bit7 marks vertical room orientation. There $53/$54\n     * tracks Y instead of X, and the static room is only 256px wide.\n     * Side scenery is therefore deliberately suppressed. */
-    if (sel[0]!=0 || (ram[0x65u]&0x80u) ||
+    /* Original $65 bit7 identifies vertical-stage movement, not X.
+     * That layout is only 256 pixels wide and cannot fill side margins. */
+    if (sel[0]!=0u || (ram[0x65u]&0x80u) ||
         (sel[1]==1u && sel[2]==1u)) return 0;
-    uint8_t tile,palette;
-    if (!cviii_stage1_atlas_get_0724(&h->atlas,sel,0,0,&tile,&palette))
-        return 0;
-    const int room_x=ram[0x53u]+(ram[0x54u]<<8);
-    const int actual_ppu_x=cyc_render_line_scroll_x(120)&511;
-    const int dx=((room_x-actual_ppu_x+256)&511)-256;
-    /* Transition/loading frames can carry old nametable/selector state. */
-    if (dx < -2 || dx > 2) return 0;
-    const int actual_ppu_y=cyc_render_line_scroll_y(120);
-    if (actual_ppu_y<118 || actual_ppu_y>122) return 0;
-    int aligned=(room_x&~511)+actual_ppu_x;
-    if (aligned-room_x>256) aligned-=512;
-    if (room_x-aligned>256) aligned+=512;
-    *x=aligned;
-    *y=0; /* four reserved HUD tile rows; no Stage 1 horizontal Y camera */
+    int local_x=(int)ram[0x53u]+((int)ram[0x54u]<<8);
+    int ppu_x=cyc_render_line_scroll_x(120)&511;
+    int ppu_y=cyc_render_line_scroll_y(120);
+    if (ppu_y<118 || ppu_y>122) return 0;
+    /* The original stage can begin a room at physical NT0 OR NT1,
+     * including BLK 1-02 at PPU X=256 while $53/$54 is zero.
+     * Accept only a proven 0/256 page phase and <=2px residual skew. */
+    int phase=((ppu_x-(local_x&511)+256)&511)-256;
+    int residual=phase;
+    if (residual>126 || residual < -126) {
+        residual=phase>0 ? phase-256 : phase+256;
+    }
+    if (residual < -2 || residual > 2) return 0;
+    int true_x=local_x+residual;
+    if (!room_loaded(h,sel,true_x,ppu_x)) return 0;
+    *x=true_x;
+    *y=0;
     return 1;
 }
 const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
