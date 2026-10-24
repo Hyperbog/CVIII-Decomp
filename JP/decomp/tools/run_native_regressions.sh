@@ -375,3 +375,8 @@ python3 "$root/JP/recomp/tools/jp0740_native_write_overlay.py" --smoke
 "${CC:-cc}" -std=c11 -Wall -Wextra -Werror -pedantic -fsyntax-only \
   "$root/JP/recomp/native/rom_runtime_0732/cviii_jp0740_native_trace.c"
 
+
+# JP0741: invented and nonretail exact-observed-CPU-bus alignment gate.
+# Requires a unique 32-event opcode-PC, bus and relative-cycle trajectory;
+# ambiguities and approximate frame matching refuse a first-writer claim.
+python3 "$root/JP/decomp/tools/jp0741_first_write_compare.py" --smoke
