@@ -1,6 +1,7 @@
 #ifndef CVIII_STAGE1_HOST_0725_H
 #define CVIII_STAGE1_HOST_0725_H
 #include "cviii_stage1_atlas_0724.h"
+#include "cviii_chr_index_0598.h"
 #include <stdint.h>
 /* Game-owned read-only Enhanced presentation, no guest CPU/PPU mutations.
  * ROM identity is verified by JP_ORIGINAL_JP_ROM at CMake configuration.
