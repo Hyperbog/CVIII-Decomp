@@ -12,6 +12,27 @@
 #define CVIII_STAGE1_ROM_PATH ""
 #endif
 
+/* The production importer accepts only the source-validated Japanese
+ * Mapper24 retail cartridge. Public tests must explicitly opt into invented
+ * synthetic fixtures and cannot accidentally loosen the shipping gate.
+ * FNV is an identity cross-check; the private CMake build separately
+ * authenticates the original image's full SHA256.
+ */
+static int source_identity(const uint8_t *rom,size_t n)
+{
+#ifdef CVIII_STAGE1_TEST_SYNTHETIC_ROM
+    (void)rom;
+    return n==393232u;
+#else
+    if (n!=393232u) return 0;
+    uint64_t h=UINT64_C(0xcbf29ce484222325);
+    for (size_t i=0;i<n;i++) {
+        h^=rom[i];
+        h*=UINT64_C(0x100000001b3);
+    }
+    return h==UINT64_C(0x76615b120049ad3f);
+#endif
+}
 static int load(CviiiStage1Host0725 *h)
 {
     if (h->atlas.loaded) return 1;
@@ -29,7 +50,7 @@ static int load(CviiiStage1Host0725 *h)
     size_t n=fread(rom,1,393232u,f);
     int extra=fgetc(f),error=ferror(f);
     fclose(f);
-    int ok=n==393232u && extra==EOF && !error &&
+    int ok=extra==EOF && !error && source_identity(rom,n) &&
            cviii_stage1_atlas_load_0724(&h->atlas,rom,n)==1;
     free(rom);
     if (!ok) fprintf(stderr,"CVIII JP0725: rejected Stage 1 ROM source; stock video retained\n");
