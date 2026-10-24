@@ -579,6 +579,10 @@ int cviii_audio_menu_move(int direction)
 static const uint32_t *present(void *context,int *width,int *height)
 {
     CviiiEdition *settings=(CviiiEdition *)context;
+    /* JP0728: the game supplies its original-art CHR index to the runtime
+     * content loader. If no sidecar was loaded, a selected retail ROM
+     * creates one automatically during the first Enhanced present. */
+    settings->stage1_world.runtime_assets=&settings->assets;
     const uint32_t *frame=present_game(context,width,height);
     if (settings->enhanced && !settings->audio_ui.open &&
         settings->start_menu.open && settings->assets.pixels && *width==CVIII_W && *height==CVIII_H) {
