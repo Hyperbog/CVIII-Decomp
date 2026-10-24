@@ -3,6 +3,7 @@
  * so the final binary has no Python, crypto-DLL or build-time ROM-path need.
  */
 #include "cviii_runtime_resources_0727.h"
+#include "cviii_resource_cache_0729.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -118,8 +119,9 @@ static unsigned char *make_chr_index(const uint8_t *rom)
     return buffer;
 }
 
-CviiiResourceStatus0727 cviii_game_resources_open_0727(
-    const char *path,CviiiStage1Atlas0724 *dst,CviiiChrIndex *chr_dst)
+CviiiResourceStatus0727 cviii_game_resources_cached_open_0729(
+    const char *path,const char *cache_path,
+    CviiiStage1Atlas0724 *dst,CviiiChrIndex *chr_dst)
 {
     /* SHA256 of the owner's authenticated original Japanese VRC6 cartridge.
      * Hash is the identity of ROM input, NOT redistributable gameplay data. */
@@ -153,13 +155,27 @@ CviiiResourceStatus0727 cviii_game_resources_open_0727(
             int identity=memcmp(digest,jp_sha256,sizeof digest)==0;
 #endif
             if(!identity)status=CVIII_RESOURCE_IDENTITY_0727;
-            else {
-                if(chr_dst)new_chr=make_chr_index(rom);
-                if(chr_dst && !new_chr)status=CVIII_RESOURCE_DECODE_0727;
+            else if(cache_path && *cache_path &&
+                cviii_resource_cache_read_0729(cache_path,digest,dst,chr_dst)) {
+                status=CVIII_RESOURCE_READY_0727;
+            } else {
+                /* A cache always holds both domains, even when a vetted
+                 * external CHR sidecar is already active in this process. */
+                const int want_chr=chr_dst || (cache_path && *cache_path);
+                if(want_chr)new_chr=make_chr_index(rom);
+                if(want_chr && !new_chr)status=CVIII_RESOURCE_DECODE_0727;
                 else if(cviii_stage1_atlas_load_0724(dst,rom,n)!=1)
                     status=CVIII_RESOURCE_DECODE_0727;
                 else {
                     status=CVIII_RESOURCE_READY_0727;
+                    if(cache_path && *cache_path && new_chr) {
+                        CviiiChrIndex candidate={new_chr,new_chr+8u,
+                            new_chr+8u+CVIII_CHR_RAW_BYTES};
+                        /* A read-only or full cache directory is optional,
+                         * never a reason to prevent starting the game. */
+                        (void)cviii_resource_cache_write_0729(cache_path,
+                            digest,dst,&candidate);
+                    }
                     if(chr_dst) {
                         cviii_chr_index_free(chr_dst);
                         chr_dst->allocation=new_chr;
@@ -174,6 +190,11 @@ CviiiResourceStatus0727 cviii_game_resources_open_0727(
     free(new_chr);
     free(rom);
     return status;
+}
+CviiiResourceStatus0727 cviii_game_resources_open_0727(
+    const char *path,CviiiStage1Atlas0724 *dst,CviiiChrIndex *chr_dst)
+{
+    return cviii_game_resources_cached_open_0729(path,NULL,dst,chr_dst);
 }
 CviiiResourceStatus0727 cviii_stage1_resource_open_0727(
     const char *path,CviiiStage1Atlas0724 *dst)
