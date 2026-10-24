@@ -39,4 +39,13 @@ CviiiResourceStatus0727 cviii_stage1_resource_open_0727(
 CviiiResourceStatus0727 cviii_game_resources_open_0727(
     const char *rom_path, CviiiStage1Atlas0724 *atlas_destination,
     CviiiChrIndex *chr_destination);
+
+/* Optional canonical disk cache; only source-authenticated resources.
+ * The owner ROM is SHA-256 validated on EVERY run before the cache is read.
+ * Missing/corrupt/wrong-schema caches transparently rebuild in memory.
+ * A null/empty cache path disables caching without breaking game launch.
+ */
+CviiiResourceStatus0727 cviii_game_resources_cached_open_0729(
+    const char *rom_path, const char *cache_path,
+    CviiiStage1Atlas0724 *atlas_destination,CviiiChrIndex *chr_destination);
 #endif
