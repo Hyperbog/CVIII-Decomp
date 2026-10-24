@@ -163,6 +163,7 @@ jobs:
               JP/recomp/native/enhanced/cviii_stage1_rom_0724.c \
               JP/recomp/native/enhanced/cviii_stage1_atlas_0724.c \
               JP/recomp/native/enhanced/cviii_runtime_resources_0727.c \
+              JP/recomp/native/enhanced/cviii_chr_index_0598.c \
               JP/recomp/native/enhanced/cviii_runtime_resources_test_0727.c \
               -o "${{ runner.temp }}/jp0727_$variant"
             "${{ runner.temp }}/jp0727_$variant"
