@@ -136,6 +136,7 @@ jobs:
           & $exe "$env:RUNNER_TEMP\alpha-vrc6.nes" --frames 1
           if ($LASTEXITCODE -ne 3) { throw 'Production JP0733 launcher failed to reject the invented test cartridge' }
           Write-Host 'PASS: production no-ROM-at-build executable rejects incorrect source SHA256'
+          $global:LASTEXITCODE=0 # checked rejection is expected, not a CI failure
       - name: Check stage and companion password debug selector
         shell: pwsh
         run: |
