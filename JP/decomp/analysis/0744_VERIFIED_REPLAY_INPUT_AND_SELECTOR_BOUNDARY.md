@@ -129,3 +129,47 @@ replay parity regression before changing interpreted or native code.
 work above is internal replay/testing. **Source metrics unchanged:**
 VPP **31/100**, strict original PRG **49,504/262,144 bytes**,
 admission checkpoint 0508. No new native gameplay opcode handlers.
+
+
+## JP0744B — Actually executed original/native $36 boundary traces
+
+After the initial report, the ROM-free Linux native observer from successful
+Actions run `40139966851` was downloaded and executed with the corrected
+**local-frame** controller schedule. Native bounds:
+`JP0745_TRACE_FIRST_FRAME=9240`,
+`JP0745_TRACE_LAST_FRAME=9312`. Run was completed with exit code 0
+and `END COMPLETE 2998`. It observes actual mapped original-Japanese
+interpreted guest bus writes to $36 and $65, not snapshots alone.
+
+- Original MesenCE re-execution passed *exact* independent local-frame
+  RAM/cycle anchors **9248 (275437361)** and **9312 (277343316)**.
+- Original observed $36 CPU read-modify-write at local frame **9277**:
+  CPU **276275915** `W $36 03→03` (6502 RMW dummy), then
+  CPU **276275916** `W $36 03→02`; mapped opcode PC
+  **$D3E9**, physical PRG **$3D3E9**.
+- The corrected current native interpreter produced **no $36 writes**
+  in its complete **9240–9312** CPU event trace. In particular,
+  at native frame **9277** it writes unchanged scroll mode
+  `$62:02→02` from bank $0E:$936E; it does not execute the
+  original boundary decrement. This confirms the actual failure to
+  enter the original room transition and is not an assumption from a
+  nearby still image.
+- At native frame **9248**, physically mapped actor routine
+  bank $0E:$98A7 writes vertical speed
+  `$0520:FF→FF`; the independently captured original Mesen RAM
+  anchor at original frame **9248** has **$0520=$00**.
+  Therefore a significant upstream vertical-motion state discrepancy
+  exists before the missing room decrement. Neither the prior control
+  input timing correction nor the original `DEC $36` opcode should be
+  blamed without tracing the earlier actor/collision producer.
+- The original room-boundary writer is a real RMW instruction at
+  $D3E9; the original JP0718 raw event log's PC `$D3EB` was
+  **post-opcode** and should not be treated as the write instruction.
+
+**Unresolved:** root cause of the actor-speed difference and later room
+transition. The selected gameplay state matches through original frame
+6000; source/native parity after 6000 and before 9248 has not yet
+been established densely enough to locate the upstream producer.
+
+No speculative native actor/scroll patch was applied. Strict source
+certification unchanged; last owner test JP0722.
