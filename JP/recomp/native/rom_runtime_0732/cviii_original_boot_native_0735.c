@@ -6,7 +6,7 @@
  * the exact entry PC, opcode, and (for LDX) the original #$FF operand.
  *
  * Physical ROM source authentication (file offsets include 16-byte header):
- * reset vector: $03E00C/$03E00D = $E00B
+ * reset vector: iNES $04000C/$04000D = $E00B
  *  $03E01B: $E00B D8   CLD
  *  $03E01C: $E00C 78   SEI
  *  $03E027: $E017 A2 FF LDX #$FF
