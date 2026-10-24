@@ -57,6 +57,7 @@ if(JP_EDITION_HOST_EXTRAS)
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_stage1_rom_0724.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_stage1_atlas_0724.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_stage1_host_0725.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_runtime_resources_0727.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_sprite_layers_0608.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_object_oam_trace_0609.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_bus_0610.c"
@@ -90,11 +91,8 @@ if(JP_EDITION_HOST_EXTRAS)
  target_include_directories(jp_akumajou_densetsu PRIVATE
   "${NESRECOMP_EXTERNAL_ROOT}/runner/cyc"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced")
- # Private path comes only from the build-validated Japanese source cartridge.
- # The ROM and any copied contents are never added to the repository.
- file(TO_CMAKE_PATH "${JP_ORIGINAL_JP_ROM}" JP_STAGE1_WORLD_ROM_PATH)
- target_compile_definitions(jp_akumajou_densetsu PRIVATE
-  "CVIII_STAGE1_ROM_PATH=\"${JP_STAGE1_WORLD_ROM_PATH}\"")
+ # JP0727: resource decoding uses only a launch-time ROM path.
+
 endif()
 # JP0591: multi-slot save states using upstream's *full machine* serializer.
 # Generate a local overlay alongside pinned external cyc_sdl.c; relative
