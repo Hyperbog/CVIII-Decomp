@@ -31,9 +31,9 @@ int main(void)
     if (!require(rom!=NULL,"ROM fixture memory"))return 1;
     memcpy(rom,"NES\x1a",4);rom[4]=16;rom[5]=16;
     rom[6]=0x80;rom[7]=0x10; /* synthetic Mapper24, never distributed */
-    static const unsigned starts[]={0x200BA,0x2014B,0x20039,0x2017C,
-                                    0x201DD,0x2026E,0x202FF,0x20390};
-    static const unsigned screens[]={3,1,2,2,3,3,3,4};
+    static const unsigned starts[]={0x200BA,0x2014B,0x20039,0x201DD,
+                                    0x2017C,0x2026E,0x202FF,0x20390};
+    static const unsigned screens[]={3,1,2,3,2,3,3,4};
     for(unsigned i=0;i<8;i++)rom[starts[i]]=(uint8_t)(screens[i]-1u);
     for(unsigned i=0;i<145;i++){
         for(unsigned j=0;j<16;j++)rom[0x20451u+i*16u+j]=(uint8_t)(i+j);
