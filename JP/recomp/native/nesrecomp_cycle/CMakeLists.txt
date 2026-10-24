@@ -592,3 +592,11 @@ add_executable(jp_ppu_queue_test_0723
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_ppu_queue_0723.c"
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_ppu_queue_test_0723.c")
 set_property(TARGET jp_ppu_queue_test_0723 PROPERTY C_STANDARD 11)
+
+
+# JP0724: ROM-free complete Stage 1 TSA + attribute decoder test.
+# No original stage content is compiled or committed.
+add_executable(jp_stage1_rom_test_0724
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_stage1_rom_0724.c"
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_stage1_rom_test_0724.c")
+set_property(TARGET jp_stage1_rom_test_0724 PROPERTY C_STANDARD 11)
