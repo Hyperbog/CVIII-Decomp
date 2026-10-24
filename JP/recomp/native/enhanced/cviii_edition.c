@@ -223,6 +223,8 @@ static bool option(void *context, const char *name, const char *value)
         return value && parse_boolean(value, &cviii.stage1_world.enabled);
     if (!strcmp(name, "--stage1-world-rom"))
         return cviii_stage1_host_rom_0725(&cviii.stage1_world,value);
+    if (!strcmp(name, "--stage1-resource-cache"))
+        return cviii_stage1_host_cache_0729(&cviii.stage1_world,value);
     /* Developer overrides only; final interface will use HUD-art sliders.
      * Music/SFX levels persist but do not yet affect the unsplit PCM bus. */
     if (!strcmp(name,"--audio-ui-preview"))
@@ -624,6 +626,7 @@ static const CycHostOption cviii_options[] = {
      "EXPERIMENTAL logical sprite-object layer order with 1-frame history (0/1, default 0)"},
     {"--stage1-world", true, "Enhanced preloaded original-ROM Stage 1 widescreen (0/1)"},
     {"--stage1-world-rom", true, "Owner-private Japanese cartridge path override"},
+    {"--stage1-resource-cache", true, "Optional private validated Stage 1/CHR cache file"},
     {"--sprite-object-trace", true,
      "Developer owner-local per-frame 28 object fields and 64 hardware OAM entries"},
     {"--audio-ui-preview", true, "Developer only: draw noninteractive authentic health-bar UI"},
