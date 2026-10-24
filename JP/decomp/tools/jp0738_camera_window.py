@@ -3,7 +3,7 @@
 
 Only matched saved frame boundaries are compared. Controller intent does not
 prove $4016 sampling; best-physical-CIRAM projections do not prove VRC6 mapping.
-No original scene or RAM bytes are written to the report.
+Only selected numeric RAM fields are reported; no raw RAM dump or pixels.
 """
 from __future__ import annotations
 import argparse
