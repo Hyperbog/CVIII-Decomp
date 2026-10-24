@@ -55,7 +55,11 @@ out:flush()
 local BEGIN,FINISH,LIMIT=9370,9600,150000
 local active,count,observed,checked=true,0,0,0
 local pc,phys,pcframe=0xFFFF,0xFFFFF,-1
-local function framecount()
+-- JP0718 local snapshot frames begin at zero; Mesen frameCount is
+-- absolute and the archived input header has origin=1. Never conflate them.
+local local_frame=0
+local function framecount() return local_frame end
+local function absolute_frame()
   local v=(emu.getState() or {}).frameCount
   assert(type(v)=='number' and v==math.floor(v),'missing Mesen absolute frame')
   return v
@@ -85,8 +89,9 @@ local function buttons(mask)
 end
 emu.addEventCallback(function(c)
   if not active or (c and c~=ct) then return end
-  local fr=framecount()
-  if fr>FINISH then return end
+  local fr=absolute_frame()
+  if fr~=local_frame+1 then finish('FRAME_EPOCH_MISMATCH');return end
+  if local_frame>FINISH then return end
   local v=inputs[fr]
   if not v then finish('INPUT_FRAME_MISSING');return end
   -- This requests identical button intent, NOT verified $4016 bus phase.
@@ -159,8 +164,8 @@ emu.addEventCallback(function(c)
     if checked<3 then finish('ANCHORS_MISSING')
     else finish('COMPLETE') end
   end
+  local_frame=local_frame+1
 end,emu.eventType.endFrame)
 emu.addEventCallback(function() finish('ABORT_STATE_LOAD') end,emu.eventType.stateLoaded)
-emu.addEventCallback(function() finish('ABORT_RESET') end,emu.eventType.reset)
 emu.addEventCallback(function() finish('SCRIPT_ENDED') end,emu.eventType.scriptEnded)
 emu.log('JP0740_STARTED: read-only watched writes; input from original owner archive')
