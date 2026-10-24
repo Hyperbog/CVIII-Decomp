@@ -12,6 +12,18 @@ static uint8_t test_ram[2048];
 static uint32_t original[256*240];
 static CviiiStage1Host0725 host;
 static int scroll_x,requested_mode=-1;
+static uint8_t live_nt[2048];
+uint8_t cyc_render_nametable(uint16_t a) {
+    unsigned at=a&0xfffu;
+    return live_nt[((at>>10u)&1u)*1024u+(at&1023u)];
+}
+static void seed_visible_room(const uint8_t key[3],unsigned page) {
+    for(unsigned y=0;y<24u;y++)for(unsigned x=0;x<32u;x++) {
+        uint8_t tile=0,pal=0;
+        if (cviii_stage1_atlas_get_0724(&host.atlas,key,x,y,&tile,&pal))
+            live_nt[page*1024u+(y+4u)*32u+x]=tile;
+    }
+}
 const uint8_t *cyc_cpu_ram(void) {return test_ram;}
 uint8_t cyc_render_line_mask(int line) {(void)line;return 0x1e;}
 uint16_t cyc_render_line_bg_table(int line) {(void)line;return 0x1000;}
@@ -42,12 +54,18 @@ int main(void)
     FILE *fp=fopen(path,"wb");
     if (!require(fp!=NULL,"fixture file")) {free(rom);return 1;}
     size_t written=fwrite(rom,1,393232u,fp);
-    int closed=fclose(fp);free(rom);
+    int closed=fclose(fp);
     if (!require(written==393232u&&closed==0,"fixture write"))return 1;
     for(unsigned i=0;i<256u*240u;i++)original[i]=0xff112233u;
     host.enabled=1;
     if (!require(cviii_stage1_host_rom_0725(&host,path)==1,"owner path option"))
         return 1;
+    /* Rendered PPU nametable is independent evidence of active room.
+     * A source-correct atlas alone cannot prove the game is in that room. */
+    if (!require(cviii_stage1_atlas_load_0724(&host.atlas,rom,393232u)==1,
+                 "synthetic room atlas"))return 1;
+    const uint8_t first_room[3]={0,0,0};
+    seed_visible_room(first_room,0);
     test_ram[0x18]=4;test_ram[0x5a]=0x41;test_ram[0x5b]=0x84;
     test_ram[0x5c]=0x51;test_ram[0x5d]=0x8d;
     int w=256,h=240;
@@ -72,6 +90,20 @@ int main(void)
     pixels=cviii_stage1_host_present_0725(&host,original,&w,&h,1);
     if (!require(pixels[32*426+341]==0xff000000u,
                  "camera disagreement rejected"))return 1;
+    /* BLK 1-02 starts at physical nametable 1 even when room-local X=0.
+     * A selector alone cannot accept previous-room tile data. */
+    test_ram[0x35]=1;test_ram[0x36]=3;
+    scroll_x=256;w=256;h=240;
+    pixels=cviii_stage1_host_present_0725(&host,original,&w,&h,1);
+    if (!require(pixels[32*426+341]==0xff000000u,
+                 "stale first-room nametable rejected"))return 1;
+    const uint8_t next_room[3]={0,1,3};
+    seed_visible_room(next_room,1);
+    w=256;h=240;
+    pixels=cviii_stage1_host_present_0725(&host,original,&w,&h,1);
+    if (!require(pixels[32*426+341]!=0xff000000u,
+                 "NT1 room origin accepted with matching live tiles"))return 1;
+    test_ram[0x35]=0;test_ram[0x36]=0;
     scroll_x=0;test_ram[0x65]=0x80;w=256;h=240;
     pixels=cviii_stage1_host_present_0725(&host,original,&w,&h,1);
     if (!require(pixels[32*426+341]==0xff000000u,
@@ -86,6 +118,7 @@ int main(void)
     if (!require(pixels==original&&w==256&&h==240&&
                  requested_mode==NES_VIDEO_STOCK,"Original edition exact fallback"))
        return 1;
+    free(rom);
     (void)remove(path);
     puts("PASS JP0725 native presenter 426x240 and center/fallback/transition guards");
     return 0;
