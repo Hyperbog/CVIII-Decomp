@@ -9,6 +9,7 @@ add_executable(jp_stage1_host_test_0725
  ../cviii_stage1_atlas_0724.c
  ../cviii_stage1_host_0725.c
  ../cviii_runtime_resources_0727.c
+ ../cviii_resource_cache_0729.c
  ../cviii_chr_index_0598.c
  ../cviii_stage1_host_test_0725.c)
 target_include_directories(jp_stage1_host_test_0725 PRIVATE
@@ -26,6 +27,7 @@ foreach(JP_RESOURCE_TEST variant_production variant_synthetic)
   ../cviii_stage1_rom_0724.c
   ../cviii_stage1_atlas_0724.c
   ../cviii_runtime_resources_0727.c
+ ../cviii_resource_cache_0729.c
  ../cviii_chr_index_0598.c
   ../cviii_runtime_resources_test_0727.c)
  set_property(TARGET jp_runtime_resources_0727_${JP_RESOURCE_TEST} PROPERTY C_STANDARD 11)
