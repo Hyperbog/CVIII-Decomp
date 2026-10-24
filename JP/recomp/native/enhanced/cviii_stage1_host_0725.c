@@ -20,8 +20,13 @@ static int load(CviiiStage1Host0725 *h)
     if(h->attempted) return 0;
     h->attempted=1;
     if(!h->rom_path[0])return 0;
-    CviiiResourceStatus0727 result=cviii_stage1_resource_open_0727(
-        h->rom_path,&h->atlas);
+    /* When a validated private CHR index was already supplied, reuse it.
+     * Otherwise create the original font/HUD/graphics index in the same
+     * authenticated ROM read used for the Stage 1 background geometry. */
+    CviiiChrIndex *assets=h->runtime_assets && !h->runtime_assets->pixels ?
+        h->runtime_assets : NULL;
+    CviiiResourceStatus0727 result=cviii_game_resources_open_0727(
+        h->rom_path,&h->atlas,assets);
     if(result==CVIII_RESOURCE_READY_0727) return 1;
     fprintf(stderr,"CVIII JP0727: runtime Stage 1 resource load rejected (status %d); stock presentation retained\\n",
             (int)result);
