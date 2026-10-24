@@ -25,6 +25,12 @@ WATCH = {
     'player_motion_terms': (0x04f2, 0x0509, 0x0520, 0x0537),
     'player_actor_descriptor': (0x0400, 0x048c, 0x054e, 0x05ef),
     'game_and_stage_context': (0x18, 0x19, 0x5a, 0x5b, 0x5c, 0x5d, 0x62),
+    # GMvania 2012/2022 address notes are research hypotheses, not
+    # independently JP-ROM-certified owners or controller bus-read proof.
+    'game_controller_ram_hypotheses': (0x28, 0x29, 0x2a, 0x2b),
+    'view_scroll_and_room_hypotheses': (0x55, 0x62, 0x63, 0x68, 0x6c, 0x6e, 0x70, 0x73),
+    'player_action_collision_hypotheses': (0x8e, 0x565, 0x5c1, 0x5d8),
+    'chr_mode_hypotheses': tuple(range(0x38, 0x40)) + (0x6f,),
 }
 HEADER = struct.Struct('<9I')
 ALIAS = frozenset((0x10, 0x14, 0x18, 0x1c))
@@ -100,6 +106,12 @@ def components(mem: bytes):
         'player_y': mem[0x41c],
         'player_x_fraction': mem[0x4c4],
         'player_x_speed': mem[0x4f2],
+        'camera_subpixel_hypothesis': mem[0x55],
+        'scroll_offset_hypothesis': mem[0x6c],
+        'controller_press_ram_hypothesis': mem[0x28],
+        'controller_hold_ram_hypothesis': mem[0x2a],
+        'player_action_hypothesis': mem[0x565],
+        'actor_scroll_delta': mem[0x6b],
     }
 
 
@@ -159,10 +171,12 @@ def inspect(original: dict, native: dict) -> dict:
     return {
         'schema': 'JP0738-window-read-only/v1',
         'window': [9440, 9576], 'matched_frames': matched,
+        'causal_disambiguation': 'insufficient: sampled state differences cannot prove controller, collision, or scroll producer instruction ordering',
         'missing_requested_frames': sorted(set(FRAMES)-set(matched)),
         'first_sampled_difference_by_group': first,
         'first_sampled_is_not_first_actual_cpu_write': True,
-        'controllers': 'input schedule identity only; no CPU $4016/$4017 read-phase log',
+        'controllers': 'input schedule and internal-RAM hypothesis fields only; no CPU $4016/$4017 bus read-phase log',
+        'external_ram_annotations': 'GMvania CVIII RAM/ROM offsets (2012; updated 2022), corroboration required for JP-specific ownership',
         'ppu_chr_mapping': 'physical CHR bank timeline unavailable in these frame records',
         'oam': 'original Mesen OAM not decoded from archived snapshot schema',
         'nametable_metric': 'best of native physical CIRAM pages; not mapper equality',
@@ -170,6 +184,14 @@ def inspect(original: dict, native: dict) -> dict:
                           'strict_prg_total': 262144, 'new_credit': 0},
         'samples': rows,
     }
+
+
+def file_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open('rb') as f:
+        for block in iter(lambda: f.read(1 << 20), b''):
+            digest.update(block)
+    return digest.hexdigest()
 
 
 def smoke():
@@ -217,6 +239,8 @@ def smoke():
         target = {f: (c, r, pal, ciram) for f, c, r, pal, ciram in
                   native_frames(output, {9576})}
         assert inspect(source, target)['samples'][0]['camera_native_minus_original'] == -37
+        assert len(file_sha256(reference)) == 64 and len(file_sha256(output)) == 64
+        assert inspect(source, target)['first_sampled_difference_by_group']['view_scroll_and_room_hypotheses'] is None
     print('PASS JP0738 invented Mesen zip/CYCFRAME, camera/player and fail-closed regression; NOT gameplay')
 
 
@@ -240,6 +264,13 @@ def main():
               native_frames(args.native_frame_log, set(scenes))}
     result = inspect(scenes, native)
     result['original_rom_sha256_verified'] = True
+    # Identities are reproducible hashes, NOT independent provenance of who
+    # executed the captures. Private originals are not redistributed.
+    result['capture_file_sha256'] = {
+        'mesen_archive': file_sha256(args.mesen_zip),
+        'native_frame_log': file_sha256(args.native_frame_log),
+    }
+    result['capture_provenance_independently_certified'] = False
     if args.input_schedule:
         if hashlib.sha256(args.input_schedule.read_bytes()).hexdigest() != INPUT_SHA:
             raise ValueError('owner archived controller schedule hash mismatch')
