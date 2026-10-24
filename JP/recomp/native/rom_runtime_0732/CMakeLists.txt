@@ -22,9 +22,26 @@ include("${NESRECOMP_EXTERNAL_ROOT}/runner/cyc/cyc.cmake")
 # cyc_native_none is an upstream-proven adapter: no unvalidated ROM code
 # can be called as native code. cyc_run.c automatically executes all ROM/RAM
 # instructions through the same accurate cpu6502_interp.c fallback.
+# The production target has ZERO unverified native opcode handlers.
+# Public fixture testing may opt into a single cycle-exact, bank-checked
+# generic LDA #imm native instruction to exercise real interpreter handoff.
+option(JP0734_TEST_NATIVE_LDA
+  "Testing ONLY: replace interpreter LDA #imm with generic native handler" OFF)
+if(JP0734_TEST_NATIVE_LDA AND NOT JP0733_ALLOW_SYNTHETIC_FIXTURE)
+ # The synthetic flag is defined below in the Enhanced section; this guard
+ # checks the cache option value early while refusing retail runtime use.
+ message(FATAL_ERROR "JP0734_TEST_NATIVE_LDA requires JP0733_ALLOW_SYNTHETIC_FIXTURE=ON")
+endif()
+if(JP0734_TEST_NATIVE_LDA)
+ set(CVIII_0734_NATIVE_SOURCE
+  "${CMAKE_CURRENT_LIST_DIR}/cviii_test_native_lda_0734.c")
+else()
+ set(CVIII_0734_NATIVE_SOURCE
+  "${NESRECOMP_EXTERNAL_ROOT}/runner/cyc/cyc_native_none.c")
+endif()
 add_executable(jp_akumajou_runtime_0732
  ${NESRECOMP_CYC_SOURCES}
- "${NESRECOMP_EXTERNAL_ROOT}/runner/cyc/cyc_native_none.c")
+ ${CVIII_0734_NATIVE_SOURCE})
 target_include_directories(jp_akumajou_runtime_0732 PRIVATE
  ${NESRECOMP_CYC_INCLUDE_DIRS})
 target_link_libraries(jp_akumajou_runtime_0732 PRIVATE
