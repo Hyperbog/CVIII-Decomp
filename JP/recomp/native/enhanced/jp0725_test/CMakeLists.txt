@@ -17,3 +17,20 @@ set_property(TARGET jp_stage1_host_test_0725 PROPERTY C_STANDARD 11)
 target_compile_definitions(jp_stage1_host_test_0725 PRIVATE CVIII_RESOURCE_TEST_SYNTHETIC_0727=1)
 enable_testing()
 add_test(NAME jp0725_native_framebuffer COMMAND jp_stage1_host_test_0725)
+
+# JP0727: exact production SHA256 gate and a separate, explicitly invented
+# test-only source import. A test flag must never reach the retail game target.
+foreach(JP_RESOURCE_TEST variant_production variant_synthetic)
+ add_executable(jp_runtime_resources_0727_${JP_RESOURCE_TEST}
+  ../cviii_stage1_rom_0724.c
+  ../cviii_stage1_atlas_0724.c
+  ../cviii_runtime_resources_0727.c
+  ../cviii_runtime_resources_test_0727.c)
+ set_property(TARGET jp_runtime_resources_0727_${JP_RESOURCE_TEST} PROPERTY C_STANDARD 11)
+ if(JP_RESOURCE_TEST STREQUAL "variant_synthetic")
+  target_compile_definitions(jp_runtime_resources_0727_${JP_RESOURCE_TEST}
+   PRIVATE CVIII_RESOURCE_TEST_SYNTHETIC_0727=1)
+ endif()
+ add_test(NAME jp_runtime_resources_0727_${JP_RESOURCE_TEST}
+  COMMAND jp_runtime_resources_0727_${JP_RESOURCE_TEST})
+endforeach()
