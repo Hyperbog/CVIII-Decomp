@@ -52,6 +52,33 @@ The first non-512-pixel-class-perfect checks occur at frames 1,816 (2 mismatched
 
 **Full-length failure is now confirmed on the new executable**: the 17,563-frame run terminated in **GAME OVER**. At Mesen's original checkpoint frame **17,472**, the original completes Stage 1 and shows route selector `00/03/00`, CPU cycle **520,352,201**, while JP0735 has selector `00/01/00`, CPU cycle **520,352,317** (+116), and **759/2,048 CPU RAM bytes disagree**. At engine exit (frame 17,562), CPU cycle was **523,032,561**. The new limited native boot optimization neither caused an observed early frame/nametable change nor resolved the later replay divergence.
 
+## JP0737 — First progressive gameplay divergence localized with authentic owner media
+
+Two further owner-local unattended JP0735 runs replayed the original recorded controller schedule through native frame 4,000 and frame 13,000, recording only the necessary live `CYCFRAME v2` state windows at frames 1,201–4,000, 4,001–8,000, and 8,001–13,000. All were run with the **identical Japanese SHA256-validated cartridge and native ELF**, without changing the four boot handlers, creating any ROM-derived public asset, or asking the user to replay Stage 1.
+
+Across all **138 archived MesenCE checkpoints up to and including frame 10,272**, the live original/game-room selectors RAM `$34/$35/$36` **agree** with JP0735. The **next original MesenCE checkpoint, frame 10,328, is the first mismatched selector**: original `00/02/01`, native `00/01/02`. Many gameplay scenes and room transitions preceding that mismatch agree in exact selector order.
+
+Source timeline narrows the actual movement failure further inside horizontal source room `00/01/02`:
+
+| Frame | Original Mesen room-local camera RAM $53/$54 | JP0735 native room-local camera | Live selectors both equal? |
+| ---: | ---: | ---: | --- |
+| 9,312 | $0000 | $0001 | yes |
+| 9,376 | $0000 | $0000 | yes |
+| 9,440 | $000A (10) | $0009 (9) | yes |
+| 9,504 | $0031 (49) | $0030 (48) | yes |
+| **9,576** | **$005D (93)** | **$0038 (56)** | yes |
+| 9,760 | $00B0 (176) | $0039 (57) | yes |
+| 10,272 | $0200 (512) | $01B0 (432) | yes |
+| **10,328** | **$0216 (534)** | **$01B6 (438)** | **no** |
+
+Original and native CPU `$18,$19` game-status bytes were still `04,03` on each of those selected checkpoints, with the Stage 1 HUD signature bytes `$5A–$5D=41 84 51 8D` unchanged. The original room continued moving after frame ~9,550, while the native camera temporarily slowed/stalled and never completed the expected room transition in time.
+
+The first large, sustained **in-this-room** graphics mismatch occurs at frame **9,504** (15,249 color-class pixels different); nametable difference there is only **8** best-projected tile bytes, but by frame 9,576 it is **194**, and by frame 9,760 **526**, increasing as room-local world positions diverge. The persistent atlas source crosswalk need not be wrong to produce those discrepancies: the two games are rendering *different positions/objects* from a game state that is already becoming desynchronized.
+
+Archived original input pulses in that window include Down+Right near 9,388–9,450, a Left correction around 9,493, then repeated A/B+Right inputs from approximately 9,536–9,550. These are source-derived timing observations, **not** proof that the controller implementation is broken. The next debugging target is the **first movement/object-state divergence in frames 9,440–9,576**, especially player hitboxes/collision, sprite/OAM, input latch/read phase, dynamic CHR switching, and scroll-boundary transition conditions. Do not introduce speculative gameplay patches or credit more native semantic bytes on the basis of screenshots alone.
+
+The **later** full-run mismatch at frame 17,472 (original 00/03/00; native 00/01/00) is downstream of this first proven transition divergence. Original software rendering/picture parity remains strong at many earlier checkpoints; this does not prove all timing and object state are cycle-perfect.
+
 **Engineering conclusion:** Authentic original-game CPU/PPU/pixel agreement is excellent in the initial sampled section, but the later controller-driven stage progression still diverges. Further native-handler coverage must not be used to paper over that behavioral discrepancy. The next work is locating the **earliest** gameplay-state divergence with sparse original Mesen checkpoints and analyzing controller sampling, timing, and game object state, without requiring another manual Stage 1 playthrough.
 
 Private runtime captures and borrowed diagnostic engine were used locally only. No raw ROM or extracted game data distributed.
