@@ -1,0 +1,84 @@
+/* JP0725 synthetic-only verification of the real production presenter
+ * on Windows/Linux. No game ROM or copyrighted output is distributed. */
+#include "cviii_stage1_host_0725.h"
+#include "cyc_core.h"
+#include "cyc_render.h"
+#include "cyc_video.h"
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+static uint8_t test_ram[2048];
+static uint32_t original[256*240];
+static CviiiStage1Host0725 host;
+static int scroll_x,requested_mode=-1;
+const uint8_t *cyc_cpu_ram(void) {return test_ram;}
+uint8_t cyc_render_line_mask(int line) {(void)line;return 0x1e;}
+uint16_t cyc_render_line_bg_table(int line) {(void)line;return 0x1000;}
+int cyc_render_line_scroll_x(int line) {(void)line;return scroll_x;}
+int cyc_render_line_scroll_y(int line) {return line;}
+uint8_t cyc_render_chr(uint16_t addr) {(void)addr;return 0xff;}
+uint32_t cyc_render_color(int entry) {return 0xff000000u|(uint32_t)(entry&63);}
+void cyc_video_set_mode(int mode) {requested_mode=mode;}
+static int require(int condition,const char *what) {
+    if (!condition) {fprintf(stderr,"JP0725 FAIL: %s\n",what);return 0;}
+    return 1;
+}
+int main(void)
+{
+    const char *path="jp0725-synthetic-fixture-local.nes";
+    uint8_t *rom=(uint8_t *)calloc(393232u,1u);
+    if (!require(rom!=NULL,"ROM fixture memory"))return 1;
+    memcpy(rom,"NES\x1a",4);rom[4]=16;rom[5]=16;
+    rom[6]=0x80;rom[7]=0x10; /* synthetic Mapper24, never distributed */
+    static const unsigned starts[]={0x200BA,0x2014B,0x20039,0x2017C,
+                                    0x201DD,0x2026E,0x202FF,0x20390};
+    static const unsigned screens[]={3,1,2,2,3,3,3,4};
+    for(unsigned i=0;i<8;i++)rom[starts[i]]=(uint8_t)(screens[i]-1u);
+    for(unsigned i=0;i<145;i++){
+        for(unsigned j=0;j<16;j++)rom[0x20451u+i*16u+j]=(uint8_t)(i+j);
+        rom[0x20D61u+i]=0xe4;
+    }
+    FILE *fp=fopen(path,"wb");
+    if (!require(fp!=NULL,"fixture file")) {free(rom);return 1;}
+    size_t written=fwrite(rom,1,393232u,fp);
+    int closed=fclose(fp);free(rom);
+    if (!require(written==393232u&&closed==0,"fixture write"))return 1;
+    for(unsigned i=0;i<256u*240u;i++)original[i]=0xff112233u;
+    host.enabled=1;
+    if (!require(cviii_stage1_host_rom_0725(&host,path)==1,"owner path option"))
+        return 1;
+    test_ram[0x18]=4;test_ram[0x5a]=0x41;test_ram[0x5b]=0x84;
+    test_ram[0x5c]=0x51;test_ram[0x5d]=0x8d;
+    int w=256,h=240;
+    const uint32_t *pixels=cviii_stage1_host_present_0725(
+        &host,original,&w,&h,1);
+    if (!require(pixels!=NULL&&pixels!=original&&w==426&&h==240,
+                 "wide dimensions") ||
+        !require(requested_mode==NES_VIDEO_16_9,"host video mode") ||
+        !require(pixels[32*426+85]==original[32*256],
+                 "original left center") ||
+        !require(pixels[200*426+340]==original[200*256+255],
+                 "original right center") ||
+        !require(pixels[32*426+341]!=0xff000000u,
+                 "preloaded margin before visit") ||
+        !require(pixels[0]==0xff000000u,"no world over HUD"))
+       return 1;
+    /* Stale selector/scroll state must not produce scenery. */
+    scroll_x=123;w=256;h=240;
+    pixels=cviii_stage1_host_present_0725(&host,original,&w,&h,1);
+    if (!require(pixels[32*426+341]==0xff000000u,
+                 "camera disagreement rejected"))return 1;
+    scroll_x=0;test_ram[0x18]=6;w=256;h=240;
+    pixels=cviii_stage1_host_present_0725(&host,original,&w,&h,1);
+    if (!require(pixels[32*426+341]==0xff000000u,
+                 "game over does not paint room"))return 1;
+    w=256;h=240;
+    pixels=cviii_stage1_host_present_0725(&host,original,&w,&h,0);
+    if (!require(pixels==original&&w==256&&h==240&&
+                 requested_mode==NES_VIDEO_STOCK,"Original edition exact fallback"))
+       return 1;
+    (void)remove(path);
+    puts("PASS JP0725 native presenter 426x240 and center/fallback/transition guards");
+    return 0;
+}
