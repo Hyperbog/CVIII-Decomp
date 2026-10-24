@@ -132,6 +132,10 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'JP0732 no-ROM gameplay host configure failed' }
           cmake --build $out --config Release --parallel 2
           if ($LASTEXITCODE -ne 0) { throw 'JP0732 no-ROM gameplay host MSVC build failed' }
+          $exe=Join-Path $out 'Release/jp_akumajou_runtime_0732.exe'
+          & $exe "$env:RUNNER_TEMP\alpha-vrc6.nes" --frames 1
+          if ($LASTEXITCODE -ne 3) { throw 'Production JP0733 launcher failed to reject the invented test cartridge' }
+          Write-Host 'PASS: production no-ROM-at-build executable rejects incorrect source SHA256'
       - name: Check stage and companion password debug selector
         shell: pwsh
         run: |
