@@ -2,6 +2,7 @@
  * Only invented ROM bytes appear in this test; never publish retail assets.
  */
 #include "cviii_runtime_resources_0727.h"
+#include "cviii_resource_cache_0729.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -72,19 +73,70 @@ int main(void)
     assert(chr.pixels[0]==3u && chr.pixels[1]==0u);
     assert(chr.pixels[64u]==0u);
     assert(cviii_chr_index_check(chr.allocation,CVIII_CHR_INDEX_BYTES,false));
-    unsigned char *prior=chr.allocation;
     uint8_t tile=0,palette=0,sel[3]={0,0,0};
     assert(atlas->loaded && cviii_stage1_atlas_get_0724(
         atlas,sel,3,3,&tile,&palette));
     assert(tile==15 && palette==3);
+    /* The disk format must round-trip without pointer/struct padding
+     * dependencies. The ROM is authenticated before every cache lookup. */
+    const char *cache="jp0729-only-private-synthetic-cache.dat";
+    (void)remove(cache);
+    uint8_t digest[32],wrong_digest[32];
+    cviii_sha256_0727(rom,CVIII_RUNTIME_ROM_BYTES_0727,digest);
+    memcpy(wrong_digest,digest,32);
+    wrong_digest[1]^=0x55;
+    assert(cviii_game_resources_cached_open_0729(
+        path,cache,atlas,&chr)==CVIII_RESOURCE_READY_0727);
+    FILE *probe=fopen(cache,"rb");
+    assert(probe);
+    assert(fclose(probe)==0);
+    CviiiStage1Atlas0724 *from_cache=calloc(1,sizeof *from_cache);
+    CviiiChrIndex cache_chr={0};
+    assert(from_cache);
+    assert(cviii_resource_cache_read_0729(cache,digest,from_cache,&cache_chr));
+    assert(memcmp(from_cache->tile,atlas->tile,CVIII_STAGE1_TILES_0724)==0);
+    assert(memcmp(from_cache->palette,atlas->palette,CVIII_STAGE1_TILES_0724)==0);
+    assert(memcmp(cache_chr.raw,chr.raw,CVIII_CHR_RAW_BYTES)==0);
+    assert(memcmp(cache_chr.pixels,chr.pixels,CVIII_CHR_PIXEL_BYTES)==0);
+    assert(!cviii_resource_cache_read_0729(cache,wrong_digest,
+                                           from_cache,&cache_chr));
+    /* Tampering with the payload checksum must reject the entire cache,
+     * leaving both previously loaded resources unchanged. */
+    unsigned char *saved_index=cache_chr.allocation;
+    probe=fopen(cache,"r+b");
+    assert(probe && fseek(probe,48L,SEEK_SET)==0);
+    int oldbyte=fgetc(probe);
+    assert(oldbyte!=EOF && fseek(probe,48L,SEEK_SET)==0);
+    assert(fputc(oldbyte^0xff,probe)!=EOF && fclose(probe)==0);
+    assert(!cviii_resource_cache_read_0729(cache,digest,
+                                           from_cache,&cache_chr));
+    assert(cache_chr.allocation==saved_index &&
+           from_cache->loaded==1);
+    assert(cviii_game_resources_cached_open_0729(
+        path,cache,atlas,&chr)==CVIII_RESOURCE_READY_0727);
+    assert(cviii_resource_cache_read_0729(cache,digest,
+                                          from_cache,NULL));
+    /* Newer unknown cache schema must regenerate from the original ROM. */
+    probe=fopen(cache,"r+b");
+    assert(probe && fseek(probe,8L,SEEK_SET)==0);
+    assert(fputc(0xff,probe)!=EOF && fclose(probe)==0);
+    assert(cviii_game_resources_cached_open_0729(
+        path,cache,atlas,&chr)==CVIII_RESOURCE_READY_0727);
+    assert(cviii_resource_cache_read_0729(cache,digest,
+                                          from_cache,NULL));
+    cviii_chr_index_free(&cache_chr);
+    free(from_cache);
+    unsigned char *prior=chr.allocation;
     /* A malformed new ROM must not destroy the previous atlas or CHR. */
     rom[headers[0]]=7u;
     emit(path,rom,CVIII_RUNTIME_ROM_BYTES_0727);
-    assert(cviii_game_resources_open_0727(path,atlas,&chr)
+    /* The prior valid cache may not mask an invalid/different ROM. */
+    assert(cviii_game_resources_cached_open_0729(path,cache,atlas,&chr)
            ==CVIII_RESOURCE_DECODE_0727);
     assert(chr.allocation==prior && atlas->loaded);
     assert(cviii_stage1_atlas_get_0724(atlas,sel,3,3,&tile,&palette));
     cviii_chr_index_free(&chr);
+    (void)remove(cache);
 #else
     /* This synthetic media MUST fail production full-file SHA256.
      * Test still passes if a corrupt or unrelated retail image is rejected.
