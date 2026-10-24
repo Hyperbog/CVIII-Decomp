@@ -506,6 +506,7 @@ jobs:
             -DNESRECOMP_EXTERNAL_ROOT="$PWD/_external_nesrecomp" \
             -DJP0732_WINDOWED=OFF -DJP0732_ENHANCED=ON \
             -DJP0733_ALLOW_SYNTHETIC_FIXTURE=ON \
+            -DJP0735_ENABLE_ORIGINAL_BOOT_NATIVE=OFF \
             -DJP0734_TEST_NATIVE_LDA=ON
           cmake --build "${{ runner.temp }}/jp0734-native-opcode" --parallel 4
           "${{ runner.temp }}/jp0734-native-opcode/jp_akumajou_runtime_0732" \
@@ -517,6 +518,35 @@ jobs:
           grep -Eq 'JP0734 test-native-lda hits=[1-9][0-9]*' \
             "${{ runner.temp }}/jp0734_native.log"
           echo "PASS: native opcode really executed; all 20 mapper24 frame hashes identical"
+      - name: JP0735 verify original fixed-bank bootstrap independent of game assets
+        run: |
+          python3 JP/decomp/tools/jp0735_original_boot_fixture.py --self-test
+          python3 JP/decomp/tools/jp0735_original_boot_fixture.py \
+            --out "${{ runner.temp }}/jp0735_invented_boot.nes"
+          # Configure two independently linked CPU engines. No ROM argument
+          # exists at configure time, and the source is entirely invented.
+          for implementation in interpreter native; do
+            switch=OFF
+            if [ "$implementation" = native ]; then switch=ON; fi
+            cmake -S JP/recomp/native/rom_runtime_0732 \
+              -B "${{ runner.temp }}/jp0735_$implementation" -G Ninja \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DNESRECOMP_EXTERNAL_ROOT="$PWD/_external_nesrecomp" \
+              -DJP0732_WINDOWED=OFF -DJP0732_ENHANCED=ON \
+              -DJP0733_ALLOW_SYNTHETIC_FIXTURE=ON \
+              -DJP0735_ENABLE_ORIGINAL_BOOT_NATIVE="$switch"
+            cmake --build "${{ runner.temp }}/jp0735_$implementation" --parallel 4
+            "${{ runner.temp }}/jp0735_$implementation/jp_akumajou_runtime_0732" \
+              "${{ runner.temp }}/jp0735_invented_boot.nes" \
+              --edition original --frames 20 \
+              --hash-out "${{ runner.temp }}/jp0735_$implementation.hash" \
+              > "${{ runner.temp }}/jp0735_$implementation.log"
+          done
+          cmp "${{ runner.temp }}/jp0735_interpreter.hash" \
+              "${{ runner.temp }}/jp0735_native.hash"
+          grep -Eq 'JP0735 original-boot native CLD=[1-9][0-9]* SEI=[1-9][0-9]* LDX=[1-9][0-9]* TXS=[1-9][0-9]*' \
+            "${{ runner.temp }}/jp0735_native.log"
+          echo "PASS JP0735: 4 original fixed-bank instructions executed natively; 20 complete frame hashes identical"
       - name: Run and verify synthetic mapper24 native CPU cycles
         run: |
           set -eo pipefail
