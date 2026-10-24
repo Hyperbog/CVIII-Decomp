@@ -3,6 +3,11 @@
  */
 #include "cviii_runtime_resources_0727.h"
 #include "cviii_resource_cache_0729.h"
+/* Windows/CI Release adds NDEBUG; tests must never silently skip checks
+ * or suppress setup side effects written inside assert expressions. */
+#ifdef NDEBUG
+#undef NDEBUG
+#endif
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
