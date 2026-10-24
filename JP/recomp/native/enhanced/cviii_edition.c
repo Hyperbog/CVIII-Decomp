@@ -214,6 +214,20 @@ static void save_settings(void *context, FILE *file)
 static bool option(void *context, const char *name, const char *value)
 {
     (void)context;
+#ifdef CVIII_0732_NO_PRIVATE_OBSERVERS
+    /* An interpreter-only retail backend lacks the developer overlays in
+     * the privately patched generated-game build. Reject instrumentation
+     * rather than silently creating empty or misleading audit files. */
+    if (!strcmp(name,"--chr-fetch-audit") ||
+        !strcmp(name,"--nt-fetch-audit") ||
+        !strcmp(name,"--audio-reg-trace") ||
+        !strcmp(name,"--sound-request-trace") ||
+        !strcmp(name,"--sound-decision-trace") ||
+        !strcmp(name,"--dmc-dma-trace")) {
+        fprintf(stderr,"CVIII JP0732: developer observer not available in ROM-independent runtime\\n");
+        return false;
+    }
+#endif
     if (!strcmp(name, "--edition")) return value && set_edition(value);
     if (!strcmp(name, "--unlimited-sprites"))
         return value && parse_boolean(value, &cviii.sprite_unlimited);
