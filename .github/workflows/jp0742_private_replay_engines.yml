@@ -48,7 +48,7 @@ jobs:
             "$RUNNER_TEMP/jp0742-native/jp_akumajou_runtime_0732" \
             "$GITHUB_WORKSPACE/jp0742_native_trace_engine"
           file "$GITHUB_WORKSPACE/jp0742_native_trace_engine"
-          sha256sum "$GITHUB_WORKSPACE/jp0742_native_trace_engine" > jp0742_native_trace_engine.sha256
+          sha256sum jp0742_native_trace_engine > jp0742_native_trace_engine.sha256
           test ! -e jp0742_private_original.nes
       - name: Upload ROM-free trace-capable engine
         uses: actions/upload-artifact@v4
