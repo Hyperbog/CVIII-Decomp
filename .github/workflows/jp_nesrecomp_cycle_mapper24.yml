@@ -176,6 +176,12 @@ jobs:
             JP/recomp/native/enhanced/cviii_rom_tsa_catalog_test_0730.c \
             -o "${{ runner.temp }}/jp0730_tsa"
           "${{ runner.temp }}/jp0730_tsa"
+      - name: JP0731 prove content library configures without original ROM or NESRecomp
+        run: |
+          cmake -S JP/recomp/native/content_runtime \
+            -B "${{ runner.temp }}/cviii-content-0731" -DCMAKE_BUILD_TYPE=Release
+          cmake --build "${{ runner.temp }}/cviii-content-0731" --parallel 2
+          ctest --test-dir "${{ runner.temp }}/cviii-content-0731" --output-on-failure
       - name: Verify JP0618 enhanced PCM master level and 1-percent settings (ROM-free)
         run: |
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
