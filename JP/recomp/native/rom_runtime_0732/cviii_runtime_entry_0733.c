@@ -54,12 +54,12 @@ int main(int argc,char **argv)
         return cviii_upstream_main_0733(argc,argv);
     }
     if(argc<2 || !argv[1] || argv[1][0]=='-') {
-        fputs("CVIII JP0733: supply the original Japanese ROM as the first argument\\n",
+        fputs("CVIII JP0733: supply the original Japanese ROM as the first argument\n",
               stderr);
         return 2;
     }
     if(!authentic_rom(argv[1])) {
-        fputs("CVIII JP0733: ROM rejected (expected original Japanese VRC6 cartridge)\\n",
+        fputs("CVIII JP0733: ROM rejected (expected original Japanese VRC6 cartridge)\n",
               stderr);
         return 3;
     }
