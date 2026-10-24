@@ -19,22 +19,26 @@ option(JP0732_ENHANCED "Compile the existing game-owned Enhanced host presentati
 set(NESRECOMP_PPU_IMPL "LLE" CACHE STRING "Cycle PPU rendering implementation")
 include("${NESRECOMP_EXTERNAL_ROOT}/runner/cyc/cyc.cmake")
 
-# cyc_native_none is an upstream-proven adapter: no unvalidated ROM code
-# can be called as native code. cyc_run.c automatically executes all ROM/RAM
-# instructions through the same accurate cpu6502_interp.c fallback.
-# The production target has ZERO unverified native opcode handlers.
-# Public fixture testing may opt into a single cycle-exact, bank-checked
-# generic LDA #imm native instruction to exercise real interpreter handoff.
+# JP0735: the four independently ROM-authenticated reset instructions
+# default to narrow native handlers. All other original guest instructions
+# remain interpreted. The existing single-opcode JP0734 synthetic-only proof
+# is a separate mutually exclusive mode. Neither path uses generated code.
+option(JP0735_ENABLE_ORIGINAL_BOOT_NATIVE
+ "Original JP fixed PRG31 boot native instructions (4 guarded entries)" ON)
 option(JP0734_TEST_NATIVE_LDA
-  "Testing ONLY: replace interpreter LDA #imm with generic native handler" OFF)
-if(JP0734_TEST_NATIVE_LDA AND NOT JP0733_ALLOW_SYNTHETIC_FIXTURE)
- # The synthetic flag is defined below in the Enhanced section; this guard
- # checks the cache option value early while refusing retail runtime use.
- message(FATAL_ERROR "JP0734_TEST_NATIVE_LDA requires JP0733_ALLOW_SYNTHETIC_FIXTURE=ON")
+ "Testing ONLY: generic native LDA #imm on invented Mapper24 ROM" OFF)
+option(JP0733_ALLOW_SYNTHETIC_FIXTURE
+ "Testing ONLY: accept invented Mapper24 media at entry" OFF)
+if(JP0734_TEST_NATIVE_LDA AND
+   (NOT JP0733_ALLOW_SYNTHETIC_FIXTURE OR JP0735_ENABLE_ORIGINAL_BOOT_NATIVE))
+ message(FATAL_ERROR "JP0734 requires synthetic fixture ON and JP0735 original handlers OFF")
 endif()
 if(JP0734_TEST_NATIVE_LDA)
  set(CVIII_0734_NATIVE_SOURCE
   "${CMAKE_CURRENT_LIST_DIR}/cviii_test_native_lda_0734.c")
+elseif(JP0735_ENABLE_ORIGINAL_BOOT_NATIVE)
+ set(CVIII_0734_NATIVE_SOURCE
+  "${CMAKE_CURRENT_LIST_DIR}/cviii_original_boot_native_0735.c")
 else()
  set(CVIII_0734_NATIVE_SOURCE
   "${NESRECOMP_EXTERNAL_ROOT}/runner/cyc/cyc_native_none.c")
@@ -48,6 +52,10 @@ target_link_libraries(jp_akumajou_runtime_0732 PRIVATE
  ${NESRECOMP_CYC_LIBRARIES})
 target_compile_definitions(jp_akumajou_runtime_0732 PRIVATE
  _CRT_SECURE_NO_WARNINGS)
+if(JP0735_ENABLE_ORIGINAL_BOOT_NATIVE AND JP0733_ALLOW_SYNTHETIC_FIXTURE)
+ target_compile_definitions(jp_akumajou_runtime_0732 PRIVATE
+  CVIII_JP0735_REPORT_HITS=1)
+endif()
 
 if(JP0732_ENHANCED)
  # An independent game-owned entry point checks full ROM SHA256 before
@@ -58,8 +66,6 @@ if(JP0732_ENHANCED)
   PROPERTIES COMPILE_DEFINITIONS "main=cviii_upstream_main_0733")
  target_sources(jp_akumajou_runtime_0732 PRIVATE
   "${CMAKE_CURRENT_LIST_DIR}/cviii_runtime_entry_0733.c")
- option(JP0733_ALLOW_SYNTHETIC_FIXTURE
-   "Testing ONLY: allow invented Mapper24 media (never use in release)" OFF)
  if(JP0733_ALLOW_SYNTHETIC_FIXTURE)
   target_compile_definitions(jp_akumajou_runtime_0732 PRIVATE
     CVIII_JP0733_TEST_SYNTHETIC_ROM=1)
