@@ -363,3 +363,7 @@ python3 "$root/JP/decomp/tools/jp0738_camera_window.py" --smoke
 # JP0738C: verify the older original-Mesen/native-JP0719 archived ZIP
 # comparator using invented RAM, input and CHR; retail files stay private.
 python3 "$root/JP/decomp/tools/jp0738_compare_jp0719_zip.py" --smoke
+
+# JP0739: ROM-free fail-closed original $62 static writer candidate census.
+# Synthetic matches do not prove naturally executed stores or source credit.
+python3 "$root/JP/decomp/tools/jp0739_mode62_writer_census.py" --smoke
