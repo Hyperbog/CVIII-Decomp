@@ -584,3 +584,11 @@ add_executable(jp_menu_stack_test_0626
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_levels_0618.c"
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_menu_stack_test_0626.c")
 set_property(TARGET jp_menu_stack_test_0626 PROPERTY C_STANDARD 11)
+
+
+# JP0723: ROM-free original JP fixed-bank $0300 PPU command interpreter test.
+# No live renderer hook or copyrighted game assets.
+add_executable(jp_ppu_queue_test_0723
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_ppu_queue_0723.c"
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_ppu_queue_test_0723.c")
+set_property(TARGET jp_ppu_queue_test_0723 PROPERTY C_STANDARD 11)
