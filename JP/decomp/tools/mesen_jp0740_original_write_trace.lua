@@ -77,6 +77,9 @@ local function finish(reason)
   out:write('END\t',reason,'\t',count,'\t',observed,'\t',checked,'\n')
   out:flush();out:close()
   emu.log('JP0740_END '..reason)
+  -- MesenCE CLI headless TestRunner exits only when the guest Lua script
+  -- invokes emu.stop; emu.exit is not implemented in the current core.
+  emu.stop(reason=='COMPLETE' and 0 or 1)
 end
 local function buttons(mask)
   local names={'a','b','select','start','up','down','left','right'}
