@@ -472,6 +472,30 @@ jobs:
                 -DJP_CYCLE_HEADLESS=ON
       - name: Compile upstream C11 cycle backend with VRC6
         run: cmake --build "${{ runner.temp }}/jp-vrc6-cycle" --config Release --parallel 4
+      - name: JP0732 configure gameplay host without build-time ROM or compiler
+        run: |
+          cmake -S JP/recomp/native/rom_runtime_0732 \
+            -B "${{ runner.temp }}/jp-vrc6-interpreter" -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DNESRECOMP_EXTERNAL_ROOT="$PWD/_external_nesrecomp" \
+            -DJP0732_WINDOWED=OFF \
+            -DJP0732_ENHANCED=ON
+          cmake --build "${{ runner.temp }}/jp-vrc6-interpreter" --parallel 4
+      - name: JP0732 prove no-generated-code VRC6 gameplay/frame parity
+        run: |
+          set -euo pipefail
+          rom="${{ runner.temp }}/jp_mapper24_fixture.nes"
+          compiled="${{ runner.temp }}/jp-vrc6-cycle/jp_akumajou_densetsu"
+          runtime="${{ runner.temp }}/jp-vrc6-interpreter/jp_akumajou_runtime_0732"
+          "$compiled" "$rom" --frames 20 --edition original \
+            --hash-out "${{ runner.temp }}/jp0732_compiled.txt" > "${{ runner.temp }}/jp0732_compiled.log"
+          "$compiled" "$rom" --frames 20 --edition original --interp-only \
+            --hash-out "${{ runner.temp }}/jp0732_compiled_interp.txt" > "${{ runner.temp }}/jp0732_compiled_interp.log"
+          "$runtime" "$rom" --frames 20 --edition original \
+            --hash-out "${{ runner.temp }}/jp0732_runtime.txt" > "${{ runner.temp }}/jp0732_runtime.log"
+          cmp "${{ runner.temp }}/jp0732_compiled.txt" "${{ runner.temp }}/jp0732_compiled_interp.txt"
+          cmp "${{ runner.temp }}/jp0732_compiled.txt" "${{ runner.temp }}/jp0732_runtime.txt"
+          echo "PASS: JP0732 prebuilt no-game-code interpreter matched all 20 native mapper24 frames"
       - name: Run and verify synthetic mapper24 native CPU cycles
         run: |
           set -eo pipefail
