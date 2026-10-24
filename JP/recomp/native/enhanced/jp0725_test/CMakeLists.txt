@@ -8,11 +8,12 @@ add_executable(jp_stage1_host_test_0725
  ../cviii_stage1_rom_0724.c
  ../cviii_stage1_atlas_0724.c
  ../cviii_stage1_host_0725.c
+ ../cviii_runtime_resources_0727.c
  ../cviii_stage1_host_test_0725.c)
 target_include_directories(jp_stage1_host_test_0725 PRIVATE
  ../
  "${NESRECOMP_EXTERNAL_ROOT}/runner/cyc")
 set_property(TARGET jp_stage1_host_test_0725 PROPERTY C_STANDARD 11)
-target_compile_definitions(jp_stage1_host_test_0725 PRIVATE CVIII_STAGE1_TEST_SYNTHETIC_ROM=1)
+target_compile_definitions(jp_stage1_host_test_0725 PRIVATE CVIII_RESOURCE_TEST_SYNTHETIC_0727=1)
 enable_testing()
 add_test(NAME jp0725_native_framebuffer COMMAND jp_stage1_host_test_0725)
