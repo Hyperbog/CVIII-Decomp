@@ -148,3 +148,45 @@ JP0723+ playthrough nor original Japanese gameplay parity.
 49,504/262,144, checkpoint 0508. Last personally owner-tested
 checkpoint remains **JP0722**. All JP0740 events and source evidence
 have zero new certification credit.
+
+
+## JP0740 replay-domain correction and preparation audit
+
+Re-examination of the real archived JP0718 input file establishes:
+- Header absolute-frame origin = **1**.
+- First original poll = absolute frame **2**, local frame **1**,
+  CPU cycle **27,392**.
+- Original RAM anchors are **local** frames
+  9,376 / 9,440 / 9,504 / 9,576, not Mesen absolute frameCount.
+- At local frame 9,376 original anchor cycle is **279,249,268**,
+  while the following original input poll (absolute 9,378,
+  local 9,377) is at cycle 279,249,381. These are different
+  callback boundaries and **must not** be merged.
+
+The canonical original Lua recorder
+`JP/decomp/tools/mesen_jp0740_original_write_trace.lua` was
+corrected to count its own zero-based local endFrame index for
+RAM/cycle anchor checks while using only the Mesen absolute
+frameCount for controller input lookup. It now also records the
+actual CPU write to $4016 (controller strobe) with original mapped
+opcode PC and physical PRG offset, in addition to CPU
+$4016/$4017 reads. The write-only controller strobe is **not
+read back** to invent a previous bus value.
+
+The private original ROM and input ZIP pass full SHA-256, SHA-1,
+CRC and input-order checks. A private four-anchor replay file
+was generated from the recovered RAM TSV and rechecked against
+the existing owner-derived anchor list, without committing any
+raw private RAM, controller inputs or ROM data.
+
+**Execution boundary remains:** no MesenCE executable or
+locally built authenticated JP0732/JP0737 native runtime is installed
+in this environment. Thus the new ordered CPU-write collectors
+and cross-run comparer have **not** produced an admissible
+retail-vs-native matching instruction trace. No first incorrect
+CPU store is certified. The latest owner-run gameplay checkpoint
+is still JP0722; subsequent JP milestones are internal automated
+and static analysis.
+
+**Source-certification remains VPP 31/100 and
+49,504/262,144 strict original PRG bytes**; no credit added.
