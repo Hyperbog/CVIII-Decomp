@@ -12,10 +12,12 @@ typedef struct {
     CviiiChrIndex *runtime_assets; /* optional JP0728 preloaded original CHR index */
     uint32_t pixels[CVIII_STAGE1_WIDE_0725*240];
     char rom_path[1024];
+    char resource_cache_path[1024]; /* optional user-private JP0729 cache */
     int enabled, attempted, video_wide;
 } CviiiStage1Host0725;
 /* Options are only applied to this presentation object, not guest memory. */
 int cviii_stage1_host_rom_0725(CviiiStage1Host0725 *h, const char *path);
+int cviii_stage1_host_cache_0729(CviiiStage1Host0725 *h, const char *path);
 void cviii_stage1_host_mode_0725(CviiiStage1Host0725 *h,int enabled);
 const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
  const uint32_t *game_frame,int *width,int *height,int enhanced);
