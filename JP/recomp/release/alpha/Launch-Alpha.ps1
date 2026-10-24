@@ -102,6 +102,10 @@ try {
  # Enhanced can opt into verified physical CHR asset metadata without ever
  # replacing the original cartridge's timing, mapper or game framebuffer.
  if ($Edition -eq 'Enhanced') {
+  # JP0727: forward the ROM already selected and SHA256-authenticated by
+  # this launcher. The game decodes its Stage 1 resources in memory; no
+  # build-time ROM path or manual extraction is required for this renderer.
+  $gameArgs+=@('--stage1-world-rom',$romPath)
   $assetIndex=Join-Path $PSScriptRoot 'CVIII-CHR-Index.dat'
   if (Test-Path -LiteralPath $assetIndex) {
    $gameArgs+=@('--asset-index',$assetIndex)
