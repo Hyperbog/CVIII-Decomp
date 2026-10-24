@@ -126,6 +126,20 @@ for _,addr in ipairs(WATCH) do
     end,emu.callbackType.write,bus,bus,ct,cm)
   end
 end
+-- Controller latch is a CPU write, not an inputPolled event. Capture it
+-- with bus/address provenance, but do NOT read the write-only latch for "old".
+emu.addMemoryCallback(function(_,v)
+  if not active then return end
+  local fr=framecount()
+  if fr<BEGIN or fr>FINISH then return end
+  count=count+1
+  if count>LIMIT then finish('EVENT_LIMIT');return end
+  local codepc=(pcframe==fr and pc) or 0xFFFF
+  local codephys=(pcframe==fr and phys) or 0xFFFFF
+  out:write(string.format(
+    'W\t%d\t%d\t%d\t4016\tFF\t%02X\t4016\t%04X\t%05X\n',
+      count,fr,cycle(),v,codepc,codephys))
+end,emu.callbackType.write,0x4016,0x4016,ct,cm)
 for _,addr in ipairs({0x4016,0x4017}) do
   emu.addMemoryCallback(function(a,v)
     if not active then return end
