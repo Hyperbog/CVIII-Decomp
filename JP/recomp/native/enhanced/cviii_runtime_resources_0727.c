@@ -82,8 +82,44 @@ void cviii_sha256_0727(const uint8_t *input,size_t n,uint8_t digest[32])
     }
 }
 
-CviiiResourceStatus0727 cviii_stage1_resource_open_0727(
-    const char *path,CviiiStage1Atlas0724 *dst)
+/* JP0728: derive the full owner-local physical CHR tile index directly
+ * from the authenticated iNES image, not from a Python-generated sidecar.
+ * The layout is the existing JP0598 original CHR index schema, generated
+ * entirely in RAM so earlier consumers (font, HUD and editor) are reusable.
+ */
+static unsigned char *make_chr_index(const uint8_t *rom)
+{
+    unsigned char *buffer=(unsigned char *)malloc(CVIII_CHR_INDEX_BYTES);
+    if(!buffer)return NULL;
+    memcpy(buffer,"CVIII058",8);
+    const uint8_t *chr=rom+16u+262144u;
+    unsigned char *raw=buffer+8u;
+    unsigned char *pixels=raw+CVIII_CHR_RAW_BYTES;
+    memcpy(raw,chr,CVIII_CHR_RAW_BYTES);
+    for(size_t tile=0;tile<CVIII_CHR_RAW_BYTES/16u;tile++) {
+        const unsigned char *source=raw+tile*16u;
+        unsigned char *target=pixels+tile*64u;
+        for(unsigned y=0;y<8u;y++)for(unsigned x=0;x<8u;x++) {
+            unsigned bit=7u-x;
+            target[y*8u+x]=(unsigned char)(
+                ((source[y]>>bit)&1u)|
+                (((source[y+8u]>>bit)&1u)<<1u));
+        }
+    }
+#ifdef CVIII_RESOURCE_TEST_SYNTHETIC_0727
+    const bool require_jp=false;
+#else
+    const bool require_jp=true;
+#endif
+    if(!cviii_chr_index_check(buffer,CVIII_CHR_INDEX_BYTES,require_jp)) {
+        free(buffer);
+        return NULL;
+    }
+    return buffer;
+}
+
+CviiiResourceStatus0727 cviii_game_resources_open_0727(
+    const char *path,CviiiStage1Atlas0724 *dst,CviiiChrIndex *chr_dst)
 {
     /* SHA256 of the owner's authenticated original Japanese VRC6 cartridge.
      * Hash is the identity of ROM input, NOT redistributable gameplay data. */
@@ -93,7 +129,7 @@ CviiiResourceStatus0727 cviii_stage1_resource_open_0727(
         0x44,0xf3,0xd0,0x97,0xae,0x9d,0x4e,0xeb,
         0x74,0x7f,0x0d,0xac,0x8a,0xbe,0x7a,0x28
     };
-    if(!dst||!path||!*path) return CVIII_RESOURCE_MISSING_0727;
+    if(!dst||!path||!*path)return CVIII_RESOURCE_MISSING_0727;
     FILE *file=fopen(path,"rb");
     if(!file)return CVIII_RESOURCE_MISSING_0727;
     uint8_t *rom=(uint8_t *)malloc(CVIII_RUNTIME_ROM_BYTES_0727);
@@ -102,6 +138,7 @@ CviiiResourceStatus0727 cviii_stage1_resource_open_0727(
     int extra=fgetc(file),io_error=ferror(file);
     fclose(file);
     CviiiResourceStatus0727 status=CVIII_RESOURCE_IO_0727;
+    unsigned char *new_chr=NULL;
     if(!io_error && extra==EOF) {
         if(n==CVIII_RUNTIME_ROM_BYTES_0727) {
             uint8_t digest[32];
@@ -116,10 +153,30 @@ CviiiResourceStatus0727 cviii_stage1_resource_open_0727(
             int identity=memcmp(digest,jp_sha256,sizeof digest)==0;
 #endif
             if(!identity)status=CVIII_RESOURCE_IDENTITY_0727;
-            else status=cviii_stage1_atlas_load_0724(dst,rom,n)==1 ?
-                CVIII_RESOURCE_READY_0727:CVIII_RESOURCE_DECODE_0727;
+            else {
+                if(chr_dst)new_chr=make_chr_index(rom);
+                if(chr_dst && !new_chr)status=CVIII_RESOURCE_DECODE_0727;
+                else if(cviii_stage1_atlas_load_0724(dst,rom,n)!=1)
+                    status=CVIII_RESOURCE_DECODE_0727;
+                else {
+                    status=CVIII_RESOURCE_READY_0727;
+                    if(chr_dst) {
+                        cviii_chr_index_free(chr_dst);
+                        chr_dst->allocation=new_chr;
+                        chr_dst->raw=new_chr+8u;
+                        chr_dst->pixels=new_chr+8u+CVIII_CHR_RAW_BYTES;
+                        new_chr=NULL;
+                    }
+                }
+            }
         } else status=CVIII_RESOURCE_IDENTITY_0727;
     }
+    free(new_chr);
     free(rom);
     return status;
+}
+CviiiResourceStatus0727 cviii_stage1_resource_open_0727(
+    const char *path,CviiiStage1Atlas0724 *dst)
+{
+    return cviii_game_resources_open_0727(path,dst,NULL);
 }
