@@ -533,6 +533,24 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq libsdl2-dev
+      - name: JP0733 compile windowed ROM-at-launch interpreter with native SDL2 host
+        run: |
+          cmake -S JP/recomp/native/rom_runtime_0732 \
+            -B "${{ runner.temp }}/jp0733-windowed-runtime" -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DSDL2_DIR=/usr/lib/x86_64-linux-gnu/cmake/SDL2 \
+            -DNESRECOMP_EXTERNAL_ROOT="$PWD/_external_nesrecomp" \
+            -DJP0732_WINDOWED=ON -DJP0732_ENHANCED=ON \
+            -DJP0733_ALLOW_SYNTHETIC_FIXTURE=ON
+          cmake --build "${{ runner.temp }}/jp0733-windowed-runtime" --parallel 4
+          ldd "${{ runner.temp }}/jp0733-windowed-runtime/jp_akumajou_runtime_0732" | grep -i SDL2
+          "${{ runner.temp }}/jp0733-windowed-runtime/jp_akumajou_runtime_0732" \
+            "${{ runner.temp }}/jp_mapper24_fixture.nes" --frames 3 --edition original \
+            --hash-out "${{ runner.temp }}/jp0733_windowed_runtime.txt"
+          head -n 3 "${{ runner.temp }}/jp_vrc6_frame_hashes.txt" \
+            > "${{ runner.temp }}/jp0733_compiled_first3.txt"
+          cmp "${{ runner.temp }}/jp0733_compiled_first3.txt" \
+              "${{ runner.temp }}/jp0733_windowed_runtime.txt"
       - name: Configure real windowed C11 host with numbered save slots
         run: |
           cmake -S JP/recomp/native/nesrecomp_cycle \
