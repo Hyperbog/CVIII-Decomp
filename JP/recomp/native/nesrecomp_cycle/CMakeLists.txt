@@ -54,6 +54,12 @@ if(JP_EDITION_HOST_EXTRAS)
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_chr_fetch_0600.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_frame_evidence_0601.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_nt_trace_0606.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_stage1_rom_0724.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_stage1_atlas_0724.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_stage1_host_0725.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_runtime_resources_0727.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_resource_cache_0729.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_rom_tsa_catalog_0730.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_sprite_layers_0608.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_object_oam_trace_0609.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_bus_0610.c"
@@ -87,6 +93,8 @@ if(JP_EDITION_HOST_EXTRAS)
  target_include_directories(jp_akumajou_densetsu PRIVATE
   "${NESRECOMP_EXTERNAL_ROOT}/runner/cyc"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced")
+ # JP0727: resource decoding uses only a launch-time ROM path.
+
 endif()
 # JP0591: multi-slot save states using upstream's *full machine* serializer.
 # Generate a local overlay alongside pinned external cyc_sdl.c; relative
@@ -584,3 +592,34 @@ add_executable(jp_menu_stack_test_0626
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_levels_0618.c"
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_menu_stack_test_0626.c")
 set_property(TARGET jp_menu_stack_test_0626 PROPERTY C_STANDARD 11)
+
+
+# JP0723: ROM-free original JP fixed-bank $0300 PPU command interpreter test.
+# No live renderer hook or copyrighted game assets.
+add_executable(jp_ppu_queue_test_0723
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_ppu_queue_0723.c"
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_ppu_queue_test_0723.c")
+set_property(TARGET jp_ppu_queue_test_0723 PROPERTY C_STANDARD 11)
+
+
+# JP0724: ROM-free complete Stage 1 TSA + attribute decoder test.
+# No original stage content is compiled or committed.
+add_executable(jp_stage1_rom_test_0724
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_stage1_rom_0724.c"
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_stage1_rom_test_0724.c")
+set_property(TARGET jp_stage1_rom_test_0724 PROPERTY C_STANDARD 11)
+
+
+# JP0724: pregame owner-ROM world atlas (synthetic ROM-free unit regression).
+add_executable(jp_stage1_atlas_test_0724
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_stage1_rom_0724.c"
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_stage1_atlas_0724.c"
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_stage1_atlas_test_0724.c")
+set_property(TARGET jp_stage1_atlas_test_0724 PROPERTY C_STANDARD 11)
+ 
+# JP0730: independent cross-stage original ROM TSA-definition catalog.
+# Synthetic-only tests; no original CHR, pattern tiles or owner ROM in Git.
+add_executable(jp_tsa_catalog_test_0730
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_rom_tsa_catalog_0730.c"
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_rom_tsa_catalog_test_0730.c")
+set_property(TARGET jp_tsa_catalog_test_0730 PROPERTY C_STANDARD 11)

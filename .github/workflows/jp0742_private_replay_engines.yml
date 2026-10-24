@@ -1,0 +1,61 @@
+name: JP0742 Private Replay Engine Artifacts (ROM-free)
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/jp0742_private_replay_engines.yml"
+      - "JP/recomp/native/rom_runtime_0732/**"
+      - "JP/recomp/tools/jp0740_native_write_overlay.py"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  linux-native-trace-engine:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 25
+    steps:
+      - name: Checkout CVIII decomp diagnostics
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Checkout pinned external NESRecomp engine
+        uses: actions/checkout@v4
+        with:
+          repository: mstan/nesrecomp
+          ref: 2b4fcdb98c9e702be3fb365cfc645003c50b5fc1
+          path: _external_nesrecomp
+          persist-credentials: false
+      - name: Confirm license, source pin and original-media exclusion
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'PolyForm Noncommercial License 1.0.0' _external_nesrecomp/LICENSE
+          test -f _external_nesrecomp/runner/cyc/cyc.cmake
+          test ! -f 'Akumajou Densetsu (Japan).nes'
+          test ! -f 'JP/Akumajou Densetsu (Japan).nes'
+          python3 JP/recomp/tools/jp0740_native_write_overlay.py --smoke
+      - name: Build isolated opt-in CPU-write native engine
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmake -S JP/recomp/native/rom_runtime_0732 \
+            -B "$RUNNER_TEMP/jp0742-native" \
+            -DNESRECOMP_EXTERNAL_ROOT="$GITHUB_WORKSPACE/_external_nesrecomp" \
+            -DJP0740_TRACE_CPU_WRITES=ON \
+            -DJP0732_WINDOWED=OFF \
+            -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/jp0742-native" --parallel 2
+          install -m 0755 \
+            "$RUNNER_TEMP/jp0742-native/jp_akumajou_runtime_0732" \
+            "$GITHUB_WORKSPACE/jp0742_native_trace_engine"
+          file "$GITHUB_WORKSPACE/jp0742_native_trace_engine"
+          sha256sum jp0742_native_trace_engine > jp0742_native_trace_engine.sha256
+          test ! -e jp0742_private_original.nes
+      - name: Upload ROM-free trace-capable engine
+        uses: actions/upload-artifact@v4
+        with:
+          name: jp0742-linux-native-write-tracer-no-rom
+          if-no-files-found: error
+          retention-days: 7
+          path: |
+            jp0742_native_trace_engine
+            jp0742_native_trace_engine.sha256

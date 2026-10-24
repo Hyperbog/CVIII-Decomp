@@ -355,3 +355,32 @@ python3 "$root/JP/decomp/tools/jp_room_clear_0658.py" --smoke
 # JP0659 synthetic stage-room source and exact reversible resource geometry.
 python3 "$root/JP/decomp/tools/jp_room_stream_0659.py" --smoke
 python3 "$root/JP/decomp/tools/jp_room_resources_0659.py" --smoke
+
+# JP0738: original/native camera-actor comparison parser on entirely invented
+# ZIP/CYCFRAME records; authentic owner gameplay requires separate private logs.
+python3 "$root/JP/decomp/tools/jp0738_camera_window.py" --smoke
+
+# JP0738C: verify the older original-Mesen/native-JP0719 archived ZIP
+# comparator using invented RAM, input and CHR; retail files stay private.
+python3 "$root/JP/decomp/tools/jp0738_compare_jp0719_zip.py" --smoke
+
+# JP0739: ROM-free fail-closed original $62 static writer candidate census.
+# Synthetic matches do not prove naturally executed stores or source credit.
+python3 "$root/JP/decomp/tools/jp0739_mode62_writer_census.py" --smoke
+
+# JP0740: synthetic-only original/native CPU-write capture provenance.
+# The ROM-locked original replay is PRIVATE and is not executed in CI.
+python3 "$root/JP/decomp/tools/jp0740_trace_verify.py" --smoke
+python3 "$root/JP/recomp/tools/jp0740_native_write_overlay.py" --smoke
+"${CC:-cc}" -std=c11 -Wall -Wextra -Werror -pedantic -fsyntax-only \
+  "$root/JP/recomp/native/rom_runtime_0732/cviii_jp0740_native_trace.c"
+
+
+# JP0741: invented and nonretail exact-observed-CPU-bus alignment gate.
+# Requires a unique 32-event opcode-PC, bus and relative-cycle trajectory;
+# ambiguities and approximate frame matching refuse a first-writer claim.
+python3 "$root/JP/decomp/tools/jp0741_first_write_compare.py" --smoke
+
+# JP0743: owner-JP0718 Mesen absolute/local input epoch conversion guards.
+# No actual ROM or recorded original user button data are in public CI.
+python3 "$root/JP/decomp/tools/jp0743_native_input_epoch.py" --smoke
