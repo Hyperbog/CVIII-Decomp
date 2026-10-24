@@ -54,24 +54,44 @@ int main(void)
         for(unsigned j=0;j<16;j++)rom[0x20451+i*16+j]=(uint8_t)(i+j);
         rom[0x20d61+i]=0xe4;
     }
+    /* Synthetic CHR source: first pixel uses both bitplanes. The rest
+     * remain zero. All 8,192 graphics tiles are reconstructed in memory. */
+    rom[16u+262144u]=0x80;
+    rom[16u+262144u+8u]=0x80;
+    CviiiChrIndex chr={0};
     emit(path,rom,CVIII_RUNTIME_ROM_BYTES_0727-1);
     assert(cviii_stage1_resource_open_0727(path,atlas)
            !=CVIII_RESOURCE_READY_0727 && atlas->loaded==77);
 
     emit(path,rom,CVIII_RUNTIME_ROM_BYTES_0727);
 #ifdef CVIII_RESOURCE_TEST_SYNTHETIC_0727
-    assert(cviii_stage1_resource_open_0727(path,atlas)
+    assert(cviii_game_resources_open_0727(path,atlas,&chr)
            ==CVIII_RESOURCE_READY_0727);
+    assert(chr.allocation && chr.raw && chr.pixels);
+    assert(chr.raw[0]==0x80 && chr.raw[8]==0x80);
+    assert(chr.pixels[0]==3u && chr.pixels[1]==0u);
+    assert(chr.pixels[64u]==0u);
+    assert(cviii_chr_index_check(chr.allocation,CVIII_CHR_INDEX_BYTES,false));
+    unsigned char *prior=chr.allocation;
     uint8_t tile=0,palette=0,sel[3]={0,0,0};
     assert(atlas->loaded && cviii_stage1_atlas_get_0724(
         atlas,sel,3,3,&tile,&palette));
     assert(tile==15 && palette==3);
+    /* A malformed new ROM must not destroy the previous atlas or CHR. */
+    rom[headers[0]]=7u;
+    emit(path,rom,CVIII_RUNTIME_ROM_BYTES_0727);
+    assert(cviii_game_resources_open_0727(path,atlas,&chr)
+           ==CVIII_RESOURCE_DECODE_0727);
+    assert(chr.allocation==prior && atlas->loaded);
+    assert(cviii_stage1_atlas_get_0724(atlas,sel,3,3,&tile,&palette));
+    cviii_chr_index_free(&chr);
 #else
     /* This synthetic media MUST fail production full-file SHA256.
      * Test still passes if a corrupt or unrelated retail image is rejected.
      */
-    assert(cviii_stage1_resource_open_0727(path,atlas)
+    assert(cviii_game_resources_open_0727(path,atlas,&chr)
            ==CVIII_RESOURCE_IDENTITY_0727);
+    assert(chr.allocation==NULL);
     assert(atlas->loaded==77);
 #endif
     (void)remove(path);
