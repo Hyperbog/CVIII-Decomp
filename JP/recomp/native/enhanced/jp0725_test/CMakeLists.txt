@@ -13,5 +13,6 @@ target_include_directories(jp_stage1_host_test_0725 PRIVATE
  ../
  "${NESRECOMP_EXTERNAL_ROOT}/runner/cyc")
 set_property(TARGET jp_stage1_host_test_0725 PROPERTY C_STANDARD 11)
+target_compile_definitions(jp_stage1_host_test_0725 PRIVATE CVIII_STAGE1_TEST_SYNTHETIC_ROM=1)
 enable_testing()
 add_test(NAME jp0725_native_framebuffer COMMAND jp_stage1_host_test_0725)
