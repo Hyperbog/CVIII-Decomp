@@ -169,6 +169,13 @@ jobs:
               -o "${{ runner.temp }}/jp0727_$variant"
             "${{ runner.temp }}/jp0727_$variant"
           done
+      - name: JP0730 verify source-bounded multi-stage TSA tile catalog
+        run: |
+          cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
+            JP/recomp/native/enhanced/cviii_rom_tsa_catalog_0730.c \
+            JP/recomp/native/enhanced/cviii_rom_tsa_catalog_test_0730.c \
+            -o "${{ runner.temp }}/jp0730_tsa"
+          "${{ runner.temp }}/jp0730_tsa"
       - name: Verify JP0618 enhanced PCM master level and 1-percent settings (ROM-free)
         run: |
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
