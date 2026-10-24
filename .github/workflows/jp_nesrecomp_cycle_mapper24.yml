@@ -479,7 +479,8 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DNESRECOMP_EXTERNAL_ROOT="$PWD/_external_nesrecomp" \
             -DJP0732_WINDOWED=OFF \
-            -DJP0732_ENHANCED=ON
+            -DJP0732_ENHANCED=ON \
+            -DJP0733_ALLOW_SYNTHETIC_FIXTURE=ON
           cmake --build "${{ runner.temp }}/jp-vrc6-interpreter" --parallel 4
       - name: JP0732 prove no-generated-code VRC6 gameplay/frame parity
         run: |
