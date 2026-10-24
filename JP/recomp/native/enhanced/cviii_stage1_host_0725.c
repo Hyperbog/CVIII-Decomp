@@ -5,56 +5,27 @@
 #include "cyc_core.h"
 #include "cyc_render.h"
 #include "cyc_video.h"
+#include "cviii_runtime_resources_0727.h"
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#ifndef CVIII_STAGE1_ROM_PATH
-#define CVIII_STAGE1_ROM_PATH ""
-#endif
 
-/* The production importer accepts only the source-validated Japanese
- * Mapper24 retail cartridge. Public tests must explicitly opt into invented
- * synthetic fixtures and cannot accidentally loosen the shipping gate.
- * FNV is an identity cross-check; the private CMake build separately
- * authenticates the original image's full SHA256.
+/* JP0727: no build-time source path and no Python extraction. The user's
+ * launch-time original Japanese ROM is authenticated with full SHA256 and
+ * expanded to a game-owned read-only atlas. The selected ROM is never copied
+ * into a native executable, serialized in the save, or shipped as assets.
  */
-static int source_identity(const uint8_t *rom,size_t n)
-{
-#ifdef CVIII_STAGE1_TEST_SYNTHETIC_ROM
-    (void)rom;
-    return n==393232u;
-#else
-    if (n!=393232u) return 0;
-    uint64_t h=UINT64_C(0xcbf29ce484222325);
-    for (size_t i=0;i<n;i++) {
-        h^=rom[i];
-        h*=UINT64_C(0x100000001b3);
-    }
-    return h==UINT64_C(0x76615b120049ad3f);
-#endif
-}
 static int load(CviiiStage1Host0725 *h)
 {
-    if (h->atlas.loaded) return 1;
-    if (h->attempted) return 0;
+    if(h->atlas.loaded) return 1;
+    if(h->attempted) return 0;
     h->attempted=1;
-    const char *path=h->rom_path[0] ? h->rom_path : CVIII_STAGE1_ROM_PATH;
-    if (!path[0]) return 0; /* no owner ROM supplied: fail closed */
-    FILE *f=fopen(path,"rb");
-    if (!f) {
-        fprintf(stderr,"CVIII JP0725: private Stage 1 ROM not found; stock video retained\n");
-        return 0;
-    }
-    uint8_t *rom=(uint8_t *)malloc(393232u);
-    if (!rom) { fclose(f); return 0; }
-    size_t n=fread(rom,1,393232u,f);
-    int extra=fgetc(f),error=ferror(f);
-    fclose(f);
-    int ok=extra==EOF && !error && source_identity(rom,n) &&
-           cviii_stage1_atlas_load_0724(&h->atlas,rom,n)==1;
-    free(rom);
-    if (!ok) fprintf(stderr,"CVIII JP0725: rejected Stage 1 ROM source; stock video retained\n");
-    return ok;
+    if(!h->rom_path[0])return 0;
+    CviiiResourceStatus0727 result=cviii_stage1_resource_open_0727(
+        h->rom_path,&h->atlas);
+    if(result==CVIII_RESOURCE_READY_0727) return 1;
+    fprintf(stderr,"CVIII JP0727: runtime Stage 1 resource load rejected (status %d); stock presentation retained\\n",
+            (int)result);
+    return 0;
 }
 
 int cviii_stage1_host_rom_0725(CviiiStage1Host0725 *h,const char *path)
