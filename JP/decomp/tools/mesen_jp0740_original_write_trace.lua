@@ -103,7 +103,7 @@ emu.addEventCallback(function(c)
   -- clears player-1 START/other buttons after the first call.
   -- Three-argument form proven by original frame 416,664,832 replay.
   emu.setInput(buttons(v[1]),0,0)
-  emu.setInput(buttons(v[2]),1,1)
+  emu.setInput(buttons(v[2]),0,1)
   observed=observed+1
 end,emu.eventType.inputPolled)
 -- Record executing PC, rather than assuming write-callback PC is opcode PC.
