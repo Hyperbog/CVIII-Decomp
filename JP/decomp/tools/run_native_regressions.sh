@@ -359,3 +359,7 @@ python3 "$root/JP/decomp/tools/jp_room_resources_0659.py" --smoke
 # JP0738: original/native camera-actor comparison parser on entirely invented
 # ZIP/CYCFRAME records; authentic owner gameplay requires separate private logs.
 python3 "$root/JP/decomp/tools/jp0738_camera_window.py" --smoke
+
+# JP0738C: verify the older original-Mesen/native-JP0719 archived ZIP
+# comparator using invented RAM, input and CHR; retail files stay private.
+python3 "$root/JP/decomp/tools/jp0738_compare_jp0719_zip.py" --smoke
