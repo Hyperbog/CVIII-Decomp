@@ -104,6 +104,16 @@ jobs:
           if (!(Select-String -LiteralPath '_external_nesrecomp/LICENSE' -Pattern 'PolyForm Noncommercial License 1.0.0' -Quiet)) { throw 'Wrong upstream license' }
           python JP/decomp/tools/test_cycle_synthetic_rom_0569.py --out "$env:RUNNER_TEMP\alpha-vrc6.nes"
           if ($LASTEXITCODE -ne 0) { throw 'Synthetic VRC6 media generation failed' }
+      - name: JP0725 verify real Windows 426x240 native framebuffer (synthetic layout)
+        shell: pwsh
+        run: |
+          $out = Join-Path $env:RUNNER_TEMP 'jp0725-world-test'
+          cmake -S JP/recomp/native/enhanced/jp0725_test -B $out -A x64 "-DNESRECOMP_EXTERNAL_ROOT=$pwd/_external_nesrecomp"
+          if ($LASTEXITCODE -ne 0) { throw 'JP0725 Windows CMake configure failed' }
+          cmake --build $out --config Release --parallel 2
+          if ($LASTEXITCODE -ne 0) { throw 'JP0725 Windows native build failed' }
+          ctest --test-dir $out -C Release --output-on-failure
+          if ($LASTEXITCODE -ne 0) { throw 'JP0725 Windows native framebuffer test failed' }
       - name: Check stage and companion password debug selector
         shell: pwsh
         run: |
