@@ -95,6 +95,16 @@ def window(seq,index,length):
     initial=sub[0].cycle
     return tuple((e.identity(),e.cycle-initial) for e in sub)
 
+def quick_key(seq,index):
+    # Use just four spaced, physically mapped bus events as a candidate key.
+    # Confirm all 32 events before accepting any alignment. Avoid retaining
+    # 150k full 32-event tuple windows in memory.
+    if index+3>=len(seq):return None
+    a,b,d=seq[index],seq[index+1],seq[index+3]
+    if any(e.opcode is None for e in (a,b,d)):return None
+    return (a.identity(),b.identity(),b.cycle-a.cycle,
+            d.identity(),d.cycle-a.cycle)
+
 def align(original,native,min_anchor=MIN_ANCHOR):
     if min_anchor<2:raise ValueError('invalid minimum anchor size')
     base={'schema':'JP0741-observed-first-bus-divergence/v1',
@@ -107,14 +117,19 @@ def align(original,native,min_anchor=MIN_ANCHOR):
         return {**base,'status':'INSUFFICIENT_EVENTS'}
     keys={}
     for i in range(len(original)-min_anchor+1):
-        k=window(original,i,min_anchor)
+        k=quick_key(original,i)
         if k is not None: keys.setdefault(k,[]).append(i)
     trajectories={}
     for j in range(len(native)-min_anchor+1):
-        k=window(native,j,min_anchor)
+        k=quick_key(native,j)
         if k is None:continue
+        full_native=None
         for i in keys.get(k,()):
             if abs(original[i].frame-native[j].frame)>32:continue
+            if full_native is None:
+                full_native=window(native,j,min_anchor)
+            if full_native is None or window(original,i,min_anchor)!=full_native:
+                continue
             # Consecutive overlapping windows in the same trajectory are
             # expected. Independent index/cycle offsets are ambiguous.
             ep=(i-j,native[j].cycle-original[i].cycle)
