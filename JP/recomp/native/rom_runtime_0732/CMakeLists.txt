@@ -11,7 +11,9 @@ if(NOT EXISTS "${NESRECOMP_EXTERNAL_ROOT}/runner/cyc/cyc.cmake")
 endif()
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
-set(CMAKE_C_EXTENSIONS OFF)
+# The pinned upstream host intentionally uses POSIX/GNU extensions for
+# clock_gettime, usleep and strdup. Keep gnu11 on Unix and C11 on MSVC.
+set(CMAKE_C_EXTENSIONS ON)
 option(JP0732_WINDOWED "Enable SDL2 window and normal user controls if SDL2 is present" ON)
 option(JP0732_ENHANCED "Compile the existing game-owned Enhanced host presentation" ON)
 set(NESRECOMP_PPU_IMPL "LLE" CACHE STRING "Cycle PPU rendering implementation")
