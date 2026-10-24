@@ -600,3 +600,11 @@ add_executable(jp_stage1_rom_test_0724
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_stage1_rom_0724.c"
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_stage1_rom_test_0724.c")
 set_property(TARGET jp_stage1_rom_test_0724 PROPERTY C_STANDARD 11)
+
+
+# JP0724: pregame owner-ROM world atlas (synthetic ROM-free unit regression).
+add_executable(jp_stage1_atlas_test_0724
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_stage1_rom_0724.c"
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_stage1_atlas_0724.c"
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_stage1_atlas_test_0724.c")
+set_property(TARGET jp_stage1_atlas_test_0724 PROPERTY C_STANDARD 11)
