@@ -497,6 +497,25 @@ jobs:
           cmp "${{ runner.temp }}/jp0732_compiled.txt" "${{ runner.temp }}/jp0732_compiled_interp.txt"
           cmp "${{ runner.temp }}/jp0732_compiled.txt" "${{ runner.temp }}/jp0732_runtime.txt"
           echo "PASS: JP0732 prebuilt no-game-code interpreter matched all 20 native mapper24 frames"
+      - name: JP0740 compile pinned CPU bus provenance overlays and prove fixture hashes unchanged
+        run: |
+          set -euo pipefail
+          cmake -S JP/recomp/native/rom_runtime_0732 \
+            -B "${{ runner.temp }}/jp0740-native-trace" -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DNESRECOMP_EXTERNAL_ROOT="$PWD/_external_nesrecomp" \
+            -DJP0732_WINDOWED=OFF -DJP0732_ENHANCED=ON \
+            -DJP0733_ALLOW_SYNTHETIC_FIXTURE=ON \
+            -DJP0740_TRACE_CPU_WRITES=ON
+          cmake --build "${{ runner.temp }}/jp0740-native-trace" --parallel 4
+          "${{ runner.temp }}/jp0740-native-trace/jp_akumajou_runtime_0732" \
+            "${{ runner.temp }}/jp_mapper24_fixture.nes" \
+            --frames 20 --edition original \
+            --hash-out "${{ runner.temp }}/jp0740_fixture_hash.txt" \
+            > "${{ runner.temp }}/jp0740_fixture.log"
+          cmp "${{ runner.temp }}/jp0732_runtime.txt" \
+              "${{ runner.temp }}/jp0740_fixture_hash.txt"
+          echo "PASS JP0740: opt-in 6502 CPU bus provenance compiles against pinned upstream and preserves 20 fixture frame hashes"
       - name: JP0734 prove bank-checked native LDA execution and interpreter fallback
         run: |
           set -euo pipefail
