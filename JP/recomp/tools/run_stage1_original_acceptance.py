@@ -102,8 +102,9 @@ def evaluate(original,native):
                         'all_ram_byte_mismatches':sum(a!=b for a,b in zip(oa,na))})
     return {
       'schema':'CVIII-stage1-original-JP-runtime-acceptance/v1',
-      'accepted':bool(passed),
-      'status':'PASS_WATCHED_ORIGINAL_STAGE1_CHECKPOINTS' if passed
+      'accepted_watched_checkpoints':bool(passed),
+      'stage1_full_hardware_parity_certified':False,
+      'status':'PASS_WATCHED_CHECKPOINTS_ONLY' if passed
                else 'FAIL_ORIGINAL_STAGE1_GAMEPLAY',
       'note':'RAM snapshot parity is necessary, not complete CPU bus/PPU/audio parity',
       'requires_separate_controller_dma_bus_gates':list(BUS_GATES),
@@ -165,7 +166,7 @@ def main():
     for entry in output['frames']:
         print(f"  f={entry['frame']} camera={entry['camera_original']}/{entry['camera_native']}"
               f" observed_mismatches={len(entry['watched_mismatches'])}")
-    return 0 if output['accepted'] else 1
+    return 0 if output['accepted_watched_checkpoints'] else 1
 
 if __name__=='__main__':
     sys.exit(main())
