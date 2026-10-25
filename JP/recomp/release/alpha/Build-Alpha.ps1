@@ -77,6 +77,10 @@ $stage=Join-Path $outPath 'AlphaCandidate'
 [IO.Directory]::CreateDirectory($stage) | Out-Null
 Copy-Item -LiteralPath $program -Destination (Join-Path $stage 'jp_akumajou_densetsu.exe') -Force
 Copy-Item -LiteralPath $sdl -Destination $stage -Force
+# Bundle the ROM-free, standalone compiled-vs-interpreted acceptance command.
+$coverageTool=Join-Path $repoPath 'JP/recomp/tools/verify_compiled_product.py'
+if (-not (Test-Path -LiteralPath $coverageTool)) { throw 'Compiled PRG verifier missing' }
+Copy-Item -LiteralPath $coverageTool -Destination (Join-Path $stage 'Verify-Compiled.py') -Force
 # JP0597: generate/cache an authenticated, local ROM-derived CHR asset
 # archive once per private candidate. Neither public CI nor Git sees it.
 $assetBuilder=Join-Path $repoPath 'JP/recomp/tools/jp_asset_pack_0597.py'
