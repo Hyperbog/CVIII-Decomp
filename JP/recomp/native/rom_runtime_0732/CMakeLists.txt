@@ -56,6 +56,40 @@ if(JP0740_TRACE_CPU_WRITES)
  message(STATUS "JP0740 opt-in private CPU trace: ${JP0740_PATCH_OUTPUT}")
 endif()
 
+# JP0746: opt-in, original-ROM-free controller/DMC interaction experiment.
+# 0 = pinned upstream behavior; 1 = suppress held controller serial reads;
+# 2 = preserve controller CPU-open-bus upper bits across DMA; 3 = both.
+# The normal production path remains zero; none of these is yet certified.
+set(JP0746_CONTROLLER_DMA_POLICY "0" CACHE STRING
+ "Experimental controller/DMC bus policy; 0 production, 1/2/3 diagnostic")
+if(NOT JP0746_CONTROLLER_DMA_POLICY MATCHES "^[0-3]$")
+ message(FATAL_ERROR "JP0746 policy must be one of 0,1,2,3")
+endif()
+if(NOT JP0746_CONTROLLER_DMA_POLICY STREQUAL "0")
+ if(NOT JP0740_TRACE_CPU_WRITES)
+  message(FATAL_ERROR "JP0746 diagnostics require opt-in JP0740 CPU-write tracing")
+ endif()
+ execute_process(
+  COMMAND "${Python3_EXECUTABLE}"
+   "${CMAKE_CURRENT_LIST_DIR}/../../tools/jp0746_controller_dma_probe.py"
+   --machine "${JP0740_OVERLAY_DIR}/cviii_jp0740_hw_machine.c"
+   --apu "${NESRECOMP_CYC_DIR}/hw_apu.c"
+   --output-directory "${JP0740_OVERLAY_DIR}"
+  RESULT_VARIABLE JP0746_PATCH_EXIT
+  OUTPUT_VARIABLE JP0746_PATCH_OUTPUT
+  ERROR_VARIABLE JP0746_PATCH_ERROR)
+ if(NOT JP0746_PATCH_EXIT EQUAL 0)
+  message(FATAL_ERROR "JP0746 pinned source patch failed: ${JP0746_PATCH_ERROR}")
+ endif()
+ list(REMOVE_ITEM NESRECOMP_CYC_SOURCES
+  "${JP0740_OVERLAY_DIR}/cviii_jp0740_hw_machine.c"
+  "${NESRECOMP_CYC_DIR}/hw_apu.c")
+ list(APPEND NESRECOMP_CYC_SOURCES
+  "${JP0740_OVERLAY_DIR}/cviii_jp0746_hw_machine.c"
+  "${JP0740_OVERLAY_DIR}/cviii_jp0746_hw_apu.c")
+ message(STATUS "JP0746 opt-in experimental policy ${JP0746_CONTROLLER_DMA_POLICY}")
+endif()
+
 # JP0735: the four independently ROM-authenticated reset instructions
 # default to narrow native handlers. All other original guest instructions
 # remain interpreted. The existing single-opcode JP0734 synthetic-only proof
@@ -95,6 +129,10 @@ if(JP0740_TRACE_CPU_WRITES)
  target_include_directories(jp_akumajou_runtime_0732 PRIVATE
   "${CMAKE_CURRENT_LIST_DIR}"
   "${NESRECOMP_EXTERNAL_ROOT}/common")
+endif()
+if(NOT JP0746_CONTROLLER_DMA_POLICY STREQUAL "0")
+ target_compile_definitions(jp_akumajou_runtime_0732 PRIVATE
+  JP0746_CONTROLLER_DMA_POLICY=${JP0746_CONTROLLER_DMA_POLICY})
 endif()
 target_link_libraries(jp_akumajou_runtime_0732 PRIVATE
  ${NESRECOMP_CYC_LIBRARIES})
