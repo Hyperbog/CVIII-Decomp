@@ -137,7 +137,34 @@ if(JP0734_TEST_NATIVE_LDA AND
    (NOT JP0733_ALLOW_SYNTHETIC_FIXTURE OR JP0735_ENABLE_ORIGINAL_BOOT_NATIVE))
  message(FATAL_ERROR "JP0734 requires synthetic fixture ON and JP0735 original handlers OFF")
 endif()
-if(JP0734_TEST_NATIVE_LDA)
+# Actual 6502-to-C recompilation path. Generated native C is built locally
+# from the owner-authenticated original ROM; it is NEVER tracked or put in CI
+# artifacts. Supplying this directory replaces the four-opcode boot shim with
+# NESRecomp's complete bank-qualified compiled ROM view and fallback for
+# genuinely unresolved code. The default owner-tested release remains intact.
+set(CVIII_JP_COMPILED_C_DIR "" CACHE PATH
+ "Private NESRecomp generated cycle C directory for original Japanese ROM")
+if(CVIII_JP_COMPILED_C_DIR)
+ if(NOT JP0732_ENHANCED)
+  message(FATAL_ERROR "Compiled original Japanese game requires authenticated launch entry")
+ endif()
+ if(JP0734_TEST_NATIVE_LDA)
+  message(FATAL_ERROR "Compiled source conflicts with synthetic opcode test")
+ endif()
+ file(GLOB CVIII_JP_COMPILED_SOURCES CONFIGURE_DEPENDS
+  "${CVIII_JP_COMPILED_C_DIR}/*_cyc.c"
+  "${CVIII_JP_COMPILED_C_DIR}/*_cyc_b*.c")
+ list(LENGTH CVIII_JP_COMPILED_SOURCES CVIII_JP_C_COUNT)
+ if(CVIII_JP_C_COUNT LESS 2)
+  message(FATAL_ERROR
+   "Expected private NESRecomp umbrella *_cyc.c and bank translation units")
+ endif()
+ message(STATUS "CVIII JP genuine compiled 6502-to-C PRG: ${CVIII_JP_C_COUNT} generated C files")
+endif()
+
+if(CVIII_JP_COMPILED_C_DIR)
+ set(CVIII_0734_NATIVE_SOURCE ${CVIII_JP_COMPILED_SOURCES})
+elseif(JP0734_TEST_NATIVE_LDA)
  set(CVIII_0734_NATIVE_SOURCE
   "${CMAKE_CURRENT_LIST_DIR}/cviii_test_native_lda_0734.c")
 elseif(JP0735_ENABLE_ORIGINAL_BOOT_NATIVE)
