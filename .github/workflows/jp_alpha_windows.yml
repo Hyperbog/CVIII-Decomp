@@ -238,7 +238,7 @@ jobs:
       - name: Validate private QA capture and build launcher PowerShell syntax
         shell: pwsh
         run: |
-          foreach ($file in @('JP/recomp/release/alpha/Capture-QA-0602.ps1','JP/recomp/release/alpha/Launch-Alpha.ps1','JP/recomp/release/alpha/Build-Alpha.ps1')) {
+          foreach ($file in @('JP/recomp/release/alpha/Capture-QA-0602.ps1','JP/recomp/release/alpha/Launch-Alpha.ps1','JP/recomp/release/alpha/Build-Alpha.ps1','JP/recomp/release/alpha/Verify-Compiled.ps1')) {
             $tokens = $null
             $parseErrors = $null
             [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path -LiteralPath $file).Path,[ref]$tokens,[ref]$parseErrors) | Out-Null

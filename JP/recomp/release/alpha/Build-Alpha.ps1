@@ -77,10 +77,21 @@ $stage=Join-Path $outPath 'AlphaCandidate'
 [IO.Directory]::CreateDirectory($stage) | Out-Null
 Copy-Item -LiteralPath $program -Destination (Join-Path $stage 'jp_akumajou_densetsu.exe') -Force
 Copy-Item -LiteralPath $sdl -Destination $stage -Force
-# Bundle the ROM-free, standalone compiled-vs-interpreted acceptance command.
+# Only package the optional acceptance command when both files exist in
+# the synchronized source checkout. The baseline decompilation branch does
+# not yet contain the draft feature; it must remain independently buildable.
 $coverageTool=Join-Path $repoPath 'JP/recomp/tools/verify_compiled_product.py'
-if (-not (Test-Path -LiteralPath $coverageTool)) { throw 'Compiled PRG verifier missing' }
-Copy-Item -LiteralPath $coverageTool -Destination (Join-Path $stage 'Verify-Compiled.py') -Force
+$coverageLauncher=Join-Path $repoPath 'JP/recomp/release/alpha/Verify-Compiled.ps1'
+$hasVerifier=Test-Path -LiteralPath $coverageTool -PathType Leaf
+$hasLauncher=Test-Path -LiteralPath $coverageLauncher -PathType Leaf
+if ($hasVerifier -and $hasLauncher) {
+ Copy-Item -LiteralPath $coverageTool -Destination (Join-Path $stage 'Verify-Compiled.py') -Force
+ Copy-Item -LiteralPath $coverageLauncher -Destination (Join-Path $stage 'Verify-Compiled.ps1') -Force
+} elseif ($hasVerifier -or $hasLauncher) {
+ throw 'Incomplete compiled-product verifier source; refusing partial private package.'
+} else {
+ Write-Host 'Optional compiled PRG acceptance unavailable in this source revision; gameplay build unchanged.'
+}
 # JP0597: generate/cache an authenticated, local ROM-derived CHR asset
 # archive once per private candidate. Neither public CI nor Git sees it.
 $assetBuilder=Join-Path $repoPath 'JP/recomp/tools/jp_asset_pack_0597.py'

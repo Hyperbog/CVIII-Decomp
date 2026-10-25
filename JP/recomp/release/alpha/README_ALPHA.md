@@ -16,6 +16,37 @@ including experimental unlimited sprites, are **off by default**.
 Historical Stage A-01/sprite investigation notes below are not current
 reports of a current graphics defect; see [Enhanced status](../../docs/ENHANCED_CURRENT_STATUS.md).
 
+## Owner-private Windows compiled-CPU acceptance (draft PR #13)
+
+The existing Windows Alpha already compiles original Japanese 6502 PRG
+instructions. The optional `Verify-Compiled.ps1` checks that *this exact*
+private Enhanced game executable executes compiled PRG code on a saved
+controller route, while the same executable in `--interp-only` mode produces
+the same whole-machine frame hashes. It does **not** replace the game,
+download another emulator or require a new gameplay recording.
+
+After building from a checkout containing the verifier, open PowerShell in
+`%USERPROFILE%\\CVIII-Alpha\\AlphaCandidate` and use an **existing private**
+NESRecomp `.input` controller schedule:
+
+```powershell
+.\\Verify-Compiled.ps1 -InputReplayPath "C:\\private\\existing-route.input" -Frames 2100
+```
+
+The launcher checks `ALPHA_BUILD.json` against the private EXE,
+uses `CVIII-Alpha\\LastRomPath.txt` (or explicit `-Rom`), authenticates the
+Japanese ROM, and saves JSON and logs under
+`%USERPROFILE%\\CVIII-Alpha\\CompiledAcceptance`. Output remains outside Git.
+Optional `-MinCompiledPrgPercent` controls the minimum compiled PRG cycle
+share (default 90). Missing input, wrong ROM, binary drift, unequal
+machine hashes and insufficient compiled coverage fail closed.
+
+**Acceptance boundary:** PASS demonstrates native PRG execution on that
+route and same-machine interpreter agreement, not hardware-accurate Mesen
+parity, Windows interactive/menu/save-state QA or full-game completion.
+A new private Windows runtime result is still required; ROM-free CI cannot
+claim it.
+
 ## JP0661 native keyboard controls: profiles and recoverable presets
 
 The working native game already supports persistent SDL keyboard/gamepad
