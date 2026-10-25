@@ -4,6 +4,7 @@ param(
  [Parameter(Mandatory=$true)][string]$Rom,
  [string]$OutDir=(Join-Path $env:USERPROFILE 'CVIII-Alpha'),
  [string]$ProjectRoot='',
+ [string]$CycleSeedFile='',
  [switch]$PlayAfterBuild
 )
 Set-StrictMode -Version Latest
@@ -56,7 +57,13 @@ if (-not (Test-Path -LiteralPath $buildScript)) {
 }
 $privateOut=Join-Path $outPath '_private_original_rom_build'
 Write-Host 'Compiling the original Japanese game to native C11 with SDL2...'
-Invoke-Checked -Program $pyCmd.Executable -CommandArguments (@($pyCmd.Prefix) + @($buildScript,'--rom',$romPath,'--out',$privateOut,'--windowed','--build-only'))
+$nativeArgs=@($buildScript,'--rom',$romPath,'--out',$privateOut,'--windowed','--build-only')
+if ($CycleSeedFile) {
+ $seedPath=(Resolve-Path -LiteralPath $CycleSeedFile -ErrorAction Stop).Path
+ $nativeArgs+=@('--seed-file',$seedPath)
+ Write-Host 'Compiling additional original-JP PRG instruction entries from owner-private bank-qualified seeds.'
+}
+Invoke-Checked -Program $pyCmd.Executable -CommandArguments (@($pyCmd.Prefix) + $nativeArgs)
 $reportPath=Join-Path $privateOut 'jp0575_build_report.json'
 if (-not (Test-Path -LiteralPath $reportPath)) {throw 'No compiler build report was produced.'}
 $report=Get-Content -LiteralPath $reportPath -Raw | ConvertFrom-Json

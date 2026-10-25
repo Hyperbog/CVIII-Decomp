@@ -33,7 +33,7 @@ def validate_engine(engine:Path)->None:
         raise ValueError("The external NESRecomp checkout must be outside the CVIII repository")
 
 def commands(rom:Path,engine:Path,out:Path,frames:int,headless:bool,
-             ppu_impl:str="LLE")->tuple[list[str],list[str],list[str]]:
+             ppu_impl:str="LLE",seed_file:Path|None=None)->tuple[list[str],list[str],list[str]]:
     if frames<1 or frames>12000:
         raise ValueError("Bounded frame count must be 1..12000")
     if ppu_impl not in ("LLE","HLE"):
@@ -43,6 +43,8 @@ def commands(rom:Path,engine:Path,out:Path,frames:int,headless:bool,
           "-DJP_ORIGINAL_JP_ROM="+str(rom),
           "-DJP_CYCLE_HEADLESS="+("ON" if headless else "OFF"),
           "-DJP_PPU_IMPLEMENTATION="+ppu_impl]
+    if seed_file is not None:
+        opts.append("-DJP_CYCLE_PRG_SEED_FILE="+str(seed_file))
     build=["cmake","--build",str(out),"--config","Release","--parallel","4"]
     return opts,build,[str(out/"jp_akumajou_densetsu"),str(rom),"--frames",str(frames)]
 
@@ -54,8 +56,13 @@ def run(args)->dict:
     rom_meta=authenticated(rom)
     validate_engine(engine)
     ppu_impl=getattr(args,"ppu_impl","LLE")
+    seed_file=getattr(args,"seed_file",None)
+    if seed_file is not None:
+        seed_file=Path(seed_file).resolve(strict=True)
+        if seed_file==ROOT or ROOT in seed_file.parents:
+            raise ValueError("ROM-derived compiler seed file must remain outside Git")
     configure,build,execute=commands(
-        rom,engine,out,args.frames,not args.windowed,ppu_impl)
+        rom,engine,out,args.frames,not args.windowed,ppu_impl,seed_file)
     build_only=bool(getattr(args,"build_only",False))
     if args.plan:
         return {"schema":"JP0568-external-cycle-plan/v2","rom":rom_meta,

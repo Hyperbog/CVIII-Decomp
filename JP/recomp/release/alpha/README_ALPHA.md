@@ -49,6 +49,33 @@ parity, Windows interactive/menu/save-state QA or full-game completion.
 A new private Windows runtime result is still required; ROM-free CI cannot
 claim it.
 
+### Native PRG coverage upgrade (opt-in, private, no Mesen)
+
+The acceptance tool retains JSON with `compiled_prg_cpu_cycles`, interpreter
+ROM/RAM counts and the private `compiled_rom_fallback.seed` file even when
+compiled PRG percentage fails the requested threshold. The seed file contains
+bank-qualified ROM instruction entries the pinned NESRecomp actually interpreted.
+It does not include copyrighted ROM bytes, but must stay outside Git.
+
+If `interpreted_rom_cpu_cycles` is high, use the just-measured source-qualified
+seeds to recompile the *existing* full Windows Enhanced product privately:
+
+```powershell
+$homeBuild = "$env:USERPROFILE\CVIII-Alpha"
+$source = "$homeBuild\_pr13-source"
+$rom = (Get-Content "$homeBuild\LastRomPath.txt" -Raw).Trim()
+$seeds = "$homeBuild\CompiledAcceptance\ExistingBinary\compiled_rom_fallback.seed"
+& "$source\JP\recomp\release\alpha\Build-Alpha.ps1" `
+  -Rom $rom -ProjectRoot $source -OutDir $homeBuild -CycleSeedFile $seeds
+```
+
+Re-run the same acceptance input, then compare `compiled_prg_percent`
+and the interpreter ROM cycle count. The compiler seed adds ROM instruction
+entry points; it cannot compile runtime-generated CPU RAM code. If the gap
+is mostly CPU RAM, lowering the PRG threshold or blindly adding seeds
+would not change actual PRG compilation coverage. No automatic build or
+modification to the existing executable is performed by acceptance.
+
 ## JP0661 native keyboard controls: profiles and recoverable presets
 
 The working native game already supports persistent SDL keyboard/gamepad

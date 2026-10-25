@@ -36,6 +36,16 @@ execute_process(
 if(NOT JP_ROM_CHECK EQUAL 0)
  message(FATAL_ERROR "Unrecognized original-JP ROM: ${JP_ROM_CHECK_ERR}")
 endif()
+# Owner-only physical-bank ROM instruction-entry seeds. Empty preserves the
+# established playable build; populated recompiles previously interpreted PRG.
+set(JP_CYCLE_PRG_SEED_FILE "" CACHE FILEPATH "Owner-private physical-bank PRG seed file")
+set(JP_CYCLE_PRG_SEED_ARGS "")
+if(JP_CYCLE_PRG_SEED_FILE)
+ if(NOT EXISTS "${JP_CYCLE_PRG_SEED_FILE}")
+  message(FATAL_ERROR "JP_CYCLE_PRG_SEED_FILE must be an existing private seed file")
+ endif()
+ list(APPEND JP_CYCLE_PRG_SEED_ARGS SEED_FILE "${JP_CYCLE_PRG_SEED_FILE}")
+endif()
 set(NESRECOMP_HEADLESS ${JP_CYCLE_HEADLESS} CACHE BOOL "Disable external SDL/UI when headless" FORCE)
 include("${NESRECOMP_EXTERNAL_ROOT}/runner/cyc/project.cmake")
 set(JP_CYCLE_OPTIONS "")
@@ -88,7 +98,7 @@ if(JP_EDITION_HOST_EXTRAS)
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_menu_stack_0626.c")
 endif()
 nesrecomp_add_cycle_game(jp_akumajou_densetsu
- ROM "${JP_ORIGINAL_JP_ROM}" ${JP_CYCLE_OPTIONS} ${JP_HOST_SOURCES})
+ ROM "${JP_ORIGINAL_JP_ROM}" ${JP_CYCLE_OPTIONS} ${JP_CYCLE_PRG_SEED_ARGS} ${JP_HOST_SOURCES})
 if(JP_EDITION_HOST_EXTRAS)
  target_include_directories(jp_akumajou_densetsu PRIVATE
   "${NESRECOMP_EXTERNAL_ROOT}/runner/cyc"

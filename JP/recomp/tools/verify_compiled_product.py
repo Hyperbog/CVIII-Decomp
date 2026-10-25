@@ -105,6 +105,8 @@ def verify(exe: Path, rom: Path, replay: Path, out: Path,
     if not outside_git(out):
         raise ValueError("private verification artifacts must stay outside the repository")
     out.mkdir(parents=True, exist_ok=True)
+    miss_path = out / "compiled_rom_fallback.seed"
+    miss_path.unlink(missing_ok=True)  # no stale compiled-miss evidence
     stats = {}
     images = {}
     for mode in ("native", "interp-only"):
@@ -118,6 +120,10 @@ def verify(exe: Path, rom: Path, replay: Path, out: Path,
                 "--input", str(replay), "--hash-out", str(hash_path)]
         if mode == "interp-only":
             args.append("--interp-only")
+        else:
+            # Mapper-qualified interpreter ROM misses are actionable
+            # NESRecomp --cycle-seed-file inputs for a private rebuild.
+            args.extend(["--miss-log", str(miss_path)])
         proc = subprocess.run(args, capture_output=True, text=True,
                               cwd=out, timeout=max(120, min(1800, frames * 3)))
         output = proc.stdout + "\n" + proc.stderr
@@ -129,8 +135,17 @@ def verify(exe: Path, rom: Path, replay: Path, out: Path,
     if images["native"] != images["interp-only"]:
         raise ValueError("compiled execution differs from interpreter-only machine hashes")
     prg_percent = stats["native"]["compiled_prg_percent"]
-    if prg_percent < minimum_prg_percent:
-        raise ValueError(f"compiled PRG coverage {prg_percent}% below required {minimum_prg_percent}%")
+    coverage_ok = prg_percent >= minimum_prg_percent
+    if not miss_path.is_file():
+        raise ValueError("pinned native runner failed to write interpreter ROM-miss seeds")
+    # The host uses physical 4 KiB bank + mapped CPU address: 4k:BB:AAAA.
+    seed_lines = [
+        line for line in miss_path.read_text(encoding="ascii").splitlines()
+        if line and not line.startswith("#")
+    ]
+    if any(re.fullmatch(r"4k:[0-9A-Fa-f]{2,}:[89A-Fa-f][0-9A-Fa-f]{3} \d+", s) is None
+           for s in seed_lines):
+        raise ValueError("malformed pinned NESRecomp bank-qualified ROM-miss entry")
     report = {
         "schema": "cviii-compiled-enhanced-acceptance/v1",
         "edition": edition, "frames": frames,
@@ -142,6 +157,10 @@ def verify(exe: Path, rom: Path, replay: Path, out: Path,
         "compiled": stats["native"],
         "reference": stats["interp-only"],
         "minimum_compiled_prg_percent": minimum_prg_percent,
+        "compiled_prg_coverage_accepted": coverage_ok,
+        "acceptance_status": "PASS" if coverage_ok else "FAIL_COMPILED_PRG_COVERAGE",
+        "private_rom_seed_file": str(miss_path),
+        "interpreted_rom_seed_entries": len(seed_lines),
         "original_hardware_parity_verified": False,
         "independent_gameplay_or_release_qa": False,
         "strict_semantic_prg_credit_added": 0,
@@ -149,6 +168,17 @@ def verify(exe: Path, rom: Path, replay: Path, out: Path,
     (out / "compiled_product_acceptance.json").write_text(
         json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
+    if not coverage_ok:
+        native = stats["native"]
+        raise ValueError(
+            f"same-machine frames MATCHED, but compiled PRG {prg_percent}% "
+            f"below required {minimum_prg_percent}%; "
+            f"interpreted ROM={native['interpreted_rom_cpu_cycles']} CPU cycles, "
+            f"interpreted CPU RAM={native['interpreted_cpu_ram_cycles']}, "
+            f"compiled RAM views={native['compiled_ram_view_cpu_cycles']}; "
+            f"{len(seed_lines)} bank-qualified PRG seeds. "
+            f"Private breakdown: {out / 'compiled_product_acceptance.json'}"
+        )
     return report
 
 

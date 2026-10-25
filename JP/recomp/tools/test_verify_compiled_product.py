@@ -37,6 +37,10 @@ class CompiledProductAcceptanceTests(unittest.TestCase):
                 interpreter = "--interp-only" in args
                 hash_out = Path(args[args.index("--hash-out") + 1])
                 hash_out.write_text(frame_rows(3, changed and interpreter), encoding="ascii")
+                if not interpreter:
+                    Path(args[args.index("--miss-log") + 1]).write_text(
+                        "4k:00:E00B 1\n", encoding="ascii"
+                    )
                 summary = (
                     "mode=interp-only frames=3 cycles=90000 native_cycles=0 (0.0%)\n"
                     if interpreter else
@@ -51,7 +55,18 @@ class CompiledProductAcceptanceTests(unittest.TestCase):
                     report = gate.verify(exe, rom, replay, d/"report", 3, "enhanced", 90)
                 self.assertEqual(report["compiled"]["compiled_prg_cpu_cycles"], 89990)
                 self.assertTrue(report["same_machine_compiled_interpreter_match"])
+                self.assertEqual(report["interpreted_rom_seed_entries"], 1)
+                self.assertTrue(report["compiled_prg_coverage_accepted"])
                 self.assertTrue((d/"report"/"compiled_product_acceptance.json").is_file())
+
+                with patch.object(gate.subprocess, "run", side_effect=runner):
+                    with self.assertRaisesRegex(ValueError, "same-machine frames MATCHED"):
+                        gate.verify(exe, rom, replay, d/"under-threshold", 3, "enhanced", 100)
+                rejected = __import__("json").loads(
+                    (d/"under-threshold"/"compiled_product_acceptance.json").read_text()
+                )
+                self.assertEqual(rejected["acceptance_status"], "FAIL_COMPILED_PRG_COVERAGE")
+                self.assertEqual(rejected["interpreted_rom_seed_entries"], 1)
 
                 with patch.object(gate.subprocess, "run",
                                   side_effect=lambda args, **kw: runner(args, changed=True, **kw)):
