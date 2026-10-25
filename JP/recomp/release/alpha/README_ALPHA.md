@@ -49,6 +49,14 @@ parity, Windows interactive/menu/save-state QA or full-game completion.
 A new private Windows runtime result is still required; ROM-free CI cannot
 claim it.
 
+**Private builder packaging fix:** The Windows build now resolves companions
+from their real repository locations (release/alpha, decomp/tools, recomp/tools)
+and validates all 29 source paths **before** compiling the game. A prior
+package failure at `JP/decomp/tools/Play-CVIII.bat` was a source-path
+error, not a compiled-game or seed-generation error. The already-produced
+`_private_original_rom_build/build/Release/jp_akumajou_densetsu.exe` can
+be verified without first completing `AlphaCandidate` packaging.
+
 ### Native PRG coverage upgrade (opt-in, private, no Mesen)
 
 The acceptance tool retains JSON with `compiled_prg_cpu_cycles`, interpreter

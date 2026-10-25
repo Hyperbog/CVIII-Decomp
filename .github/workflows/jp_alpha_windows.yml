@@ -244,6 +244,34 @@ jobs:
             [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path -LiteralPath $file).Path,[ref]$tokens,[ref]$parseErrors) | Out-Null
             if ($parseErrors.Count -gt 0) { throw ("PowerShell syntax check failed: " + $file + ": " + ($parseErrors | Out-String)) }
           }
+      - name: Validate private AlphaCandidate companion sources (ROM-free)
+        shell: pwsh
+        run: |
+          # Extract the actual manifest function, not a shadow copy of paths.
+          $tokens=$null
+          $errs=$null
+          $ast=[System.Management.Automation.Language.Parser]::ParseFile(
+            (Resolve-Path 'JP/recomp/release/alpha/Build-Alpha.ps1').Path,
+            [ref]$tokens,[ref]$errs)
+          if ($errs.Count -ne 0) { throw ($errs | Out-String) }
+          $fn=$ast.Find({
+            param($node)
+            $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
+            $node.Name -eq 'Get-CviiiAlphaCompanionSources'
+          },$true)
+          if (-not $fn) { throw 'Builder companion source manifest function missing' }
+          Invoke-Expression $fn.Extent.Text
+          $files=@(Get-CviiiAlphaCompanionSources -RepoPath (Get-Location).Path)
+          if ($files.Count -ne 29) { throw "Expected 29 private companion files, got $($files.Count)" }
+          if (@($files | Select-Object -ExpandProperty Name -Unique).Count -ne $files.Count) {
+            throw 'Duplicate private AlphaCandidate destination names'
+          }
+          foreach ($file in $files) {
+            if (-not (Test-Path -LiteralPath $file.Source -PathType Leaf)) {
+              throw ('Builder references missing private companion source: '+$file.Source)
+            }
+          }
+          Write-Host "PASS: all $($files.Count) actual private AlphaCandidate companion sources exist"
       - name: Validate JP0603 ROM-free first-run builder and launcher contract
         shell: pwsh
         run: |

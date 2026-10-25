@@ -22,6 +22,25 @@ function Invoke-Checked {
   throw "$Program failed (exit $LASTEXITCODE); args: $($CommandArguments -join ' ')"
  }
 }
+# The private AlphaCandidate consumes files from three distinct directories.
+# Keep the manifest in one function: packager and ROM-free Windows CI
+# inspect the SAME source list before any commercial-ROM C11 compile.
+function Get-CviiiAlphaCompanionSources {
+ param([Parameter(Mandatory=$true)][string]$RepoPath)
+ $bundles=@(
+  @{ Directory='JP/recomp/release/alpha'; Names=@('Play-CVIII.bat','Debug-Stage-Companion.bat','Capture-QA-0602.ps1','Build-And-Play.ps1','Build-And-Play.bat','Resolve-Python.ps1','Control-Profiles.py','Controls.ps1','Controls.bat') }
+  @{ Directory='JP/decomp/tools'; Names=@('jp_password_stage_0593.py','jp_password_debug_menu_0593.py','jp_qa_matrix_0602.py','jp_mapper_audit_0602.py','jp_mesen_sound_requests_0615.py','mesen_jp_sound_requests_0615.lua','jp_sound_priority_paths_0616.py','jp_mesen_gate_report_0616.py','mesen_jp_sound_gates_0616.lua','jp_sound_decision_reference_0617.py','mesen_jp_sound_decisions_0617.lua','jp_audio_ui_chr_0619.py') }
+  @{ Directory='JP/recomp/tools'; Names=@('jp_asset_pack_0597.py','jp_asset_runtime_0598.py','jp_chr_fetch_report_0600.py','jp_frame_evidence_report_0601.py','jp_nt_trace_report_0606.py','jp_object_oam_report_0609.py','jp_audio_bus_report_0610.py','jp_audio_session_verify_0614.py') }
+ )
+ foreach ($bundle in $bundles) {
+  foreach ($name in $bundle.Names) {
+   [pscustomobject]@{
+    Name=$name
+    Source=(Join-Path $RepoPath ($bundle.Directory+'/'+$name))
+   }
+  }
+ }
+}
 foreach ($command in @('git','cmake')) {
  if (-not (Get-Command $command -ErrorAction SilentlyContinue)) {
   throw "Missing dependency $command. See README_ALPHA.md."
@@ -41,6 +60,16 @@ if ($ProjectRoot) {
   # This directory is managed by this builder; do not silently compile
   # a stale branch when new asset/gameplay tooling has been committed.
   Invoke-Checked -Program 'git' -CommandArguments @('-C',$repoPath,'pull','--ff-only','origin','decompilation')
+ }
+}
+# Fail before compiling if the kit would be impossible to stage.
+$companionSources=@(Get-CviiiAlphaCompanionSources -RepoPath $repoPath)
+if ($companionSources.Count -ne 29) {
+ throw 'Private AlphaCandidate companion source manifest is incomplete.'
+}
+foreach ($item in $companionSources) {
+ if (-not (Test-Path -LiteralPath $item.Source -PathType Leaf)) {
+  throw ('Private AlphaCandidate source missing before build: '+$item.Source)
  }
 }
 # Resolve AFTER refreshing Git; an older kit can use the current resolver.
@@ -123,15 +152,9 @@ Copy-Item -LiteralPath $launch -Destination $stage -Force
 $notes=Join-Path $repoPath 'JP/recomp/release/alpha/README_ALPHA.md'
 if (-not (Test-Path -LiteralPath $notes)) { throw 'Current repo README missing' }
 Copy-Item -LiteralPath $notes -Destination $stage -Force
-foreach ($name in @('Play-CVIII.bat','Debug-Stage-Companion.bat','Capture-QA-0602.ps1','Build-And-Play.ps1','Build-And-Play.bat','Resolve-Python.ps1','Control-Profiles.py','Controls.ps1','Controls.bat')) {
- $src=Join-Path $repoPath ('JP/decomp/tools/'+$name)
- if (-not (Test-Path -LiteralPath $src)) {throw "Missing alpha launcher: $src"}
- Copy-Item -LiteralPath $src -Destination $stage -Force
-}
-foreach ($name in @('jp_password_stage_0593.py','jp_password_debug_menu_0593.py','jp_asset_pack_0597.py','jp_asset_runtime_0598.py','jp_chr_fetch_report_0600.py','jp_frame_evidence_report_0601.py','jp_qa_matrix_0602.py','jp_mapper_audit_0602.py','jp_nt_trace_report_0606.py','jp_object_oam_report_0609.py','jp_audio_bus_report_0610.py','jp_audio_session_verify_0614.py','jp_mesen_sound_requests_0615.py','mesen_jp_sound_requests_0615.lua','jp_sound_priority_paths_0616.py','jp_mesen_gate_report_0616.py','mesen_jp_sound_gates_0616.lua','jp_sound_decision_reference_0617.py','mesen_jp_sound_decisions_0617.lua','jp_audio_ui_chr_0619.py')) {
- $src=Join-Path $repoPath ('JP/decomp/tools/'+$name)
- if (-not (Test-Path -LiteralPath $src)) {throw "Missing debug password helper: $src"}
- Copy-Item -LiteralPath $src -Destination $stage -Force
+# The source manifest was validated before native compilation.
+foreach ($item in $companionSources) {
+ Copy-Item -LiteralPath $item.Source -Destination (Join-Path $stage $item.Name) -Force
 }
 $engine=Join-Path $privateOut '_external/nesrecomp'
 $licenses=Join-Path $stage 'licenses'
