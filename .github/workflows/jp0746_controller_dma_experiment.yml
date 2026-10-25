@@ -1,10 +1,6 @@
 name: JP0746 ROM-free Controller DMC Policy Experiments
+# Experimental-only; NEVER run on normal PR updates.
 on:
-  pull_request:
-    paths:
-      - ".github/workflows/jp0746_controller_dma_experiment.yml"
-      - "JP/recomp/tools/jp0746_controller_dma_probe.py"
-      - "JP/recomp/native/rom_runtime_0732/CMakeLists.txt"
   workflow_dispatch:
 permissions:
   contents: read
