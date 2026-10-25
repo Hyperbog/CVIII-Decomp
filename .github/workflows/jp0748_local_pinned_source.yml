@@ -29,7 +29,7 @@ jobs:
           tar -czf jp0748_pinned_runner_sources.tar.gz \
              -C _external_nesrecomp \
              --exclude='*.nes' --exclude='*.nsf' --exclude='*.fds' \
-             LICENSE runner common
+             LICENSE runner common recompiler
           tar -tzf jp0748_pinned_runner_sources.tar.gz | grep 'runner/cyc/hw_apu.c' > /dev/null
           sha256sum jp0748_pinned_runner_sources.tar.gz > jp0748_pinned_runner_sources.tar.gz.sha256
           tar -czf jp0748_game_owned_native_diagnostics.tar.gz JP/recomp/native JP/recomp/tools JP/decomp/tools
