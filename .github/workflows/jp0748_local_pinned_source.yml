@@ -1,8 +1,6 @@
 name: JP0748 Local Pinned CPU-DMA Diagnostics Source (ROM-free)
+# Experimental-only; NEVER run on normal PR updates.
 on:
-  pull_request:
-    paths:
-      - ".github/workflows/jp0748_local_pinned_source.yml"
   workflow_dispatch:
 permissions:
   contents: read
