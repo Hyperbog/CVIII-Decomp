@@ -34,6 +34,9 @@ jobs:
              LICENSE runner common
           tar -tzf jp0748_pinned_runner_sources.tar.gz | grep 'runner/cyc/hw_apu.c' > /dev/null
           sha256sum jp0748_pinned_runner_sources.tar.gz > jp0748_pinned_runner_sources.tar.gz.sha256
+          tar -czf jp0748_game_owned_native_diagnostics.tar.gz JP/recomp/native/rom_runtime_0732 JP/recomp/tools JP/decomp/tools
+          sha256sum jp0748_game_owned_native_diagnostics.tar.gz > jp0748_game_owned_native_diagnostics.tar.gz.sha256
+
       - uses: actions/upload-artifact@v4
         with:
           name: jp0748-source-pinned-cycle-runner-no-media
@@ -42,3 +45,5 @@ jobs:
           path: |
             jp0748_pinned_runner_sources.tar.gz
             jp0748_pinned_runner_sources.tar.gz.sha256
+            jp0748_game_owned_native_diagnostics.tar.gz
+            jp0748_game_owned_native_diagnostics.tar.gz.sha256
