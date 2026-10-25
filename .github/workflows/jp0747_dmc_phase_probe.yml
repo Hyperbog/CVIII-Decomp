@@ -1,0 +1,55 @@
+name: JP0747 DMC Initial Phase Probe Builds (ROM-free)
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/jp0747_dmc_phase_probe.yml"
+      - "JP/recomp/tools/jp0747_dmc_phase_probe.py"
+      - "JP/recomp/native/rom_runtime_0732/CMakeLists.txt"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  phase-isolation:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        offset: ["52","54","56"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: mstan/nesrecomp
+          ref: 2b4fcdb98c9e702be3fb365cfc645003c50b5fc1
+          path: _external_nesrecomp
+          persist-credentials: false
+      - name: Verify pinned upstream and no ROM
+        run: |
+          set -eu
+          grep -q "PolyForm Noncommercial License 1.0.0" _external_nesrecomp/LICENSE
+          test ! -e "JP/Akumajou Densetsu (Japan).nes"
+          python3 JP/recomp/tools/jp0747_dmc_phase_probe.py --smoke
+      - name: Build DMC initial timer +${{ matrix.offset }} no controller suppression
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmake -S JP/recomp/native/rom_runtime_0732 -B "$RUNNER_TEMP/jp0747" \
+            -DNESRECOMP_EXTERNAL_ROOT="$GITHUB_WORKSPACE/_external_nesrecomp" \
+            -DJP0740_TRACE_CPU_WRITES=ON -DJP0732_WINDOWED=OFF \
+            -DJP0746_CONTROLLER_DMA_POLICY=0 \
+            -DJP0747_DMC_POWERON_PHASE_PROBE=${{ matrix.offset }} -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/jp0747" --parallel 2
+          cp "$RUNNER_TEMP/jp0747/jp_akumajou_runtime_0732" "jp0747_phase_${{ matrix.offset }}"
+          chmod 755 "jp0747_phase_${{ matrix.offset }}"
+          sha256sum "jp0747_phase_${{ matrix.offset }}" > "jp0747_phase_${{ matrix.offset }}.sha256"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: jp0747-native-initial-dmc-phase-${{ matrix.offset }}-no-rom
+          if-no-files-found: error
+          retention-days: 7
+          path: |
+            jp0747_phase_${{ matrix.offset }}
+            jp0747_phase_${{ matrix.offset }}.sha256
