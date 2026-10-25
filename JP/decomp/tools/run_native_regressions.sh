@@ -384,3 +384,7 @@ python3 "$root/JP/decomp/tools/jp0741_first_write_compare.py" --smoke
 # JP0743: owner-JP0718 Mesen absolute/local input epoch conversion guards.
 # No actual ROM or recorded original user button data are in public CI.
 python3 "$root/JP/decomp/tools/jp0743_native_input_epoch.py" --smoke
+
+# Stage 1 real-replay acceptance CLI must load without owner ROM/media.
+# Actual acceptance deliberately fails when camera/player/room differ.
+python3 "$root/JP/recomp/tools/run_stage1_original_acceptance.py" --help >/dev/null
