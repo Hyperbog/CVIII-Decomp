@@ -31,7 +31,9 @@ class CompiledProductAcceptanceTests(unittest.TestCase):
             def local_sha(path):
                 return gate.ROM_SHA256 if Path(path) == rom else original_sha(path)
 
-            def runner(args, changed=False, **_):
+            def runner(args, changed=False, **kwargs):
+                self.assertIn("--no-save", args)
+                self.assertEqual(kwargs["cwd"], Path(args[args.index("--hash-out") + 1]).parent)
                 interpreter = "--interp-only" in args
                 hash_out = Path(args[args.index("--hash-out") + 1])
                 hash_out.write_text(frame_rows(3, changed and interpreter), encoding="ascii")

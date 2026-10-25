@@ -37,6 +37,8 @@ The launcher checks `ALPHA_BUILD.json` against the private EXE,
 uses `CVIII-Alpha\\LastRomPath.txt` (or explicit `-Rom`), authenticates the
 Japanese ROM, and saves JSON and logs under
 `%USERPROFILE%\\CVIII-Alpha\\CompiledAcceptance`. Output remains outside Git.
+The acceptance run uses the pinned host's `--no-save` option and an isolated
+working directory; it does not load or write player cartridge save data.
 Optional `-MinCompiledPrgPercent` controls the minimum compiled PRG cycle
 share (default 90). Missing input, wrong ROM, binary drift, unequal
 machine hashes and insufficient compiled coverage fail closed.

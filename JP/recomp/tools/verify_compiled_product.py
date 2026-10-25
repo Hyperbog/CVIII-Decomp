@@ -111,13 +111,15 @@ def verify(exe: Path, rom: Path, replay: Path, out: Path,
         hash_path = out / f"{mode}.machinehash"
         log_path = out / f"{mode}.log"
         hash_path.unlink(missing_ok=True)  # never accept stale hashes from an earlier run
+        # Pinned NESRecomp supports --no-save: acceptance must not read/write
+        # player cartridge saves. Isolate incidental relative host outputs too.
         args = [str(exe), str(rom), "--edition", edition,
-                "--headless", "--frames", str(frames), "--input", str(replay),
-                "--hash-out", str(hash_path)]
+                "--headless", "--no-save", "--frames", str(frames),
+                "--input", str(replay), "--hash-out", str(hash_path)]
         if mode == "interp-only":
             args.append("--interp-only")
         proc = subprocess.run(args, capture_output=True, text=True,
-                              timeout=max(120, min(1800, frames * 3)))
+                              cwd=out, timeout=max(120, min(1800, frames * 3)))
         output = proc.stdout + "\n" + proc.stderr
         log_path.write_text(output, encoding="utf-8")
         if proc.returncode:
