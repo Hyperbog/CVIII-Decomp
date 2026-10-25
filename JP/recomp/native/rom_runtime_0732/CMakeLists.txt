@@ -90,6 +90,35 @@ if(NOT JP0746_CONTROLLER_DMA_POLICY STREQUAL "0")
  message(STATUS "JP0746 opt-in experimental policy ${JP0746_CONTROLLER_DMA_POLICY}")
 endif()
 
+# JP0747: confirm +53 CPU-cycle DMC-fetch lead by bounded power-on timer
+# experiments, WITHOUT changing the default production/source behavior.
+set(JP0747_DMC_POWERON_PHASE_PROBE "0" CACHE STRING
+ "Experimental initial DMC timer offset: 0 (unchanged), 52,54,56")
+if(NOT JP0747_DMC_POWERON_PHASE_PROBE MATCHES "^(0|52|54|56)$")
+ message(FATAL_ERROR "JP0747 phase probe must be 0,52,54,56")
+endif()
+if(NOT JP0747_DMC_POWERON_PHASE_PROBE STREQUAL "0")
+ if(NOT JP0740_TRACE_CPU_WRITES OR
+    NOT JP0746_CONTROLLER_DMA_POLICY STREQUAL "0")
+  message(FATAL_ERROR "JP0747 probes require native trace ON and JP0746 policy 0")
+ endif()
+ execute_process(
+  COMMAND "${Python3_EXECUTABLE}"
+   "${CMAKE_CURRENT_LIST_DIR}/../../tools/jp0747_dmc_phase_probe.py"
+   --apu "${NESRECOMP_CYC_DIR}/hw_apu.c"
+   --output "${JP0740_OVERLAY_DIR}/cviii_jp0747_hw_apu.c"
+   --offset "${JP0747_DMC_POWERON_PHASE_PROBE}"
+  RESULT_VARIABLE JP0747_PATCH_EXIT
+  ERROR_VARIABLE JP0747_PATCH_ERROR)
+ if(NOT JP0747_PATCH_EXIT EQUAL 0)
+  message(FATAL_ERROR "JP0747 pinned patch failed: ${JP0747_PATCH_ERROR}")
+ endif()
+ list(REMOVE_ITEM NESRECOMP_CYC_SOURCES
+  "${NESRECOMP_CYC_DIR}/hw_apu.c")
+ list(APPEND NESRECOMP_CYC_SOURCES
+  "${JP0740_OVERLAY_DIR}/cviii_jp0747_hw_apu.c")
+endif()
+
 # JP0735: the four independently ROM-authenticated reset instructions
 # default to narrow native handlers. All other original guest instructions
 # remain interpreted. The existing single-opcode JP0734 synthetic-only proof
