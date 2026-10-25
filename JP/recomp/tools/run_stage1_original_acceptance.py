@@ -18,6 +18,7 @@ import zipfile
 
 JP_SHA256='958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28'
 FRAMES=(9376,9440,9504,9576)
+TRANSITION_FRAME=9277  # Original DEC $36 source event at fixed $D3E9
 FRAME_STRUCT=struct.Struct('<9I')
 # Actual original Stage-1 functionality, not speculative unrelated RAM bytes.
 WATCH=(0x34,0x35,0x36,0x53,0x54,0x62,0x63,0x65,0x28,0x2a,
@@ -66,7 +67,7 @@ def native_snapshots(path:Path):
                 raise ValueError('out-of-order or impossible frame entry')
             prev=frame
             payload_size=288+sum(lengths)
-            if frame not in FRAMES:
+            if frame not in FRAMES and frame!=TRANSITION_FRAME:
                 f.seek(payload_size,1);continue
             if lengths[0]!=2048:raise ValueError('native RAM size mismatch')
             f.seek(288,1)
@@ -74,12 +75,17 @@ def native_snapshots(path:Path):
             if len(ram)!=2048:raise ValueError('truncated native RAM')
             f.seek(sum(lengths)-2048,1)
             result[frame]=((high<<32)|low,ram)
-    if set(result)!=set(FRAMES):raise ValueError('native trace lacks a required Stage 1 frame')
+    if set(result)!=set(FRAMES)|{TRANSITION_FRAME}:
+        raise ValueError('native trace lacks required room transition or Stage 1 frames')
     return result
 
 def evaluate(original,native):
+    # The owner source event at local 9277 executes DEC $36:03->02.
+    # Gate its result independently: a later matching room is not enough.
+    transition_room=native[TRANSITION_FRAME][1][0x36]
+    transition_pass=transition_room==2
     entries=[]
-    passed=True
+    passed=transition_pass
     for frame in FRAMES:
         oc,oa=original[frame]
         nc,na=native[frame]
@@ -101,6 +107,11 @@ def evaluate(original,native):
                else 'FAIL_ORIGINAL_STAGE1_GAMEPLAY',
       'note':'RAM snapshot parity is necessary, not complete CPU bus/PPU/audio parity',
       'requires_separate_controller_dma_bus_gates':list(BUS_GATES),
+      'original_room_transition':{'frame':TRANSITION_FRAME,
+                                  'source_cpu_pc':'D3E9',
+                                  'address':'0036','expected_value':'02',
+                                  'native_value':f'{transition_room:02X}',
+                                  'passed':transition_pass},
       'owner_last_playtested_version':'JP0722',
       'certificate_unchanged':{'vpp':31,'strict_prg_bytes':49504,'strict_prg_total':262144},
       'frames':entries
@@ -137,7 +148,7 @@ def main():
             cmd=[str(a.native_exe.resolve()),str(a.rom.resolve()),
                  '--headless','--edition','original','--frames','9577',
                  '--input',str(schedule_path),
-                 '--frame-log',str(log_path),'--frame-log-frames','9376:9576',
+                 '--frame-log',str(log_path),'--frame-log-frames','9277:9576',
                  '--frame-log-at','mesen']
             result=subprocess.run(cmd,capture_output=True,text=True,timeout=3600)
             if result.returncode:
@@ -149,7 +160,8 @@ def main():
     output['original_japanese_sha256']=JP_SHA256
     output['owner_capture_sha256']=hashlib.sha256(a.owner_capture.read_bytes()).hexdigest()
     a.report.write_text(json.dumps(output,indent=2)+'\n',encoding='utf8')
-    print(output['status']+' | watched checkpoint frames '+','.join(map(str,FRAMES)))
+    print(output['status']+' | source room transition '+str(TRANSITION_FRAME)+
+          ' and watched checkpoint frames '+','.join(map(str,FRAMES)))
     for entry in output['frames']:
         print(f"  f={entry['frame']} camera={entry['camera_original']}/{entry['camera_native']}"
               f" observed_mismatches={len(entry['watched_mismatches'])}")
