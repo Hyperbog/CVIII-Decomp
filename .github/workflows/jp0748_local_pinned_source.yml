@@ -32,7 +32,7 @@ jobs:
              -C _external_nesrecomp \
              --exclude='*.nes' --exclude='*.nsf' --exclude='*.fds' \
              LICENSE runner common
-          tar -tzf jp0748_pinned_runner_sources.tar.gz | grep -q 'runner/cyc/hw_apu.c'
+          tar -tzf jp0748_pinned_runner_sources.tar.gz | grep 'runner/cyc/hw_apu.c' > /dev/null
           sha256sum jp0748_pinned_runner_sources.tar.gz > jp0748_pinned_runner_sources.tar.gz.sha256
       - uses: actions/upload-artifact@v4
         with:
