@@ -104,6 +104,11 @@ jobs:
           if (!(Select-String -LiteralPath '_external_nesrecomp/LICENSE' -Pattern 'PolyForm Noncommercial License 1.0.0' -Quiet)) { throw 'Wrong upstream license' }
           python JP/decomp/tools/test_cycle_synthetic_rom_0569.py --out "$env:RUNNER_TEMP\alpha-vrc6.nes"
           if ($LASTEXITCODE -ne 0) { throw 'Synthetic VRC6 media generation failed' }
+      - name: Verify compiled Windows product accounting (ROM-free)
+        shell: pwsh
+        run: |
+          python JP/recomp/tools/test_verify_compiled_product.py
+          if ($LASTEXITCODE -ne 0) { throw 'Compiled PRG acceptance contract failed' }
       - name: JP0725 verify real Windows 426x240 native framebuffer (synthetic layout)
         shell: pwsh
         run: |
