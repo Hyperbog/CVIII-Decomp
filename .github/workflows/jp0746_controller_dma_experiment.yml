@@ -1,0 +1,55 @@
+name: JP0746 ROM-free Controller DMC Policy Experiments
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/jp0746_controller_dma_experiment.yml"
+      - "JP/recomp/tools/jp0746_controller_dma_probe.py"
+      - "JP/recomp/native/rom_runtime_0732/CMakeLists.txt"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build-native-controller-dma-policies:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        policy: ["1","2","3"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: mstan/nesrecomp
+          ref: 2b4fcdb98c9e702be3fb365cfc645003c50b5fc1
+          path: _external_nesrecomp
+          persist-credentials: false
+      - name: Verify pinned noncommercial upstream source, no private ROM
+        run: |
+          set -eu
+          grep -q "PolyForm Noncommercial License 1.0.0" _external_nesrecomp/LICENSE
+          test ! -e "JP/Akumajou Densetsu (Japan).nes"
+          python3 JP/recomp/tools/jp0740_native_write_overlay.py --smoke
+          python3 JP/recomp/tools/jp0746_controller_dma_probe.py --smoke
+      - name: Build opt-in native experiment policy ${{ matrix.policy }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmake -S JP/recomp/native/rom_runtime_0732 -B "$RUNNER_TEMP/jp0746" \
+            -DNESRECOMP_EXTERNAL_ROOT="$GITHUB_WORKSPACE/_external_nesrecomp" \
+            -DJP0740_TRACE_CPU_WRITES=ON -DJP0732_WINDOWED=OFF \
+            -DJP0746_CONTROLLER_DMA_POLICY=${{ matrix.policy }} -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/jp0746" --parallel 2
+          cp "$RUNNER_TEMP/jp0746/jp_akumajou_runtime_0732" "jp0746_policy_${{ matrix.policy }}"
+          chmod 755 "jp0746_policy_${{ matrix.policy }}"
+          sha256sum "jp0746_policy_${{ matrix.policy }}" > "jp0746_policy_${{ matrix.policy }}.sha256"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: jp0746-native-controller-dmc-policy-${{ matrix.policy }}-no-rom
+          if-no-files-found: error
+          retention-days: 7
+          path: |
+            jp0746_policy_${{ matrix.policy }}
+            jp0746_policy_${{ matrix.policy }}.sha256
