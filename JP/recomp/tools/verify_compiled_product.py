@@ -16,7 +16,6 @@ import subprocess
 import sys
 
 ROM_SHA256 = "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28"
-ROOT = Path(__file__).resolve().parents[3]
 SUMMARY = re.compile(
     r"^mode=(native|interp-only) frames=(\d+) cycles=(\d+) native_cycles=(\d+)",
     re.MULTILINE,
@@ -41,8 +40,7 @@ def sha256_file(path: Path) -> str:
 
 def outside_git(path: Path) -> bool:
     path = path.resolve()
-    root = ROOT.resolve()
-    return path != root and root not in path.parents
+    return not any((part / ".git").exists() for part in (path, *path.parents))
 
 
 def read_frames(path: Path, frames: int) -> bytes:
