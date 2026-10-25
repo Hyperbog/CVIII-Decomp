@@ -62,6 +62,35 @@ never tracked in Git or uploaded to public CI. The checked-in CMake option
 `CVIII_JP_COMPILED_C_DIR` enables compiled bank files in place of the
 four-boot-instruction shim; production builds without that option are unchanged.
 
+## Windows Enhanced compiled-PRG acceptance (owner-private)
+
+The **existing** Windows product already compiles original Japanese 6502 PRG
+instructions with pinned NESRecomp. Do not replace its proven SDL2, PPU, VRC6,
+input, save-state or Enhanced host components with the newer ROM-at-launch
+experimental runtime. The ROM-free verifier is copied into every private
+AlphaCandidate as `Verify-Compiled.py`:
+
+```powershell
+python .\Verify-Compiled.py `
+  --exe .\jp_akumajou_densetsu.exe `
+  --rom "C:\private\Akumajou Densetsu (Japan).nes" `
+  --input "C:\private\existing-route.input" `
+  --out "$env:USERPROFILE\CVIII-Alpha\compiled-acceptance" `
+  --frames 2100 --edition enhanced --min-compiled-prg-percent 90
+```
+
+The script authenticates the Japanese ROM, runs compiled and interpreter-only
+execution on the **same private product EXE**, checks all frame machine hashes,
+and reports compiled PRG cycles, native RAM-view cycles and interpreted ROM/RAM
+fallback separately. It rejects divergence, malformed counts, low compiled PRG
+coverage and output directories inside Git checkouts. Existing controller input
+is sufficient; neither Mesen recordings nor a fresh manual playthrough are needed.
+
+**Scope:** Same-machine compiled/interpreted agreement on one input route does
+not certify original-console timing, all stages, Windows GUI, music, saves,
+complete native coverage or strict semantic PRG-byte credit. The experimental
+AOT runtime's earlier 2,100-frame result is not this Windows product result.
+
 ## Relevant production code and validation
 
 - [Native original-ROM cycle build](../../native/nesrecomp_cycle/CMakeLists.txt) — linked external pinned NESRecomp C11 machine and authenticated private ROM.
