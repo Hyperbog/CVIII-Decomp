@@ -1,10 +1,6 @@
 name: JP0747 DMC Initial Phase Probe Builds (ROM-free)
+# Experimental-only; NEVER run on normal PR updates.
 on:
-  pull_request:
-    paths:
-      - ".github/workflows/jp0747_dmc_phase_probe.yml"
-      - "JP/recomp/tools/jp0747_dmc_phase_probe.py"
-      - "JP/recomp/native/rom_runtime_0732/CMakeLists.txt"
   workflow_dispatch:
 permissions:
   contents: read
