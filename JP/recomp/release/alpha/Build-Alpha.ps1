@@ -102,12 +102,17 @@ $notes=Join-Path $repoPath 'JP/recomp/release/alpha/README_ALPHA.md'
 if (-not (Test-Path -LiteralPath $notes)) { throw 'Current repo README missing' }
 Copy-Item -LiteralPath $notes -Destination $stage -Force
 foreach ($name in @('Play-CVIII.bat','Debug-Stage-Companion.bat','Capture-QA-0602.ps1','Build-And-Play.ps1','Build-And-Play.bat','Resolve-Python.ps1','Control-Profiles.py','Controls.ps1','Controls.bat')) {
- $src=Join-Path $repoPath ('JP/decomp/tools/'+$name)
+ $src=Join-Path $repoPath ('JP/recomp/release/alpha/'+$name)
  if (-not (Test-Path -LiteralPath $src)) {throw "Missing alpha launcher: $src"}
  Copy-Item -LiteralPath $src -Destination $stage -Force
 }
 foreach ($name in @('jp_password_stage_0593.py','jp_password_debug_menu_0593.py','jp_asset_pack_0597.py','jp_asset_runtime_0598.py','jp_chr_fetch_report_0600.py','jp_frame_evidence_report_0601.py','jp_qa_matrix_0602.py','jp_mapper_audit_0602.py','jp_nt_trace_report_0606.py','jp_object_oam_report_0609.py','jp_audio_bus_report_0610.py','jp_audio_session_verify_0614.py','jp_mesen_sound_requests_0615.py','mesen_jp_sound_requests_0615.lua','jp_sound_priority_paths_0616.py','jp_mesen_gate_report_0616.py','mesen_jp_sound_gates_0616.lua','jp_sound_decision_reference_0617.py','mesen_jp_sound_decisions_0617.lua','jp_audio_ui_chr_0619.py')) {
- $src=Join-Path $repoPath ('JP/decomp/tools/'+$name)
+ $recompHelpers=@('jp_asset_pack_0597.py','jp_asset_runtime_0598.py',
+   'jp_chr_fetch_report_0600.py','jp_frame_evidence_report_0601.py',
+   'jp_nt_trace_report_0606.py','jp_object_oam_report_0609.py',
+   'jp_audio_bus_report_0610.py','jp_audio_session_verify_0614.py')
+ $relative=if ($name -in $recompHelpers) {'JP/recomp/tools/'} else {'JP/decomp/tools/'}
+ $src=Join-Path $repoPath ($relative+$name)
  if (-not (Test-Path -LiteralPath $src)) {throw "Missing debug password helper: $src"}
  Copy-Item -LiteralPath $src -Destination $stage -Force
 }
