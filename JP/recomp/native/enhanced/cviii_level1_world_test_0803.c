@@ -575,6 +575,45 @@ int main(void){
               world->horizontal_scheduler_samples==sample_count,
               "vertical room cannot enter horizontal source scheduler observer"))
         return 47;
+    /* JP0818: source $8B50 marks actor with bit4 and parent-source
+     * ID in $0645,X. A type3D alone does NOT prove ancestry or
+     * native widescreen drawable AI. */
+    ram[0x07c2u+3u]=0x32u;
+    ram[0x07c8u+3u]=0x11u;
+    ram[0x054eu+2u]=0x3du;
+    ram[0x0470u+2u]=0x04u;
+    ram[0x0645u+2u]=3u;
+    ram[0x0400u+2u]=1u;
+    if(!check(cviii_world_observe_children_0818(world,first,ram)==1 &&
+              world->horizontal_child_samples==1u &&
+              world->horizontal_children[2].allocated &&
+              world->horizontal_children[2].parent_source==3u &&
+              world->horizontal_children[2].source_row_is_32 &&
+              world->horizontal_children[2].sprite_candidate,
+              "original row32 actor child linked through $0645"))
+        return 48;
+    /* The authentic guest may hide the sprite and clear the source
+     * before the child slot itself has been deallocated. */
+    ram[0x0470u+2u]=0x84u;
+    ram[0x07c2u+3u]=0u;
+    if(!check(cviii_world_observe_children_0818(world,first,ram)==1 &&
+              world->horizontal_children[2].allocated &&
+              !world->horizontal_children[2].sprite_candidate &&
+              !world->horizontal_children[2].source_row_is_32 &&
+              !world->horizontal_child_allocations &&
+              !world->horizontal_child_removals,
+              "original hidden actor retains parent but no OAM claim"))
+        return 49;
+    ram[0x054eu+2u]=0u;
+    if(!check(cviii_world_observe_children_0818(world,first,ram)==0 &&
+              world->horizontal_child_removals==1u,
+              "original type zero removes prior actor-to-source witness"))
+        return 50;
+    const uint32_t child_samples=world->horizontal_child_samples;
+    if(!check(cviii_world_observe_children_0818(world,vertical,ram)==-1 &&
+              child_samples==world->horizontal_child_samples,
+              "unsupported chapel does not mutate horizontal child state"))
+        return 51;
     cviii_world_clear_live_0805(world);
     if(!check(world->horizontal_ready &&
               world->horizontal[0].count==14u &&
@@ -582,7 +621,10 @@ int main(void){
               !world->horizontal_last.valid &&
               !world->horizontal_scheduler_samples &&
               !world->horizontal_row_deactivations &&
-              !world->horizontal_event_transitions,
+              !world->horizontal_event_transitions &&
+              !world->horizontal_child_samples &&
+              !world->horizontal_child_removals &&
+              !world->horizontal_children[2].allocated,
               "transient original source phase reset preserves source directory"))
          return 42;
     if(!check(!world->actors[0].active &&
