@@ -23,6 +23,8 @@ struct Bridge {
     int (*apply_kit)(int,int,int)=nullptr;
     int (*capture_kit)(int,const char*)=nullptr;
     int (*sky)(int,int)=nullptr;
+    int (*builtin_count)()=nullptr;
+    const char *(*builtin_name)(int)=nullptr;
     int (*event)(int,int,int)=nullptr;
     int (*prop)(int,int)=nullptr;
     int (*copy)()=nullptr;
@@ -60,6 +62,8 @@ bool bind_game(){
     b.apply_kit=game_export<decltype(b.apply_kit)>(exe,"cviii_lighting_editor_apply_kit");
     b.capture_kit=game_export<decltype(b.capture_kit)>(exe,"cviii_lighting_editor_capture_kit");
     b.sky=game_export<decltype(b.sky)>(exe,"cviii_lighting_editor_sky");
+    b.builtin_count=game_export<decltype(b.builtin_count)>(exe,"cviii_lighting_editor_builtin_count");
+    b.builtin_name=game_export<decltype(b.builtin_name)>(exe,"cviii_lighting_editor_builtin_name");
     b.event=game_export<decltype(b.event)>(exe,"cviii_lighting_editor_input");
     b.prop=game_export<decltype(b.prop)>(exe,"cviii_lighting_editor_property");
     b.copy=game_export<decltype(b.copy)>(exe,"cviii_lighting_editor_copy");
@@ -72,6 +76,7 @@ bool bind_game(){
     if(!b.model || !b.room || !b.session || !b.select || !b.add ||
        !b.place_window || !b.place_kit_window || !b.apply_builtin ||
        !b.apply_kit || !b.capture_kit || !b.sky ||
+       !b.builtin_count || !b.builtin_name ||
        !b.event || !b.prop ||
        !b.copy || !b.paste || !b.duplicate || !b.name || !b.group ||
        !b.scene || !b.save)return false;
@@ -137,9 +142,9 @@ void on_overlay(reshade::api::effect_runtime *){
 
     if(ImGui::CollapsingHeader("Global Lighting Library",ImGuiTreeNodeFlags_DefaultOpen)){
         ImGui::TextDisabled("Reusable groups. Place in any room.");
-        for(int i=0;i<cviii_light_builtin_count();++i){
+        for(int i=0;i<bridge.builtin_count();++i){
             ImGui::PushID(i);
-            ImGui::TextUnformatted(cviii_light_builtin_name(i));
+            ImGui::TextUnformatted(bridge.builtin_name(i));
             ImGui::SameLine(190);
             if(ImGui::SmallButton("Apply here"))changed(bridge.apply_builtin(i,-1,-1));
             ImGui::SameLine();
