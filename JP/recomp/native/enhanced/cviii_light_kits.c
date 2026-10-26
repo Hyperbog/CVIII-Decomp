@@ -103,6 +103,23 @@ int cviii_light_kit_apply(CviiiLighting *s,int slot,uint32_t room,int x,int y){
     if(!s || slot<0 || slot>=CVIII_KIT_MAX || !s->kits[slot].used)return -1;
     return place_parts(s,s->kits[slot].part,s->kits[slot].count,room,x,y);
 }
+int cviii_light_kit_rename(CviiiLighting *s,int slot,const char *name){
+    if(!s || slot<0 || slot>=CVIII_KIT_MAX || !s->kits[slot].used)return 0;
+    return safe_name(s->kits[slot].name,CVIII_LIGHT_NAME_CAP,name);
+}
+int cviii_light_kit_clone(CviiiLighting *s,int from,int to){
+    if(!s || from<0 || from>=CVIII_KIT_MAX ||
+       to<0 || to>=CVIII_KIT_MAX || from==to ||
+       !s->kits[from].used)return 0;
+    s->kits[to]=s->kits[from];
+    return 1;
+}
+int cviii_light_kit_delete(CviiiLighting *s,int slot){
+    if(!s || slot<0 || slot>=CVIII_KIT_MAX || !s->kits[slot].used)return 0;
+    memset(&s->kits[slot],0,sizeof s->kits[slot]);
+    return 1;
+}
+
 /* Scene sky is a separate, additive high/low gradient. Old scene ambient
  * presets continue to work without a Sky record. */
 void cviii_light_sky_get(const CviiiLighting *s,uint32_t room,
