@@ -130,6 +130,16 @@ if(NOT JP_CYCLE_HEADLESS AND JP_EDITION_HOST_EXTRAS AND JP_SAVE_STATE_SLOTS)
  # Copyright and license are included in the local private Alpha package.
  message(STATUS "CVIII: pinned Dear ImGui v1.93.0 / SDL2_Renderer GUI")
 endif()
+# The RTGI prototype computes its 128x96 lightmap on Windows hardware D3D11.
+# This is opt-in at runtime; the existing SDL2 window/renderer is unchanged.
+# Headless and non-Windows game binaries retain the strict C11 Standard path.
+if(WIN32 AND NOT JP_CYCLE_HEADLESS AND JP_EDITION_HOST_EXTRAS AND JP_SAVE_STATE_SLOTS)
+ target_sources(jp_akumajou_densetsu PRIVATE
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_gpu_rtgi_d3d11.cpp")
+ target_compile_definitions(jp_akumajou_densetsu PRIVATE CVIII_WITH_GPU_RTGI=1)
+ target_link_libraries(jp_akumajou_densetsu PRIVATE d3d11 d3dcompiler)
+ message(STATUS "CVIII: optional GPU Prototype RTGI via D3D11 compute, Standard fallback")
+endif()
 if(NOT JP_CYCLE_HEADLESS AND JP_SAVE_STATE_SLOTS)
  set(JP_UPSTREAM_SDL "${NESRECOMP_EXTERNAL_ROOT}/runner/cyc/cyc_sdl.c")
  set(JP_SLOTS_OVERLAY "${NESRECOMP_EXTERNAL_ROOT}/runner/cyc/cviii_cyc_sdl_slots.c")
