@@ -26,8 +26,8 @@ uint rows(uint levelIdx){return 24u >> levelIdx;}
 float2 origin(uint x,uint y,uint l){
     uint step=1u<<l;
     uint scanRow=min(95u,(y*step*4u)+(step*2u));
-    int2 line=scanlines[scanRow];
-    return float2(line.x+(x+.5)*(8u<<l),line.y);
+    int2 sampleScan=scanlines[scanRow];
+    return float2(sampleScan.x+(x+.5)*(8u<<l),sampleScan.y);
 }
 bool hitBox(float2 p,float2 dir,float2 boundsMin,float2 boundsMax,
             out float hitT,out float2 norm){
