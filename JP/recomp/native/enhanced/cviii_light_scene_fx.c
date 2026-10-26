@@ -57,6 +57,7 @@ void cviii_light_effective(const CviiiLighting *s,const CviiiLight *l,CviiiLight
     out->red=p->red;out->green=p->green;out->blue=p->blue;
     out->shape=p->shape;out->angle=p->angle;
     out->spread=p->spread;out->width=p->width;out->flicker=p->flicker;
+    out->anim_speed=p->anim_speed;out->anim_strength=p->anim_strength;
     /* x/y/room, name, group, and per-placement mute remain local. */
 }
 int cviii_light_mask_add(CviiiLighting *s,uint32_t room,int x,int y,int w,int h){
@@ -107,13 +108,18 @@ float cviii_light_shadow(const CviiiLighting *s,uint32_t room,
            m->y>maxy+16 || m->y+m->h<miny-16)continue;
         int radius=cap(m->softness,0,16);
         int covered=0;
-        /* Five deterministic jitter-free rays produce a soft penumbra. */
-        for(int k=-2;k<=2;++k){
-            float offset=(float)(k*radius)*0.5f;
-            covered+=intercept(m,(float)source_x+offset,(float)source_y,
-                                    (float)x,(float)y);
+        /* Stable 3x3 area-source PCF (binomial 1:2:1 x 1:2:1).
+         * Spread across both axes, removing single-axis hard seams. */
+        for(int sy=-1;sy<=1;++sy){
+            int wy=sy==0?2:1;
+            for(int sx=-1;sx<=1;++sx){
+                int wx=sx==0?2:1;
+                float lx=(float)source_x+(float)(sx*radius);
+                float ly=(float)source_y+(float)(sy*radius);
+                covered+=wx*wy*intercept(m,lx,ly,(float)x,(float)y);
+            }
         }
-        float occlusion=(float)m->opacity/100.f*(float)covered/5.f;
+        float occlusion=(float)m->opacity/100.f*(float)covered/16.f;
         transmission*=1.f-occlusion;
         if(transmission<0.005f)return 0.f;
     }
