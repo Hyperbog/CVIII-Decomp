@@ -380,6 +380,31 @@ int main(void){
               projected_epochs==world->chapel_projection_epochs,
               "wrong source selector cannot mutate projection"))
         return 33;
+    /* Natural JP0519 type-$80 has original $0470 high bit set.
+     * The PRG26 visible-sprite observer suppresses such a shadow,
+     * but the original $054E slot remains allocated and processed
+     * by FDFE/BD11/EF93. Do not conflate those two lifetimes. */
+    ram[0x0470u+13u]=0x81u;
+    (void)cviii_world_capture_live_0803(world,vertical,0,0,ram);
+    if(!check(!world->actors[13].active &&
+              cviii_world_link_chapel_0814(world,vertical,ram)==1 &&
+              cviii_world_probe_chapel_0815(
+                  world,vertical,80,0x180,85,426,fake_sprites)==0 &&
+              world->chapel_projection[0].guest_installed &&
+              world->chapel_projection[0].guest_slot==13u &&
+              !world->chapel_projection[0].actor_confirmed &&
+              !world->chapel_projection[0].visual_valid &&
+              world->chapel_projection[0].interaction_policy==
+                  CVIII_INTERACTION_MAY_ROUTE_B162_0815,
+              "hidden original actor is allocated but never ghost-rendered"))
+        return 35;
+    /* Restore a synthetic visible guest actor for later recycling tests. */
+    world->actors[13].active=1u;
+    world->actors[13].room=2u;world->actors[13].slot=13u;
+    world->actors[13].original_type=0x80u;
+    ram[0x0470u+13u]=0u;
+    if(!check(cviii_world_link_chapel_0814(world,vertical,ram)==1,
+              "restored original installation signature"))return 36;
     /* Two records claiming one original slot are both ambiguous. */
     memcpy(chapel->payload+7u,chapel->payload,7u);
     if(!check(cviii_world_link_chapel_0814(world,vertical,ram)==0 &&
