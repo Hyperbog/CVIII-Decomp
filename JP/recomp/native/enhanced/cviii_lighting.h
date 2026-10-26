@@ -2,7 +2,7 @@
 #define CVIII_LIGHTING_H
 #include <stdint.h>
 #include <stdio.h>
-#define CVIII_LIGHT_MAX 24
+#define CVIII_LIGHT_MAX 128
 #define CVIII_LIGHT_W 256
 #define CVIII_LIGHT_H 240
 #define CVIII_LIGHT_HUD 48
