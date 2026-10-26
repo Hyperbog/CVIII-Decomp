@@ -25,7 +25,7 @@ int cviii_light_event(CviiiLighting *s,int event,int x,int y,uint32_t room,
        (!sx || !sy || x<0 || x>=256 || y<CVIII_LIGHT_HUD || y>=240))return 0;
     if(event==2 || event==13){
         int px=wx(x,y,camera,sx),py=sy[y],idx=-1;
-        long best=100;
+        long best=400; /* 20-pixel grab handle, not a pixel-perfect crosshair */
         for(int i=0;i<CVIII_LIGHT_MAX;++i){
             CviiiLight *l=&s->light[i];
             if(!l->used || l->room!=room)continue;
