@@ -317,7 +317,8 @@ void cviii_light_save(const CviiiLighting *s,FILE *out){
         if(a->used){
             fprintf(out,"RoomAmbient%02d = %u,%d,%d,%d,%d\n",
                 i,a->room,a->level,a->red,a->green,a->blue);
-            if(a->sky){
+            if(a->sky || a->sky_red!=186 || a->sky_green!=209 ||
+               a->sky_blue!=255 || a->sky_facing!= -1){
                 fprintf(out,"RoomSky%02d = %u,%d,%d,%d,%d,%d\n",
                     i,a->room,a->sky,a->sky_red,a->sky_green,
                     a->sky_blue,a->sky_facing);
