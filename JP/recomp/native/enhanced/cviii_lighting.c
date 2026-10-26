@@ -6,6 +6,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
+#include <stdio.h>
 static int clip(int x,int lo,int hi){return x<lo?lo:(x>hi?hi:x);}
 static int unwrap(int ppu,int reference,int cycle){
     int d=(ppu-reference%cycle+cycle*2)%cycle;
@@ -91,7 +92,8 @@ static void dot(uint32_t *p,int x,int y,unsigned color){
 void cviii_light_present(CviiiLighting *s,uint32_t *p,int w,int h,uint32_t room,
                          int camera,const int sx[CVIII_LIGHT_H],const int sy[CVIII_LIGHT_H],uint64_t frame){
     if(!s || !p || !sx || !sy || w!=256 || h!=240)return;
-    float modulation[CVIII_LIGHT_MAX];
+    float modulation[CVIII_LIGHT_MAX],cc[CVIII_LIGHT_MAX],ss[CVIII_LIGHT_MAX];
+    const float radians=0.017453292519943295f;
     /* Gentle multi-band variation, not frame-by-frame white noise.
      * Isolated candles are relatively stable; larger diffusion flames
      * can show ~10 Hz oscillation in the cited combustion literature.
@@ -105,22 +107,45 @@ void cviii_light_present(CviiiLighting *s,uint32_t *p,int w,int h,uint32_t room,
         float slow=0.018f*sinf(6.2831853f*0.73f*t+phase)
                   +0.012f*sinf(6.2831853f*1.71f*t+phase*2.3f);
         float fast=l->energy>=100?0.009f*sinf(6.2831853f*10.2f*t+phase):0.f;
-        modulation[i]=1.f+warm*(slow+fast);
+        float intensity=l->flicker==1?0.f:l->flicker==2?2.7f:1.f;
+        modulation[i]=1.f+warm*(slow+fast)*intensity;
+        cc[i]=cosf((float)l->angle*radians);
+        ss[i]=sinf((float)l->angle*radians);
     }
     if(s->enabled){
-        float ambient=(float)s->ambient/100.0f;
+        int ambient_pct=0,amb_rgb[3]={255,255,255};
+        cviii_light_scene_get(s,room,&ambient_pct,amb_rgb);
+        float ar=(float)ambient_pct*amb_rgb[0]/25500.f;
+        float ag=(float)ambient_pct*amb_rgb[1]/25500.f;
+        float ab=(float)ambient_pct*amb_rgb[2]/25500.f;
         for(int y=CVIII_LIGHT_HUD;y<h;++y){
             int origin=unwrap(sx[y],camera,512),yy=sy[y];
             for(int x=0;x<w;++x){
-                float r=ambient,g=ambient,b=ambient;
+                float r=ar,g=ag,b=ab;
                 int world=origin+x;
                 for(int i=0;i<CVIII_LIGHT_MAX;++i){
                     const CviiiLight *l=&s->light[i];
-                    if(!l->used || l->room!=room)continue;
+                    if(!l->used || l->muted || l->room!=room)continue;
                     float dx=(float)(world-l->x),dy=(float)(yy-l->y);
-                    float dist2=dx*dx+dy*dy,rad=(float)l->radius;
-                    if(dist2>=rad*rad)continue;
-                    float t=1.f-sqrtf(dist2)/rad;
+                    float rad=(float)l->radius,t;
+                    if(l->shape==CVIII_SHAPE_RADIAL){
+                        float d2=dx*dx+dy*dy;
+                        if(d2>=rad*rad)continue;
+                        t=1.f-sqrtf(d2)/rad;
+                    }else{
+                        float along=dx*cc[i]+dy*ss[i];
+                        float across=fabsf(-dx*ss[i]+dy*cc[i]);
+                        if(along<0 || along>=rad)continue;
+                        float half_width;
+                        if(l->shape==CVIII_SHAPE_CONE){
+                            int spread=clip(l->spread?l->spread:30,5,85);
+                            half_width=2.f+along*tanf((float)spread*radians);
+                        }else if(l->shape==CVIII_SHAPE_SHAFT){
+                            half_width=0.5f*(float)clip(l->width?l->width:32,4,160);
+                        }else continue;
+                        if(across>=half_width)continue;
+                        t=(1.f-across/half_width)*(1.f-along/rad);
+                    }
                     float power=modulation[i]*(float)l->energy*0.014f*t*t*(3.f-2.f*t);
                     r+=power*(float)l->red/255.f;
                     g+=power*(float)l->green/255.f;
@@ -138,7 +163,7 @@ void cviii_light_present(CviiiLighting *s,uint32_t *p,int w,int h,uint32_t room,
             int dy=sy[y]-l->y;
             if(abs(dy)>l->radius+1)continue;
             int origin=unwrap(sx[y],camera,512),rad2=l->radius*l->radius;
-            for(int dx=-l->radius;dx<=l->radius;++dx){
+            for(int dx=-l->radius;dx<=l->radius && l->shape==CVIII_SHAPE_RADIAL;++dx){
                 int d2=dx*dx+dy*dy;
                 if(abs(d2-rad2)<=l->radius)
                     dot(p,l->x+dx-origin,y,i==s->selected?0xffffe5b0u:0xffaaaaaau);
@@ -148,6 +173,57 @@ void cviii_light_present(CviiiLighting *s,uint32_t *p,int w,int h,uint32_t room,
         }
     }
 }
+
+/* Hex-encoded text never escapes a config.ini value, and allows UTF-8. */
+static int hexval(char c){
+    if(c>='0' && c<='9')return c-'0';
+    if(c>='a' && c<='f')return c-'a'+10;
+    if(c>='A' && c<='F')return c-'A'+10;
+    return -1;
+}
+static int hex_label(char *dst,size_t cap,const char *v){
+    size_t n=strlen(v);
+    if((n&1) || n/2>=cap)return 0;
+    for(size_t i=0;i<n;i+=2){
+        int hi=hexval(v[i]),lo=hexval(v[i+1]);
+        if(hi<0 || lo<0 || (hi*16+lo)<32 || (hi*16+lo)==127)return 0;
+    }
+    for(size_t i=0;i<n;i+=2)
+        dst[i/2]=(char)(hexval(v[i])*16+hexval(v[i+1]));
+    dst[n/2]=0;
+    return 1;
+}
+static void label_write(FILE *f,const char *key,int i,const char *v){
+    if(!*v)return;
+    static const char hex[]="0123456789ABCDEF";
+    fprintf(f,"%s%02d = ",key,i);
+    for(const unsigned char *p=(const unsigned char*)v;*p;++p){
+        fputc(hex[*p>>4],f);
+        fputc(hex[*p&15],f);
+    }
+    fputc('\n',f);
+}
+static int style_load(CviiiLighting *s,const char *key,const char *val){
+    unsigned i;char tail;int shape,angle,spread,width,mute,flicker,n=0;
+    if(sscanf(key,"LightStyle%2u%c",&i,&tail)!=1 || i>=CVIII_LIGHT_MAX)return 0;
+    if(sscanf(val,"%d,%d,%d,%d,%d,%d%n",
+      &shape,&angle,&spread,&width,&mute,&flicker,&n)!=6 || val[n] ||
+      shape<0 || shape>2 || angle<0 || angle>359 ||
+      spread<0 || spread>85 || width<0 || width>160 ||
+      mute<0 || mute>1 || flicker<0 || flicker>2)return 0;
+    CviiiLight *l=&s->light[i];
+    l->shape=shape;l->angle=angle;l->spread=spread;
+    l->width=width;l->muted=mute;l->flicker=flicker;
+    return 1;
+}
+static int scene_load(CviiiLighting *s,const char *key,const char *value){
+    unsigned i,room;char tail;int level,r,g,b,n=0;
+    if(sscanf(key,"RoomAmbient%2u%c",&i,&tail)!=1 ||
+       i>=CVIII_SCENE_AMBIENT_MAX)return 0;
+    if(sscanf(value,"%u,%d,%d,%d,%d%n",&room,&level,&r,&g,&b,&n)!=5 ||
+       value[n])return 0;
+    return cviii_light_scene_set(s,room,level,r,g,b);
+}
 int cviii_light_load(CviiiLighting *s,const char *key,const char *value){
     if(!s || !key || !value)return 0;
     if(!strcmp(key,"Lighting")){s->enabled=!strcmp(value,"1");return 1;}
@@ -156,7 +232,17 @@ int cviii_light_load(CviiiLighting *s,const char *key,const char *value){
         if(sscanf(value,"%d %c",&n,&extra)!=1 || n<35 || n>100)return 0;
         s->ambient=n;return 1;
     }
+    if(!strncmp(key,"RoomAmbient",11))return scene_load(s,key,value);
+    if(!strncmp(key,"LightStyle",10))return style_load(s,key,value);
     unsigned slot;char extra;
+    if(!strncmp(key,"LightName",9)){
+        if(sscanf(key,"LightName%2u%c",&slot,&extra)!=1 || slot>=CVIII_LIGHT_MAX)return 0;
+        return hex_label(s->light[slot].name,CVIII_LIGHT_NAME_CAP,value);
+    }
+    if(!strncmp(key,"LightGroup",10)){
+        if(sscanf(key,"LightGroup%2u%c",&slot,&extra)!=1 || slot>=CVIII_LIGHT_MAX)return 0;
+        return hex_label(s->light[slot].group,CVIII_LIGHT_GROUP_CAP,value);
+    }
     if(sscanf(key,"Light%2u%c",&slot,&extra)!=1 || slot>=CVIII_LIGHT_MAX)return 0;
     unsigned room,r,g,b;int x,y,rad,energy,used,end=0;
     if(sscanf(value,"%d,%u,%d,%d,%d,%d,%u,%u,%u%n",
@@ -171,7 +257,18 @@ void cviii_light_save(const CviiiLighting *s,FILE *out){
     fprintf(out,"Lighting = %d\nLightAmbient = %d\n",s->enabled,s->ambient);
     for(int i=0;i<CVIII_LIGHT_MAX;++i){
         const CviiiLight *l=&s->light[i];
-        if(l->used)fprintf(out,"Light%02d = 1,%u,%d,%d,%d,%d,%u,%u,%u\n",
-            i,l->room,l->x,l->y,l->radius,l->energy,l->red,l->green,l->blue);
+        if(l->used){
+            fprintf(out,"Light%02d = 1,%u,%d,%d,%d,%d,%u,%u,%u\n",
+                i,l->room,l->x,l->y,l->radius,l->energy,l->red,l->green,l->blue);
+            fprintf(out,"LightStyle%02d = %d,%d,%d,%d,%d,%d\n",
+                i,l->shape,l->angle,l->spread,l->width,l->muted,l->flicker);
+            label_write(out,"LightName",i,l->name);
+            label_write(out,"LightGroup",i,l->group);
+        }
+    }
+    for(int i=0;i<CVIII_SCENE_AMBIENT_MAX;++i){
+        const CviiiSceneAmbient *a=&s->scenes[i];
+        if(a->used)fprintf(out,"RoomAmbient%02d = %u,%d,%d,%d,%d\n",
+            i,a->room,a->level,a->red,a->green,a->blue);
     }
 }
