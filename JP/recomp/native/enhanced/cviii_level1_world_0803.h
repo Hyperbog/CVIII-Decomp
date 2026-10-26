@@ -9,6 +9,7 @@
 #include "cviii_stage1_source_link_0814.h"
 #include "cviii_source_offscreen_0815.h"
 #include "cviii_horizontal_sources_0816.h"
+#include "cviii_horizontal_activation_0817.h"
 #include <stdint.h>
 #include <stddef.h>
 enum { CVIII_WORLD_ROOMS_0803=8, CVIII_WORLD_ACTORS_0803=28,
@@ -104,6 +105,12 @@ typedef struct {
     CviiiHorizontalSelection0816 horizontal_last;
     uint32_t horizontal_observations;
     uint8_t horizontal_ready;
+    /* JP0817: source-slot states, NOT actor slots or inferred spawns. */
+    CviiiHorizontalLive0817 horizontal_live[CVIII_SOURCE_SLOTS_0817];
+    CviiiHorizontalMotion0817 horizontal_predicted[CVIII_SOURCE_SLOTS_0817];
+    uint32_t horizontal_scheduler_samples;
+    uint32_t horizontal_row_activations, horizontal_row_deactivations;
+    uint32_t horizontal_event_transitions;
 } CviiiLevel1World0803;
 
 /* All eight source rooms are resident on success. One known horizontal
@@ -169,6 +176,11 @@ int cviii_world_preload_horizontal_0816(CviiiLevel1World0803 *world,
  * selected source cell, 0 for no bounded source, -1 for unsupported.
  * Read-only original source identities, no hitboxes or guest RAM writes. */
 int cviii_world_observe_horizontal_0816(CviiiLevel1World0803 *world,
+                    const uint8_t selector[3],const uint8_t ram[2048]);
+/* Sample actual $07C2/$07C8/$07E0 source slots after the authentic
+ * CPU frame. $83D1 math is a *next-step prediction*, not injected
+ * into the original game. Counters count observations, NOT spawn events. */
+int cviii_world_observe_scheduler_0817(CviiiLevel1World0803 *world,
                     const uint8_t selector[3],const uint8_t ram[2048]);
 int cviii_world_track_chapel_0813(CviiiLevel1World0803 *world,
                   const uint8_t selector[3],int camera_y);
