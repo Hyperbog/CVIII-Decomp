@@ -18,6 +18,8 @@ extern "C" {
 #define CVIII_OCCLUDER_MAX 64
 #define CVIII_OCCLUDER_MAX_SOFTNESS 32
 #define CVIII_SCENE_ALIAS_MAX 32
+#define CVIII_PARTICLE_EMITTER_MAX 32
+#define CVIII_PARTICLE_INSTANCE_MAX 96
 enum { CVIII_SHAPE_RADIAL=0, CVIII_SHAPE_CONE=1, CVIII_SHAPE_SHAFT=2 };
 typedef struct {
     uint32_t room;
@@ -70,6 +72,22 @@ typedef struct {
     uint32_t source, target;
     int used;
 } CviiiSceneAlias;
+enum {
+    CVIII_FX_DUST=0, CVIII_FX_EMBERS=1, CVIII_FX_FOG=2,
+    CVIII_FX_ASH=3, CVIII_FX_SNOW=4, CVIII_FX_RAIN=5,
+    CVIII_FX_FIREFLIES=6, CVIII_FX_COUNT=7
+};
+typedef struct {
+    uint32_t room;
+    int used,kind,x,y,w,h;
+    int density; /* 1..96 deterministic particles */
+    int speed;   /* 0..300%; 0 freezes the effect */
+    int wind;    /* -100..100 scene horizontal drift */
+    int opacity; /* 0..100; NES-style quantized blending */
+    int size;    /* 1..4 native pixels; fog is stippled */
+    uint8_t red,green,blue;
+    char name[CVIII_LIGHT_NAME_CAP];
+} CviiiParticleEmitter;
 typedef struct {
     CviiiLight light[CVIII_LIGHT_MAX];
     CviiiSceneAmbient scenes[CVIII_SCENE_AMBIENT_MAX];
@@ -77,6 +95,8 @@ typedef struct {
     CviiiGlobalStyle styles[CVIII_GLOBAL_STYLE_MAX];
     CviiiOccluder masks[CVIII_OCCLUDER_MAX];
     CviiiSceneAlias aliases[CVIII_SCENE_ALIAS_MAX];
+    CviiiParticleEmitter particles[CVIII_PARTICLE_EMITTER_MAX];
+    int particles_enabled; /* independently toggled from lighting */
     CviiiLight clipboard;
     int clipboard_valid;
     int enabled,ambient,edit,selected,dragging;
@@ -91,6 +111,17 @@ void cviii_light_present(CviiiLighting *s,uint32_t *pixels,int width,int height,
 int cviii_light_event(CviiiLighting *s,int event,int x,int y,
                       uint32_t room,int camera_x,const int scroll_x[CVIII_LIGHT_H],
                       const int scroll_y[CVIII_LIGHT_H]);
+/* Entirely host-side world-space pixel FX; no GPU or ROM required. */
+int cviii_particle_add(CviiiLighting *s,uint32_t room,int kind,int x,int y);
+int cviii_particle_property(CviiiLighting *s,int slot,int property,int value);
+int cviii_particle_name(CviiiLighting *s,int slot,const char *name);
+int cviii_particle_load(CviiiLighting *s,const char *key,const char *value);
+void cviii_particle_save(const CviiiLighting *s,FILE *file);
+void cviii_particle_present(const CviiiLighting *s,uint32_t pixels[CVIII_LIGHT_W*CVIII_LIGHT_H],
+                            uint32_t room,int camera,
+                            const int scroll_x[CVIII_LIGHT_H],
+                            const int scroll_y[CVIII_LIGHT_H],uint64_t frame);
+const char *cviii_particle_kind_name(int kind);
 int cviii_light_load(CviiiLighting *s,const char *key,const char *value);
 void cviii_light_save(const CviiiLighting *s,FILE *file);
 /* Pure C11 editor model; no SDL, external overlay, or ROM dependency. */
