@@ -388,7 +388,7 @@ void on_overlay(reshade::api::effect_runtime *){
                 changed(bridge.mask_property(mask_slot,4,h));
             if(ImGui::SliderInt("Shadow Opacity",&alpha,0,100))
                 changed(bridge.mask_property(mask_slot,5,alpha));
-            if(ImGui::SliderInt("Penumbra Softness",&soft,0,16))
+            if(ImGui::SliderInt("Penumbra Softness",&soft,0,CVIII_OCCLUDER_MAX_SOFTNESS))
                 changed(bridge.mask_property(mask_slot,6,soft));
             if(ImGui::Button("Remove Mask"))changed(bridge.mask_property(mask_slot,0,0));
         }
