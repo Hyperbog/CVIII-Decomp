@@ -394,6 +394,12 @@ jobs:
           if (!(Test-Path -LiteralPath $test)) { throw 'JP0803 world registry test missing' }
           & $test
           if ($LASTEXITCODE -ne 0) { throw 'JP0803 persistent world graph and object shadow failed' }
+      - name: Verify JP0817 source activation and collision response (ROM-free)
+        shell: pwsh
+        run: |
+          $build = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win'
+          ctest --test-dir $build -C Release -R '^JP0817_' --output-on-failure
+          if ($LASTEXITCODE -ne 0) { throw 'JP0817 source scheduler or response tests failed' }
       - name: Verify original PRG26 active actors in widescreen columns (ROM-free)
         shell: pwsh
         run: |
