@@ -33,6 +33,13 @@ int cviii_stage1_atlas_horizontal_width_0801(
  * camera_x/y are caller-supplied room-local pixel offsets; never guessed.
  * Returns number of side pixels actually reconstructed.
  */
+/* JP0802: the original PPU may map its background pattern table at 0
+ * OR $1000. Use the live scanline's selected hardware CHR table. */
+uint32_t cviii_stage1_atlas_paint_bg_table_0802(
+    const CviiiStage1Atlas0724 *atlas,const uint8_t selector[3],
+    int camera_x,int camera_y,uint32_t *dst,
+    int width,int height,int center_x,uint16_t bg_table,
+    uint8_t (*read_chr)(uint16_t),uint32_t (*read_color)(int));
 uint32_t cviii_stage1_atlas_paint_0724(const CviiiStage1Atlas0724 *atlas,
     const uint8_t selector[3], int camera_x,int camera_y,
     uint32_t *dst,int width,int height,int center_x,

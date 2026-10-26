@@ -12,7 +12,7 @@ static uint8_t test_ram[2048];
 static uint32_t original[256*240];
 static CviiiStage1Host0725 host;
 static uint32_t isolated_room[426*240]; /* invented ROM test pixels */
-static int scroll_x,requested_mode=-1;
+static int scroll_x,requested_mode=-1,bg_table=0x1000;
 static uint8_t live_nt[2048];
 uint8_t cyc_render_nametable(uint16_t a) {
     unsigned at=a&0xfffu;
@@ -36,7 +36,7 @@ static void seed_visible_room_from_x(const uint8_t key[3],unsigned page,
 }
 const uint8_t *cyc_cpu_ram(void) {return test_ram;}
 uint8_t cyc_render_line_mask(int line) {(void)line;return 0x1e;}
-uint16_t cyc_render_line_bg_table(int line) {(void)line;return 0x1000;}
+uint16_t cyc_render_line_bg_table(int line) {(void)line;return (uint16_t)bg_table;}
 int cyc_render_line_scroll_x(int line) {(void)line;return scroll_x;}
 int cyc_render_line_scroll_y(int line) {return line;}
 uint8_t cyc_render_chr(uint16_t addr) {(void)addr;return 0xff;}
@@ -156,6 +156,19 @@ int main(void)
                         host.last_verified_camera==next_camera,
                         "later room page1 camera verified within atlas bounds"))
                 return 1;
+            if(area==2u) {
+                /* BLK 1-03 still renders if hardware chooses the other
+                 * real NES background CHR pattern table at $0000. */
+                bg_table=0;
+                w=256;h=240;
+                pixels=cviii_stage1_host_present_0725(
+                    &host,original,&w,&h,1);
+                if(!require(host.has_verified_scene &&
+                            host.last_verified_camera==next_camera &&
+                            !memcmp(host.last_verified_selector,key,3),
+                            "BLK1-03 accepts actual PPU BG table0"))return 1;
+                bg_table=0x1000;
+            }
         }
         /* Truly nonhorizontal room 1-02:1 is never painted sideways. */
         const uint8_t vertical[3]={0,1,1};

@@ -82,10 +82,12 @@ int cviii_stage1_atlas_horizontal_width_0801(
     return (int)a->rooms[idx].width_tiles*8;
 }
 
-uint32_t cviii_stage1_atlas_paint_0724(const CviiiStage1Atlas0724 *a,
-    const uint8_t key[3],int camera_x,int camera_y,
-    uint32_t *dst,int width,int height,int center_x,
+uint32_t cviii_stage1_atlas_paint_bg_table_0802(
+    const CviiiStage1Atlas0724 *a,const uint8_t key[3],
+    int camera_x,int camera_y,uint32_t *dst,int width,int height,
+    int center_x,uint16_t bg_table,
     uint8_t (*chr)(uint16_t),uint32_t (*color)(int)){
+    if(bg_table!=0u && bg_table!=0x1000u)return 0;
     if(!a||!a->loaded||!key||!dst||!chr||!color||width<=256||
         width>864||height!=240||center_x<0||center_x+256>width)return 0;
     int room=locate(key);
@@ -102,7 +104,7 @@ uint32_t cviii_stage1_atlas_paint_0724(const CviiiStage1Atlas0724 *a,
         if(wx<0||wy<0||wx>=r->width_tiles*8||wy>=r->height_tiles*8)continue;
         unsigned at=a->offsets[room]+(unsigned)(wy/8)*r->width_tiles+(unsigned)(wx/8);
         unsigned tile=a->tile[at],pal=a->palette[at];
-        uint16_t pattern=(uint16_t)(0x1000u+tile*16u);
+        uint16_t pattern=(uint16_t)(bg_table+tile*16u);
         unsigned row=(unsigned)wy%8u,bit=7u-((unsigned)wx%8u);
         unsigned idx=((chr((uint16_t)(pattern+row))>>bit)&1u)|
           (((chr((uint16_t)(pattern+row+8u))>>bit)&1u)<<1u);
@@ -110,4 +112,13 @@ uint32_t cviii_stage1_atlas_paint_0724(const CviiiStage1Atlas0724 *a,
         painted++;
     }
     return painted;
+}
+
+/* Retain JP0724 call ABI for archived tests/read-only tooling. */
+uint32_t cviii_stage1_atlas_paint_0724(const CviiiStage1Atlas0724 *a,
+    const uint8_t key[3],int camera_x,int camera_y,
+    uint32_t *dst,int width,int height,int center_x,
+    uint8_t (*chr)(uint16_t),uint32_t (*color)(int)){
+    return cviii_stage1_atlas_paint_bg_table_0802(a,key,camera_x,camera_y,
+        dst,width,height,center_x,0x1000u,chr,color);
 }

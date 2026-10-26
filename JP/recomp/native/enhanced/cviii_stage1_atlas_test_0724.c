@@ -9,6 +9,9 @@
 #include <stdlib.h>
 #include <string.h>
 static uint8_t pixel(uint16_t v){(void)v;return 255;}
+static uint8_t pixel_table_0802(uint16_t v){
+ return v<0x1000u ? 255u : 0u;
+}
 static uint32_t color(int c){return 0xff000000u|((unsigned)c<<8u);}
 int main(void){
  uint8_t *rom=calloc(393232,1);assert(rom);memcpy(rom,"NES\x1a",4);
@@ -42,6 +45,19 @@ int main(void){
            p[48*426+85]==0xff123456u &&
            p[48*426+341]!=0xff123456u &&
            p[40*426+400]!=0xff123456u);
+ /* The exact same ROM tile ID must choose the live hardware background
+  * pattern table; no copy of stage graphics is embedded in the executable. */
+ for(int i=0;i<426*240;i++)p[i]=0xff123456u;
+ uint32_t on0=cviii_stage1_atlas_paint_bg_table_0802(
+     a,key,85,0,p,426,240,85,0u,pixel_table_0802,color);
+ uint32_t sample0=p[80*426+0];
+ for(int i=0;i<426*240;i++)p[i]=0xff123456u;
+ uint32_t on1=cviii_stage1_atlas_paint_bg_table_0802(
+     a,key,85,0,p,426,240,85,0x1000u,pixel_table_0802,color);
+ uint32_t sample1=p[80*426+0];
+ assert(on0>0u && on1==on0 && sample0!=sample1);
+ assert(cviii_stage1_atlas_paint_bg_table_0802(
+     a,key,85,0,p,426,240,85,0x0800u,pixel_table_0802,color)==0u);
  rom[0x2014c]=200;
  assert(cviii_stage1_atlas_load_0724(a,rom,393232)==-1);
  assert(cviii_stage1_atlas_get_0724(a,key,3,3,&tile,&pal)&&tile==15&&pal==3);

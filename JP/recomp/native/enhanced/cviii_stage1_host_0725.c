@@ -113,7 +113,8 @@ static int camera(const CviiiStage1Host0725 *h,uint8_t sel[3],
     const uint8_t *ram=cyc_cpu_ram();
     if (!ram || ram[0x18u]!=4u ||
         (cyc_render_line_mask(120)&0x08u)==0 ||
-        cyc_render_line_bg_table(120)!=0x1000u)return 0;
+        (cyc_render_line_bg_table(120)!=0x1000u &&
+         cyc_render_line_bg_table(120)!=0u))return 0;
     sel[0]=ram[0x34u];sel[1]=ram[0x35u];sel[2]=ram[0x36u];
     /* JP0801: ALL original Stage 1 rooms are already ROM-decoded.
      * $5A/$5B/$5C/$5D were observed as $8441/$8D51 only in an opening
@@ -277,11 +278,12 @@ const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
                256u*sizeof(uint32_t));
     }
     if(valid_camera) {
+        const uint16_t bg_table=cyc_render_line_bg_table(120);
         const int width_px=cviii_stage1_atlas_horizontal_width_0801(&h->atlas,selector);
         if(width_px>=256) {
-            (void)cviii_stage1_atlas_paint_0724(&h->atlas,selector,
+            (void)cviii_stage1_atlas_paint_bg_table_0802(&h->atlas,selector,
                 camera_x,camera_y,h->pixels,CVIII_STAGE1_WIDE_0725,240,
-                center,cyc_render_chr,cyc_render_color);
+                center,bg_table,cyc_render_chr,cyc_render_color);
             /* JP0790: the predecoded Stage 1 atlas is a continuous
              * world scene, not a timed scene-copy effect. Paint each known
              * room ONLY in its true neighboring world coordinate. Current
@@ -291,14 +293,14 @@ const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
             uint8_t neighbor[3];int neighbor_x=0;
             if(cviii_stage1_join_neighbor_0790(&h->join,selector,
                     camera_x,width_px,-1,neighbor,&neighbor_x))
-                (void)cviii_stage1_atlas_paint_0724(&h->atlas,neighbor,
+                (void)cviii_stage1_atlas_paint_bg_table_0802(&h->atlas,neighbor,
                     neighbor_x,camera_y,h->pixels,CVIII_STAGE1_WIDE_0725,240,
-                    center,cyc_render_chr,cyc_render_color);
+                    center,bg_table,cyc_render_chr,cyc_render_color);
             if(cviii_stage1_join_neighbor_0790(&h->join,selector,
                     camera_x,width_px,1,neighbor,&neighbor_x))
-                (void)cviii_stage1_atlas_paint_0724(&h->atlas,neighbor,
+                (void)cviii_stage1_atlas_paint_bg_table_0802(&h->atlas,neighbor,
                     neighbor_x,camera_y,h->pixels,CVIII_STAGE1_WIDE_0725,240,
-                    center,cyc_render_chr,cyc_render_color);
+                    center,bg_table,cyc_render_chr,cyc_render_color);
         }
     }
     *width=CVIII_STAGE1_WIDE_0725;

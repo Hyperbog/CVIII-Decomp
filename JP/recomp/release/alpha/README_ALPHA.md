@@ -378,6 +378,21 @@ No original game data is stored in public source. Windows retail
 verification is still required, particularly at original screenshot
 BLK 1-03 where graphics previously vanished.
 
+## JP0802 — Live hardware background pattern table per subarea
+
+The original Stage 1 overlay also assumed the PPU background CHR
+table was always $1000, as in the original opening scene capture.
+JP0802 now reads the actual background pattern-table selection from
+NES scanline 120 ($0000 or $1000) and uses it when resolving every
+preloaded ROM tile on both widescreen margins, including neighboring
+rooms. The ROM tile ID/palette source and PPU nametable verifier stay
+authoritative; a table switch must not turn BLK 1-03 black.
+
+The original JP0724 tool ABI retains its $1000-default wrapper; the
+native presenter uses the new explicit-table implementation. Synthetic
+CI checks disjoint CHR table output, invalid table rejection and
+Stage 1-03 acceptance with PPU BG table $0000.
+
 ## JP0661 native keyboard controls: profiles and recoverable presets
 
 The working native game already supports persistent SDL keyboard/gamepad
