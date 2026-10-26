@@ -5,6 +5,62 @@ Radiance Cascades implementation. The existing C11 **Standard** renderer
 remains the default and remains usable on Windows without a suitable GPU,
 on Linux, and in ROM-free/headless tests.
 
+## Third mode: Radiance Cascades (experimental)
+
+The new third mode runs a **true hierarchical directional-probe pass**:
+each cascade holds 6,144 rays, but trades spatial density for angular
+resolution as distance grows.
+
+| Level | Probe grid | Directions per probe | Ray distance interval (NES pixels) |
+| --- | --- | --- | --- |
+| 0 | 32 × 24 | 8 | 0–8 |
+| 1 | 16 × 12 | 32 | 8–40 |
+| 2 | 8 × 6 | 128 | 40–168 |
+| 3 | 4 × 3 | 512 | 168–680 |
+
+These distances use the 256×192 gameplay world coordinate units.
+Each interval traces against **the actual manually authored wall
+rectangles**, preserving the existing persistent room IDs. At a hit,
+the wall contributes its prelit face RGB while its opacity blocks
+radiance arriving from higher cascades. Empty ray segments transmit
+distant radiance. The GPU merges **far to near**, interpolating four
+neighboring coarse probe locations and four finer angular children
+per direction. Probe-zero radiance is integrated over eight
+directions and blended into the **existing direct HDR lightmap**.
+Rendering the finished 256×240 8-bit NES image still uses the
+same native-resolution palette-preserving composite.
+
+The editor's **Radiance Quality** setting chooses:
+**Low** (2 cascades), **Medium** (3, the default), or
+**High** (4). Both the quality and renderer selection are written to
+owner-local `config.ini` as `LightingCascadeQuality` and
+`LightingRenderer = RadianceCascades`.
+
+It is an intentionally bounded first Radiance Cascades implementation,
+**not** a full Path of Exile 2-style production GI solution. The wall
+radiance is initialized from the previous GPU prototype's sample
+of authored wall faces; this supports directional visibility-aware
+indirect light but is not an iterated multi-bounce transport solver.
+No sprite occlusion geometry, automatic tile collision export,
+GPU-resident final display, linear color-managed lighting or
+real-time 60-FPS acceptance is claimed. Scenes with no authored
+occluders retain direct and sky light without mask-generated bounce.
+
+**Compatibility:** Standard is the default. The third mode uses the
+same Win64 hardware D3D11 and room-budget gate as GPU Prototype.
+If either Radiance Cascades compute-shader initialization or dispatch
+cannot proceed, the entire frame is rendered with Standard,
+not a partially computed GPU image. Other platforms remain Standard.
+
+ROM-free Windows CI gates include compilation of both new CS5.0
+shader entry points, and an actual Direct3D WARP dispatch for each
+quality tier (2/3/4). This verifies math execution and nonzero
+indirect RGB on a synthetic wall scene; it does *not* substitute for
+owner gameplay, visuals, camera, or performance checks.
+
+References: [original Radiance Cascades research](https://github.com/Raikiri/RadianceCascadesPaper)
+and [accessible cascade-merging explanation](https://mini.gmshaders.com/p/radiance-cascades).
+
 ## Selecting a renderer
 
 Open **Enhanced → Lighting Studio → Settings → Renderer Backend** or the
@@ -14,9 +70,12 @@ genuine optional ReShade add-on's **GPU Lighting Prototype** section:
 | --- | --- | --- |
 | **Standard (CPU)** | Existing radial/cone/shaft lights, sky fill, masks, grading and editor handles | All existing supported systems |
 | **GPU Prototype (D3D11, 1 bounce)** | GPU-traced direct visibility, authored wall occlusion and an approximate secondary diffuse bounce | Windows desktop, D3D11 feature level 11.0 hardware |
+| **Radiance Cascades (D3D11, experimental)** | Directional hierarchical probe GI, far-to-near interval merging, Low/Medium/High quality | Windows desktop, D3D11 feature level 11.0 hardware |
 
-The choice is stored as `LightingRenderer = Standard` or
-`LightingRenderer = GPUPrototype` in the owner's local `config.ini`.
+The renderer choice is stored as `LightingRenderer = Standard`,
+`LightingRenderer = GPUPrototype`, or
+`LightingRenderer = RadianceCascades` in the owner's local `config.ini`.
+`LightingCascadeQuality` is an integer from 2–4 (default 3).
 **Original** mode never runs the GPU path.
 
 No changes are made to guest NES CPU, mapper, PPU, audio or save-state
