@@ -113,8 +113,11 @@ int main(void)
     test_ram[0x35]=1;test_ram[0x36]=3;
     scroll_x=256;w=256;h=240;
     pixels=cviii_stage1_host_present_0725(&host,original,&w,&h,1);
-    if (!require(pixels[32*426+341]==0xff000000u,
-                 "stale first-room nametable rejected"))return 1;
+    /* Reject the new selector while NT1 still contains old tiles, but
+     * KEEP painting authenticated previous scenery instead of black. */
+    if (!require(pixels[32*426+400]!=0xff000000u &&
+                 host.last_verified_selector[1]==0u,
+                 "unverified selector retains genuine last-room backdrop"))return 1;
     const uint8_t next_room[3]={0,1,3};
     seed_visible_room(next_room,1);
     w=256;h=240;
