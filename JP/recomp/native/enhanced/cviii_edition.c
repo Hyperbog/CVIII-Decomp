@@ -203,7 +203,8 @@ static void load_setting(void *context, const char *key, const char *value)
         (void)parse_boolean(value, &cviii.stable_sprites);
     else if (!strcmp(key,"LightingEditorKey"))
         (void)cviii_lighting_editor_set_key(value);
-    else if (!strncmp(key,"Light",5) || !strncmp(key,"RoomAmbient",11))
+    else if (!strncmp(key,"Light",5) || !strncmp(key,"RoomAmbient",11) ||
+             !strncmp(key,"RoomSky",7))
         (void)cviii_light_load(&cviii.lighting,key,value);
     else (void)cviii_audio_levels_load(&cviii.volume,key,value);
 }
