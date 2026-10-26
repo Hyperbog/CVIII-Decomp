@@ -387,6 +387,13 @@ jobs:
           if (!(Test-Path -LiteralPath $test)) { throw "JP0606 PPU background test missing" }
           & $test
           if ($LASTEXITCODE -ne 0) { throw "JP0606 original PPU background fetch test failed" }
+      - name: Verify preloaded Stage1 world coordinates and live source objects (ROM-free)
+        shell: pwsh
+        run: |
+          $test = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win/Release/jp_level1_world_test_0803.exe'
+          if (!(Test-Path -LiteralPath $test)) { throw 'JP0803 world registry test missing' }
+          & $test
+          if ($LASTEXITCODE -ne 0) { throw 'JP0803 persistent world graph and object shadow failed' }
       - name: Verify previous-room join and bounded side continuation (ROM-free)
         shell: pwsh
         run: |

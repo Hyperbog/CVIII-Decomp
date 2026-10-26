@@ -3,6 +3,7 @@
 #include "cviii_stage1_atlas_0724.h"
 #include "cviii_chr_index_0598.h"
 #include "cviii_stage1_join_0751.h"
+#include "cviii_level1_world_0803.h"
 #include <stdint.h>
 /* Game-owned read-only Enhanced presentation, no guest CPU/PPU mutations.
  * ROM identity is verified by JP_ORIGINAL_JP_ROM at CMake configuration.
@@ -17,7 +18,8 @@ typedef struct {
     uint32_t pixels[CVIII_STAGE1_WIDE_0725*240];
     char rom_path[1024];
     char resource_cache_path[1024]; /* optional user-private JP0729 cache */
-    CviiiStage1Join0751 join; /* preloaded previous room, no pixel repetition */
+    CviiiStage1Join0751 join; /* original previous-room presentation */
+    CviiiLevel1World0803 world; /* persistent coordinate graph and actor registry */
     uint8_t last_verified_selector[3];
     int last_verified_camera, last_verified_center;
     int has_verified_scene; /* retains authenticated room between transitions */

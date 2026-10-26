@@ -9,6 +9,7 @@ add_executable(jp_stage1_host_test_0725
  ../cviii_stage1_atlas_0724.c
  ../cviii_stage1_host_0725.c
  ../cviii_stage1_join_0751.c
+ ../cviii_level1_world_0803.c
  ../cviii_runtime_resources_0727.c
  ../cviii_resource_cache_0729.c
  ../cviii_chr_index_0598.c

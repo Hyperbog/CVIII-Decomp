@@ -27,7 +27,12 @@ static int load(CviiiStage1Host0725 *h)
         h->runtime_assets : NULL;
     CviiiResourceStatus0727 result=cviii_game_resources_cached_open_0729(
         h->rom_path,h->resource_cache_path,&h->atlas,assets);
-    if(result==CVIII_RESOURCE_READY_0727) return 1;
+    if(result==CVIII_RESOURCE_READY_0727) {
+        /* Always construct the full eight-room coordinate graph from the
+         * authenticated original Japanese ROM atlas in one operation. */
+        if(!cviii_world_build_0803(&h->world,&h->atlas))return 0;
+        return 1;
+    }
     fprintf(stderr,"CVIII JP0727: runtime Stage 1 resource load rejected (status %d); stock presentation retained\\n",
             (int)result);
     return 0;
@@ -58,6 +63,7 @@ int cviii_stage1_host_rom_0725(CviiiStage1Host0725 *h,const char *path)
     memcpy(h->rom_path,path,strlen(path)+1u);
     /* Only selecting a different ROM invalidates learnt world geometry. */
     cviii_stage1_join_reset_0751(&h->join);
+    memset(&h->world,0,sizeof h->world);
     cviii_stage1_host_reset_0751(h);
     h->attempted=0;
     h->atlas.loaded=0;
@@ -193,6 +199,10 @@ const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
         h->video_wide=1;
     }
     cviii_stage1_seed_links_0782(h);
+    /* Synthetic host fixtures may already carry a staged atlas. Production
+     * host builds the world at validated resource import above. */
+    if(!h->world.ready)
+        (void)cviii_world_build_0803(&h->world,&h->atlas);
 
     /* Source attestation identifies camera/page, not the lifespan of the
      * already loaded map. Keep the LAST authenticated scene across arbitrarily
@@ -209,6 +219,18 @@ const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
         if(room_width>=256 && camera_x>=0 && camera_x<=room_width-256) {
             cviii_stage1_join_accept_0751(&h->join,selector,camera_x,room_width);
             cviii_stage1_join_restore_0782(&h->join,selector,camera_x,room_width);
+            /* A crossing only becomes a world connection after BOTH
+             * original room selectors passed real PPU/atlas verification.
+             * The immutable layouts remain in RAM across gameover. */
+            for(unsigned edge=0;edge<h->join.link_count;edge++) {
+                const CviiiRoomLink0782 *link=&h->join.links[edge];
+                if(link->has_right)
+                    (void)cviii_world_connect_0803(&h->world,link->key,
+                        link->right,CVIII_WORLD_RIGHT_0803);
+            }
+            (void)cviii_world_visit_0803(&h->world,selector);
+            (void)cviii_world_capture_live_0803(&h->world,selector,
+                         camera_x,camera_y,ram);
             center=viewport_center_0790(selector,camera_x);
             memcpy(h->last_verified_selector,selector,sizeof selector);
             h->last_verified_camera=camera_x;
