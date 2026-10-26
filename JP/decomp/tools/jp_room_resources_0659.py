@@ -45,6 +45,19 @@ def layout():
     insist(cursor==SOURCE_END,'expected 175 physical source bytes')
     return sorted_entries
 
+def header_ram_effects(header):
+    """Original raw0A:$B808-$B83F header writes, not inferred actor identities."""
+    insist(len(header)==4,'four original header bytes required')
+    return {
+        'ram_0034':int(header[0])>>4,
+        'ram_0035':int(header[0])&15,
+        'ram_0036':int(header[1])>>4,
+        'ram_0054':int(header[1])&15,
+        'ram_0072':int(header[1])&1,
+        'ram_07A1':int(header[2]),
+        'ram_054E':int(header[3])
+    }
+
 def extract(bank):
     insist(len(bank)==16384,'exact raw16 bank0E required')
     items=[]
@@ -68,14 +81,17 @@ def extract(bank):
             'selector':index,'physical_raw_prg':'0E',
             'source_cpu':f'{root:04X}',
             'header_bytes':[int(x) for x in stream[:4]],
+            'header_ram_effects':header_ram_effects(stream[:4]),
             'records':rows,'terminator':255})
     return {'schema':SCHEMA,'source_rom_sha256':ROM_SHA,
         'source_bank':'raw0E','source_bank_cpu_span':'BE8B-BF39',
         'source_length_bytes':175,
         'source_windows_accounted':5,
         'repacked_byte_sha256':SPAN_SHA,
+        'ram_0034_zero_stream_count':sum(
+            item['header_ram_effects']['ram_0034']==0 for item in items),
         'streams':sorted(items,key=lambda item:item['selector']),
-        'warning':'Private source extraction. Original game bytes; keep local. RAM destinations are source facts, not inferred gameplay object names.'}
+        'warning':'Private original source. The five streams are not evidenced as Stage 1 actor spawns; their header RAM selectors must be checked before any stage-specific use.'}
 
 def pack(doc):
     insist(type(doc) is dict and doc.get('schema')==SCHEMA,'wrong stage resource schema')
@@ -95,6 +111,10 @@ def pack(doc):
         header=item.get('header_bytes')
         insist(type(header) is list and len(header)==4 and all(type(v) is int and 0<=v<=255 for v in header),
                'header requires 4 exact 8-bit source bytes')
+        effects=item.get('header_ram_effects')
+        if effects is not None:
+            insist(effects==header_ram_effects(header),
+                   'header RAM effects disagree with original header bytes')
         payload.extend(header)
         rows=item.get('records')
         insist(type(rows) is list and len(rows)==count,'changed stream record count')
@@ -112,6 +132,12 @@ def pack(doc):
             payload.extend(fields)
         insist(item.get('terminator')==255,'missing exact FF stream terminator')
         payload.append(255)
+    stage0_count=sum(
+        header_ram_effects(next(x for x in data if x['selector']==i)['header_bytes'])['ram_0034']==0
+        for i in range(5))
+    if 'ram_0034_zero_stream_count' in doc:
+        insist(doc['ram_0034_zero_stream_count']==stage0_count,
+               'stage-zero source classification disagrees with stream headers')
     insist(len(payload)==175,'not exact original five-stream source extent')
     return bytes(payload)
 
@@ -129,7 +155,7 @@ def smoke():
     encoded=pack(doc)
     insist(encoded==bytes(bank[SOURCE_START-0x8000:SOURCE_END-0x8000]),
            'synthetic stage resource extraction roundtrip differs')
-    for mutate in ('selector','count','field','terminator','ram','source','header'):
+    for mutate in ('selector','count','field','terminator','ram','source','header','decoded','stage0_count'):
         broken=copy.deepcopy(doc)
         s=broken['streams'][0]
         if mutate=='selector':s['selector']=7
@@ -139,6 +165,8 @@ def smoke():
         if mutate=='ram':s['records'][0]['ram_offsets'][1]='DEAD'
         if mutate=='source':s['source_cpu']='9000'
         if mutate=='header':s['header_bytes'][0]=256
+        if mutate=='decoded':s['header_ram_effects']['ram_0034']^=1
+        if mutate=='stage0_count':broken['ram_0034_zero_stream_count']=100
         try:pack(broken)
         except ValueError:pass
         else:raise AssertionError('unsafe source-data mutation admitted: '+mutate)
@@ -162,7 +190,11 @@ def main():
                encoded==b[SOURCE_START-0x8000:SOURCE_END-0x8000],
                'original game resource roundtrip failed')
         if args.export:args.export.write_text(json.dumps(source,indent=2)+'\n',encoding='utf-8')
-        if args.roundtrip:print('PASS JP0659 authentic original 175 source bytes / 5 streams / 30 typed record instances')
+        if args.roundtrip:
+            print('PASS JP0659 authentic original 175 source bytes / 5 streams / 30 typed record instances')
+            stages=[item['header_ram_effects']['ram_0034'] for item in source['streams']]
+            print('Original header $34 values:', ','.join(f'{v:02X}' for v in stages),
+                  '; $34=00 matches:',source['ram_0034_zero_stream_count'])
     if args.input:
         source=json.loads(args.input.read_text(encoding='utf-8'))
         packed=pack(source)
