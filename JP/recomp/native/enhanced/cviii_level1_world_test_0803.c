@@ -589,7 +589,12 @@ int main(void){
               world->horizontal_children[2].allocated &&
               world->horizontal_children[2].parent_source==3u &&
               world->horizontal_children[2].source_row_is_32 &&
-              world->horizontal_children[2].sprite_candidate,
+              world->horizontal_children[2].sprite_candidate &&
+              world->parent_census_epochs==1u &&
+              world->parent_census[3].children==1u &&
+              world->parent_census[3].actor_slot_mask==(1u<<2) &&
+              world->parent_census[3].visible_candidates==1u &&
+              !world->parent_new_witnesses,
               "original row32 actor child linked through $0645"))
         return 48;
     /* The authentic guest may hide the sprite and clear the source
@@ -600,13 +605,18 @@ int main(void){
               world->horizontal_children[2].allocated &&
               !world->horizontal_children[2].sprite_candidate &&
               !world->horizontal_children[2].source_row_is_32 &&
+              world->parent_census[3].source_cleared_with_child &&
+              !world->parent_census[3].visible_candidates &&
+              world->parent_released_while_child_allocated==1u &&
               !world->horizontal_child_allocations &&
               !world->horizontal_child_removals,
               "original hidden actor retains parent but no OAM claim"))
         return 49;
     ram[0x054eu+2u]=0u;
     if(!check(cviii_world_observe_children_0818(world,first,ram)==0 &&
-              world->horizontal_child_removals==1u,
+              world->horizontal_child_removals==1u &&
+              !world->parent_census[3].actor_slot_mask &&
+              world->parent_lost_witnesses==1u,
               "original type zero removes prior actor-to-source witness"))
         return 50;
     const uint32_t child_samples=world->horizontal_child_samples;
@@ -624,7 +634,10 @@ int main(void){
               !world->horizontal_event_transitions &&
               !world->horizontal_child_samples &&
               !world->horizontal_child_removals &&
-              !world->horizontal_children[2].allocated,
+              !world->horizontal_children[2].allocated &&
+              !world->parent_census_epochs &&
+              !world->parent_lost_witnesses &&
+              !world->parent_released_while_child_allocated,
               "transient original source phase reset preserves source directory"))
          return 42;
     if(!check(!world->actors[0].active &&
