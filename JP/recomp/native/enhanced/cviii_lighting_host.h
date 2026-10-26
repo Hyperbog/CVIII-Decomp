@@ -1,5 +1,8 @@
 #ifndef CVIII_LIGHTING_HOST_H
 #define CVIII_LIGHTING_HOST_H
+#ifdef __cplusplus
+extern "C" {
+#endif
 /* UI-only runtime control implemented by cviii_edition.c.
  * SDL window scaling and event ownership remain in the private host overlay.
  * No changes to guest CPU, PPU, mapper, controller state or save states. */
@@ -18,4 +21,7 @@ int cviii_lighting_editor_add(int x,int y);
 int cviii_lighting_editor_property(int property,int value);
 int cviii_lighting_editor_point(int slot,int *x,int *y);
 
+#ifdef __cplusplus
+}
+#endif
 #endif
