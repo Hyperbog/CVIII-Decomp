@@ -14,6 +14,9 @@
 #include "cviii_sprite_layers_0608.h"
 #include "cviii_lighting.h"
 #include "cviii_lighting_host.h"
+#ifdef CVIII_WITH_GPU_RTGI
+#include "cviii_gpu_rtgi.h"
+#endif
 #include "cviii_object_oam_trace_0609.h"
 #include "cviii_audio_bus_0610.h"
 #include "cviii_sound_requests_0612.h"
@@ -47,6 +50,8 @@ typedef struct {
     int stable_sprites; /* optional host-only temporal presentation; off by default */
     CviiiSpriteLayers sprite_layers;
     CviiiLighting lighting; /* separate host-only level lighting */
+    int lighting_renderer; /* 0: Standard C11, 1: optional D3D11 RTGI */
+    int lighting_gpu_active; /* previous frame, never guest state */
     char lighting_editor_key[32]; /* persisted SDL2 scancode name */
     uint64_t lighting_frame; /* host animation, never serialized to guest */
     CviiiObjectOamTrace object_trace; /* read-only JP PRG26 object/OAM correlation */
@@ -203,6 +208,8 @@ static void load_setting(void *context, const char *key, const char *value)
         (void)parse_boolean(value, &cviii.stable_sprites);
     else if (!strcmp(key,"LightingEditorKey"))
         (void)cviii_lighting_editor_set_key(value);
+    else if (!strcmp(key,"LightingRenderer"))
+        cviii.lighting_renderer=!strcmp(value,"GPUPrototype")?1:0;
     else if (!strncmp(key,"Light",5) || !strncmp(key,"RoomAmbient",11) ||
              !strncmp(key,"RoomSky",7) || !strncmp(key,"GlobalStyle",11) ||
              !strncmp(key,"Occluder",8) || !strncmp(key,"SceneGrade",10) ||
@@ -220,6 +227,8 @@ static void save_settings(void *context, FILE *file)
     cviii_audio_levels_save(&cviii.volume,file);
     cviii_light_save(&cviii.lighting,file);
     fprintf(file,"LightingEditorKey = %s\n",cviii.lighting_editor_key);
+    fprintf(file,"LightingRenderer = %s\n",
+            cviii.lighting_renderer?"GPUPrototype":"Standard");
 }
 
 static bool option(void *context, const char *name, const char *value)
@@ -545,6 +554,23 @@ int cviii_lighting_editor_external_session(int open)
 int cviii_lighting_editor_active(void)
 {
     return cviii.enhanced && cviii.lighting.edit;
+}
+int cviii_lighting_editor_renderer(void){return cviii.lighting_renderer;}
+int cviii_lighting_editor_set_renderer(int mode)
+{
+    if(!cviii.enhanced || (mode!=0 && mode!=1))return 0;
+    cviii.lighting_renderer=mode;
+    cviii.lighting_gpu_active=0;
+    return 1;
+}
+int cviii_lighting_editor_gpu_active(void){return cviii.lighting_gpu_active;}
+const char *cviii_lighting_editor_gpu_status(void)
+{
+#ifdef CVIII_WITH_GPU_RTGI
+    return cviii_gpu_rtgi_status();
+#else
+    return "GPU prototype unavailable in this build; Standard works";
+#endif
 }
 int cviii_lighting_editor_input(int event,int x,int y)
 {
@@ -1024,9 +1050,24 @@ static const uint32_t *present(void *context,int *width,int *height)
         cviii_lighting_scroll(sx,sy);
         if(frame!=settings->presentation)
             memcpy(settings->presentation,frame,sizeof settings->presentation);
-        cviii_light_present(&settings->lighting,settings->presentation,
-            CVIII_W,CVIII_H,cviii_lighting_room(),cviii_lighting_camera(),
-            sx,sy,settings->lighting_frame);
+        /* Original and headless always retain Standard. A GPU failure,
+         * capacity limit or unsupported GPU falls back THIS FRAME without
+         * touching the saved user choice or the NES machine state.
+         * Editing temporarily previews Standard to show mask outlines. */
+        int gpu_ok=0;
+#ifdef CVIII_WITH_GPU_RTGI
+        if(settings->lighting_renderer==1 && settings->lighting.enabled &&
+           !settings->lighting.edit){
+            gpu_ok=cviii_gpu_rtgi_present(&settings->lighting,
+                settings->presentation,cviii_lighting_room(),
+                cviii_lighting_camera(),sx,sy,settings->lighting_frame);
+        }
+#endif
+        if(!gpu_ok)
+            cviii_light_present(&settings->lighting,settings->presentation,
+                CVIII_W,CVIII_H,cviii_lighting_room(),cviii_lighting_camera(),
+                sx,sy,settings->lighting_frame);
+        settings->lighting_gpu_active=gpu_ok;
         frame=settings->presentation;
     }
     if (settings->enhanced && !settings->audio_ui.open &&
