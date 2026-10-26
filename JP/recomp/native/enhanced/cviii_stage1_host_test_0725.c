@@ -138,18 +138,23 @@ int main(void)
                         pixels[96*426+400]!=0xff000000u,
                         "later room accepted with ROM/PPU proof and wide scenery"))
                 return 1;
-            /* Source on the next screen: physical PPU nametable page1
-             * and RAM $53/$54 advance to 256+40 within the same room. */
-            test_ram[0x53]=40;test_ram[0x54]=1;
+            /* Source on next screen, respecting actual room width.
+             * 2-screen rooms stop at X256; 3-/4-screen rooms can go
+             * past X296. Map the following NT0 screen where visible. */
+            const int next_camera=natural_width[area]>=768?296:256;
+            test_ram[0x53]=(uint8_t)(next_camera&255);
+            test_ram[0x54]=(uint8_t)(next_camera>>8);
             memset(live_nt,0,sizeof live_nt);
             seed_visible_room_from_x(key,1,256);
-            scroll_x=296;w=256;h=240;
+            if(natural_width[area]>=768)
+                seed_visible_room_from_x(key,0,512);
+            scroll_x=next_camera;w=256;h=240;
             pixels=cviii_stage1_host_present_0725(
                 &host,original,&w,&h,1);
             if(!require(host.has_verified_scene &&
                         !memcmp(host.last_verified_selector,key,3) &&
-                        host.last_verified_camera==296,
-                        "later room page1 camera verified without 4:3 fallback"))
+                        host.last_verified_camera==next_camera,
+                        "later room page1 camera verified within atlas bounds"))
                 return 1;
         }
         /* Truly nonhorizontal room 1-02:1 is never painted sideways. */
