@@ -10,6 +10,7 @@
 #include "cviii_source_offscreen_0815.h"
 #include "cviii_horizontal_sources_0816.h"
 #include "cviii_horizontal_activation_0817.h"
+#include "cviii_horizontal_child_0818.h"
 #include <stdint.h>
 #include <stddef.h>
 enum { CVIII_WORLD_ROOMS_0803=8, CVIII_WORLD_ACTORS_0803=28,
@@ -111,6 +112,13 @@ typedef struct {
     uint32_t horizontal_scheduler_samples;
     uint32_t horizontal_row_activations, horizontal_row_deactivations;
     uint32_t horizontal_event_transitions;
+    /* Source-to-child witnesses from original $8B50, independent of OAM
+     * visibility and actor simulation. Transition counts are observed
+     * snapshot changes, never proven natural spawn/despawn cycles. */
+    CviiiHorizontalChild0818 horizontal_children[13];
+    uint32_t horizontal_child_samples;
+    uint32_t horizontal_child_allocations, horizontal_child_removals;
+    uint8_t horizontal_child_room;
 } CviiiLevel1World0803;
 
 /* All eight source rooms are resident on success. One known horizontal
@@ -181,6 +189,11 @@ int cviii_world_observe_horizontal_0816(CviiiLevel1World0803 *world,
  * CPU frame. $83D1 math is a *next-step prediction*, not injected
  * into the original game. Counters count observations, NOT spawn events. */
 int cviii_world_observe_scheduler_0817(CviiiLevel1World0803 *world,
+                    const uint8_t selector[3],const uint8_t ram[2048]);
+/* Correlate only already-allocated original $3D children to the
+ * row32 source index recorded by original $8B50 in $0645,X.
+ * No extra guest actor, sprite, timer or collision side effects. */
+int cviii_world_observe_children_0818(CviiiLevel1World0803 *world,
                     const uint8_t selector[3],const uint8_t ram[2048]);
 int cviii_world_track_chapel_0813(CviiiLevel1World0803 *world,
                   const uint8_t selector[3],int camera_y);
