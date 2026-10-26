@@ -67,6 +67,7 @@ if(JP_EDITION_HOST_EXTRAS)
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_stage1_rom_0724.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_stage1_atlas_0724.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_stage1_host_0725.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_stage1_join_0751.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_runtime_resources_0727.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_resource_cache_0729.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_rom_tsa_catalog_0730.c"
@@ -633,3 +634,9 @@ add_executable(jp_tsa_catalog_test_0730
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_rom_tsa_catalog_0730.c"
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_rom_tsa_catalog_test_0730.c")
 set_property(TARGET jp_tsa_catalog_test_0730 PROPERTY C_STANDARD 11)
+
+# JP0751 native Stage 1 room joins and original-center invariants, synthetic.
+add_executable(jp_stage1_join_test_0751
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_stage1_join_0751.c"
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_stage1_join_test_0751.c")
+set_property(TARGET jp_stage1_join_test_0751 PROPERTY C_STANDARD 11)

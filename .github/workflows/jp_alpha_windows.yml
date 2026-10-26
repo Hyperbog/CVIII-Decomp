@@ -382,6 +382,13 @@ jobs:
           if (!(Test-Path -LiteralPath $test)) { throw "JP0606 PPU background test missing" }
           & $test
           if ($LASTEXITCODE -ne 0) { throw "JP0606 original PPU background fetch test failed" }
+      - name: Verify previous-room join and bounded side continuation (ROM-free)
+        shell: pwsh
+        run: |
+          $test = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win/Release/jp_stage1_join_test_0751.exe'
+          if (!(Test-Path -LiteralPath $test)) { throw 'JP0751 Stage1 join binary missing' }
+          & $test
+          if ($LASTEXITCODE -ne 0) { throw 'JP0751 side/room continuation failed' }
       - name: Verify independent temporal sprite layers and OAM priority
         shell: pwsh
         run: |
