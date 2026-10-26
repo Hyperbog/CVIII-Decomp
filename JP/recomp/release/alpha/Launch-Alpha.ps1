@@ -43,10 +43,11 @@ if (-not (Test-Path -LiteralPath $game) -or -not (Test-Path -LiteralPath $dll)) 
         (Join-Path $env:USERPROFILE 'CVIII-Alpha\AlphaCandidate')+
         '. Do not download an unrelated SDL2.dll.')
 }
-# JP0750: Only explicit launch switches override saved renderer preferences.
-# Previous launcher always passed --stable-sprites 0 and --unlimited-sprites 0
-# by default, undoing the persisted Enhanced sprite stabilization each launch.
-# Keep the experimental compositor opt-in until the owner validates retail play.
+# JP0752: Enhanced always enables the sprite stabilizer by default.
+# Earlier builds silently forced StableSprites=0 in config.ini and forgot
+# the fix on relaunch. An explicit -StableSprites:$false is the A/B escape
+# hatch. Original edition still uses the unchanged stock PPU presentation.
+# UnlimitedSprites remains user-controlled; stable pass is independent.
 function Get-CviiiSpriteLaunchOptions {
  param(
   [string]$Edition,
@@ -62,6 +63,11 @@ function Get-CviiiSpriteLaunchOptions {
  if ($OverrideStable) {
   '--stable-sprites'
   if ($Edition -eq 'Enhanced' -and $StableSprites) {'1'} else {'0'}
+ } elseif ($Edition -eq 'Enhanced') {
+  # The saved false was often written by our former default-OFF launcher,
+  # not by the owner. Ship the previously omitted visual improvement.
+  '--stable-sprites'
+  '1'
  }
 }
 $extraSpriteArgs=@(Get-CviiiSpriteLaunchOptions -Edition $Edition `
@@ -70,9 +76,9 @@ $extraSpriteArgs=@(Get-CviiiSpriteLaunchOptions -Edition $Edition `
     -OverrideUnlimited ($PSBoundParameters.ContainsKey('UnlimitedSprites')) `
     -OverrideStable ($PSBoundParameters.ContainsKey('StableSprites')))
 if ($extraSpriteArgs.Count) {
- Write-Host ('Explicit host-only sprite presentation override: '+($extraSpriteArgs -join ' '))
+ Write-Host ('Enhanced sprite presentation: '+($extraSpriteArgs -join ' '))
 } else {
- Write-Host 'Sprite options: using saved settings from config.ini (no launcher override).'
+ Write-Host 'Original renderer uses saved stock hardware settings.'
 }
 Write-Host 'Controls: arrows=D-pad, Z=A, X=B, Enter=Start, Backslash=Select.'
 Write-Host 'Enhanced Pause: F4 opens Save State / Load State / Audio / Quit; arrows navigate, Enter selects, Esc closes.'

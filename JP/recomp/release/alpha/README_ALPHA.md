@@ -168,6 +168,22 @@ holds and preservation of the center/HUD. Authentic owner Windows
 visual QA is still required; widescreen-side actors/torches/enemies
 remain a separate original-game spawn-data problem, not an atlas fix.
 
+## JP0752 — Enhanced sprite flicker correction enabled by default
+
+The prior Windows launcher forced `--stable-sprites 0` at normal startup
+and saved the disabled preference. Preserving that saved `0` did not
+restore the owner's former flicker reduction. Enhanced now enables the
+already-implemented, presentation-only logical OAM stabilization pass
+**by default** in both the native C11 game and normal Windows launcher.
+Original mode still renders the authentic original 8-sprite scanline
+hardware behavior, with unchanged PPU registers and timing.
+
+Use `-StableSprites:$false` on `Launch-Alpha.ps1` for an explicit
+side-by-side fallback. The Enhanced compositor may still exhibit limited
+ghosts under unusual CHR/actor transitions; no owner Windows A/B video
+has yet established a complete sprite-flicker fix. This change never
+creates actors outside the original gameplay viewport.
+
 ## JP0661 native keyboard controls: profiles and recoverable presets
 
 The working native game already supports persistent SDL keyboard/gamepad

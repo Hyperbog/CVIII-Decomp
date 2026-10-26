@@ -43,7 +43,7 @@
 typedef struct {
     int enhanced;
     int sprite_unlimited;
-    int stable_sprites; /* optional host-only temporal presentation; off by default */
+    int stable_sprites; /* Enhanced default ON; opt-out for original OAM flicker */
     CviiiStage1Host0725 stage1_world; /* ROM-only pregame Stage 1 side scene */
     CviiiSpriteLayers sprite_layers;
     CviiiObjectOamTrace object_trace; /* read-only JP PRG26 object/OAM correlation */
@@ -68,7 +68,11 @@ typedef struct {
     uint32_t presentation[CVIII_W * CVIII_H];
 } CviiiEdition;
 
-static CviiiEdition cviii = { .volume = CVIII_AUDIO_LEVELS_DEFAULT, .stage1_world = { .enabled = 1 } };
+/* The native Enhanced executable presents stable logical OAM sprites by
+ * default, even without a shell launcher. Original hardware presentation
+ * remains unmodified (present_game() explicitly checks enhanced). */
+static CviiiEdition cviii = { .stable_sprites = 1,
+    .volume = CVIII_AUDIO_LEVELS_DEFAULT, .stage1_world = { .enabled = 1 } };
 static int cviii_start_ready;
 
 /* JP0620: optional built-in paused runtime menu rows for recomp-ui builds.
@@ -639,7 +643,7 @@ static const CycHostOption cviii_options[] = {
     {"--unlimited-sprites", true,
      "Enhanced experimental 64-OAM sprite compositor (0/1, default 0)"},
     {"--stable-sprites", true,
-     "EXPERIMENTAL logical sprite-object layer order with 1-frame history (0/1, default 0)"},
+     "Enhanced stable sprite-object presentation with 1-frame history (0/1, default 1)"},
     {"--stage1-world", true, "Enhanced preloaded original-ROM Stage 1 widescreen (0/1)"},
     {"--stage1-world-rom", true, "Owner-private Japanese cartridge path override"},
     {"--stage1-resource-cache", true, "Optional private validated Stage 1/CHR cache file"},

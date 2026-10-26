@@ -20,7 +20,7 @@ $content=Get-Content -LiteralPath $source -Raw
 if ($content -notmatch 'OverrideStable \(\$PSBoundParameters\.ContainsKey\(''StableSprites''\)\)' -or
     $content -notmatch 'OverrideUnlimited \(\$PSBoundParameters\.ContainsKey\(''UnlimitedSprites''\)\)' -or
     $content -match '\$gameArgs=@\(\$romPath.*--stable-sprites') {
- throw 'Launcher must forward only user-requested presentation overrides'
+ throw 'Launcher must retain explicit override binding and avoid unconditional raw argv'
 }
 function RequireArgs {
  param([string]$Name,[string[]]$Actual,[string[]]$Expected)
@@ -29,15 +29,15 @@ function RequireArgs {
  }
 }
 $default=@(Get-CviiiSpriteLaunchOptions -Edition Enhanced -UnlimitedSprites $false -StableSprites $false -OverrideUnlimited $false -OverrideStable $false)
-RequireArgs 'saved config unchanged' $default @()
+RequireArgs 'Enhanced flicker fix ON by default' $default @('--stable-sprites','1')
 $enabled=@(Get-CviiiSpriteLaunchOptions -Edition Enhanced -UnlimitedSprites $false -StableSprites $true -OverrideUnlimited $false -OverrideStable $true)
 RequireArgs 'explicit stable on' $enabled @('--stable-sprites','1')
 $disabled=@(Get-CviiiSpriteLaunchOptions -Edition Enhanced -UnlimitedSprites $false -StableSprites $false -OverrideUnlimited $false -OverrideStable $true)
 RequireArgs 'explicit stable off' $disabled @('--stable-sprites','0')
 $unlimited=@(Get-CviiiSpriteLaunchOptions -Edition Enhanced -UnlimitedSprites $true -StableSprites $false -OverrideUnlimited $true -OverrideStable $false)
-RequireArgs 'unlimited on' $unlimited @('--unlimited-sprites','1')
+RequireArgs 'unlimited on without losing stability' $unlimited @('--unlimited-sprites','1','--stable-sprites','1')
 $original=@(Get-CviiiSpriteLaunchOptions -Edition Original -UnlimitedSprites $true -StableSprites $true -OverrideUnlimited $true -OverrideStable $true)
 RequireArgs 'Original safe' $original @('--unlimited-sprites','0','--stable-sprites','0')
 $both=@(Get-CviiiSpriteLaunchOptions -Edition Enhanced -UnlimitedSprites $true -StableSprites $true -OverrideUnlimited $true -OverrideStable $true)
 RequireArgs 'explicitly both' $both @('--unlimited-sprites','1','--stable-sprites','1')
-Write-Host 'PASS JP0750 actual Windows launcher preserves persisted sprite options and explicit override controls'
+Write-Host 'PASS JP0752 Enhanced stable sprites default ON, Original unaffected, explicit opt-out and unlimited OAM'
