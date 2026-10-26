@@ -130,6 +130,19 @@ int cviii_world_track_chapel_0813(CviiiLevel1World0803 *w,
         item->local_x=record[3];
         item->local_axis=admitted.local_axis;
         item->eligible=admitted.admitted;
+        /* Never put an unplaced branch into the global world. The
+         * persistent room graph is authoritative for world offsets. */
+        item->world_placed=w->rooms[2].placed;
+        item->world_x=0;
+        item->world_y=0;
+        if(item->world_placed){
+            const int64_t gx=(int64_t)w->rooms[2].x+record[3];
+            const int64_t gy=(int64_t)w->rooms[2].y+axis;
+            if(gx<INT32_MIN || gx>INT32_MAX ||
+               gy<INT32_MIN || gy>INT32_MAX)return -1;
+            item->world_x=(int32_t)gx;
+            item->world_y=(int32_t)gy;
+        }
         if(item->eligible && !old->eligible && item->entries!=UINT32_MAX)
             item->entries++;
         else if(!item->eligible && old->eligible && item->exits!=UINT32_MAX)
