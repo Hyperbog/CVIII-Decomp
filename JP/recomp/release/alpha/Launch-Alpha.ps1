@@ -83,6 +83,8 @@ if ($extraSpriteArgs.Count) {
 Write-Host 'Controls: arrows=D-pad, Z=A, X=B, Enter=Start, Backslash=Select.'
 Write-Host 'Enhanced Pause: F4 opens Save State / Load State / Audio / Quit; arrows navigate, Enter selects, Esc closes.'
 Write-Host 'Pause menu uses authenticated CHR. Save/Load opens slot 0..9: Left/Right chooses, Enter confirms, Esc returns.'
+Write-Host 'Enhanced menu shortcuts: F4 Pause, F6 Audio, F7 Key Remapping, F10 Debug. Switch without closing first.'
+Write-Host 'F7: Up/Down selects a control, Enter captures a key; Esc cancels or closes. Saved automatically.'
 Write-Host 'Enhanced audio: F6 opens original-healthbar sliders; arrows change by 1%; Esc or F6 closes.'
 Write-Host 'F8/F9 save/load; builds supporting slots use Ctrl+0..9.'
 if ($AuditOutDir -and -not ($ChrAudit -or $SpriteTrace -or $AudioTrace)) { throw '-AuditOutDir requires -ChrAudit, -SpriteTrace or -AudioTrace' }
