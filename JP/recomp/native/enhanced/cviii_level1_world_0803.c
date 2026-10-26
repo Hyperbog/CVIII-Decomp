@@ -141,6 +141,43 @@ int cviii_world_attach_source_rooms_0811(CviiiLevel1World0803 *w,
     return 1;
 }
 
+/* Each authenticated source span belongs to the original stage0
+ * hierarchy (not generic raw0E object samples). Preloading makes both
+ * 4-byte and 7-byte room resources persistent at stage initialization.
+ * The source format is intentionally left uninterpreted until each
+ * original 6502 data consumer is reconstructed, preventing fake NPCs.
+ */
+int cviii_world_preload_source_payload_0812(CviiiLevel1World0803 *w,
+                      const uint8_t *bank,size_t len)
+{
+    if(!w || !w->ready || !w->source_rooms_ready ||
+       !bank || len!=16384u)return 0;
+    uint8_t data[CVIII_WORLD_ROOMS_0803][128]={0};
+    uint8_t lengths[CVIII_WORLD_ROOMS_0803]={0};
+    for(unsigned i=0;i<CVIII_WORLD_ROOMS_0803;i++){
+        const CviiiWorldSourceRoom0811 *src=&w->source_rooms[i];
+        if(src->root<0x8000u || src->end_exclusive>0xc000u ||
+           src->root>=src->end_exclusive)return 0;
+        unsigned size=(unsigned)src->end_exclusive-src->root;
+        if(size>128u)return 0;
+        const uint8_t *body=bank+(unsigned)src->root-0x8000u;
+        if(src->width==7u){
+            if(size<8u || (size-1u)%7u ||
+               body[size-1u]!=0xffu)return 0;
+            for(unsigned j=0;j<src->record_count;j++)
+                if(body[j*7u]>3u)return 0;
+        }else if(src->width!=4u || size%4u)return 0;
+        memcpy(data[i],body,size);
+        lengths[i]=(uint8_t)size;
+    }
+    for(unsigned i=0;i<CVIII_WORLD_ROOMS_0803;i++){
+        memcpy(w->source_rooms[i].payload,data[i],lengths[i]);
+        w->source_rooms[i].payload_len=lengths[i];
+    }
+    w->source_payload_ready=1;
+    return 1;
+}
+
 int cviii_world_index_0803(const CviiiLevel1World0803 *w,
                            const uint8_t selector[3]){
     if(!w || !w->ready || !selector)return -1;

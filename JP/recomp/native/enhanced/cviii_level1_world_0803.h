@@ -45,6 +45,8 @@ typedef struct {
 typedef struct {
     uint16_t root,end_exclusive,record_count;
     uint8_t width;
+    uint8_t payload_len; /* private original bank0A room-source bytes */
+    uint8_t payload[128]; /* bounded per-room resident resource */
 } CviiiWorldSourceRoom0811;
 typedef struct {
     CviiiWorldRoom0803 rooms[CVIII_WORLD_ROOMS_0803];
@@ -54,6 +56,7 @@ typedef struct {
     CviiiWorldObjectGroup0804 groups[CVIII_WORLD_GROUPS_0804];
     uint8_t ready,placed_count,visited_count,templates_ready;
     uint8_t source_rooms_ready; /* all 8 original stage0 hierarchy keys */
+    uint8_t source_payload_ready; /* 8 private original room resources resident */
     uint32_t actor_frame;
 } CviiiLevel1World0803;
 
@@ -68,6 +71,10 @@ int cviii_world_build_0803(CviiiLevel1World0803 *world,
  */
 int cviii_world_attach_source_rooms_0811(CviiiLevel1World0803 *world,
                    const CviiiRoomCatalog0657 *catalog);
+/* After independently hashing and structurally validating original raw0A,
+ * cache all Stage1 source records in game-owned memory, not Git files. */
+int cviii_world_preload_source_payload_0812(CviiiLevel1World0803 *world,
+               const uint8_t *original_bank0a,size_t bank_size);
 int cviii_world_index_0803(const CviiiLevel1World0803 *world,
                            const uint8_t selector[3]);
 /* Source-proven physical edge: reject inconsistent positions/cycles.

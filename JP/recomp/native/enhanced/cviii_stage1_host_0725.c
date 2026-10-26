@@ -84,7 +84,9 @@ static int load(CviiiStage1Host0725 *h)
                  cviii_room_catalog_0657(room_bank,sizeof room_bank,
                                         &room_catalog)==1 &&
                  cviii_world_attach_source_rooms_0811(&h->world,
-                                                      &room_catalog);
+                                                      &room_catalog) &&
+                 cviii_world_preload_source_payload_0812(&h->world,
+                                                  room_bank,sizeof room_bank);
         }
         if(!room_ok)
             fprintf(stderr,"CVIII JP0811: original stage source hierarchy not authenticated; no inferred world connections\n");

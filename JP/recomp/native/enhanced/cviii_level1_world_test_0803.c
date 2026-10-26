@@ -120,6 +120,37 @@ int main(void){
     if(!check(!cviii_world_attach_source_rooms_0811(world,&catalog) &&
                memcmp(existing,world->source_rooms,sizeof existing)==0,
                "missing real stage0 leaf rejected atomically"))return 26;
+    /* JP0812 stage0 sources are all truly resident, not just a
+     * source-root index into a file that must load on camera movement.
+     * Entirely synthetic source bytes; no original ROM is distributed. */
+    catalog.leaves[5].stage=0;
+    if(!check(cviii_world_attach_source_rooms_0811(world,&catalog),
+              "restore complete stage0 source fixture"))return 27;
+    static uint8_t bank0a[16384];
+    for(unsigned i=0;i<8u;i++){
+        const CviiiWorldSourceRoom0811 *leaf=&world->source_rooms[i];
+        unsigned off=(unsigned)leaf->root-0x8000u;
+        bank0a[off]=i==2?1u:(uint8_t)(i+4u);
+        if(leaf->width==7u)
+            bank0a[(unsigned)leaf->end_exclusive-0x8000u-1u]=0xffu;
+    }
+    if(!check(cviii_world_preload_source_payload_0812(world,
+                    bank0a,sizeof bank0a) &&
+              world->source_payload_ready &&
+              world->source_rooms[0].payload_len==8u &&
+              world->source_rooms[2].payload_len==15u &&
+              world->source_rooms[2].payload[0]==1u &&
+              world->source_rooms[7].payload[0]==11u,
+              "all eight authentic-source windows held in world memory"))
+        return 28;
+    bank0a[(unsigned)world->source_rooms[2].end_exclusive-0x8000u-1u]=0;
+    CviiiWorldSourceRoom0811 preserved=world->source_rooms[2];
+    if(!check(!cviii_world_preload_source_payload_0812(world,
+                 bank0a,sizeof bank0a) &&
+               memcmp(&world->source_rooms[2],&preserved,
+                      sizeof preserved)==0,
+               "invalid chapel source FF cannot partially replace world"))
+        return 29;
     uint8_t ram[2048]={0};
     ram[0x400]=4;ram[0x41c]=100;ram[0x438]=60;
     ram[0x454]=3;ram[0x470]=0;ram[0x48c]=8;ram[0x4a8]=1;
