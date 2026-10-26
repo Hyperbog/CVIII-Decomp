@@ -11,6 +11,9 @@
 #define CVIII_SCENE_AMBIENT_MAX 32
 #define CVIII_KIT_MAX 12
 #define CVIII_KIT_PARTS 8
+#define CVIII_GLOBAL_STYLE_MAX 16
+#define CVIII_OCCLUDER_MAX 64
+#define CVIII_SCENE_ALIAS_MAX 32
 enum { CVIII_SHAPE_RADIAL=0, CVIII_SHAPE_CONE=1, CVIII_SHAPE_SHAFT=2 };
 typedef struct {
     uint32_t room;
@@ -19,6 +22,10 @@ typedef struct {
     /* Sky is an independent additive fill, never an RGB multiply filter.
        strength 0..100, facing -1 top, 0 uniform, +1 bottom. */
     int sky, sky_red, sky_green, sky_blue, sky_facing;
+    int exposure; /* signed centi-stops: -200..200 */
+    int temperature; /* -100 warm, 0 neutral, +100 cool */
+    int saturation; /* percent, 0..200, default 100 when unused */
+    int graded;
 } CviiiSceneAmbient;
 
 typedef struct {
@@ -34,6 +41,7 @@ typedef struct {
     int width;          /* shaft full width, 4..160 game pixels */
     int muted;          /* 1 = excluded from rendering */
     int flicker;        /* 0 = subtle auto, 1 = none, 2 = torch */
+    int style_link;     /* 0 local, 1..16 global photometric style */
 } CviiiLight;
 typedef struct {
     int used, count;
@@ -41,9 +49,28 @@ typedef struct {
     CviiiLight part[CVIII_KIT_PARTS]; /* relative to selected anchor */
 } CviiiLightKit;
 typedef struct {
+    int used;
+    char name[CVIII_LIGHT_NAME_CAP];
+    CviiiLight light;   /* values only; no world/room position sharing */
+} CviiiGlobalStyle;
+typedef struct {
+    uint32_t room;
+    int x,y,w,h;       /* author-drawn 2D world-space rectangle */
+    int opacity;       /* shadow strength 0..100 */
+    int softness;      /* penumbra offset 0..16 pixels */
+    int used;
+} CviiiOccluder;
+typedef struct {
+    uint32_t source, target;
+    int used;
+} CviiiSceneAlias;
+typedef struct {
     CviiiLight light[CVIII_LIGHT_MAX];
     CviiiSceneAmbient scenes[CVIII_SCENE_AMBIENT_MAX];
     CviiiLightKit kits[CVIII_KIT_MAX];
+    CviiiGlobalStyle styles[CVIII_GLOBAL_STYLE_MAX];
+    CviiiOccluder masks[CVIII_OCCLUDER_MAX];
+    CviiiSceneAlias aliases[CVIII_SCENE_ALIAS_MAX];
     CviiiLight clipboard;
     int clipboard_valid;
     int enabled,ambient,edit,selected,dragging;
@@ -80,5 +107,21 @@ int cviii_light_kit_load(CviiiLighting *s,const char *key,const char *value);
 void cviii_light_kit_save(const CviiiLighting *s,FILE *file);
 int cviii_light_sky_set(CviiiLighting *s,uint32_t room,int strength,int red,int green,int blue,int facing);
 void cviii_light_sky_get(const CviiiLighting *s,uint32_t room,int *strength,int rgb[3],int *facing);
+/* Global style: place locally, tune collectively; no geometry linking. */
+int cviii_light_style_capture(CviiiLighting *s,int slot,int light,const char *name);
+int cviii_light_style_link(CviiiLighting *s,int light,int slot);
+int cviii_light_style_link_group(CviiiLighting *s,int light,int slot);
+void cviii_light_effective(const CviiiLighting *s,const CviiiLight *source,CviiiLight *result);
+int cviii_light_mask_add(CviiiLighting *s,uint32_t room,int x,int y,int w,int h);
+int cviii_light_mask_remove(CviiiLighting *s,int slot);
+float cviii_light_shadow(const CviiiLighting *s,uint32_t room,
+                         int source_x,int source_y,int world_x,int world_y);
+int cviii_light_grade_set(CviiiLighting *s,uint32_t room,int exposure,int temperature,int saturation);
+void cviii_light_grade_get(const CviiiLighting *s,uint32_t room,
+                           int *exposure,int *temperature,int *saturation);
+uint32_t cviii_light_scene_resolve(const CviiiLighting *s,uint32_t source);
+int cviii_light_scene_alias(CviiiLighting *s,uint32_t source,uint32_t target);
+int cviii_light_extra_load(CviiiLighting *s,const char *key,const char *value);
+void cviii_light_extra_save(const CviiiLighting *s,FILE *file);
 
 #endif
