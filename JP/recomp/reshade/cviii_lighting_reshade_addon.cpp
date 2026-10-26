@@ -143,6 +143,9 @@ void on_overlay(reshade::api::effect_runtime *){
         int type=l.shape;
         if(ImGui::Combo("Shape",&type,"Radial\0Cone\0Shaft\0"))
             changed(bridge.prop(7,type));
+        int posx=l.x,posy=l.y;
+        if(ImGui::InputInt("World X",&posx,1,16))changed(bridge.prop(13,posx));
+        if(ImGui::InputInt("World Y",&posy,1,8))changed(bridge.prop(14,posy));
         int radius=l.radius,energy=l.energy;
         if(ImGui::SliderInt("Range",&radius,12,160))changed(bridge.prop(2,radius));
         if(ImGui::SliderInt("Intensity",&energy,5,160))changed(bridge.prop(3,energy));
