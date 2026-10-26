@@ -83,8 +83,8 @@ int main(void)
     if (!require(pixels!=NULL&&pixels!=original&&w==426&&h==240,
                  "wide dimensions") ||
         !require(requested_mode==NES_VIDEO_16_9,"host video mode") ||
-        !require(pixels[32*426+0]==original[32*256],
-                 "scene start uses genuine first-world pixel, not repeated strip") ||
+        !require(pixels[48*426+0]==original[48*256],
+                 "scene start uses genuine first-world pixel below the HUD") ||
         !require(pixels[200*426+255]==original[200*256+255],
                  "last native pixel at stage origin") ||
         !require(pixels[0*426+85]==original[0] &&
