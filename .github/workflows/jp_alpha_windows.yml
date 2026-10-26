@@ -211,7 +211,7 @@ jobs:
         run: |
           python JP/recomp/tools/package_alpha_builder_0580.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "ROM-free first-run build kit test failed" }
-          foreach ($file in @('JP/recomp/release/alpha/Build-And-Play.ps1','JP/recomp/release/alpha/Build-Alpha.ps1','JP/recomp/release/alpha/Launch-Alpha.ps1')) {
+          foreach ($file in @('JP/recomp/release/alpha/Build-And-Play.ps1','JP/recomp/release/alpha/Build-Alpha.ps1','JP/recomp/release/alpha/Launch-Alpha.ps1','JP/recomp/release/alpha/Build-Lighting-Preview.ps1')) {
             $tokens = $null
             $errs = $null
             [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $file).Path,[ref]$tokens,[ref]$errs) | Out-Null
