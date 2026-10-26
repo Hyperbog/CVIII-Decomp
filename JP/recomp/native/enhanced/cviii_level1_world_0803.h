@@ -11,6 +11,7 @@
 #include "cviii_horizontal_sources_0816.h"
 #include "cviii_horizontal_activation_0817.h"
 #include "cviii_horizontal_child_0818.h"
+#include "cviii_horizontal_lineage_0819.h"
 #include <stdint.h>
 #include <stddef.h>
 enum { CVIII_WORLD_ROOMS_0803=8, CVIII_WORLD_ACTORS_0803=28,
@@ -119,6 +120,13 @@ typedef struct {
     uint32_t horizontal_child_samples;
     uint32_t horizontal_child_allocations, horizontal_child_removals;
     uint8_t horizontal_child_room;
+    /* JP0819: six CURRENT original parent source census snapshots.
+     * Counts are observation transitions, not verified spawn/despawn
+     * or simulated offscreen updates. */
+    CviiiParentCensus0819 parent_census[CVIII_SOURCE_PARENTS_0819];
+    uint32_t parent_census_epochs;
+    uint32_t parent_new_witnesses, parent_lost_witnesses;
+    uint32_t parent_released_while_child_allocated;
 } CviiiLevel1World0803;
 
 /* All eight source rooms are resident on success. One known horizontal
