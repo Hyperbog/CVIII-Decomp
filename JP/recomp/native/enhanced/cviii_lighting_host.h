@@ -56,6 +56,11 @@ CVIII_LIGHT_EXPORT int cviii_lighting_editor_particle_add(int kind,int native_x,
 CVIII_LIGHT_EXPORT int cviii_lighting_editor_particle_property(int slot,int property,int value);
 CVIII_LIGHT_EXPORT int cviii_lighting_editor_particle_name(int slot,const char *name);
 CVIII_LIGHT_EXPORT int cviii_lighting_editor_particle_clone(int slot);
+CVIII_LIGHT_EXPORT int cviii_lighting_editor_particle_attach(int slot,int light_slot);
+CVIII_LIGHT_EXPORT int cviii_lighting_editor_weather_template(int slot,int preset);
+CVIII_LIGHT_EXPORT int cviii_lighting_editor_weather_link(int slot);
+CVIII_LIGHT_EXPORT int cviii_lighting_editor_weather_property(int slot,int property,int value);
+CVIII_LIGHT_EXPORT int cviii_lighting_editor_weather_name(int slot,const char *name);
 CVIII_LIGHT_EXPORT int cviii_lighting_editor_kit_manage(int action,int source,int destination,const char *name);
 CVIII_LIGHT_EXPORT int cviii_lighting_editor_checkpoint(void);
 CVIII_LIGHT_EXPORT int cviii_lighting_editor_undo(void);
