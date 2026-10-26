@@ -230,7 +230,8 @@ int cviii_world_link_chapel_0814(CviiiLevel1World0803 *w,
  * No new game actors, OAM pieces or collision/pickup side effects. */
 int cviii_world_probe_chapel_0815(CviiiLevel1World0803 *w,
     const uint8_t key[3],int camera_x,int camera_y,
-    int native_left,int wide_width)
+    int native_left,int wide_width,
+    const uint8_t authenticated_prg26[16384])
 {
     if(!w || !w->ready || !w->source_payload_ready ||
        !key || key[0]!=0u || key[1]!=1u || key[2]!=1u ||
@@ -273,6 +274,11 @@ int cviii_world_probe_chapel_0815(CviiiLevel1World0803 *w,
             p->sprite_mirror=actor->mirror;
             p->sprite_attrs=actor->attrs;
             p->actor_generation=actor->generation;
+            const CviiiSourceVisual0815 visual=cviii_source_visual_0815(
+                 authenticated_prg26,actor->selector,actor->frame);
+            p->visual_valid=visual.valid;
+            p->sprite_descriptor_cpu=visual.descriptor_cpu;
+            p->sprite_pieces=visual.pieces;
             break;
         }
         const int64_t gx=p->actor_confirmed ?
