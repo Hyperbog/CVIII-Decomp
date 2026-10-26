@@ -296,6 +296,9 @@ int main(void){
     if(!check(cviii_world_track_chapel_0813(world,vertical,0x180)==1 &&
               world->chapel[0].axis_world==0x0180u &&
               world->chapel[0].local_axis==0x37u &&
+              world->chapel[0].world_placed &&
+              world->chapel[0].world_x==world->rooms[2].x+0x20 &&
+              world->chapel[0].world_y==world->rooms[2].y+0x180 &&
               world->chapel[0].entries==1u && world->chapel_epochs==1u,
               "original world-axis admission") ||
        !check(cviii_world_track_chapel_0813(world,vertical,0x200)==0 &&
