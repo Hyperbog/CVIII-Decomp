@@ -96,6 +96,16 @@ int main(void){
  ok(cviii_effect_b486_prefix_0821(ram,x,&c) &&
     c.decision==CVIII_B486_SKIP_0821 && c.stop_pc==0xb4d4u,
     "B486 type below30 returns");
+ ram[0x0400u+23u]=0x12u;
+ ram[0x048cu+23u]=0x0eu;
+ ram[0x0470u+23u]=0x20u;
+ ram[0x054eu+23u]=0u;
+ const CviiiEffect23Witness0821 witness=cviii_effect23_witness_0821(ram);
+ ok(witness.matched && witness.draw_candidate && !witness.type23,
+    "real original $B5DF special sprite need not be an allocated actor");
+ ram[0x0400u+23u]=0u;
+ ok(!cviii_effect23_witness_0821(ram).matched,
+    "original frame-zero effect is not a visible active sprite");
  ok(!cviii_effect_b6ce_0821(ram,0,&a) &&
     !cviii_effect_b5df_0821(ram,x,19u,&b) &&
     !cviii_effect_b486_prefix_0821(ram,19u,&c),
