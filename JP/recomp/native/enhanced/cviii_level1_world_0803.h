@@ -127,6 +127,11 @@ typedef struct {
     uint32_t parent_census_epochs;
     uint32_t parent_new_witnesses, parent_lost_witnesses;
     uint32_t parent_released_while_child_allocated;
+    /* JP0820: this child outlived its row32 source; an identical
+     * source slot later reappearing is NOT proof of source identity.
+     * Room changes and reset make provenance unknown, never dead. */
+    uint16_t horizontal_unresolved_lineage_mask;
+    uint32_t horizontal_source_reuse_warnings;
 } CviiiLevel1World0803;
 
 /* All eight source rooms are resident on success. One known horizontal
