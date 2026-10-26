@@ -49,6 +49,7 @@ set(JP_HOST_SOURCES "")
 if(JP_EDITION_HOST_EXTRAS)
  list(APPEND JP_HOST_SOURCES HOST_EXTRAS
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_edition.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_lighting.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_chr_index_0598.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_chr_audit_0599.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_chr_fetch_0600.c"
@@ -87,6 +88,10 @@ if(JP_EDITION_HOST_EXTRAS)
  target_include_directories(jp_akumajou_densetsu PRIVATE
   "${NESRECOMP_EXTERNAL_ROOT}/runner/cyc"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced")
+endif()
+# The lighting math is presentation-only and uses libm on POSIX targets.
+if(JP_EDITION_HOST_EXTRAS AND NOT WIN32)
+ target_link_libraries(jp_akumajou_densetsu PRIVATE m)
 endif()
 # JP0591: multi-slot save states using upstream's *full machine* serializer.
 # Generate a local overlay alongside pinned external cyc_sdl.c; relative
@@ -181,7 +186,18 @@ if(NOT JP_CYCLE_HEADLESS AND JP_SAVE_STATE_SLOTS)
   if(NOT JP_AUDIO_RETURN_PATCH_RESULT EQUAL 0)
    message(FATAL_ERROR "Nested Audio return SDL patch failed: ${JP_AUDIO_RETURN_PATCH_ERROR}")
   endif()
-  set(JP_FINAL_SDL_OVERLAY "${JP_AUDIO_RETURN_OVERLAY}")
+  # Eighth owner-private SDL layer: F7 lighting editor and mouse routing.
+  set(JP_LIGHTING_OVERLAY "${NESRECOMP_EXTERNAL_ROOT}/runner/cyc/cviii_cyc_sdl_lighting.c")
+  execute_process(
+   COMMAND "${Python3_EXECUTABLE}"
+     "${CMAKE_CURRENT_LIST_DIR}/../../tools/patch_cyc_lighting_editor.py"
+     --source "${JP_AUDIO_RETURN_OVERLAY}" --out "${JP_LIGHTING_OVERLAY}"
+   RESULT_VARIABLE JP_LIGHTING_PATCH_RESULT
+   ERROR_VARIABLE JP_LIGHTING_PATCH_ERROR)
+  if(NOT JP_LIGHTING_PATCH_RESULT EQUAL 0)
+   message(FATAL_ERROR "F7 lighting editor SDL overlay failed: ${JP_LIGHTING_PATCH_ERROR}")
+  endif()
+  set(JP_FINAL_SDL_OVERLAY "${JP_LIGHTING_OVERLAY}")
  endif()
  get_target_property(JP_GAME_SOURCES jp_akumajou_densetsu SOURCES)
  set(JP_PATCHED_SOURCES "")
@@ -215,6 +231,15 @@ if(NOT JP_CYCLE_HEADLESS)
  message(STATUS "Alpha: verified SDL2 video/input/audio target is enabled")
 endif()
 
+
+# ROM-free standalone verification of scrolling lights, room gating and HUD.
+add_executable(jp_lighting_test
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_lighting.c"
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_lighting_test.c")
+set_property(TARGET jp_lighting_test PROPERTY C_STANDARD 11)
+if(NOT WIN32)
+ target_link_libraries(jp_lighting_test PRIVATE m)
+endif()
 
 # JP0598: isolated host-independent C11 CHR reader gate; synthetic data only.
 add_executable(jp_chr_index_test_0598
