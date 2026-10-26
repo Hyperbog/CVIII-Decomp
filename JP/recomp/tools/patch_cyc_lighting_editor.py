@@ -21,6 +21,12 @@ SHELL=r'''
  * Event routing is presentation only; no emulated buttons are changed. */
 #include "cviii_lighting_host.h"
 static void zapper_window_point(int,int,int*,int*,int*,int*);
+static void cviii_light_sdl_status(void)
+{
+    char details[128];
+    if(cviii_lighting_editor_status(details,sizeof details))
+        note("LIGHT",details);
+}
 static bool cviii_light_sdl_event(const SDL_Event *ev, bool other_open)
 {
     if(ev->type==SDL_KEYDOWN &&
@@ -61,7 +67,10 @@ static bool cviii_light_sdl_event(const SDL_Event *ev, bool other_open)
         else if(sc==SDL_SCANCODE_C)code=10;
         else if(sc==SDL_SCANCODE_RIGHTBRACKET)code=11;
         else if(sc==SDL_SCANCODE_LEFTBRACKET)code=12;
-        if(code && cviii_lighting_editor_input(code,-1,-1))save_settings();
+        if(code && cviii_lighting_editor_input(code,-1,-1)){
+            save_settings();
+            cviii_light_sdl_status();
+        }
         return true;
     }
     if(ev->type==SDL_KEYUP)return true;
@@ -82,8 +91,10 @@ static bool cviii_light_sdl_event(const SDL_Event *ev, bool other_open)
                 code=13;
         }
         if(code){
-            if(cviii_lighting_editor_input(code,x,y) && code!=3)
+            if(cviii_lighting_editor_input(code,x,y) && code!=3){
                 save_settings();
+                if(code!=4)cviii_light_sdl_status();
+            }
         }
         return true;
     }
@@ -102,7 +113,10 @@ static bool cviii_light_sdl_event(const SDL_Event *ev, bool other_open)
             changed|=cviii_lighting_editor_input(code,-1,-1);
             delta+=delta>0?-1:1;
         }
-        if(changed)save_settings();
+        if(changed){
+            save_settings();
+            cviii_light_sdl_status();
+        }
         return true;
     }
     return false;
@@ -138,6 +152,8 @@ def smoke() -> None:
     assert "SDL_RenderWindowToLogical" not in SHELL # uses engine mapping
     assert product.count("|| cviii_lighting_editor_active();")==3
     assert "SDL_MOUSEMOTION" in product and "SDL_MOUSEWHEEL" in product
+    assert "cviii_light_sdl_status();" in product
+    assert "if(code!=4)" in product
     for invalid in (product,fixture.replace(KEY_ANCHOR,"/* changed */")):
         try: generate(invalid)
         except ValueError: continue
