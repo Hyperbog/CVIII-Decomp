@@ -7,6 +7,7 @@
  * No game ROM, NES RAM, mapper state, SDL renderer state or ReShade hook.
  */
 #define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
 #include <windows.h>
 #include <d3d11.h>
 #include <d3dcompiler.h>
