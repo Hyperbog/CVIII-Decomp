@@ -295,7 +295,7 @@ full vertical world-coordinate unwrapping above the 480-pixel
 PPU domain. Do not merge until Stage 1 and multiple vertical room
 transitions and death/reload loops visibly retain all authored lights.
 
-## Animated candles, feathered shadows and future RTGI
+## Animated candles, feathered shadows and GPU GI
 
 ### Flame animation in the editor
 
@@ -340,14 +340,27 @@ and then apply distinct shadow interaction before recombining them.
 Nine shadow-visibility rays also increase CPU cost in affected
 regions versus five; FPS must be checked on the owner's PC.
 
-### Optional GPU RTGI architecture
+### GPU lighting modes and Radiance Cascades
 
-See [**Lighting RTGI Roadmap**](ENHANCED_LIGHTING_RTGI_ROADMAP.md)
-for selectable Standard and future RTGI rendering modes,
-GPU distance fields, Radiance Cascades, first-bounce indirect
-illumination, global moonlight environment profiles, separated
-sprite/background shading and performance/fallback requirements.
-**The RTGI mode is a proposal, not an implemented or tested feature.**
+**Settings → Renderer Backend** now offers three choices:
+**Standard** (C11 CPU default), **GPU Prototype** (D3D11 direct
+visibility with sampled one-bounce light), and **Radiance Cascades**
+(D3D11 hierarchical directional radiance merging across two to four
+probe levels). For Radiance Cascades, select Low, Medium or High quality
+in the same Settings tab. The genuine ReShade add-on exposes the same
+controls. Unsupported hardware, GPU failure and excess per-scene
+geometry fall back automatically to Standard.
+
+The Radiance Cascades implementation has passed ROM-free Windows
+CS5.0 shader compilation and multi-level WARP dispatch tests, but it
+is **not gameplay- or performance-verified** on an owner's system.
+All GPU modes currently use manually authored wall masks, not the
+game's automatically decoded solid-tile collision map. The existing
+CPU-staging lightmap transfer is a prototype bottleneck. See
+[**GPU Prototype and Radiance Cascades guide**](ENHANCED_LIGHTING_GPU_PROTOTYPE.md)
+and [**Production RTGI roadmap**](ENHANCED_LIGHTING_RTGI_ROADMAP.md)
+for implementation, limits, room/scroll QA and future multibounce
+and GPU-resident compositing work.
 
 ## Windows owner visual acceptance — Stage 1
 
