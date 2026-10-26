@@ -72,6 +72,8 @@ typedef struct {
     uint8_t source_type, linked_slot, actor_confirmed;
     uint8_t sprite_selector, sprite_frame, sprite_mirror, sprite_attrs;
     uint8_t point_region, interaction_policy;
+    uint8_t visual_valid, sprite_pieces;
+    uint16_t sprite_descriptor_cpu; /* original PRG26 compressed source */
     int32_t screen_x,screen_y;
     uint32_t actor_generation;
 } CviiiSourceOffscreen0815;
@@ -164,7 +166,8 @@ int cviii_world_link_chapel_0814(CviiiLevel1World0803 *world,
  * wider gameplay collision/pickup rules are enabled by this observer. */
 int cviii_world_probe_chapel_0815(CviiiLevel1World0803 *world,
    const uint8_t selector[3],int camera_x,int camera_y,
-   int native_left,int wide_width);
+   int native_left,int wide_width,
+   const uint8_t authenticated_prg26[16384]);
 void cviii_world_clear_live_0805(CviiiLevel1World0803 *world);
 unsigned cviii_world_capture_live_0803(CviiiLevel1World0803 *world,
         const uint8_t selector[3],int local_camera_x,int local_camera_y,
