@@ -224,6 +224,79 @@ int cviii_world_link_chapel_0814(CviiiLevel1World0803 *w,
     if(w->chapel_link_epochs!=UINT32_MAX)w->chapel_link_epochs++;
     return matches;
 }
+/* JP0815 dry-run of original source presence, visual identity and
+ * unsimulated collision responsibilities. Keeps all nine source records
+ * resident even when the NES world has not yet allocated their actors.
+ * No new game actors, OAM pieces or collision/pickup side effects. */
+int cviii_world_probe_chapel_0815(CviiiLevel1World0803 *w,
+    const uint8_t key[3],int camera_x,int camera_y,
+    int native_left,int wide_width)
+{
+    if(!w || !w->ready || !w->source_payload_ready ||
+       !key || key[0]!=0u || key[1]!=1u || key[2]!=1u ||
+       camera_x<0 || camera_y<0 || camera_y>=512 ||
+       native_left<0 || wide_width<256 ||
+       native_left>wide_width-256 || !w->rooms[2].placed ||
+       w->source_rooms[2].root!=0xab1fu ||
+       w->source_rooms[2].end_exclusive!=0xab5fu ||
+       w->source_rooms[2].width!=7u ||
+       w->source_rooms[2].record_count!=CVIII_STAGE1_CHAPEL_SOURCES_0813 ||
+       w->source_rooms[2].payload_len!=64u ||
+       w->source_rooms[2].payload[63]!=0xffu)return -1;
+    CviiiSourceOffscreen0815 output[CVIII_STAGE1_CHAPEL_SOURCES_0813]={0};
+    const int64_t wx=(int64_t)w->rooms[2].x+camera_x;
+    const int64_t wy=(int64_t)w->rooms[2].y+camera_y;
+    unsigned margin_actors=0u;
+    for(unsigned i=0;i<CVIII_STAGE1_CHAPEL_SOURCES_0813;i++){
+        const uint8_t *record=w->source_rooms[2].payload+7u*i;
+        const uint16_t cpu=(uint16_t)(0xab1fu+7u*i);
+        const uint16_t axis=(uint16_t)(
+            ((uint16_t)record[0]<<8)|record[1]);
+        CviiiSourceOffscreen0815 *p=&output[i];
+        p->source_cpu=cpu;
+        p->source_type=record[2];
+        p->linked_slot=0xffu;
+        /* Event-source X=0..5 links do not directly identify the
+         * eventual spawned actor. Only a direct original $80 actor
+         * can carry a source-tagged visual descriptor. */
+        for(unsigned x=13u;x<=18u;x++){
+            const CviiiWorldActor0803 *actor=&w->actors[x];
+            if(!actor->active || actor->room!=2u ||
+               actor->slot!=x || actor->original_type!=record[2] ||
+               actor->source_cpu_0814!=cpu ||
+               actor->source_generation_0814!=actor->generation)
+                continue;
+            p->actor_confirmed=1u;
+            p->linked_slot=(uint8_t)x;
+            p->sprite_selector=actor->selector;
+            p->sprite_frame=actor->frame;
+            p->sprite_mirror=actor->mirror;
+            p->sprite_attrs=actor->attrs;
+            p->actor_generation=actor->generation;
+            break;
+        }
+        const int64_t gx=p->actor_confirmed ?
+            w->actors[p->linked_slot].x :
+            (int64_t)w->rooms[2].x+record[3];
+        const int64_t gy=p->actor_confirmed ?
+            w->actors[p->linked_slot].y :
+            cviii_chapel_visual_world_y_0815(w->rooms[2].y,axis);
+        const CviiiSourceProjection0815 point=cviii_source_project_0815(
+            gx,gy,wx,wy,native_left,wide_width,240);
+        p->screen_x=point.screen_x;
+        p->screen_y=point.screen_y;
+        p->point_region=point.point_region;
+        p->interaction_policy=(uint8_t)cviii_source_interaction_0815(
+            record[2],p->actor_confirmed);
+        if(p->actor_confirmed &&
+           p->point_region==CVIII_PROBE_MARGIN_0815)margin_actors++;
+    }
+    memcpy(w->chapel_projection,output,sizeof output);
+    w->chapel_margin_actor_count=(uint8_t)margin_actors;
+    if(w->chapel_projection_epochs!=UINT32_MAX)
+        w->chapel_projection_epochs++;
+    return (int)margin_actors;
+}
 void cviii_world_clear_live_0805(CviiiLevel1World0803 *w){
     if(!w)return;
     memset(w->actors,0,sizeof w->actors);
@@ -233,6 +306,9 @@ void cviii_world_clear_live_0805(CviiiLevel1World0803 *w){
     w->chapel_epochs=0u;
     memset(w->chapel_links,0,sizeof w->chapel_links);
     w->chapel_link_epochs=0u;
+    memset(w->chapel_projection,0,sizeof w->chapel_projection);
+    w->chapel_projection_epochs=0u;
+    w->chapel_margin_actor_count=0u;
 }
 
 /* JP0811: independent original PRG0A room hierarchy, stage selector0.
