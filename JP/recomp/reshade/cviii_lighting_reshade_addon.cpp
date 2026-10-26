@@ -18,6 +18,8 @@ struct Bridge {
     unsigned (*room)()=nullptr;
     int (*session)(int)=nullptr;
     int (*select)(int)=nullptr;
+    int (*add)(int,int)=nullptr;
+    int (*event)(int,int,int)=nullptr;
     int (*prop)(int,int)=nullptr;
     int (*copy)()=nullptr;
     int (*paste)()=nullptr;
@@ -43,6 +45,8 @@ bool bind_game(){
     b.room=game_export<decltype(b.room)>(exe,"cviii_lighting_editor_room");
     b.session=game_export<decltype(b.session)>(exe,"cviii_lighting_editor_external_session");
     b.select=game_export<decltype(b.select)>(exe,"cviii_lighting_editor_select");
+    b.add=game_export<decltype(b.add)>(exe,"cviii_lighting_editor_add");
+    b.event=game_export<decltype(b.event)>(exe,"cviii_lighting_editor_input");
     b.prop=game_export<decltype(b.prop)>(exe,"cviii_lighting_editor_property");
     b.copy=game_export<decltype(b.copy)>(exe,"cviii_lighting_editor_copy");
     b.paste=game_export<decltype(b.paste)>(exe,"cviii_lighting_editor_paste");
@@ -51,7 +55,8 @@ bool bind_game(){
     b.group=game_export<decltype(b.group)>(exe,"cviii_lighting_editor_group");
     b.scene=game_export<decltype(b.scene)>(exe,"cviii_lighting_editor_scene");
     b.save=game_export<decltype(b.save)>(exe,"cviii_light_force_save");
-    if(!b.model || !b.room || !b.session || !b.select || !b.prop ||
+    if(!b.model || !b.room || !b.session || !b.select || !b.add ||
+       !b.event || !b.prop ||
        !b.copy || !b.paste || !b.duplicate || !b.name || !b.group ||
        !b.scene || !b.save)return false;
     bridge=b;
@@ -93,6 +98,8 @@ void on_overlay(reshade::api::effect_runtime *){
     ImGui::SameLine();
     ImGui::TextDisabled("Scene %08X",room);
     ImGui::InputTextWithHint("##filter","Filter lights and groups...",search,sizeof search);
+    if(ImGui::Button("Add Light at Scene Center"))changed(bridge.add(128,120));
+    ImGui::SameLine();
     if(ImGui::Button("Copy"))(void)bridge.copy();
     ImGui::SameLine();
     if(ImGui::Button("Paste in Scene"))changed(bridge.paste());
@@ -102,14 +109,8 @@ void on_overlay(reshade::api::effect_runtime *){
     if(ImGui::Button("Delete Selected")){
         int i=s->selected;
         if(i>=0 && i<CVIII_LIGHT_MAX && s->light[i].used){
-            // The native editor's keyboard Delete is also available when
-            // using the stand-alone GUI; ReShade doesn't expose it here.
-            ImGui::OpenPopup("Delete with native editor");
+            changed(bridge.event(5,-1,-1));
         }
-    }
-    if(ImGui::BeginPopup("Delete with native editor")){
-        ImGui::TextUnformatted("Use the native editor Delete key to remove it.");
-        ImGui::EndPopup();
     }
 
     ImGui::SeparatorText("Scene Lights");
