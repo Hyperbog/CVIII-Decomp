@@ -54,6 +54,21 @@ int main(void){
     ok(cviii_source_interaction_0815(0x3d,1)==
            CVIII_INTERACTION_UNSUPPORTED_0815,
        "unknown original source tag rejected");
-    printf("PASS JP0815 %u synthetic point parity cases + 10 guards\n",checks);
+    /* Fabricated PRG26 layout with the original pointer-table ABI. */
+    uint8_t fake_prg26[16384]={0};
+    fake_prg26[0x818du-0x8000u]=0x00u;
+    fake_prg26[0x818eu-0x8000u]=0x90u;
+    fake_prg26[0x9001u-0x8000u]=0x00u;
+    fake_prg26[0x9002u-0x8000u]=0x91u;
+    fake_prg26[0x9100u-0x8000u]=4u;
+    CviiiSourceVisual0815 v=cviii_source_visual_0815(fake_prg26,0x0e,1);
+    ok(v.valid && v.descriptor_cpu==0x9100u && v.pieces==4u,
+       "original sprite selector/frame byte offsets resolve exactly");
+    ok(!cviii_source_visual_0815(NULL,0x0e,1).valid,
+       "unknown cartridge means unknown visual identity");
+    fake_prg26[0x9100u-0x8000u]=28u;
+    ok(!cviii_source_visual_0815(fake_prg26,0x0e,1).valid,
+       "overlarge original sprite piece count rejected");
+    printf("PASS JP0815 %u synthetic point parity cases + 13 guards\n",checks);
     return 0;
 }
