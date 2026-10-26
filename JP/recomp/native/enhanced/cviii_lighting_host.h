@@ -9,4 +9,13 @@ int cviii_lighting_editor_status(char *text,unsigned capacity);
 /* SDL-validated canonical key name, persisted under [Game] in config.ini. */
 const char *cviii_lighting_editor_key(void);
 int cviii_lighting_editor_set_key(const char *name);
+/* Live editor data / bounded property updates; never modify guest state. */
+#include "cviii_lighting.h"
+const CviiiLighting *cviii_lighting_editor_model(void);
+unsigned cviii_lighting_editor_room(void);
+int cviii_lighting_editor_select(int slot);
+int cviii_lighting_editor_add(int x,int y);
+int cviii_lighting_editor_property(int property,int value);
+int cviii_lighting_editor_point(int slot,int *x,int *y);
+
 #endif
