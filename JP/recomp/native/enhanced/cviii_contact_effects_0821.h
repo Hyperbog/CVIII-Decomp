@@ -125,4 +125,28 @@ static inline int cviii_effect_b486_prefix_0821(
  *out=r;
  return 1;
 }
+/* Source-authenticated $B5DF visual-installation postcondition.
+ * This is NOT proof the original CPU executed B5DF in this frame;
+ * a matching guest snapshot establishes only a currently live
+ * visual-effect signature. Original $054E+23 may still be zero. */
+typedef struct {
+ uint8_t matched,draw_candidate,frame,selector,flags,type23,x,y;
+} CviiiEffect23Witness0821;
+static inline CviiiEffect23Witness0821 cviii_effect23_witness_0821(
+     const uint8_t ram[2048])
+{
+ CviiiEffect23Witness0821 w={0};
+ if(!ram)return w;
+ w.frame=ram[0x0400u+23u];
+ w.selector=ram[0x048cu+23u];
+ w.flags=ram[0x0470u+23u];
+ w.type23=ram[0x054eu+23u];
+ w.x=ram[0x0438u+23u];
+ w.y=ram[0x041cu+23u];
+ w.matched=(w.frame==0x12u && w.selector==0x0eu &&
+            w.flags==0x20u);
+ w.draw_candidate=w.matched && !(w.flags&0x80u);
+ return w;
+}
+
 #endif
