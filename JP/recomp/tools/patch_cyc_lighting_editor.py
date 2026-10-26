@@ -219,7 +219,8 @@ def smoke() -> None:
     assert "cviii_light_rebinding" in product
     assert "cviii_lighting_editor_set_key(name)" in product
     assert "SDL_RenderWindowToLogical" not in SHELL # uses engine mapping
-    assert product.count("|| cviii_light_rebinding;")==3
+    assert product.count("|| cviii_light_rebinding;")==2
+    assert "cviii_pause_active() || cviii_lighting_editor_active() ||\n                     cviii_light_rebinding;" in product
     assert "SDL_MOUSEMOTION" in product and "SDL_MOUSEWHEEL" in product
     assert "cviii_light_sdl_status();" in product
     assert "if(code!=4)" in product
