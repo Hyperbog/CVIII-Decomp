@@ -136,15 +136,42 @@ def witness(mesen:Path,rom:Path,horizon:int,sample:int)->dict:
                     "note":"stop; actor slot reuse across rooms is ambiguous"})
                 break
             if all(not c["allocated"] for c in cur["children"]):break
-        # Independent natural contact entry from the *same* spawned state.
+        # Independently replay the SAME controller sequence from the
+        # source-confirmed original post-creation state and ask Mesen for
+        # the original raw-bank-$0B B727 execution breakpoint. It is
+        # NOT enough for B727 to fire for an unrelated actor type.
         args=["--load-state",str(root/"spawn.mss"),"--frames",str(horizon),
-              "--timeout","65","--breakpoint","NesMemory:0xB727:x:[$23]==$0B"]
+              "--timeout","65","--breakpoint","NesMemory:0xB727:x:[$23]==$0B",
+              "--state-json",str(root/"contact.json"),
+              "--save-state",str(root/"contact.mss")]
         for i in schedule(489,horizon):args+=["--input",i]
-        _,s=run(mesen,rom,root,"contactB727",args)
-        contact={"reached":s.get("reason")=="debugger_break",
-                 "frame":s.get("final_frame") if s.get("reason")=="debugger_break" else None,
+        for a in ("0x540:160","0x630:224","0x400:256"):
+            args+=["--read-memory","NesInternalRam:"+a]
+        ev,s=run(mesen,rom,root,"contactB727",args)
+        reached=s.get("reason")=="debugger_break"
+        contact={"reached":reached,
+                 "frame":s.get("final_frame") if reached else None,
                  "bank_qualified_breakpoint":"NesMemory:0xB727:x:[$23]==$0B",
-                 "note":"a breakpoint at B727 establishes reachability, not downstream contact/death poststate"}
+                 "source_linked_type3d":False,
+                 "note":"only original PC reachability until source ancestry and poststate are proved"}
+        if reached:
+            cpu=json.loads((root/"contact.json").read_text())
+            actor=cpu["cpu.x"]
+            owner=memory(ev,0x540)
+            tail=memory(ev,0x630)
+            flags=memory(ev,0x400)
+            if 1<=actor<=12:
+                t=owner[0x054eu-0x540u+actor]
+                mark=flags[0x0470u-0x400u+actor]
+                src=tail[0x0645u-0x630u+actor]
+                linked=t==0x3d and (mark&4)!=0 and src<6
+                contact.update({"actor_slot":actor,"actor_type":t,
+                    "source_index":src if linked else None,
+                    "source_linked_type3d":linked,
+                    "cpu_cycle":cpu.get("cpu.cycleCount")})
+            contact["note"]=("bank-qualified B727 entry only; "
+                "actor-source correlation requires source-linked type3D, "
+                "and exact downstream poststate requires separate CPU step trace")
         return {"original_rom_sha256":ROM_SHA,"agent_sha256":AGENT_SHA,
                 "creation":{"frame":3092,"original_type":"3D","slots":[1,2],
                             "original_source_handler":"raw0A:8B2C"},
