@@ -218,6 +218,8 @@ static void load_setting(void *context, const char *key, const char *value)
            value_int>=2 && value_int<=4)
             cviii.lighting_cascade_levels=value_int;
     }
+    else if (!strcmp(key,"Particles") || !strncmp(key,"Particle",8))
+        (void)cviii_particle_load(&cviii.lighting,key,value);
     else if (!strncmp(key,"Light",5) || !strncmp(key,"RoomAmbient",11) ||
              !strncmp(key,"RoomSky",7) || !strncmp(key,"GlobalStyle",11) ||
              !strncmp(key,"Occluder",8) || !strncmp(key,"SceneGrade",10) ||
@@ -234,6 +236,7 @@ static void save_settings(void *context, FILE *file)
             cviii.sprite_unlimited, cviii.stable_sprites);
     cviii_audio_levels_save(&cviii.volume,file);
     cviii_light_save(&cviii.lighting,file);
+    cviii_particle_save(&cviii.lighting,file);
     fprintf(file,"LightingEditorKey = %s\n",cviii.lighting_editor_key);
     fprintf(file,"LightingRenderer = %s\n",
             cviii.lighting_renderer==2?"RadianceCascades":
@@ -842,6 +845,54 @@ int cviii_lighting_editor_kit_manage(int action,int source,
     if(action==3)return cviii_light_kit_delete(&cviii.lighting,source);
     return 0;
 }
+int cviii_lighting_editor_particle_enabled(int enabled)
+{
+    if(!cviii_lighting_editor_active() || (enabled!=0 && enabled!=1))return 0;
+    cviii_light_history_push(&cviii.lighting);
+    cviii.lighting.particles_enabled=enabled;
+    return 1;
+}
+int cviii_lighting_editor_particle_add(int kind,int x,int y)
+{
+    int wx=0,wy=0;
+    if(!cviii_lighting_placement(x,y,&wx,&wy))return -1;
+    cviii_light_history_push(&cviii.lighting);
+    return cviii_particle_add(&cviii.lighting,cviii_lighting_room(),kind,wx,wy);
+}
+int cviii_lighting_editor_particle_property(int slot,int property,int value)
+{
+    if(!cviii_lighting_editor_active() ||
+       slot<0 || slot>=CVIII_PARTICLE_EMITTER_MAX ||
+       !cviii.lighting.particles[slot].used ||
+       cviii.lighting.particles[slot].room!=cviii_lighting_room())return 0;
+    cviii_light_history_push(&cviii.lighting);
+    return cviii_particle_property(&cviii.lighting,slot,property,value);
+}
+int cviii_lighting_editor_particle_name(int slot,const char *name)
+{
+    if(!cviii_lighting_editor_active() ||
+       slot<0 || slot>=CVIII_PARTICLE_EMITTER_MAX ||
+       !cviii.lighting.particles[slot].used ||
+       cviii.lighting.particles[slot].room!=cviii_lighting_room())return 0;
+    cviii_light_history_push(&cviii.lighting);
+    return cviii_particle_name(&cviii.lighting,slot,name);
+}
+int cviii_lighting_editor_particle_clone(int slot)
+{
+    if(!cviii_lighting_editor_active() ||
+       slot<0 || slot>=CVIII_PARTICLE_EMITTER_MAX ||
+       !cviii.lighting.particles[slot].used ||
+       cviii.lighting.particles[slot].room!=cviii_lighting_room())return -1;
+    CviiiParticleEmitter e=cviii.lighting.particles[slot];
+    int nx=e.x+12,ny=e.y+8;
+    if(nx+e.w>65535 || ny+e.h>479)return -1;
+    cviii_light_history_push(&cviii.lighting);
+    for(int i=0;i<CVIII_PARTICLE_EMITTER_MAX;++i)
+        if(!cviii.lighting.particles[i].used){
+            e.x=nx;e.y=ny;cviii.lighting.particles[i]=e;return i;
+        }
+    return -1;
+}
 int cviii_lighting_editor_global_property(int slot,int property,int value)
 {
     if(!cviii_lighting_editor_active() || slot<0 || slot>=CVIII_GLOBAL_STYLE_MAX ||
@@ -1067,7 +1118,9 @@ static const uint32_t *present(void *context,int *width,int *height)
 {
     CviiiEdition *settings=(CviiiEdition *)context;
     const uint32_t *frame=present_game(context,width,height);
-    if(settings->enhanced && (settings->lighting.enabled || settings->lighting.edit) &&
+    if(settings->enhanced &&
+       (settings->lighting.enabled || settings->lighting.edit ||
+        settings->lighting.particles_enabled) &&
        *width==CVIII_W && *height==CVIII_H){
         int sx[CVIII_LIGHT_H],sy[CVIII_LIGHT_H];
         cviii_lighting_scroll(sx,sy);
@@ -1095,6 +1148,12 @@ static const uint32_t *present(void *context,int *width,int *height)
                 CVIII_W,CVIII_H,cviii_lighting_room(),cviii_lighting_camera(),
                 sx,sy,settings->lighting_frame);
         settings->lighting_gpu_active=gpu_ok;
+        /* Pixel FX are a post-lighting native-resolution layer and also
+         * render when all other lighting is disabled. They never touch
+         * the original guest framebuffer or top HUD. */
+        cviii_particle_present(&settings->lighting,settings->presentation,
+             cviii_lighting_room(),cviii_lighting_camera(),sx,sy,
+             settings->lighting_frame);
         frame=settings->presentation;
     }
     if (settings->enhanced && !settings->audio_ui.open &&
