@@ -634,6 +634,38 @@ int main(void){
               child_samples==world->horizontal_child_samples,
               "unsupported chapel does not mutate horizontal child state"))
         return 51;
+    /* JP0821: the original B5DF effect uses slot23 sprite frame
+     * $12, selector $0E, flags $20, WITHOUT allocating $054E+23.
+     * Renderer may project the actual guest sprite outside 256px;
+     * do not create a synthetic enemy or contact. */
+    ram[0x0400u+23u]=0x12u;
+    ram[0x048cu+23u]=0x0eu;
+    ram[0x0470u+23u]=0x20u;
+    ram[0x054eu+23u]=0u;
+    ram[0x0438u+23u]=0x40u;
+    ram[0x041cu+23u]=0x84u;
+    (void)cviii_world_capture_live_0803(world,first,0,0,ram);
+    if(!check(world->effect23.matched &&
+              world->effect23.draw_candidate &&
+              world->effect23.type23==0u &&
+              world->effect23_entries==1u &&
+              world->actors[23].active &&
+              world->actors[23].frame==0x12u &&
+              world->actors[23].original_type==0u,
+              "guest slot23 original visual effect is not an allocated enemy"))
+         return 53;
+    (void)cviii_world_capture_live_0803(world,first,0,0,ram);
+    if(!check(world->effect23.matched &&
+              world->effect23_entries==1u &&
+              world->effect23_observations==2u,
+              "identical live original slot23 sample is not another spawn"))
+         return 54;
+    ram[0x0400u+23u]=0u;
+    (void)cviii_world_capture_live_0803(world,first,0,0,ram);
+    if(!check(!world->effect23.matched && !world->actors[23].active &&
+              world->effect23_entries==1u,
+              "original blank frame stops slot23 visual without actor death"))
+         return 55;
     cviii_world_clear_live_0805(world);
     if(!check(world->horizontal_ready &&
               world->horizontal[0].count==14u &&
@@ -649,7 +681,10 @@ int main(void){
               !world->parent_lost_witnesses &&
               !world->parent_released_while_child_allocated &&
               !world->horizontal_unresolved_lineage_mask &&
-              !world->horizontal_source_reuse_warnings,
+              !world->horizontal_source_reuse_warnings &&
+              !world->effect23.matched &&
+              !world->effect23_observations &&
+              !world->effect23_entries,
               "transient original source phase reset preserves source directory"))
          return 42;
     if(!check(!world->actors[0].active &&
