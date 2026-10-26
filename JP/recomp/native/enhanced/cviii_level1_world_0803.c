@@ -1,4 +1,5 @@
 #include "cviii_level1_world_0803.h"
+#include "cviii_stage1_source_window_0813.h"
 #include <limits.h>
 #include <stddef.h>
 #include <string.h>
@@ -95,9 +96,57 @@ int cviii_world_detect_loader_0805(CviiiLevel1World0803 *w,
     (void)cviii_world_visit_0803(w,key);
     return (int)g;
 }
+/* JP0813: retain the original Stage 1 chapel's resident source identities
+ * while independently observing the original 6502 $8213-$8254 admission
+ * window. A source is NOT an active actor. Authentic game actor allocation,
+ * culling, hitboxes, and CPU/PPU state remain wholly owned by NESRecomp.
+ * This is invoked only with source-verified, vertical 00/01/01 camera Y. */
+int cviii_world_track_chapel_0813(CviiiLevel1World0803 *w,
+    const uint8_t key[3],int camera_y)
+{
+    if(!w || !w->ready || !w->source_payload_ready || !key ||
+       camera_y<0 || camera_y>=512 ||
+       key[0]!=0u || key[1]!=1u || key[2]!=1u)return -1;
+    const CviiiWorldSourceRoom0811 *s=&w->source_rooms[2];
+    if(s->root!=0xab1fu || s->end_exclusive!=0xab5fu ||
+       s->width!=7u || s->record_count!=CVIII_STAGE1_CHAPEL_SOURCES_0813 ||
+       s->payload_len!=64u || s->payload[63]!=0xffu)return -1;
+    CviiiStage1SourceLife0813 incoming[CVIII_STAGE1_CHAPEL_SOURCES_0813];
+    unsigned count=0;
+    for(unsigned i=0;i<CVIII_STAGE1_CHAPEL_SOURCES_0813;i++){
+        const uint8_t *record=s->payload+7u*i;
+        /* $8321: first two bytes -> ZP $09 (high), $0A (low).
+         * $827D: type selects source row vs object allocator; byte 3
+         * is the independent horizontal coordinate in either branch. */
+        const uint16_t axis=(uint16_t)(((uint16_t)record[0]<<8)|record[1]);
+        const CviiiStage1Admission0813 admitted=
+            cviii_stage1_admit_0813(axis,(uint16_t)camera_y);
+        const CviiiStage1SourceLife0813 *old=&w->chapel[i];
+        CviiiStage1SourceLife0813 *item=&incoming[i];
+        *item=*old;
+        item->source_cpu=(uint16_t)(s->root+7u*i);
+        item->axis_world=axis;
+        item->raw_type=record[2];
+        item->local_x=record[3];
+        item->local_axis=admitted.local_axis;
+        item->eligible=admitted.admitted;
+        if(item->eligible && !old->eligible && item->entries!=UINT32_MAX)
+            item->entries++;
+        else if(!item->eligible && old->eligible && item->exits!=UINT32_MAX)
+            item->exits++;
+        count+=item->eligible;
+    }
+    memcpy(w->chapel,incoming,sizeof incoming);
+    if(w->chapel_epochs!=UINT32_MAX)w->chapel_epochs++;
+    return (int)count;
+}
 void cviii_world_clear_live_0805(CviiiLevel1World0803 *w){
     if(!w)return;
     memset(w->actors,0,sizeof w->actors);
+    /* Save-state/reset invalidates transient observer continuity, not
+     * authenticated preloaded source payloads or world room positions. */
+    memset(w->chapel,0,sizeof w->chapel);
+    w->chapel_epochs=0u;
 }
 
 /* JP0811: independent original PRG0A room hierarchy, stage selector0.
