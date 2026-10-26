@@ -335,6 +335,40 @@ int main(void){
               world->actors[13].source_cpu_0814==0xab1fu &&
               world->actors[13].source_generation_0814==7u,
               "type80 direct original installer exact match"))return 26;
+    /* JP0815: real source is installed, but the proposed X movement
+     * here is a synthetic projection-only test, not a natural Mesen
+     * camera or a new original CPU movement rule. */
+    world->actors[13].x=world->rooms[2].x+0x20;
+    world->actors[13].y=world->rooms[2].y+0x180+0x37;
+    world->actors[13].selector=0x0eu;
+    world->actors[13].mirror=1u;
+    if(!check(cviii_world_probe_chapel_0815(
+                  world,vertical,80,0x180,85,426)==1 &&
+              world->chapel_projection[0].actor_confirmed &&
+              world->chapel_projection[0].linked_slot==13u &&
+              world->chapel_projection[0].sprite_selector==0x0eu &&
+              world->chapel_projection[0].sprite_frame==1u &&
+              world->chapel_projection[0].screen_x==37 &&
+              world->chapel_projection[0].screen_y==55 &&
+              world->chapel_projection[0].point_region==
+                  CVIII_PROBE_MARGIN_0815 &&
+              world->chapel_projection[0].interaction_policy==
+                  CVIII_INTERACTION_SPECIAL_B162_0815,
+              "only original installed actor projects into synthetic margin"))
+        return 31;
+    if(!check(cviii_world_probe_chapel_0815(
+                  world,vertical,0,0x180,85,426)==0 &&
+              world->chapel_projection[0].point_region==
+                  CVIII_PROBE_NATIVE_0815 &&
+              world->chapel_projection[0].screen_x==117,
+              "authentic chapel X stays inside NES game window"))
+        return 32;
+    uint32_t projected_epochs=world->chapel_projection_epochs;
+    if(!check(cviii_world_probe_chapel_0815(
+                  world,second,0,0x180,85,426)==-1 &&
+              projected_epochs==world->chapel_projection_epochs,
+              "wrong source selector cannot mutate projection"))
+        return 33;
     /* Two records claiming one original slot are both ambiguous. */
     memcpy(chapel->payload+7u,chapel->payload,7u);
     if(!check(cviii_world_link_chapel_0814(world,vertical,ram)==0 &&
@@ -366,6 +400,14 @@ int main(void){
     if(!check(!world->actors[13].source_cpu_0814 &&
               !world->actors[13].source_generation_0814,
               "actor deactivation invalidates source tag"))return 30;
+    if(!check(cviii_world_probe_chapel_0815(
+                  world,vertical,80,0x180,85,426)==0 &&
+              !world->chapel_projection[0].actor_confirmed &&
+              world->chapel_projection[0].source_cpu==0xab1fu &&
+              world->chapel_projection[0].interaction_policy==
+                  CVIII_INTERACTION_NOT_SPAWNED_0815,
+              "source remains resident but never fabricates a ghost actor"))
+        return 34;
     uint32_t previous_links=world->chapel_link_epochs;
     if(!check(cviii_world_link_chapel_0814(world,second,ram)==-1 &&
               world->chapel_link_epochs==previous_links,
