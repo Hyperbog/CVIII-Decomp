@@ -715,14 +715,27 @@ extern "C" int cviii_imgui_render(SDL_Window *window,SDL_Renderer *renderer){
             ImGui::SeparatorText("Renderer Backend");
             int renderer=cviii_lighting_editor_renderer();
             if(ImGui::Combo("Lighting Mode",&renderer,
-                    "Standard (CPU, always available)\0GPU Prototype (D3D11, one bounce)\0")){
+                    "Standard (CPU, always available)\0GPU Prototype (D3D11, one bounce)\0Radiance Cascades (D3D11, experimental)\0")){
                 if(cviii_lighting_editor_set_renderer(renderer))dirty=true;
             }
-            ImGui::TextWrapped("Standard uses the existing renderer. GPU Prototype "
-                "traces the manually authored wall masks and samples a single "
-                "diffuse bounce at 128x96. The original NES picture remains "
-                "full resolution. This experimental pass uses a D3D11 compute "
-                "device and reads back the light map; it is not Radiance Cascades.");
+            if(renderer==2){
+                int quality=cviii_lighting_editor_cascade_quality()-2;
+                if(ImGui::Combo("Radiance Quality",&quality,
+                    "Low - 2 cascades\0Medium - 3 cascades\0High - 4 cascades\0")){
+                    if(cviii_lighting_editor_set_cascade_quality(quality+2))
+                        dirty=true;
+                }
+                ImGui::TextWrapped("Radiance Cascades traces distinct distance "
+                    "intervals across dense near probes and finer distant "
+                    "angles. Occluder visibility determines whether distant "
+                    "radiance merges into each nearer interval. This mode "
+                    "adds directional indirect light to the direct lightmap.");
+            }
+            ImGui::TextWrapped("Standard is the default CPU mode. GPU Prototype "
+                "uses sampled one-bounce reflection; Radiance Cascades uses "
+                "hierarchical angular probes. Both D3D11 GPU modes currently "
+                "trace only manually authored wall masks at 128x96. Full "
+                "resolution NES pixels and the HUD are preserved.");
             ImGui::Text("Backend: %s",cviii_lighting_editor_gpu_status());
             ImGui::TextDisabled("While editing, Standard is shown for mask handles; "
                 "GPU renders after closing the editor. If unavailable or over "
