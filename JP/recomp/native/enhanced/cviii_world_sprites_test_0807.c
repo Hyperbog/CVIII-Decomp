@@ -34,7 +34,9 @@ int main(void){
     for(unsigned i=0;i<426u*240u;i++)pic[i]=0xff112233u;
     uint32_t count=cviii_world_sprites_draw_0807(&world,first,
         700,0,85,pic,426,240,data,ram,0x1000,0,pixel,palette);
-    if(count!=1 || pic[100*426+385]!=0xff88001bu ||
+    /* 8 sprite rows, each with exactly one visible CHR pixel at x385.
+     * This is a pixel count, not an OAM descriptor/sprite count. */
+    if(count!=8 || pic[100*426+385]!=0xff88001bu ||
        pic[100*426+340]!=0xff112233u)return 1;
     /* Same exact source actor moves to normal NES viewport:
      * this painter MUST NOT duplicate the NES's OAM contribution. */
