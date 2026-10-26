@@ -35,3 +35,10 @@ jobs:
           $file = Get-ChildItem -Path $build -Filter 'CVIII_Lighting.addon64' -Recurse | Select-Object -First 1
           if (!$file) { throw 'Expected Win64 ReShade add-on output missing' }
           Write-Host ('PASS optional ReShade SDK compile: '+$file.Name)
+      - name: Publish optional ROM-free ReShade add-on for owner QA
+        uses: actions/upload-artifact@v4
+        with:
+          name: CVIII-ReShade-Lighting-Addon-Experimental
+          path: ${{ runner.temp }}/cviii-reshade-build/Release/CVIII_Lighting.addon64
+          if-no-files-found: error
+          retention-days: 14
