@@ -21,7 +21,7 @@ SHELL=r'''
  * Event routing is presentation only; no emulated buttons are changed. */
 #include "cviii_lighting_host.h"
 static void zapper_window_point(int,int,int*,int*,int*,int*);
-#include "cviii_lighting_panel_sdl.h"
+#include "cviii_imgui_editor.h"
 static bool cviii_light_rebinding;
 static SDL_Scancode cviii_light_bind_pending=SDL_SCANCODE_UNKNOWN;
 static SDL_Scancode cviii_light_key(void)
@@ -116,6 +116,7 @@ static bool cviii_light_sdl_event(const SDL_Event *ev, bool other_open)
         return true;
     }
     if(!cviii_lighting_editor_active())return false;
+    if(cviii_imgui_event(ev,s_win,s_ren))return true;
     if(ev->type==SDL_KEYDOWN){
         const SDL_Scancode sc=ev->key.keysym.scancode;
         if(ev->key.repeat)return true;
@@ -157,9 +158,9 @@ static bool cviii_light_sdl_event(const SDL_Event *ev, bool other_open)
                 code=13;
         }
         if(code){
-            int panel=cviii_light_ui_mouse(code,x,y);
+            int panel=cviii_imgui_scene_click(code,x,y);
             if(panel){
-                if(panel==2 && code!=3)save_settings();
+                if(panel==2)save_settings();
                 return true;
             }
             if(cviii_lighting_editor_input(code,x,y) && code!=3){
@@ -170,10 +171,6 @@ static bool cviii_light_sdl_event(const SDL_Event *ev, bool other_open)
         return true;
     }
     if(ev->type==SDL_MOUSEWHEEL){
-        int mx=0,my=0,x=-1,y=-1;
-        SDL_GetMouseState(&mx,&my);
-        zapper_window_point(mx,my,&x,&y,NULL,NULL);
-        if(cviii_light_ui_wheel(x,y,ev->wheel.y))return true;
         int delta=ev->wheel.y;
         if(ev->wheel.direction==SDL_MOUSEWHEEL_FLIPPED)delta=-delta;
         if(delta>8)delta=8;
@@ -218,12 +215,16 @@ def generate(text: str) -> str:
     text=once(text,START,START[:-1]+" || cviii_lighting_editor_active() || cviii_light_rebinding;")
     text=once(text,FINAL,FINAL[:-1]+" || cviii_lighting_editor_active() || cviii_light_rebinding;")
     text=once(text,"    if (s_ui_shot_id >= 0) {",
-        "    cviii_light_ui_draw();\n    if (s_ui_shot_id >= 0) {")
+        "    if(cviii_imgui_render(s_win,s_ren))save_settings();\n"
+        "    if (s_ui_shot_id >= 0) {")
+    text=once(text,"    SDL_DestroyRenderer(s_ren);",
+        "    cviii_imgui_shutdown();\n    SDL_DestroyRenderer(s_ren);")
     return text
 
 def smoke() -> None:
     fixture="\n".join(("/* "+PREV+" */","static bool cviii_stage_open;",
-                       KEY_ANCHOR,START,FINAL,"    if (s_ui_shot_id >= 0) {"))
+                       KEY_ANCHOR,START,FINAL,"    if (s_ui_shot_id >= 0) {",
+                       "    SDL_DestroyRenderer(s_ren);"))
     product=generate(fixture)
     assert product.count(MARKER)==1
     assert "SDL_SCANCODE_HOME" in product
@@ -234,10 +235,11 @@ def smoke() -> None:
     assert product.count("|| cviii_light_rebinding;")==2
     assert "cviii_pause_active() || cviii_lighting_editor_active() ||\n                     cviii_light_rebinding;" in product
     assert "SDL_MOUSEMOTION" in product and "SDL_MOUSEWHEEL" in product
-    assert '#include "cviii_lighting_panel_sdl.h"' in product
-    assert "cviii_light_ui_draw();" in product
-    assert "cviii_light_ui_mouse(code,x,y)" in product
-    assert "cviii_light_ui_wheel(x,y,ev->wheel.y)" in product
+    assert '#include "cviii_imgui_editor.h"' in product
+    assert "cviii_imgui_render(s_win,s_ren)" in product
+    assert "cviii_imgui_event(ev,s_win,s_ren)" in product
+    assert "cviii_imgui_scene_click(code,x,y)" in product
+    assert "cviii_imgui_shutdown();" in product
     assert "cviii_light_sdl_status();" in product
     assert "if(code!=4)" in product
     for invalid in (product,fixture.replace(KEY_ANCHOR,"/* changed */")):
