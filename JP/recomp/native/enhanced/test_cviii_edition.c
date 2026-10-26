@@ -219,12 +219,25 @@ int main(void) {
     /* Real host lifecycle callbacks reset editor/modal presentation but
        NEVER delete owner-authored room lights or global preset settings. */
     const unsigned saved_room=cviii_lighting_editor_room();
+    /* Particle FX are independent Enhanced host settings, sharing world
+       scene IDs and edit history but NOT NES power/savestate storage. */
+    int dust_fx=cviii_lighting_editor_particle_add(CVIII_FX_DUST,96,108);
+    assert(dust_fx>=0);
+    assert(cviii_lighting_editor_particle_property(dust_fx,7,125));
+    assert(cviii_lighting_editor_particle_property(dust_fx,8,-15));
+    assert(cviii_lighting_editor_particle_name(dust_fx,"Hall Dust"));
+    assert(cviii_lighting_editor_model()->particles_enabled);
+    assert(cviii_lighting_editor_model()->particles[dust_fx].room==saved_room);
+    assert(!cviii_lighting_editor_particle_property(dust_fx,6,999));
     e->power_on(e->ctx);
     assert(!cviii_lighting_editor_active());
     assert(cviii_lighting_editor_model()->light[chosen].used);
     assert(cviii_lighting_editor_model()->light[chosen].room==saved_room);
     assert(cviii_lighting_editor_model()->light[chosen].radius==120);
+    assert(cviii_lighting_editor_model()->particles[dust_fx].used);
     e->state_loaded(e->ctx);
+    assert(cviii_lighting_editor_model()->particles[dust_fx].used);
+    assert(cviii_lighting_editor_model()->particles[dust_fx].wind==-15);
     assert(cviii_lighting_editor_model()->light[chosen].used);
     assert(cviii_lighting_editor_model()->light[chosen].red==211);
     assert(cviii_lighting_editor_input(1,-1,-1)); /* reopen owner editor */
@@ -252,6 +265,10 @@ int main(void) {
     assert(!cviii_lighting_editor_gpu_active());
     assert(cviii_lighting_editor_set_renderer(0));
     e->load_setting(e->ctx,"Lighting","0");
+    p=e->present(e->ctx,&w,&h);
+    assert(p!=native); /* Pixel FX still active without any lighting. */
+    assert(p[20*256+72]==native[20*256+72]); /* untouched NES HUD */
+    e->load_setting(e->ctx,"Particles","0");
     assert(e->present(e->ctx,&w,&h)==native);
     puts("PASS CVIII Original fallback / Enhanced compositor / persisted settings");
     return 0;
