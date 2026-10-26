@@ -50,7 +50,8 @@ typedef struct {
     int stable_sprites; /* optional host-only temporal presentation; off by default */
     CviiiSpriteLayers sprite_layers;
     CviiiLighting lighting; /* separate host-only level lighting */
-    int lighting_renderer; /* 0: Standard C11, 1: optional D3D11 RTGI */
+    int lighting_renderer; /* 0 Standard, 1 GPU one bounce, 2 Radiance Cascades */
+    int lighting_cascade_levels; /* 2 Low / 3 Medium / 4 High; default 3 */
     int lighting_gpu_active; /* previous frame, never guest state */
     char lighting_editor_key[32]; /* persisted SDL2 scancode name */
     uint64_t lighting_frame; /* host animation, never serialized to guest */
@@ -209,7 +210,14 @@ static void load_setting(void *context, const char *key, const char *value)
     else if (!strcmp(key,"LightingEditorKey"))
         (void)cviii_lighting_editor_set_key(value);
     else if (!strcmp(key,"LightingRenderer"))
-        cviii.lighting_renderer=!strcmp(value,"GPUPrototype")?1:0;
+        cviii.lighting_renderer=!strcmp(value,"RadianceCascades")?2:
+                                !strcmp(value,"GPUPrototype")?1:0;
+    else if (!strcmp(key,"LightingCascadeQuality")){
+        int value_int=0;
+        if(sscanf(value,"%d",&value_int)==1 &&
+           value_int>=2 && value_int<=4)
+            cviii.lighting_cascade_levels=value_int;
+    }
     else if (!strncmp(key,"Light",5) || !strncmp(key,"RoomAmbient",11) ||
              !strncmp(key,"RoomSky",7) || !strncmp(key,"GlobalStyle",11) ||
              !strncmp(key,"Occluder",8) || !strncmp(key,"SceneGrade",10) ||
@@ -228,7 +236,11 @@ static void save_settings(void *context, FILE *file)
     cviii_light_save(&cviii.lighting,file);
     fprintf(file,"LightingEditorKey = %s\n",cviii.lighting_editor_key);
     fprintf(file,"LightingRenderer = %s\n",
-            cviii.lighting_renderer?"GPUPrototype":"Standard");
+            cviii.lighting_renderer==2?"RadianceCascades":
+            cviii.lighting_renderer==1?"GPUPrototype":"Standard");
+    fprintf(file,"LightingCascadeQuality = %d\n",
+            cviii.lighting_cascade_levels?
+                cviii.lighting_cascade_levels:3);
 }
 
 static bool option(void *context, const char *name, const char *value)
@@ -558,9 +570,20 @@ int cviii_lighting_editor_active(void)
 int cviii_lighting_editor_renderer(void){return cviii.lighting_renderer;}
 int cviii_lighting_editor_set_renderer(int mode)
 {
-    if(!cviii.enhanced || (mode!=0 && mode!=1))return 0;
+    if(!cviii.enhanced || mode<0 || mode>2)return 0;
     cviii.lighting_renderer=mode;
     cviii.lighting_gpu_active=0;
+    return 1;
+}
+int cviii_lighting_editor_cascade_quality(void)
+{
+    return cviii.lighting_cascade_levels?
+        cviii.lighting_cascade_levels:3;
+}
+int cviii_lighting_editor_set_cascade_quality(int quality)
+{
+    if(!cviii.enhanced || quality<2 || quality>4)return 0;
+    cviii.lighting_cascade_levels=quality;
     return 1;
 }
 int cviii_lighting_editor_gpu_active(void){return cviii.lighting_gpu_active;}
@@ -1056,11 +1079,15 @@ static const uint32_t *present(void *context,int *width,int *height)
          * Editing temporarily previews Standard to show mask outlines. */
         int gpu_ok=0;
 #ifdef CVIII_WITH_GPU_RTGI
-        if(settings->lighting_renderer==1 && settings->lighting.enabled &&
-           !settings->lighting.edit){
+        if((settings->lighting_renderer==1 ||
+            settings->lighting_renderer==2) &&
+           settings->lighting.enabled && !settings->lighting.edit){
             gpu_ok=cviii_gpu_rtgi_present(&settings->lighting,
                 settings->presentation,cviii_lighting_room(),
-                cviii_lighting_camera(),sx,sy,settings->lighting_frame);
+                cviii_lighting_camera(),sx,sy,settings->lighting_frame,
+                settings->lighting_renderer==2?
+                    (settings->lighting_cascade_levels?
+                       settings->lighting_cascade_levels:3):0);
         }
 #endif
         if(!gpu_ok)
