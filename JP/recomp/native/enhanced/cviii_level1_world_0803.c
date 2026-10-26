@@ -153,6 +153,57 @@ int cviii_world_track_chapel_0813(CviiiLevel1World0803 *w,
     if(w->chapel_epochs!=UINT32_MAX)w->chapel_epochs++;
     return (int)count;
 }
+/* JP0814: correlate original $AB1F seven-byte source records with
+ * actual original CPU RAM postconditions. The *emulated* $53/$54 is
+ * authoritative for the scan; a presentation PPU camera may lag by a
+ * frame and must not be substituted in actor identity checks.
+ * Source IDs are not actor IDs. Failed and non-unique matches do
+ * not produce synthetic actors, damage, hitboxes or OAM. */
+int cviii_world_link_chapel_0814(CviiiLevel1World0803 *w,
+    const uint8_t key[3],const uint8_t ram[2048])
+{
+    if(!w || !w->ready || !w->source_payload_ready || !key || !ram ||
+       key[0]!=0u || key[1]!=1u || key[2]!=1u ||
+       w->source_rooms[2].root!=0xab1fu ||
+       w->source_rooms[2].end_exclusive!=0xab5fu ||
+       w->source_rooms[2].width!=7u ||
+       w->source_rooms[2].record_count!=CVIII_STAGE1_CHAPEL_SOURCES_0813 ||
+       w->source_rooms[2].payload_len!=64u ||
+       w->source_rooms[2].payload[63]!=0xffu)return -1;
+    const uint16_t source_camera=(uint16_t)(
+        (uint16_t)ram[0x53u] | ((uint16_t)ram[0x54u]<<8));
+    CviiiSourceLink0814 found[CVIII_STAGE1_CHAPEL_SOURCES_0813]={0};
+    int matches=0;
+    for(unsigned i=0;i<CVIII_STAGE1_CHAPEL_SOURCES_0813;i++){
+        const uint8_t *record=w->source_rooms[2].payload+7u*i;
+        const uint16_t axis=(uint16_t)(
+             ((uint16_t)record[0]<<8)|(uint16_t)record[1]);
+        const CviiiStage1Admission0813 admission=
+            cviii_stage1_admit_0813(axis,source_camera);
+        if(!admission.admitted)continue;
+        found[i]=cviii_source_link_0814(record,admission.local_axis,ram);
+    }
+    /* If two original source records claim the same original slot,
+     * neither is safe to associate. Reject both, not first-wins. */
+    for(unsigned i=0;i<CVIII_STAGE1_CHAPEL_SOURCES_0813;i++){
+        for(unsigned j=i+1;j<CVIII_STAGE1_CHAPEL_SOURCES_0813;j++){
+            if(found[i].kind!=CVIII_LINK_NONE_0814 &&
+               found[i].kind!=CVIII_LINK_AMBIGUOUS_0814 &&
+               found[i].kind==found[j].kind &&
+               found[i].slot==found[j].slot){
+                found[i].kind=CVIII_LINK_AMBIGUOUS_0814;
+                found[j].kind=CVIII_LINK_AMBIGUOUS_0814;
+                found[i].slot=0;found[j].slot=0;
+            }
+        }
+    }
+    for(unsigned i=0;i<CVIII_STAGE1_CHAPEL_SOURCES_0813;i++)
+        if(found[i].kind==CVIII_LINK_EVENT_0814 ||
+           found[i].kind==CVIII_LINK_DIRECT_0814)matches++;
+    memcpy(w->chapel_links,found,sizeof found);
+    if(w->chapel_link_epochs!=UINT32_MAX)w->chapel_link_epochs++;
+    return matches;
+}
 void cviii_world_clear_live_0805(CviiiLevel1World0803 *w){
     if(!w)return;
     memset(w->actors,0,sizeof w->actors);
@@ -160,6 +211,8 @@ void cviii_world_clear_live_0805(CviiiLevel1World0803 *w){
      * authenticated preloaded source payloads or world room positions. */
     memset(w->chapel,0,sizeof w->chapel);
     w->chapel_epochs=0u;
+    memset(w->chapel_links,0,sizeof w->chapel_links);
+    w->chapel_link_epochs=0u;
 }
 
 /* JP0811: independent original PRG0A room hierarchy, stage selector0.
