@@ -56,10 +56,12 @@ environment. The ReShade add-on is **not** a graphics-driver rewrite.
    is open; the native lighting studio does not render simultaneously.
 
 **Limitations pending actual end-to-end validation:**
-The initial add-on places new lights at the center of the visible
-game area, then offers precise X/Y editing. Native mouse placement
-remains available via the built-in editor; direct click-to-place in
-the true ReShade overlay is not implemented yet. The add-on is
+The add-on provides **Add Light: Click Level** for placing lights
+in the visible game area. It passes ReShade's window-space pointer
+through the native SDL2 video geometry converter; **Add at Center**
+and exact world X/Y editing remain available if capture/scale
+compatibility is uncertain. This ReShade mouse path has not yet
+received an owner's interactive DPI/resize acceptance test. The add-on is
 separately built and **has not passed** Windows SDK compilation,
 API-function-table compatibility, gameplay input, shader-hook, or
 interactive UI tests in the owner's environment. Do not present
