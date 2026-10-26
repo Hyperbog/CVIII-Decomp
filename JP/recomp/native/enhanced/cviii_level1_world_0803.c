@@ -278,9 +278,17 @@ int cviii_world_probe_chapel_0815(CviiiLevel1World0803 *w,
         const int64_t gx=p->actor_confirmed ?
             w->actors[p->linked_slot].x :
             (int64_t)w->rooms[2].x+record[3];
+        /* When original $8205 admits a source, use its exact 6502
+         * projected local Y, including page borrow/$10 correction.
+         * Only for a source outside admission is axis+$37 retained as
+         * a non-rendered world-space planning coordinate. */
+        const CviiiStage1Admission0813 admission=
+            cviii_stage1_admit_0813(axis,(uint16_t)camera_y);
         const int64_t gy=p->actor_confirmed ?
             w->actors[p->linked_slot].y :
-            cviii_chapel_visual_world_y_0815(w->rooms[2].y,axis);
+            admission.admitted ?
+                wy+admission.local_axis :
+                cviii_chapel_visual_world_y_0815(w->rooms[2].y,axis);
         const CviiiSourceProjection0815 point=cviii_source_project_0815(
             gx,gy,wx,wy,native_left,wide_width,240);
         p->screen_x=point.screen_x;
