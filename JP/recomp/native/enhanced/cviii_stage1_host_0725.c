@@ -359,6 +359,10 @@ const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
                  * not a claim of original FF06 successful allocation. */
                 (void)cviii_world_observe_scheduler_0817(
                     &h->world,selector,ram);
+                /* JP0818: $8B50 $0645 source-child witness, never
+                 * infer another actor or extend guest AI lifetime. */
+                (void)cviii_world_observe_children_0818(
+                    &h->world,selector,ram);
             }
             /* JP0813: follow the genuine vertical chapel camera with
              * resident source identities. CPU actor state stays authoritative;
