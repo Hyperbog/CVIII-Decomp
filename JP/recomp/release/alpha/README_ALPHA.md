@@ -492,6 +492,25 @@ useful for its actual source domain but cannot substitute for a
 correct Stage 1 spawn-resource and original AI trace. The separate
 Stage 1 background atlas remains source-authenticated.
 
+## JP0811 — Original Stage 1 room source hierarchy preloaded
+
+The world now imports the **independent original raw PRG0A 16KiB bank**
+under SHA-256 `1460df577d44e114c64fdf34a8837629765f3f6a93d45796fdf81e5ffacb5ed8` and parses the complete validated
+15-stage/64-secondary/135-leaf hierarchical catalog. Eight original
+stage0 leaves match the eight preloaded Stage1 background selectors.
+All eight typed source spans, physical roots, end bounds, widths and
+record counts are attached transactionally at level initialization,
+including the distinct vertical chapel's seven-byte record type.
+
+The original stage0 *room hierarchy* is the correct starting point
+for source-proving Stage 1 geometry, progression and actor data.
+Neither the source record types nor their bytes are assumed to be
+NPC-spawn instructions without original 6502 producer evidence.
+No independent AI simulation is enabled by this metadata import.
+Synthetic tests verify eight matched leaves and atomic rejection
+of missing/mismatched original selectors. No retail source bytes
+are committed or distributed.
+
 ## JP0661 native keyboard controls: profiles and recoverable presets
 
 The working native game already supports persistent SDL keyboard/gamepad

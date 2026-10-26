@@ -65,6 +65,29 @@ static int load(CviiiStage1Host0725 *h)
             sprite_ok=memcmp(sprite_sha,sprite_digest,32u)==0;
         }
         h->sprite_bank_valid_0807=sprite_ok;
+        /* JP0811: complete original stage/room hierarchy in physical
+         * raw PRG0A. This contains all eight Stage1 selector records,
+         * unlike the five unrelated raw0E object stream samples.
+         * Import only after original ROM SHA attestation and a second
+         * 16KiB source-bank SHA; no source bytes leave private memory. */
+        static const uint8_t bank0a_sha[32]={0x14,0x60,0xdf,0x57,0x7d,0x44,0xe1,0x14,0xc6,0x4f,0xdf,0x34,0xa8,0x83,0x76,0x29,0x76,0x5f,0x3f,0x6a,0x93,0xd4,0x57,0x96,0xfd,0xf8,0x1e,0x5f,0xfa,0xcb,0x5e,0xd8};
+        uint8_t room_bank[16384],room_digest[32];
+        CviiiRoomCatalog0657 room_catalog;
+        FILE *room_file=fopen(h->rom_path,"rb");
+        int room_ok=room_file &&
+             fseek(room_file,16L+10L*16384L,SEEK_SET)==0 &&
+             fread(room_bank,1,sizeof room_bank,room_file)==sizeof room_bank;
+        if(room_file)fclose(room_file);
+        if(room_ok){
+            cviii_sha256_0727(room_bank,sizeof room_bank,room_digest);
+            room_ok=memcmp(room_digest,bank0a_sha,sizeof room_digest)==0 &&
+                 cviii_room_catalog_0657(room_bank,sizeof room_bank,
+                                        &room_catalog)==1 &&
+                 cviii_world_attach_source_rooms_0811(&h->world,
+                                                      &room_catalog);
+        }
+        if(!room_ok)
+            fprintf(stderr,"CVIII JP0811: original stage source hierarchy not authenticated; no inferred world connections\n");
         return 1;
     }
     fprintf(stderr,"CVIII JP0727: runtime Stage 1 resource load rejected (status %d); stock presentation retained\\n",
