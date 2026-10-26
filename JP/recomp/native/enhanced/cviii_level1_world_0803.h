@@ -28,6 +28,9 @@ typedef struct {
     uint8_t raw_x,raw_y,attrs;
     uint8_t original_type; /* original $054E+X slot allocator */
     uint32_t generation; /* advances only on new slot identity */
+    /* Optional JP0814 original-ROM provenance. Never grants interaction. */
+    uint16_t source_cpu_0814; /* exact matched original seven-byte record */
+    uint32_t source_generation_0814; /* must equal active generation */
 } CviiiWorldActor0803;
 /* Five owner-ROM five-field source windows decode 30 generic room
  * installation records across stages 4,1,8,2,B (hex), NOT Stage 1.
