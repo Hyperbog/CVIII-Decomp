@@ -64,11 +64,13 @@ def bounded_probe(mesen:Path,rom:Path,root:Path,state:Path,
             "type1_type2":original_types}
     if isinstance(slot,int) and 1<=slot<=18:
         type_now=typelist[0x054e+slot-0x540]
-        flags=memory(events,0x400)[0x0470+slot-0x400] if False else memory(events,0x400)[0x470+slot-0x400]
+        flags=memory(events,0x400)[0x470+slot-0x400]
         parent=memory(events,0x640)[0x645+slot-0x640]
         report["actor_type"]=type_now
+        report["parent_source_slot"]=parent if parent<6 else None
         report["original_row32_child_witness"]=(
-              type_now==0x3d and bool(flags&4) and parent<6)
+              type_now==0x3d and bool(flags&4) and parent==3 and
+              slot in (1,2))
     # If debugging a memory WRITE, the breakpoint can stop before
     # executing its store. Step exactly one original instruction using
     # its unmodified private savestate and inspect the poststate.
@@ -147,15 +149,28 @@ def replay(mesen:Path,rom:Path,ticks:int)->dict:
             probes[label]=bounded_probe(
                 mesen,rom,root,root/"created.mss",label,bp,ticks)
         natural_contact=probes["contact_b727"]
-        valid_contact=natural_contact.get("status")=="original_breakpoint_hit" and              natural_contact.get("original_row32_child_witness",False)
-        deallocated=any(probes[k].get("deallocation_proved",False)
-                        for k in ("write_054f","write_0550"))
+        valid_contact=(natural_contact.get("status")=="original_breakpoint_hit"
+                       and natural_contact.get("original_row32_child_witness",False))
+        # Same actor and original CPU chronological order are essential:
+        # a contact on another actor and a write in slot1 prove NOTHING
+        # about the life cycle of the contacted object.
+        matching_deallocation=None
+        if valid_contact:
+            for k in ("write_054f","write_0550"):
+                v=probes[k]
+                if (v.get("deallocation_proved",False) and
+                    v.get("original_slot")==natural_contact.get("actor_slot") and
+                    isinstance(v.get("cycles"),int) and
+                    isinstance(natural_contact.get("cycles"),int) and
+                    v["cycles"]>natural_contact["cycles"]):
+                    matching_deallocation=v
+                    break
         return {"schema":"JP0821-controller-only-original-lifetime-v1",
                 "rom_sha256":ROM_SHA,
                 "mesen_sha256":file_sha(mesen),
                 "baseline":baseline,"probes":probes,
-                "complete_lifecycle_proved":bool(valid_contact and deallocated),
-                "limits":"first writes may not deallocate; no false offscreen parity claim"}
+                "complete_lifecycle_proved":matching_deallocation is not None,
+                "limits":"Only same child first-write after natural contact can support deallocation; no offscreen parity claim"}
 
 if __name__=="__main__":
     parser=argparse.ArgumentParser(description=__doc__)
