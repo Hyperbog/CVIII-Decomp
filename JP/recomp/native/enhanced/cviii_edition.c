@@ -202,7 +202,7 @@ static void load_setting(void *context, const char *key, const char *value)
         (void)parse_boolean(value, &cviii.stable_sprites);
     else if (!strcmp(key,"LightingEditorKey"))
         (void)cviii_lighting_editor_set_key(value);
-    else if (!strncmp(key,"Light",5))
+    else if (!strncmp(key,"Light",5) || !strncmp(key,"RoomAmbient",11))
         (void)cviii_light_load(&cviii.lighting,key,value);
     else (void)cviii_audio_levels_load(&cviii.volume,key,value);
 }
@@ -593,9 +593,64 @@ int cviii_lighting_editor_property(int property,int value)
     else if(property==4)l->red=(uint8_t)(value<0?0:(value>255?255:value));
     else if(property==5)l->green=(uint8_t)(value<0?0:(value>255?255:value));
     else if(property==6)l->blue=(uint8_t)(value<0?0:(value>255?255:value));
+    else if(property==7)return cviii_light_shape(v,v->selected,value);
+    else if(property==8)l->angle=value<0?0:(value>359?359:value);
+    else if(property==9)l->spread=value<5?5:(value>85?85:value);
+    else if(property==10)l->width=value<4?4:(value>160?160:value);
+    else if(property==11)l->muted=value!=0;
+    else if(property==12)l->flicker=value<0?0:(value>2?2:value);
     else return 0;
     return 1;
 }
+int cviii_lighting_editor_copy(void)
+{
+    CviiiLighting *v=&cviii.lighting;
+    return cviii_lighting_editor_active() && cviii_light_copy(v,v->selected);
+}
+int cviii_lighting_editor_paste(void)
+{
+    CviiiLighting *v=&cviii.lighting;
+    if(!cviii_lighting_editor_active() || !v->clipboard_valid)return 0;
+    /* Paste into current scene's center, not original stage/viewport.
+     * Per-scanline PPU coordinates are authoritative for visible rows. */
+    int cam=cviii_lighting_camera(),y=120;
+    int scan=cyc_render_line_scroll_x(y);
+    int d=(scan-cam%512+1024)%512;
+    if(d>256)d-=512;
+    int world=cam+d+128;
+    return cviii_light_paste(v,cviii_lighting_room(),world,
+                             cyc_render_line_scroll_y(y))>=0;
+}
+int cviii_lighting_editor_duplicate(void)
+{
+    CviiiLighting *v=&cviii.lighting;
+    return cviii_lighting_editor_active() &&
+        cviii_light_duplicate(v,v->selected)>=0;
+}
+int cviii_lighting_editor_name(const char *text)
+{
+    CviiiLighting *v=&cviii.lighting;
+    return cviii_lighting_editor_active() &&
+        cviii_light_rename(v,v->selected,text);
+}
+int cviii_lighting_editor_group(const char *text)
+{
+    CviiiLighting *v=&cviii.lighting;
+    return cviii_lighting_editor_active() &&
+        cviii_light_group(v,v->selected,text);
+}
+int cviii_lighting_editor_scene(int property,int value)
+{
+    if(!cviii_lighting_editor_active())return 0;
+    int pct=0,rgb[3];
+    const uint32_t room=cviii_lighting_room();
+    cviii_light_scene_get(&cviii.lighting,room,&pct,rgb);
+    if(property==0)pct=value;
+    else if(property>=1 && property<=3)rgb[property-1]=value;
+    else return 0;
+    return cviii_light_scene_set(&cviii.lighting,room,pct,rgb[0],rgb[1],rgb[2]);
+}
+
 int cviii_lighting_editor_point(int slot,int *x,int *y)
 {
     if(!x || !y || slot<0 || slot>=CVIII_LIGHT_MAX)return 0;
