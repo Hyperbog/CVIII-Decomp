@@ -300,6 +300,9 @@ extern "C" int cviii_imgui_render(SDL_Window *window,SDL_Renderer *renderer){
                 int shape=light.shape;
                 if(ImGui::Combo("Shape",&shape,"Radial (point)\0Spot cone\0Light shaft\0"))
                     maybe_change(7,shape);
+                int posx=light.x,posy=light.y;
+                if(ImGui::InputInt("World X",&posx,1,16))maybe_change(13,posx);
+                if(ImGui::InputInt("World Y",&posy,1,8))maybe_change(14,posy);
                 int radius=light.radius,energy=light.energy;
                 if(ImGui::SliderInt("Range",&radius,12,160,"%d px"))
                     maybe_change(2,radius);
