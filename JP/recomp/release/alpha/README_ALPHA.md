@@ -462,6 +462,24 @@ AI lift, and actor synchronization/despawn across distant zones remain
 **OPEN**, not silently simulated with decorative clones. This build
 requires owner-private real-scene Windows QA before promotion.
 
+## JP0808 — Source-authenticated vertical chapel camera
+
+The Stage 1 chapel original ROM layout is 256×512 and gameplay
+$53/$54 carries **Y camera** while $65 has bit7 set. JP0808
+recognizes this room independently of horizontal validation, using
+the original PPU scanline vertical scroll (480px hardware wrap),
+real physical nametable page/row and 12 original-ROM tile probes.
+At least 9 valid probes and 75% matching tiles are required before
+the chapel camera is accepted. Unknown/transitioning data fails
+closed and cannot create invented room-graph links. No original
+CPU/PPU state is altered, and original picture/HUD pixels remain
+untouched. A Windows/Linux synthetic chapel renderer regression
+checks acceptance and rejection when PPU Y disagrees with RAM Y.
+
+The physical relationship between the chapel and adjacent segments
+and original offscreen NPC behavior are not proven by this vertical
+camera feature; Stage1 remains an in-progress connected-world lift.
+
 ## JP0661 native keyboard controls: profiles and recoverable presets
 
 The working native game already supports persistent SDL keyboard/gamepad

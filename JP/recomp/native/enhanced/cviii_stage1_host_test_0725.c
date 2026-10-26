@@ -12,11 +12,11 @@ static uint8_t test_ram[2048];
 static uint32_t original[256*240];
 static CviiiStage1Host0725 host;
 static uint32_t isolated_room[426*240]; /* invented ROM test pixels */
-static int scroll_x,requested_mode=-1,bg_table=0x1000;
-static uint8_t live_nt[2048];
+static int scroll_x,scroll_y,requested_mode=-1,bg_table=0x1000;
+static uint8_t live_nt[4096];
 uint8_t cyc_render_nametable(uint16_t a) {
     unsigned at=a&0xfffu;
-    return live_nt[((at>>10u)&1u)*1024u+(at&1023u)];
+    return live_nt[((at>>10u)&3u)*1024u+(at&1023u)];
 }
 static void seed_visible_room(const uint8_t key[3],unsigned page) {
     for(unsigned y=0;y<24u;y++)for(unsigned x=0;x<32u;x++) {
@@ -40,7 +40,7 @@ uint16_t cyc_render_line_bg_table(int line) {(void)line;return (uint16_t)bg_tabl
 bool cyc_render_line_sprite16(int line) {(void)line;return false;}
 uint16_t cyc_render_line_sprite_table(int line) {(void)line;return 0x1000u;}
 int cyc_render_line_scroll_x(int line) {(void)line;return scroll_x;}
-int cyc_render_line_scroll_y(int line) {return line;}
+int cyc_render_line_scroll_y(int line) {return (line+scroll_y)%480;}
 uint8_t cyc_render_chr(uint16_t addr) {(void)addr;return 0xff;}
 uint32_t cyc_render_color(int entry) {return 0xff000000u|(uint32_t)(entry&63);}
 void cyc_video_set_mode(int mode) {requested_mode=mode;}
@@ -188,6 +188,52 @@ int main(void)
         seed_visible_room(first_room,0);
         scroll_x=0;w=256;h=240;
         (void)cviii_stage1_host_present_0725(&host,original,&w,&h,1);
+    }
+    /* JP0808: the chapel has a real source-backed Y-axis camera.
+     * Simulate matching physical PPU pattern/tile fetches across the
+     * three sampled scanlines; do not guess a left/right room link. */
+    cviii_stage1_host_reset_0751(&host);
+    {
+        const uint8_t chapel[3]={0,1,1};
+        test_ram[0x35]=1;test_ram[0x36]=1;test_ram[0x65]=0x80;
+        test_ram[0x53]=0;test_ram[0x54]=0;
+        scroll_x=0;scroll_y=0;
+        memset(live_nt,0,sizeof live_nt);
+        static const int sample_lines[]={64,120,176};
+        static const int sample_columns[]={24,88,152,216};
+        for(unsigned row=0;row<3u;row++)
+            for(unsigned col=0;col<4u;col++){
+                int line=sample_lines[row],sx=sample_columns[col];
+                uint8_t tile=0,pal=0;
+                if(!require(cviii_stage1_atlas_get_0724(
+                    &host.atlas,chapel,(unsigned)sx/8u,
+                    (unsigned)(line-32)/8u,&tile,&pal),
+                    "preloaded chapel source tile"))return 1;
+                live_nt[(unsigned)(line/8)*32u+(unsigned)(sx/8)]=tile;
+            }
+        w=256;h=240;
+        pixels=cviii_stage1_host_present_0725(
+            &host,original,&w,&h,1);
+        if(!require(host.has_verified_scene &&
+                   !memcmp(host.last_verified_selector,chapel,3) &&
+                   host.last_verified_camera==0 &&
+                   pixels[96*426+400]==0xff000000u &&
+                   pixels[96*426+85]==original[96*256],
+                   "vertical chapel recognized without false horizontal art"))
+            return 1;
+        test_ram[0x53]=80;scroll_y=0;
+        w=256;h=240;
+        pixels=cviii_stage1_host_present_0725(
+            &host,original,&w,&h,1);
+        if(!require(host.last_verified_camera==0,
+                   "invalid chapel PPU Y phase cannot invent scrolling"))
+            return 1;
+        cviii_stage1_host_reset_0751(&host);
+        test_ram[0x65]=0;test_ram[0x35]=0;test_ram[0x36]=0;
+        test_ram[0x53]=0;test_ram[0x54]=0;
+        scroll_x=0;scroll_y=0;
+        memset(live_nt,0,sizeof live_nt);
+        seed_visible_room(first_room,0);
     }
     /* JP0800 video regression: authoritative NES PPU moves while RAM
      * $53/$54 and nametable attestation lag. Old host froze BOTH side
