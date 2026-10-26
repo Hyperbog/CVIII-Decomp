@@ -539,11 +539,50 @@ int main(void){
                   "vertical chapel may not reuse horizontal source pair"))
              return 41;
     }
+    /* JP0817: fabricated original CPU RAM source row lifetimes.
+     * No 84EA handler runs in this synthetic test; this is only
+     * source-slot observation, never a claim of an actual enemy spawn. */
+    memset(ram+0x07c2u,0,6u);
+    memset(ram+0x07c8u,0,6u);
+    memset(ram+0x07e0u,0,6u);
+    ram[0x07c2u+3u]=0x32u;
+    ram[0x53u]=0u;
+    ram[0x6bu]=1u;ram[0x65u]=0u;
+    ram[0x07dau+3u]=0u;
+    if(!check(cviii_world_observe_scheduler_0817(world,first,ram)==1 &&
+              world->horizontal_scheduler_samples==1u &&
+              world->horizontal_live[3].will_dispatch &&
+              world->horizontal_live[3].common_8cdd_gate &&
+              world->horizontal_predicted[3].x_after==0xffu &&
+              world->horizontal_predicted[3].page_after==1u,
+              "horizontal 84EA active row and source movement observation"))
+        return 44;
+    ram[0x07c8u+3u]=1u;
+    if(!check(cviii_world_observe_scheduler_0817(world,first,ram)==1 &&
+              world->horizontal_scheduler_samples==2u &&
+              world->horizontal_event_transitions==1u &&
+              !world->horizontal_row_activations,
+              "source script index changed without new actor claim"))
+        return 45;
+    ram[0x07c2u+3u]=0u;
+    if(!check(cviii_world_observe_scheduler_0817(world,first,ram)==0 &&
+              world->horizontal_row_deactivations==1u &&
+              !world->horizontal_predicted[3].will_run,
+              "source row cleared: original 84EA no handler dispatch"))
+        return 46;
+    uint32_t sample_count=world->horizontal_scheduler_samples;
+    if(!check(cviii_world_observe_scheduler_0817(world,vertical,ram)==-1 &&
+              world->horizontal_scheduler_samples==sample_count,
+              "vertical room cannot enter horizontal source scheduler observer"))
+        return 47;
     cviii_world_clear_live_0805(world);
     if(!check(world->horizontal_ready &&
               world->horizontal[0].count==14u &&
               !world->horizontal_observations &&
-              !world->horizontal_last.valid,
+              !world->horizontal_last.valid &&
+              !world->horizontal_scheduler_samples &&
+              !world->horizontal_row_deactivations &&
+              !world->horizontal_event_transitions,
               "transient original source phase reset preserves source directory"))
          return 42;
     if(!check(!world->actors[0].active &&
