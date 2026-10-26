@@ -39,6 +39,51 @@ are presentation settings and do not enter the original NES save state.
 - Vertical world coordinates currently retain the PPU 0..479 wrap domain.
   Full vertically extended levels need additional unwrapping and QA.
 
+## Windows owner visual acceptance — Stage 1
+
+This is a reproducible manual test, **not a claim of completed gameplay QA**.
+
+1. Download the branch's Windows Alpha *build-kit* artifact from its successful
+   GitHub Actions Windows Alpha builder job and privately rebuild the game
+   using your own authenticated Japanese ROM (the ZIP is not a game binary).
+   An existing previously built AlphaCandidate EXE does **not** automatically
+   update; use the documented forced Rebuild flow.
+2. Launch Enhanced, enter Stage 1, and press F7. The game should stop moving
+   and the LIGHT EDITOR help toast should appear. Click near an existing
+   torch/candle in the playable area, below the top 48 HUD scanlines.
+3. While still paused, change radius with the wheel and intensity with
+   Shift+wheel. Ctrl+wheel changes ambient. Select with right-click,
+   cycle color with C. The numeric status toast should display the selected
+   light's R (radius), POWER, RGB and AMB values. Check for smooth illumination
+   without white clipped outlines or obvious color banding.
+4. Press F7 to resume; walk until the light is completely outside the viewport
+   (and beyond its radius), then walk back. It should disappear, return, and
+   continue illuminating its original level location. When the center is just
+   offscreen but the radius overlaps the image, some edge illumination is
+   physically expected. Try crossing a 256-pixel nametable boundary.
+5. Walk into another room/stage; a light from Stage 1 should not appear in
+   a different room. Return and confirm it is still present. If it blinks,
+   the candidate ROM stage/room key requires correction; do not merge.
+6. Exit and restart without resetting config.ini; placed lights, RGB, radius,
+   intensity and ambient should survive. F4, F6, F8/F9 and F10 should
+   retain their native behavior before and after F7.
+7. With F7 closed, press F12 to capture a picture without editor markers.
+   Capture a matched Original reference and Enhanced lighting image at
+   the same stage/frame if possible. The original reference must be unchanged.
+
+Suggested evidence: one lit room screenshot, one dark-area screenshot,
+one image after returning from a scroll, plus a note of stage, camera direction,
+whether loading and restarting preserved placement, and any light flicker/jump.
+Do not share or commit your private ROM or proprietary generated game sources.
+
+## Visual restraint
+
+Lighting uses a soft highlight shoulder to prevent additive flame colors
+from clipping already-bright NES palette pixels to white. Full black stays
+black, ambient shadow is present only in Enhanced lighting mode, and the
+game HUD is not darkened. This is 2D illumination: no 3D surface normals
+or geometry-based cast shadows have been synthesized.
+
 ## Research-informed flicker
 
 The implemented light modulator combines gentle smooth oscillations at
