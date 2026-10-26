@@ -27,6 +27,14 @@ static void zapper_window_point(int,int,int*,int*,int*,int*);
 __declspec(dllexport)
 #endif
 void cviii_light_force_save(void){save_settings();}
+#if defined(_WIN32)
+__declspec(dllexport)
+#endif
+int cviii_light_place_window(int window_x,int window_y){
+    int native_x=-1,native_y=-1;
+    zapper_window_point(window_x,window_y,&native_x,&native_y,NULL,NULL);
+    return cviii_lighting_editor_add(native_x,native_y);
+}
 static bool cviii_light_rebinding;
 static SDL_Scancode cviii_light_bind_pending=SDL_SCANCODE_UNKNOWN;
 static SDL_Scancode cviii_light_key(void)
