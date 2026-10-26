@@ -400,6 +400,12 @@ jobs:
           $build = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win'
           ctest --test-dir $build -C Release -R '^JP0817_' --output-on-failure
           if ($LASTEXITCODE -ne 0) { throw 'JP0817 source scheduler or response tests failed' }
+      - name: Verify JP0818 original reaction and actor ancestry (ROM-free)
+        shell: pwsh
+        run: |
+          $build = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win'
+          ctest --test-dir $build -C Release -R '^JP0818_' --output-on-failure
+          if ($LASTEXITCODE -ne 0) { throw 'JP0818 original reaction or child ancestry regression failed' }
       - name: Verify original PRG26 active actors in widescreen columns (ROM-free)
         shell: pwsh
         run: |
