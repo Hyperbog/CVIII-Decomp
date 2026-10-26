@@ -359,6 +359,13 @@ const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
                     &h->world,selector,camera_y);
                 (void)cviii_world_link_chapel_0814(
                     &h->world,selector,ram);
+                /* JP0815: dry-run source presence, source-tagged sprite
+                 * identity and explicitly DEFERRED offscreen interaction.
+                 * Original NES guest collisions and its PRG26 sprite
+                 * emission stay unchanged, even outside the 256px image. */
+                (void)cviii_world_probe_chapel_0815(
+                    &h->world,selector,camera_x,camera_y,
+                    CVIII_STAGE1_ORIGIN_0725,CVIII_STAGE1_WIDE_0725);
             }
             center=chapel?CVIII_STAGE1_ORIGIN_0725:
                 viewport_center_0790(selector,camera_x);
