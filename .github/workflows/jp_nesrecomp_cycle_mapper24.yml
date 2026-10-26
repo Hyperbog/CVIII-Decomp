@@ -112,6 +112,8 @@ jobs:
         run: python3 JP/decomp/tools/audit_room_selector_window_0628.py --smoke
       - name: Validate PPU diagnostic backend choice (no ROM)
         run: python3 JP/decomp/tools/test_ppu_backend_0590.py
+      - name: Audit actual private Windows launcher and helper source paths (ROM-free)
+        run: python3 JP/recomp/tools/jp_private_alpha_packaging_smoke.py --smoke
       - name: Verify Original/Enhanced ten-slot save state host patch (no ROM)
         run: |
           python3 JP/recomp/tools/patch_cyc_savestates_0591.py --smoke
