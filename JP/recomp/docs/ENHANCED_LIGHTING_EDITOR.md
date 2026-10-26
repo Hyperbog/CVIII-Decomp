@@ -207,6 +207,94 @@ The experimental real ReShade panel has equivalent global-rig
 and sky controls. It builds as a separate add-on and still needs
 an end-to-end injected Windows UI/placement acceptance test.
 
+## Global Styles, authored shadows, grading and edit history
+
+### Live shared global settings
+
+**Global Styles** is separate from **Global Kits**:
+
+- **Global Kit** is a reusable group of independent lights that you
+  place again in another scene. Applying the kit does not link its
+  photometry to other instances.
+- **Global Style** is a named, reusable *live appearance*. Capture
+  the selected light into any of 16 style slots, then **Link Selected**
+  or **Link Current Group**. Edit Global Range, Strength, RGB, Shape,
+  Angle and related photometric values once; the renderer resolves
+  each linked light through its shared style in real time, even if
+  it resides in another room. Individual positions, room ownership,
+  light names, groups and mute switches remain local. **Unlink**
+  restores the light's retained local appearance.
+- Links are stored as `LightLinkXX` and styles as
+  `GlobalStyleXX` in the existing `config.ini`.
+  This also works through the independently built real ReShade add-on.
+
+### Scene masks and soft shadow occlusion
+
+The **Masks** tab lets you **Draw Rectangle on Level** with two clicks
+(or start a rectangle near a selected light). In the ReShade panel,
+**Draw Mask (2 clicks)** does the same via the established SDL2
+window-to-game coordinate transform. An authored rectangle has editable
+world X, world Y, width, height, 0–100% shadow opacity and 0–16 pixel
+penumbra softness. Mask outlines are visible in edit mode only.
+
+Only positioned emitters behind an authored wall mask are darkened.
+Each mask uses deterministic five-ray segment/rectangle shadow tests,
+not a guessed tile solidity attribute or a scene-depth texture. Sky
+fill and ambient remain unaffected. Masks are room-scoped and saved
+to `OccluderXX` records; up to 64 are supported globally.
+
+**Important:** masks are a *manual geometry proxy*, not automatic
+Castlevania collision geometry. Exact tile- and sprite-respecting
+occlusion requires a separate verified collision/nametable geometry
+export, and many live shadow-casting emitters may need GPU or cached
+shadow maps for reliable 60 FPS.
+
+### Scene exposure and grading
+
+The **Scene** tab includes an independent post-light grading stage:
+Exposure from -2.00 to +2.00 stops, a relative warm/cool white-balance
+control (-100 to +100), and saturation from 0–200%. A one-click
+**Neutral Grade** reset restores 0 EV, neutral white and 100%
+saturation. The real ReShade panel exposes the same properties.
+These are simple artistic RGB gains, not a calibrated ACES color
+pipeline. Changes affect rows 48–239, never the top NES HUD.
+Scene grades persist as `SceneGradeXX`.
+
+### Preset management and undo
+
+The **Library** tab now includes saved-kit **Rename**, **Duplicate to
+Empty Slot** and **Delete**. These operations preserve the other
+saved kits and can be undone. All lighting authoring edits share a
+bounded 16-step host-only history. Native UI uses **Ctrl+Z / Ctrl+Y**
+or Undo/Redo buttons. The real ReShade panel exposes Undo/Redo
+buttons as well. No emulator quick-save slot or original guest
+memory is altered.
+
+### Across a level, including deaths and returns
+
+Placed lights, style links, sky/grade overrides, masks and global
+kits live in host `config.ini`, rather than the emulated game's
+savestate. Game power/reset or savestate load dismisses the
+editor but does not erase these settings.
+
+The original-Japanese room source uses the `$34/$35/$36` selector
+triple and the `$07A0` room-resource selector (known bounded
+values 0–4). The host currently identifies a room with the **full
+four-field selector**. This avoids inadvertently merging distinct
+rooms. If returning to an area yields a *different* raw selector,
+**Settings → Persistent Scene Identity** shows both the raw and
+resolved IDs. Enter the old **Saved Scene ID** to map this new raw
+selector back to the already-authored room. Mapping is saved as
+`SceneAliasXX`, with up to 32 mappings; old light positions are
+not discarded or migrated. Default mapping is identity.
+
+**Actual Windows return-trip QA remains required.** Synthetic
+tests prove model persistence, alias resolution and room isolation;
+they do not prove every genuine route has stable selectors, nor
+full vertical world-coordinate unwrapping above the 480-pixel
+PPU domain. Do not merge until Stage 1 and multiple vertical room
+transitions and death/reload loops visibly retain all authored lights.
+
 ## Windows owner visual acceptance — Stage 1
 
 This is a reproducible manual test, **not a claim of completed gameplay QA**.
