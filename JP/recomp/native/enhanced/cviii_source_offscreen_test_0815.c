@@ -46,8 +46,8 @@ int main(void){
            CVIII_INTERACTION_NOT_ACTOR_0815,
        "event row is not an interactive actor");
     ok(cviii_source_interaction_0815(0x80,0)==
-           CVIII_INTERACTION_NOT_SPAWNED_0815,
-       "source-only must not interact");
+           CVIII_INTERACTION_ALLOCATION_UNVERIFIED_0815,
+       "unverified source never acquires interaction authority");
     ok(cviii_source_interaction_0815(0x80,1)==
            CVIII_INTERACTION_MAY_ROUTE_B162_0815,
        "active type80 defers unresolved original special collision");
