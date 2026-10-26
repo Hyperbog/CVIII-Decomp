@@ -713,10 +713,6 @@ set_property(TARGET jp_b727_contact_test_0820 PROPERTY C_STANDARD 11)
 add_executable(jp_contact_effects_test_0821
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_contact_effects_test_0821.c")
 set_property(TARGET jp_contact_effects_test_0821 PROPERTY C_STANDARD 11)
-# JP0821: source-faithful response prefixes and live slot23 visual witness.
-add_executable(jp_contact_effects_test_0821
-  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_contact_effects_test_0821.c")
-set_property(TARGET jp_contact_effects_test_0821 PROPERTY C_STANDARD 11)
 # These four executables are ROM-free; build them in the owner-native tree
 # and run from CTest instead of silently only compiling test targets.
 include(CTest)
@@ -736,7 +732,6 @@ if(BUILD_TESTING)
   add_test(NAME JP0819_SourceParentLifetime COMMAND jp_horizontal_lineage_test_0819)
   add_test(NAME JP0820_B727ContactPrefix COMMAND jp_b727_contact_test_0820)
   add_test(NAME JP0821_OriginalContactEffects COMMAND jp_contact_effects_test_0821)
-  add_test(NAME JP0821_ContactEffectPrefixes COMMAND jp_contact_effects_test_0821)
 endif()
 
 add_executable(jp_world_sprites_test_0807
