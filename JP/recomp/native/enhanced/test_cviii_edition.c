@@ -5,6 +5,7 @@
 #include "cviii_chr_fetch_0600.h"
 #include "cviii_nt_trace_0606.h"
 #include "cviii_audio_menu_0620.h"
+#include "cviii_lighting_host.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -57,6 +58,8 @@ const uint8_t *cyc_ppu_oam(void) { return mock_oam; }
 uint8_t cyc_render_chr(uint16_t addr) { (void)addr; return 0; }
 uint32_t cyc_render_color(int palette) { return (uint32_t)palette; }
 uint8_t cyc_render_line_mask(int y) { (void)y; return 0x14; }
+int cyc_render_line_scroll_x(int y) { (void)y; return 0; }
+int cyc_render_line_scroll_y(int y) { return y; }
 bool cyc_render_line_sprite16(int y) { (void)y; return false; }
 uint16_t cyc_render_line_sprite_table(int y) { (void)y; return 0; }
 void cyc_render_capture_background(bool enabled) { capture_enabled=enabled; }
@@ -146,11 +149,29 @@ int main(void) {
     assert(e->option(e->ctx,"--edition","original"));
     e->load_setting(e->ctx,"MasterVolume","50");
     FILE *f=tmpfile();assert(f);e->save_settings(e->ctx,f);rewind(f);
-    char text[256]={0};size_t n=fread(text,1,sizeof(text)-1,f);assert(n>0);fclose(f);
+    char text[1024]={0};size_t n=fread(text,1,sizeof(text)-1,f);assert(n>0);fclose(f);
     assert(strstr(text,"Edition = Original") && strstr(text,"UnlimitedSprites = 0"));
     assert(strstr(text,"MasterVolume = 50"));
     assert(strstr(text,"MusicVolume = 28"));
     assert(strstr(text,"SoundEffectsVolume = 64"));
+    /* Light editor must not affect original mode and must leave HUD intact. */
+    assert(!cviii_lighting_editor_active());
+    assert(!cviii_lighting_editor_input(1,-1,-1)); /* Original selected */
+    assert(e->option(e->ctx,"--edition","enhanced"));
+    assert(cviii_lighting_editor_input(1,-1,-1));
+    assert(cviii_lighting_editor_active());
+    assert(!cviii_lighting_editor_input(2,72,20)); /* original HUD */
+    assert(cviii_lighting_editor_input(2,72,90));
+    assert(cviii_lighting_editor_input(4,-1,-1));
+    assert(cviii_lighting_editor_input(1,-1,-1));
+    assert(!cviii_lighting_editor_active());
+    native[90*256+72]=0xff808080u;
+    native[20*256+72]=0xff808080u;
+    p=e->present(e->ctx,&w,&h);
+    assert(p!=native && p[90*256+72]!=native[90*256+72]);
+    assert(p[20*256+72]==native[20*256+72]);
+    e->load_setting(e->ctx,"Lighting","0");
+    assert(e->present(e->ctx,&w,&h)==native);
     puts("PASS CVIII Original fallback / Enhanced compositor / persisted settings");
     return 0;
 }
