@@ -5,6 +5,7 @@
 #include "cviii_chr_fetch_0600.h"
 #include "cviii_nt_trace_0606.h"
 #include "cviii_audio_menu_0620.h"
+#include "cviii_lighting_host.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -57,6 +58,8 @@ const uint8_t *cyc_ppu_oam(void) { return mock_oam; }
 uint8_t cyc_render_chr(uint16_t addr) { (void)addr; return 0; }
 uint32_t cyc_render_color(int palette) { return (uint32_t)palette; }
 uint8_t cyc_render_line_mask(int y) { (void)y; return 0x14; }
+int cyc_render_line_scroll_x(int y) { (void)y; return 0; }
+int cyc_render_line_scroll_y(int y) { return y; }
 bool cyc_render_line_sprite16(int y) { (void)y; return false; }
 uint16_t cyc_render_line_sprite_table(int y) { (void)y; return 0; }
 void cyc_render_capture_background(bool enabled) { capture_enabled=enabled; }
@@ -75,6 +78,14 @@ void cyc_render_sprites(uint32_t *out,int w,int h,int x,const uint8_t *bg,
 }
 int main(void) {
     const CycHostExtras *e=cyc_host_extras();
+    assert(!strcmp(cviii_lighting_editor_key(),"Home"));
+    assert(cviii_lighting_editor_set_key("End"));
+    assert(!strcmp(cviii_lighting_editor_key(),"End"));
+    assert(!cviii_lighting_editor_set_key("Unknown\tKey"));
+    assert(!cviii_lighting_editor_set_key(""));
+    assert(!strcmp(cviii_lighting_editor_key(),"End"));
+    e->load_setting(e->ctx,"LightingEditorKey","Insert");
+    assert(!strcmp(cviii_lighting_editor_key(),"Insert"));
     assert(e && e->options && e->option && e->present);
     /* JP0646: all diagnostic CLI options must be advertised to the host,
      * rather than silently unreachable despite an implemented callback. */
@@ -146,11 +157,128 @@ int main(void) {
     assert(e->option(e->ctx,"--edition","original"));
     e->load_setting(e->ctx,"MasterVolume","50");
     FILE *f=tmpfile();assert(f);e->save_settings(e->ctx,f);rewind(f);
-    char text[256]={0};size_t n=fread(text,1,sizeof(text)-1,f);assert(n>0);fclose(f);
+    char text[1024]={0};size_t n=fread(text,1,sizeof(text)-1,f);assert(n>0);fclose(f);
     assert(strstr(text,"Edition = Original") && strstr(text,"UnlimitedSprites = 0"));
     assert(strstr(text,"MasterVolume = 50"));
     assert(strstr(text,"MusicVolume = 28"));
     assert(strstr(text,"SoundEffectsVolume = 64"));
+    assert(strstr(text,"LightingEditorKey = Insert"));
+    assert(strstr(text,"LightingRenderer = Standard"));
+    assert(strstr(text,"LightingCascadeQuality = 3"));
+    /* GPU mode is a saved *preference* only; Original and headless must
+       never invoke GPU or alter original PPU parity. */
+    assert(cviii_lighting_editor_renderer()==0);
+    assert(!cviii_lighting_editor_set_renderer(1)); /* Original mode */
+    e->load_setting(e->ctx,"LightingRenderer","GPUPrototype");
+    assert(cviii_lighting_editor_renderer()==1);
+    assert(e->present(e->ctx,&w,&h)==native);
+    e->load_setting(e->ctx,"LightingRenderer","invalid");
+    assert(cviii_lighting_editor_renderer()==0);
+    e->load_setting(e->ctx,"LightingRenderer","RadianceCascades");
+    assert(cviii_lighting_editor_renderer()==2);
+    e->load_setting(e->ctx,"LightingCascadeQuality","4");
+    assert(cviii_lighting_editor_cascade_quality()==4);
+    assert(e->present(e->ctx,&w,&h)==native); /* Original unchanged */
+    e->load_setting(e->ctx,"LightingRenderer","Standard");
+    /* Light editor must not affect original mode and must leave HUD intact. */
+    assert(!cviii_lighting_editor_active());
+    assert(!cviii_lighting_editor_input(1,-1,-1)); /* Original selected */
+    assert(e->option(e->ctx,"--edition","enhanced"));
+    assert(cviii_lighting_editor_input(1,-1,-1));
+    assert(cviii_lighting_editor_active());
+    assert(cviii_lighting_editor_set_renderer(1));
+    assert(cviii_lighting_editor_renderer()==1);
+    assert(!cviii_lighting_editor_gpu_active()); /* no fake success flag */
+    assert(cviii_lighting_editor_gpu_status()!=NULL);
+    assert(cviii_lighting_editor_set_renderer(0));
+    assert(cviii_lighting_editor_renderer()==0);
+    assert(cviii_lighting_editor_set_renderer(2));
+    assert(cviii_lighting_editor_renderer()==2);
+    assert(cviii_lighting_editor_cascade_quality()==4);
+    assert(cviii_lighting_editor_set_cascade_quality(2));
+    assert(cviii_lighting_editor_cascade_quality()==2);
+    assert(!cviii_lighting_editor_set_cascade_quality(1));
+    assert(!cviii_lighting_editor_set_cascade_quality(5));
+    assert(cviii_lighting_editor_set_renderer(0));
+    assert(cviii_lighting_editor_model()->selected==-1);
+    assert(!cviii_lighting_editor_select(0)); /* no lights before placing */
+    assert(cviii_lighting_editor_add(95,108));
+    int chosen=cviii_lighting_editor_model()->selected;
+    assert(chosen>=0 && cviii_lighting_editor_model()->light[chosen].x==95);
+    assert(cviii_lighting_editor_select(chosen));
+    int handle_x=-1,handle_y=-1;
+    assert(cviii_lighting_editor_point(chosen,&handle_x,&handle_y));
+    assert(handle_x==95 && handle_y==108);
+    assert(cviii_lighting_editor_property(2,120));
+    assert(cviii_lighting_editor_property(3,103));
+    assert(cviii_lighting_editor_property(4,211));
+    assert(cviii_lighting_editor_property(5,124));
+    assert(cviii_lighting_editor_property(6,34));
+    assert(cviii_lighting_editor_model()->light[chosen].radius==120);
+    assert(cviii_lighting_editor_model()->light[chosen].red==211);
+    /* Real host lifecycle callbacks reset editor/modal presentation but
+       NEVER delete owner-authored room lights or global preset settings. */
+    const unsigned saved_room=cviii_lighting_editor_room();
+    /* Particle FX are independent Enhanced host settings, sharing world
+       scene IDs and edit history but NOT NES power/savestate storage. */
+    int dust_fx=cviii_lighting_editor_particle_add(CVIII_FX_DUST,96,108);
+    assert(dust_fx>=0);
+    assert(cviii_lighting_editor_particle_property(dust_fx,7,125));
+    assert(cviii_lighting_editor_particle_property(dust_fx,8,-15));
+    assert(cviii_lighting_editor_particle_name(dust_fx,"Hall Dust"));
+    assert(cviii_lighting_editor_model()->particles_enabled);
+    assert(cviii_lighting_editor_model()->particles[dust_fx].room==saved_room);
+    assert(!cviii_lighting_editor_particle_property(dust_fx,6,999));
+    assert(cviii_lighting_editor_weather_template(0,1));
+    assert(cviii_lighting_editor_weather_link(0));
+    assert(cviii_weather_scene_profile(cviii_lighting_editor_model(),saved_room)==0);
+    assert(cviii_lighting_editor_weather_property(0,7,100));
+    assert(!cviii_lighting_editor_weather_property(0,8,0));
+    assert(cviii_lighting_editor_weather_name(0,"Global Thunder"));
+    assert(!strcmp(cviii_lighting_editor_model()->weather[0].name,
+                   "Global Thunder"));
+    e->power_on(e->ctx);
+    assert(!cviii_lighting_editor_active());
+    assert(cviii_lighting_editor_model()->light[chosen].used);
+    assert(cviii_lighting_editor_model()->light[chosen].room==saved_room);
+    assert(cviii_lighting_editor_model()->light[chosen].radius==120);
+    assert(cviii_lighting_editor_model()->particles[dust_fx].used);
+    assert(cviii_weather_scene_profile(cviii_lighting_editor_model(),saved_room)==0);
+    e->state_loaded(e->ctx);
+    assert(cviii_lighting_editor_model()->particles[dust_fx].used);
+    assert(cviii_lighting_editor_model()->particles[dust_fx].wind==-15);
+    assert(cviii_lighting_editor_model()->light[chosen].used);
+    assert(cviii_lighting_editor_model()->light[chosen].red==211);
+    assert(cviii_lighting_editor_input(1,-1,-1)); /* reopen owner editor */
+    assert(cviii_lighting_editor_active());
+    assert(!cviii_lighting_editor_property(19,50));
+    assert(!cviii_lighting_editor_input(2,72,20)); /* original HUD */
+    assert(cviii_lighting_editor_input(2,72,90));
+    assert(cviii_lighting_editor_input(4,-1,-1));
+    assert(cviii_lighting_editor_input(1,-1,-1));
+    assert(!cviii_lighting_editor_active());
+    native[90*256+72]=0xff808080u;
+    native[20*256+72]=0xff808080u;
+    p=e->present(e->ctx,&w,&h);
+    assert(p!=native && p[90*256+72]!=native[90*256+72]);
+    assert(p[20*256+72]==native[20*256+72]);
+    /* In headless/portable hosts even a saved Radiance Cascades mode
+     * must produce exactly the Standard enhanced pixels, never a blank
+     * lightmap, and preserve Original graphics/HUD. */
+    const uint32_t standard_pixel=p[90*256+72];
+    assert(cviii_lighting_editor_set_renderer(2));
+    assert(cviii_lighting_editor_set_cascade_quality(4));
+    p=e->present(e->ctx,&w,&h);
+    assert(p[90*256+72]==standard_pixel);
+    assert(p[20*256+72]==native[20*256+72]);
+    assert(!cviii_lighting_editor_gpu_active());
+    assert(cviii_lighting_editor_set_renderer(0));
+    e->load_setting(e->ctx,"Lighting","0");
+    p=e->present(e->ctx,&w,&h);
+    assert(p!=native); /* Pixel FX still active without any lighting. */
+    assert(p[20*256+72]==native[20*256+72]); /* untouched NES HUD */
+    e->load_setting(e->ctx,"Particles","0");
+    assert(e->present(e->ctx,&w,&h)==native);
     puts("PASS CVIII Original fallback / Enhanced compositor / persisted settings");
     return 0;
 }

@@ -49,6 +49,13 @@ set(JP_HOST_SOURCES "")
 if(JP_EDITION_HOST_EXTRAS)
  list(APPEND JP_HOST_SOURCES HOST_EXTRAS
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_edition.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_lighting.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_light_authoring.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_light_kits.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_light_scene_fx.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_light_history.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_pixel_particles.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_pixel_weather.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_chr_index_0598.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_chr_audit_0599.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_chr_fetch_0600.c"
@@ -88,11 +95,77 @@ if(JP_EDITION_HOST_EXTRAS)
   "${NESRECOMP_EXTERNAL_ROOT}/runner/cyc"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced")
 endif()
+# The lighting math is presentation-only and uses libm on POSIX targets.
+if(JP_EDITION_HOST_EXTRAS AND NOT WIN32)
+ target_link_libraries(jp_akumajou_densetsu PRIVATE m)
+endif()
 # JP0591: multi-slot save states using upstream's *full machine* serializer.
 # Generate a local overlay alongside pinned external cyc_sdl.c; relative
 # ../../common/* includes remain correct, and the upstream file is untouched.
 # On headless builds the original CLI --save-state/--load-state is unchanged.
 option(JP_SAVE_STATE_SLOTS "Ten window quick-save slots, Ctrl+0..9, F8/F9" ON)
+# True desktop GUI for the optional Enhanced lighting editor. Dear ImGui
+# is an independently MIT-licensed build-only dependency, never vendored or
+# attached to the NESRecomp C11 emulator sources. The SDL2 renderer backend
+# works with SDL's Direct3D/OpenGL/software selection without forcing GL.
+if(NOT JP_CYCLE_HEADLESS AND JP_EDITION_HOST_EXTRAS AND JP_SAVE_STATE_SLOTS)
+ enable_language(CXX)
+ include(FetchContent)
+ FetchContent_Declare(cviii_dear_imgui
+  GIT_REPOSITORY https://github.com/ocornut/imgui.git
+  GIT_TAG v1.93.0
+  GIT_SHALLOW TRUE
+ )
+ FetchContent_MakeAvailable(cviii_dear_imgui)
+ target_sources(jp_akumajou_densetsu PRIVATE
+  "${cviii_dear_imgui_SOURCE_DIR}/imgui.cpp"
+  "${cviii_dear_imgui_SOURCE_DIR}/imgui_draw.cpp"
+  "${cviii_dear_imgui_SOURCE_DIR}/imgui_tables.cpp"
+  "${cviii_dear_imgui_SOURCE_DIR}/imgui_widgets.cpp"
+  "${cviii_dear_imgui_SOURCE_DIR}/backends/imgui_impl_sdl2.cpp"
+  "${cviii_dear_imgui_SOURCE_DIR}/backends/imgui_impl_sdlrenderer2.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_imgui_editor.cpp")
+ target_include_directories(jp_akumajou_densetsu PRIVATE
+  "${cviii_dear_imgui_SOURCE_DIR}"
+  "${cviii_dear_imgui_SOURCE_DIR}/backends")
+ target_compile_features(jp_akumajou_densetsu PRIVATE cxx_std_17)
+ # Copyright and license are included in the local private Alpha package.
+ message(STATUS "CVIII: pinned Dear ImGui v1.93.0 / SDL2_Renderer GUI")
+endif()
+# The RTGI prototype computes its 128x96 lightmap on Windows hardware D3D11.
+# This is opt-in at runtime; the existing SDL2 window/renderer is unchanged.
+# Headless and non-Windows game binaries retain the strict C11 Standard path.
+if(WIN32 AND NOT JP_CYCLE_HEADLESS AND JP_EDITION_HOST_EXTRAS AND JP_SAVE_STATE_SLOTS)
+ target_sources(jp_akumajou_densetsu PRIVATE
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_gpu_rtgi_d3d11.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_radiance_cascades_d3d11.cpp")
+ target_compile_definitions(jp_akumajou_densetsu PRIVATE CVIII_WITH_GPU_RTGI=1)
+ target_link_libraries(jp_akumajou_densetsu PRIVATE d3d11 d3dcompiler)
+ # Compile and EXECUTE the same embedded HLSL kernel as an unconditional
+ # ROM-free prerequisite of the private Windows game target. A successful
+ # C++ link alone does not guarantee a valid Direct3D compute shader.
+ add_executable(cviii_gpu_shader_smoke
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_gpu_rtgi_shader_test.cpp")
+ target_link_libraries(cviii_gpu_shader_smoke PRIVATE d3dcompiler)
+ target_compile_features(cviii_gpu_shader_smoke PRIVATE cxx_std_17)
+ add_custom_command(TARGET cviii_gpu_shader_smoke POST_BUILD
+  COMMAND "$<TARGET_FILE:cviii_gpu_shader_smoke>"
+  COMMENT "ROM-free D3D11 CS5.0 shader compiler smoke")
+ add_dependencies(jp_akumajou_densetsu cviii_gpu_shader_smoke)
+ # Hardware-independent WARP dispatch checks actual buffer binding, scene
+ # occlusion, finite float output and one reflected-light contribution.
+ # Skip only when the hosted Windows runner does not expose WARP.
+ add_executable(cviii_gpu_warp_test
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_gpu_rtgi_warp_test.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_radiance_cascades_d3d11.cpp")
+ target_link_libraries(cviii_gpu_warp_test PRIVATE d3d11 d3dcompiler)
+ target_compile_features(cviii_gpu_warp_test PRIVATE cxx_std_17)
+ add_custom_command(TARGET cviii_gpu_warp_test POST_BUILD
+  COMMAND "$<TARGET_FILE:cviii_gpu_warp_test>"
+  COMMENT "ROM-free D3D11 WARP ray/one-bounce execution smoke")
+ add_dependencies(jp_akumajou_densetsu cviii_gpu_warp_test)
+ message(STATUS "CVIII: optional GPU Prototype RTGI via D3D11 compute, Standard fallback")
+endif()
 if(NOT JP_CYCLE_HEADLESS AND JP_SAVE_STATE_SLOTS)
  set(JP_UPSTREAM_SDL "${NESRECOMP_EXTERNAL_ROOT}/runner/cyc/cyc_sdl.c")
  set(JP_SLOTS_OVERLAY "${NESRECOMP_EXTERNAL_ROOT}/runner/cyc/cviii_cyc_sdl_slots.c")
@@ -181,7 +254,18 @@ if(NOT JP_CYCLE_HEADLESS AND JP_SAVE_STATE_SLOTS)
   if(NOT JP_AUDIO_RETURN_PATCH_RESULT EQUAL 0)
    message(FATAL_ERROR "Nested Audio return SDL patch failed: ${JP_AUDIO_RETURN_PATCH_ERROR}")
   endif()
-  set(JP_FINAL_SDL_OVERLAY "${JP_AUDIO_RETURN_OVERLAY}")
+  # Eighth owner-private SDL layer: Home lighting workbench, sliders and mouse routing.
+  set(JP_LIGHTING_OVERLAY "${NESRECOMP_EXTERNAL_ROOT}/runner/cyc/cviii_cyc_sdl_lighting.c")
+  execute_process(
+   COMMAND "${Python3_EXECUTABLE}"
+     "${CMAKE_CURRENT_LIST_DIR}/../../tools/patch_cyc_lighting_editor.py"
+     --source "${JP_AUDIO_RETURN_OVERLAY}" --out "${JP_LIGHTING_OVERLAY}"
+   RESULT_VARIABLE JP_LIGHTING_PATCH_RESULT
+   ERROR_VARIABLE JP_LIGHTING_PATCH_ERROR)
+  if(NOT JP_LIGHTING_PATCH_RESULT EQUAL 0)
+   message(FATAL_ERROR "Home lighting workbench SDL overlay failed: ${JP_LIGHTING_PATCH_ERROR}")
+  endif()
+  set(JP_FINAL_SDL_OVERLAY "${JP_LIGHTING_OVERLAY}")
  endif()
  get_target_property(JP_GAME_SOURCES jp_akumajou_densetsu SOURCES)
  set(JP_PATCHED_SOURCES "")
@@ -215,6 +299,21 @@ if(NOT JP_CYCLE_HEADLESS)
  message(STATUS "Alpha: verified SDL2 video/input/audio target is enabled")
 endif()
 
+
+# ROM-free standalone verification of scrolling lights, room gating and HUD.
+add_executable(jp_lighting_test
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_lighting.c"
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_light_authoring.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_light_kits.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_light_scene_fx.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_light_history.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_pixel_particles.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_pixel_weather.c"
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_lighting_test.c")
+set_property(TARGET jp_lighting_test PROPERTY C_STANDARD 11)
+if(NOT WIN32)
+ target_link_libraries(jp_lighting_test PRIVATE m)
+endif()
 
 # JP0598: isolated host-independent C11 CHR reader gate; synthetic data only.
 add_executable(jp_chr_index_test_0598

@@ -18,6 +18,7 @@ on:
       - "JP/decomp/tools/mesen_jp_room_chain_0630.lua"
       - "JP/decomp/tools/audit_mesen_room_chain_0630.py"
       - "JP/recomp/tools/package_alpha_builder_0580.py"
+      - "JP/recomp/tools/jp_private_alpha_packaging_smoke.py"
       - "JP/recomp/tools/test_alpha_arguments_0604.ps1"
       - "JP/recomp/tools/test_alpha_python_0607.ps1"
       - "JP/decomp/tools/jp_password_*0593.py"
@@ -209,9 +210,10 @@ jobs:
       - name: Validate JP0603 ROM-free first-run builder and launcher contract
         shell: pwsh
         run: |
+          python JP/recomp/tools/jp_private_alpha_packaging_smoke.py --smoke
           python JP/recomp/tools/package_alpha_builder_0580.py --smoke
           if ($LASTEXITCODE -ne 0) { throw "ROM-free first-run build kit test failed" }
-          foreach ($file in @('JP/recomp/release/alpha/Build-And-Play.ps1','JP/recomp/release/alpha/Build-Alpha.ps1','JP/recomp/release/alpha/Launch-Alpha.ps1')) {
+          foreach ($file in @('JP/recomp/release/alpha/Build-And-Play.ps1','JP/recomp/release/alpha/Build-Alpha.ps1','JP/recomp/release/alpha/Launch-Alpha.ps1','JP/recomp/release/alpha/Build-Lighting-Preview.ps1')) {
             $tokens = $null
             $errs = $null
             [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $file).Path,[ref]$tokens,[ref]$errs) | Out-Null

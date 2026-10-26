@@ -12,6 +12,11 @@
 #include "cviii_frame_evidence_0601.h"
 #include "cviii_nt_trace_0606.h"
 #include "cviii_sprite_layers_0608.h"
+#include "cviii_lighting.h"
+#include "cviii_lighting_host.h"
+#ifdef CVIII_WITH_GPU_RTGI
+#include "cviii_gpu_rtgi.h"
+#endif
 #include "cviii_object_oam_trace_0609.h"
 #include "cviii_audio_bus_0610.h"
 #include "cviii_sound_requests_0612.h"
@@ -44,6 +49,12 @@ typedef struct {
     int sprite_unlimited;
     int stable_sprites; /* optional host-only temporal presentation; off by default */
     CviiiSpriteLayers sprite_layers;
+    CviiiLighting lighting; /* separate host-only level lighting */
+    int lighting_renderer; /* 0 Standard, 1 GPU one bounce, 2 Radiance Cascades */
+    int lighting_cascade_levels; /* 2 Low / 3 Medium / 4 High; default 3 */
+    int lighting_gpu_active; /* previous frame, never guest state */
+    char lighting_editor_key[32]; /* persisted SDL2 scancode name */
+    uint64_t lighting_frame; /* host animation, never serialized to guest */
     CviiiObjectOamTrace object_trace; /* read-only JP PRG26 object/OAM correlation */
     CviiiAudioBus audio_bus; /* opt-in nonmutating 2A03/VRC6 sound writes */
     CviiiSoundRequests sound_requests; /* original fixed $E249 ingress only */
@@ -64,10 +75,14 @@ typedef struct {
     CviiiFrameEvidence frame_evidence; /* opt-in correlated PPU evidence */
     CviiiNtTrace nt_trace; /* opt-in real nametable and attribute reads */
     uint32_t presentation[CVIII_W * CVIII_H];
+    uint32_t particle_background[CVIII_W * CVIII_H]; /* host only */
+    uint8_t particle_sprite_mask[CVIII_W * CVIII_H]; /* host only */
 } CviiiEdition;
 
 static CviiiEdition cviii = { .volume = CVIII_AUDIO_LEVELS_DEFAULT };
 static int cviii_start_ready;
+static int cviii_lighting_ready;
+static int cviii_external_light_editor;
 
 /* JP0620: optional built-in paused runtime menu rows for recomp-ui builds.
  * The separate F6 modal now uses the original CHR overlay on all supported
@@ -194,6 +209,26 @@ static void load_setting(void *context, const char *key, const char *value)
         (void)parse_boolean(value, &cviii.sprite_unlimited);
     else if (!strcmp(key, "StableSprites"))
         (void)parse_boolean(value, &cviii.stable_sprites);
+    else if (!strcmp(key,"LightingEditorKey"))
+        (void)cviii_lighting_editor_set_key(value);
+    else if (!strcmp(key,"LightingRenderer"))
+        cviii.lighting_renderer=!strcmp(value,"RadianceCascades")?2:
+                                !strcmp(value,"GPUPrototype")?1:0;
+    else if (!strcmp(key,"LightingCascadeQuality")){
+        int value_int=0;
+        if(sscanf(value,"%d",&value_int)==1 &&
+           value_int>=2 && value_int<=4)
+            cviii.lighting_cascade_levels=value_int;
+    }
+    else if (!strcmp(key,"Particles") || !strncmp(key,"Particle",8))
+        (void)cviii_particle_load(&cviii.lighting,key,value);
+    else if (!strncmp(key,"Weather",7))
+        (void)cviii_weather_load(&cviii.lighting,key,value);
+    else if (!strncmp(key,"Light",5) || !strncmp(key,"RoomAmbient",11) ||
+             !strncmp(key,"RoomSky",7) || !strncmp(key,"GlobalStyle",11) ||
+             !strncmp(key,"Occluder",8) || !strncmp(key,"SceneGrade",10) ||
+             !strncmp(key,"SceneAlias",10))
+        (void)cviii_light_load(&cviii.lighting,key,value);
     else (void)cviii_audio_levels_load(&cviii.volume,key,value);
 }
 
@@ -204,6 +239,16 @@ static void save_settings(void *context, FILE *file)
             cviii.enhanced ? "Enhanced" : "Original",
             cviii.sprite_unlimited, cviii.stable_sprites);
     cviii_audio_levels_save(&cviii.volume,file);
+    cviii_light_save(&cviii.lighting,file);
+    cviii_particle_save(&cviii.lighting,file);
+    cviii_weather_save(&cviii.lighting,file);
+    fprintf(file,"LightingEditorKey = %s\n",cviii.lighting_editor_key);
+    fprintf(file,"LightingRenderer = %s\n",
+            cviii.lighting_renderer==2?"RadianceCascades":
+            cviii.lighting_renderer==1?"GPUPrototype":"Standard");
+    fprintf(file,"LightingCascadeQuality = %d\n",
+            cviii.lighting_cascade_levels?
+                cviii.lighting_cascade_levels:3);
 }
 
 static bool option(void *context, const char *name, const char *value)
@@ -341,6 +386,10 @@ static void power_on(void *context)
      * Do not recapture in frame_begin: that clears the saved history.
      */
     cviii_layers_reset(&settings->sprite_layers);
+    settings->lighting.edit=0;
+    settings->lighting.dragging=0;
+    cviii_external_light_editor=0;
+    settings->lighting_frame=0;
     cviii_audio_menu_state_close(&settings->audio_ui); /* reset cannot leave a stale modal */
     cviii_start_close(&settings->start_menu);
     cviii_slot_cancel(&settings->slot_menu);
@@ -369,6 +418,10 @@ static void state_loaded(void *context)
 {
     CviiiEdition *settings = (CviiiEdition *)context;
     cviii_layers_reset(&settings->sprite_layers);
+    settings->lighting.edit=0;
+    settings->lighting.dragging=0;
+    cviii_external_light_editor=0;
+    settings->lighting_frame=0;
     cviii_audio_menu_state_close(&settings->audio_ui); /* loaded gameplay never owns a stale modal */
     cviii_start_close(&settings->start_menu);
     cviii_slot_cancel(&settings->slot_menu);
@@ -393,6 +446,7 @@ static void frame_begin(void *context)
 static void frame_end(void *context)
 {
     CviiiEdition *settings = (CviiiEdition *)context;
+    ++settings->lighting_frame;
     if (settings->object_trace.out)
         cviii_object_oam_trace_frame(&settings->object_trace,
                                     cyc_cpu_ram(), cyc_ppu_oam());
@@ -478,6 +532,543 @@ static const uint32_t *present_game(void *context, int *width, int *height)
     cyc_render_sprites(settings->presentation, CVIII_W, CVIII_H, 0,
                        cyc_frame_bg_opaque(), NULL, NULL);
     return settings->presentation;
+}
+
+/* Present-frame, read-only camera. These original RAM selector meanings need
+ * real-route QA before any stage geometry is considered certified. */
+static uint32_t cviii_lighting_raw_room(void)
+{
+    const uint8_t *ram=cyc_cpu_ram();
+    if(!ram)return UINT32_MAX;
+    return ((uint32_t)ram[0x34u]<<24)|((uint32_t)ram[0x35u]<<16)|
+           ((uint32_t)ram[0x36u]<<8)|(uint32_t)ram[0x07a0u];
+}
+static uint32_t cviii_lighting_room(void)
+{
+    return cviii_light_scene_resolve(&cviii.lighting,cviii_lighting_raw_room());
+}
+static int cviii_lighting_camera(void)
+{
+    const uint8_t *ram=cyc_cpu_ram();
+    return ram ? ((int)ram[0x53u]|((int)ram[0x54u]<<8)) : 0;
+}
+static void cviii_lighting_scroll(int sx[CVIII_LIGHT_H],int sy[CVIII_LIGHT_H])
+{
+    for(int y=0;y<CVIII_LIGHT_H;++y){
+        sx[y]=cyc_render_line_scroll_x(y);
+        sy[y]=cyc_render_line_scroll_y(y);
+    }
+}
+int cviii_lighting_editor_external_active(void)
+{
+    return cviii_external_light_editor;
+}
+int cviii_lighting_editor_external_session(int open)
+{
+    if(open && !cviii.enhanced)return 0;
+    cviii_external_light_editor=open!=0;
+    cviii.lighting.edit=open!=0;
+    cviii.lighting.dragging=0;
+    return 1;
+}
+int cviii_lighting_editor_active(void)
+{
+    return cviii.enhanced && cviii.lighting.edit;
+}
+int cviii_lighting_editor_renderer(void){return cviii.lighting_renderer;}
+int cviii_lighting_editor_set_renderer(int mode)
+{
+    if(!cviii.enhanced || mode<0 || mode>2)return 0;
+    cviii.lighting_renderer=mode;
+    cviii.lighting_gpu_active=0;
+    return 1;
+}
+int cviii_lighting_editor_cascade_quality(void)
+{
+    return cviii.lighting_cascade_levels?
+        cviii.lighting_cascade_levels:3;
+}
+int cviii_lighting_editor_set_cascade_quality(int quality)
+{
+    if(!cviii.enhanced || quality<2 || quality>4)return 0;
+    cviii.lighting_cascade_levels=quality;
+    return 1;
+}
+int cviii_lighting_editor_gpu_active(void){return cviii.lighting_gpu_active;}
+const char *cviii_lighting_editor_gpu_status(void)
+{
+#ifdef CVIII_WITH_GPU_RTGI
+    return cviii_gpu_rtgi_status();
+#else
+    return "GPU prototype unavailable in this build; Standard works";
+#endif
+}
+int cviii_lighting_editor_input(int event,int x,int y)
+{
+    if(!cviii.enhanced)return 0;
+    if(event==2 || event==5 || (event>=6 && event<=12))
+        cviii_light_history_push(&cviii.lighting);
+    int sx[CVIII_LIGHT_H],sy[CVIII_LIGHT_H];
+    /* No private SDL pointer or guest state is ever handed to the editor. */
+    if(event==2 || event==3 || event==13)
+        cviii_lighting_scroll(sx,sy);
+    return cviii_light_event(&cviii.lighting,event,x,y,
+        cviii_lighting_room(),cviii_lighting_camera(),
+        event==2 || event==3 || event==13 ? sx : NULL,
+        event==2 || event==3 || event==13 ? sy : NULL);
+}
+
+/* Bounded game-owned edit operations. SDL only chooses user-visible values;
+ * ownership, stage keys and original-frame PPU scroll stay here. */
+const CviiiLighting *cviii_lighting_editor_model(void)
+{
+    return &cviii.lighting;
+}
+unsigned cviii_lighting_editor_room(void)
+{
+    return cviii_lighting_room();
+}
+int cviii_lighting_editor_select(int slot)
+{
+    CviiiLighting *v=&cviii.lighting;
+    if(!cviii_lighting_editor_active() || slot<0 || slot>=CVIII_LIGHT_MAX ||
+       !v->light[slot].used || v->light[slot].room!=cviii_lighting_room())
+        return 0;
+    v->selected=slot;
+    v->dragging=0;
+    return 1;
+}
+int cviii_lighting_editor_add(int x,int y)
+{
+    if(cviii_lighting_editor_active())cviii_light_history_push(&cviii.lighting);
+    CviiiLighting *v=&cviii.lighting;
+    if(!cviii_lighting_editor_active() || x<0 || x>=CVIII_W ||
+       y<CVIII_LIGHT_HUD || y>=CVIII_H)return 0;
+    int slot=-1;
+    for(int i=0;i<CVIII_LIGHT_MAX;++i)
+        if(!v->light[i].used){slot=i;break;}
+    if(slot<0)return 0;
+    int camera=cviii_lighting_camera();
+    int origin=cyc_render_line_scroll_x(y);
+    int delta=(origin-camera%512+1024)%512;
+    if(delta>256)delta-=512;
+    int wx=camera+delta+x;
+    int wy=cyc_render_line_scroll_y(y);
+    if(wx<0 || wx>65535 || wy<0 || wy>479)return 0;
+    v->light[slot]=(CviiiLight){.room=cviii_lighting_room(),.x=wx,.y=wy,.radius=56,.energy=85,.red=255,.green=167,.blue=74,.used=1};
+    v->selected=slot;
+    v->enabled=1;
+    v->dragging=0;
+    return 1;
+}
+int cviii_lighting_editor_property(int property,int value)
+{
+    if(cviii_lighting_editor_active())cviii_light_history_push(&cviii.lighting);
+    CviiiLighting *v=&cviii.lighting;
+    if(!cviii_lighting_editor_active())return 0;
+    if(property==0){v->enabled=value!=0;return 1;}
+    if(property==1){v->ambient=value<35?35:(value>100?100:value);return 1;}
+    if(v->selected<0 || v->selected>=CVIII_LIGHT_MAX)return 0;
+    CviiiLight *l=&v->light[v->selected];
+    if(!l->used || l->room!=cviii_lighting_room())return 0;
+    if(property==2)l->radius=value<12?12:(value>160?160:value);
+    else if(property==3)l->energy=value<5?5:(value>160?160:value);
+    else if(property==4)l->red=(uint8_t)(value<0?0:(value>255?255:value));
+    else if(property==5)l->green=(uint8_t)(value<0?0:(value>255?255:value));
+    else if(property==6)l->blue=(uint8_t)(value<0?0:(value>255?255:value));
+    else if(property==7)return cviii_light_shape(v,v->selected,value);
+    else if(property==8)l->angle=value<0?0:(value>359?359:value);
+    else if(property==9)l->spread=value<5?5:(value>85?85:value);
+    else if(property==10)l->width=value<4?4:(value>160?160:value);
+    else if(property==11)l->muted=value!=0;
+    else if(property==12)l->flicker=value<0?0:(value>4?4:value);
+    else if(property==15)l->anim_speed=value<0?0:(value>400?400:value);
+    else if(property==16)l->anim_strength=value<0?0:(value>100?100:value);
+    else if(property==13)l->x=value<0?0:(value>65535?65535:value);
+    else if(property==14)l->y=value<0?0:(value>479?479:value);
+    else return 0;
+    return 1;
+}
+int cviii_lighting_editor_copy(void)
+{
+    CviiiLighting *v=&cviii.lighting;
+    return cviii_lighting_editor_active() && cviii_light_copy(v,v->selected);
+}
+int cviii_lighting_editor_paste(void)
+{
+    if(cviii_lighting_editor_active())cviii_light_history_push(&cviii.lighting);
+    CviiiLighting *v=&cviii.lighting;
+    if(!cviii_lighting_editor_active() || !v->clipboard_valid)return 0;
+    /* Paste into current scene's center, not original stage/viewport.
+     * Per-scanline PPU coordinates are authoritative for visible rows. */
+    int cam=cviii_lighting_camera(),y=120;
+    int scan=cyc_render_line_scroll_x(y);
+    int d=(scan-cam%512+1024)%512;
+    if(d>256)d-=512;
+    int world=cam+d+128;
+    return cviii_light_paste(v,cviii_lighting_room(),world,
+                             cyc_render_line_scroll_y(y))>=0;
+}
+int cviii_lighting_editor_duplicate(void)
+{
+    if(cviii_lighting_editor_active())cviii_light_history_push(&cviii.lighting);
+    CviiiLighting *v=&cviii.lighting;
+    return cviii_lighting_editor_active() &&
+        cviii_light_duplicate(v,v->selected)>=0;
+}
+int cviii_lighting_editor_name(const char *text)
+{
+    if(cviii_lighting_editor_active())cviii_light_history_push(&cviii.lighting);
+    CviiiLighting *v=&cviii.lighting;
+    return cviii_lighting_editor_active() &&
+        cviii_light_rename(v,v->selected,text);
+}
+int cviii_lighting_editor_group(const char *text)
+{
+    if(cviii_lighting_editor_active())cviii_light_history_push(&cviii.lighting);
+    CviiiLighting *v=&cviii.lighting;
+    return cviii_lighting_editor_active() &&
+        cviii_light_group(v,v->selected,text);
+}
+int cviii_lighting_editor_scene(int property,int value)
+{
+    if(cviii_lighting_editor_active())cviii_light_history_push(&cviii.lighting);
+    if(!cviii_lighting_editor_active())return 0;
+    int pct=0,rgb[3];
+    const uint32_t room=cviii_lighting_room();
+    cviii_light_scene_get(&cviii.lighting,room,&pct,rgb);
+    if(property==0)pct=value;
+    else if(property>=1 && property<=3)rgb[property-1]=value;
+    else return 0;
+    return cviii_light_scene_set(&cviii.lighting,room,pct,rgb[0],rgb[1],rgb[2]);
+}
+
+static int cviii_lighting_placement(int native_x,int native_y,int *wx,int *wy)
+{
+    if(!wx || !wy || !cviii_lighting_editor_active())return 0;
+    if(native_x<0)native_x=128;
+    if(native_y<0)native_y=120;
+    if(native_x>=CVIII_W || native_y<CVIII_LIGHT_HUD ||
+       native_y>=CVIII_H)return 0;
+    int cam=cviii_lighting_camera();
+    int sc=cyc_render_line_scroll_x(native_y);
+    int d=(sc-cam%512+1024)%512;
+    if(d>256)d-=512;
+    int x=cam+d+native_x,y=cyc_render_line_scroll_y(native_y);
+    if(x<0 || x>65535 || y<0 || y>479)return 0;
+    *wx=x;*wy=y;return 1;
+}
+int cviii_lighting_editor_world_point(int native_x,int native_y,
+                                       int *wx,int *wy)
+{
+    return cviii_lighting_placement(native_x,native_y,wx,wy);
+}
+int cviii_lighting_editor_builtin_count(void)
+{
+    return cviii_light_builtin_count();
+}
+const char *cviii_lighting_editor_builtin_name(int id)
+{
+    return cviii_light_builtin_name(id);
+}
+int cviii_lighting_editor_apply_builtin(int id,int native_x,int native_y)
+{
+    if(cviii_lighting_editor_active())cviii_light_history_push(&cviii.lighting);
+    int wx=0,wy=0;
+    if(!cviii_lighting_placement(native_x,native_y,&wx,&wy))return 0;
+    return cviii_light_apply_builtin(&cviii.lighting,id,
+        cviii_lighting_room(),wx,wy)>=0;
+}
+int cviii_lighting_editor_apply_kit(int slot,int native_x,int native_y)
+{
+    if(cviii_lighting_editor_active())cviii_light_history_push(&cviii.lighting);
+    int wx=0,wy=0;
+    if(!cviii_lighting_placement(native_x,native_y,&wx,&wy))return 0;
+    return cviii_light_kit_apply(&cviii.lighting,slot,
+        cviii_lighting_room(),wx,wy)>=0;
+}
+int cviii_lighting_editor_capture_kit(int slot,const char *name)
+{
+    if(cviii_lighting_editor_active())cviii_light_history_push(&cviii.lighting);
+    if(!cviii_lighting_editor_active())return 0;
+    CviiiLighting *v=&cviii.lighting;
+    if(v->selected<0 || v->selected>=CVIII_LIGHT_MAX ||
+       !v->light[v->selected].used ||
+       v->light[v->selected].room!=cviii_lighting_room())return 0;
+    return cviii_light_kit_capture(v,slot,v->selected,name);
+}
+int cviii_lighting_editor_sky(int property,int value)
+{
+    if(cviii_lighting_editor_active())cviii_light_history_push(&cviii.lighting);
+    if(!cviii_lighting_editor_active())return 0;
+    int level=0,rgb[3],face=-1;
+    uint32_t room=cviii_lighting_room();
+    cviii_light_sky_get(&cviii.lighting,room,&level,rgb,&face);
+    if(property==0)level=value;
+    else if(property>=1 && property<=3)rgb[property-1]=value;
+    else if(property==4)face=value;
+    else return 0;
+    return cviii_light_sky_set(&cviii.lighting,room,level,
+                               rgb[0],rgb[1],rgb[2],face);
+}
+
+/* Manual scene aliases bridge transient gameplay selectors safely.
+ * Existing room IDs are unmodified until the user explicitly maps one. */
+unsigned cviii_lighting_editor_raw_room(void){return cviii_lighting_raw_room();}
+int cviii_lighting_editor_alias(unsigned stable){
+    if(cviii_lighting_editor_active())cviii_light_history_push(&cviii.lighting);
+    return cviii_lighting_editor_active() &&
+        cviii_light_scene_alias(&cviii.lighting,cviii_lighting_raw_room(),stable);
+}
+int cviii_lighting_editor_global_capture(int slot,const char *name){
+    if(cviii_lighting_editor_active())cviii_light_history_push(&cviii.lighting);
+    if(!cviii_lighting_editor_active())return 0;
+    int selected=cviii.lighting.selected;
+    if(selected<0 || selected>=CVIII_LIGHT_MAX ||
+       !cviii.lighting.light[selected].used ||
+       cviii.lighting.light[selected].room!=cviii_lighting_room())return 0;
+    return cviii_light_style_capture(&cviii.lighting,slot,selected,name);
+}
+int cviii_lighting_editor_global_link(int slot,int group){
+    if(cviii_lighting_editor_active())cviii_light_history_push(&cviii.lighting);
+    if(!cviii_lighting_editor_active())return 0;
+    int selected=cviii.lighting.selected;
+    if(selected<0 || selected>=CVIII_LIGHT_MAX ||
+       !cviii.lighting.light[selected].used ||
+       cviii.lighting.light[selected].room!=cviii_lighting_room())return 0;
+    return group?
+        cviii_light_style_link_group(&cviii.lighting,selected,slot):
+        cviii_light_style_link(&cviii.lighting,selected,slot);
+}
+int cviii_lighting_editor_kit_manage(int action,int source,
+                                       int destination,const char *name)
+{
+    if(!cviii_lighting_editor_active())return 0;
+    cviii_light_history_push(&cviii.lighting);
+    if(action==1)return cviii_light_kit_rename(&cviii.lighting,source,name);
+    if(action==2)return cviii_light_kit_clone(&cviii.lighting,source,destination);
+    if(action==3)return cviii_light_kit_delete(&cviii.lighting,source);
+    return 0;
+}
+int cviii_lighting_editor_particle_enabled(int enabled)
+{
+    if(!cviii_lighting_editor_active() || (enabled!=0 && enabled!=1))return 0;
+    cviii_light_history_push(&cviii.lighting);
+    cviii.lighting.particles_enabled=enabled;
+    return 1;
+}
+int cviii_lighting_editor_particle_add(int kind,int x,int y)
+{
+    int wx=0,wy=0;
+    if(!cviii_lighting_placement(x,y,&wx,&wy))return -1;
+    cviii_light_history_push(&cviii.lighting);
+    return cviii_particle_add(&cviii.lighting,cviii_lighting_room(),kind,wx,wy);
+}
+int cviii_lighting_editor_particle_property(int slot,int property,int value)
+{
+    if(!cviii_lighting_editor_active() ||
+       slot<0 || slot>=CVIII_PARTICLE_EMITTER_MAX ||
+       !cviii.lighting.particles[slot].used ||
+       cviii.lighting.particles[slot].room!=cviii_lighting_room())return 0;
+    cviii_light_history_push(&cviii.lighting);
+    return cviii_particle_property(&cviii.lighting,slot,property,value);
+}
+int cviii_lighting_editor_particle_name(int slot,const char *name)
+{
+    if(!cviii_lighting_editor_active() ||
+       slot<0 || slot>=CVIII_PARTICLE_EMITTER_MAX ||
+       !cviii.lighting.particles[slot].used ||
+       cviii.lighting.particles[slot].room!=cviii_lighting_room())return 0;
+    cviii_light_history_push(&cviii.lighting);
+    return cviii_particle_name(&cviii.lighting,slot,name);
+}
+int cviii_lighting_editor_particle_attach(int slot,int light_slot)
+{
+    if(!cviii_lighting_editor_active() ||
+       slot<0 || slot>=CVIII_PARTICLE_EMITTER_MAX ||
+       !cviii.lighting.particles[slot].used ||
+       cviii.lighting.particles[slot].room!=cviii_lighting_room())return 0;
+    cviii_light_history_push(&cviii.lighting);
+    return cviii_particle_attach(&cviii.lighting,slot,light_slot);
+}
+int cviii_lighting_editor_weather_template(int slot,int preset)
+{
+    if(!cviii_lighting_editor_active())return 0;
+    cviii_light_history_push(&cviii.lighting);
+    return cviii_weather_template(&cviii.lighting,slot,preset);
+}
+int cviii_lighting_editor_weather_link(int slot)
+{
+    if(!cviii_lighting_editor_active())return 0;
+    cviii_light_history_push(&cviii.lighting);
+    int ok=cviii_weather_link(&cviii.lighting,cviii_lighting_room(),slot);
+    if(ok && slot>=0)cviii.lighting.particles_enabled=1;
+    return ok;
+}
+int cviii_lighting_editor_weather_property(int slot,int property,int value)
+{
+    if(!cviii_lighting_editor_active())return 0;
+    cviii_light_history_push(&cviii.lighting);
+    return cviii_weather_property(&cviii.lighting,slot,property,value);
+}
+int cviii_lighting_editor_weather_name(int slot,const char *name)
+{
+    if(!cviii_lighting_editor_active())return 0;
+    cviii_light_history_push(&cviii.lighting);
+    return cviii_weather_name(&cviii.lighting,slot,name);
+}
+int cviii_lighting_editor_particle_clone(int slot)
+{
+    if(!cviii_lighting_editor_active() ||
+       slot<0 || slot>=CVIII_PARTICLE_EMITTER_MAX ||
+       !cviii.lighting.particles[slot].used ||
+       cviii.lighting.particles[slot].room!=cviii_lighting_room())return -1;
+    CviiiParticleEmitter e=cviii.lighting.particles[slot];
+    CviiiParticleEmitter world;
+    if(!cviii_particle_world_region(&cviii.lighting,&e,&world))return -1;
+    int nx=world.x+12,ny=world.y+8;
+    if(nx+e.w>65535 || ny+e.h>479)return -1;
+    cviii_light_history_push(&cviii.lighting);
+    for(int i=0;i<CVIII_PARTICLE_EMITTER_MAX;++i)
+        if(!cviii.lighting.particles[i].used){
+            e.x=nx;e.y=ny;
+            if(e.light_link){e.link_dx+=12;e.link_dy+=8;}
+            cviii.lighting.particles[i]=e;return i;
+        }
+    return -1;
+}
+int cviii_lighting_editor_global_property(int slot,int property,int value)
+{
+    if(!cviii_lighting_editor_active() || slot<0 || slot>=CVIII_GLOBAL_STYLE_MAX ||
+       !cviii.lighting.styles[slot].used)return 0;
+    cviii_light_history_push(&cviii.lighting);
+    CviiiLight *p=&cviii.lighting.styles[slot].light;
+    if(property==2)p->radius=value<12?12:value>160?160:value;
+    else if(property==3)p->energy=value<5?5:value>160?160:value;
+    else if(property==4)p->red=(uint8_t)(value<0?0:value>255?255:value);
+    else if(property==5)p->green=(uint8_t)(value<0?0:value>255?255:value);
+    else if(property==6)p->blue=(uint8_t)(value<0?0:value>255?255:value);
+    else if(property==7)p->shape=value<0?0:value>2?2:value;
+    else if(property==8)p->angle=value<0?0:value>359?359:value;
+    else if(property==9)p->spread=value<5?5:value>85?85:value;
+    else if(property==10)p->width=value<4?4:value>160?160:value;
+    else if(property==12)p->flicker=value<0?0:value>4?4:value;
+    else if(property==15)p->anim_speed=value<0?0:value>400?400:value;
+    else if(property==16)p->anim_strength=value<0?0:value>100?100:value;
+    else return 0;
+    return 1;
+}
+int cviii_lighting_editor_mask_add(int x,int y,int w,int h){
+    if(cviii_lighting_editor_active())cviii_light_history_push(&cviii.lighting);
+    if(!cviii_lighting_editor_active())return -1;
+    return cviii_light_mask_add(&cviii.lighting,cviii_lighting_room(),x,y,w,h);
+}
+int cviii_lighting_editor_mask_property(int slot,int property,int value){
+    if(cviii_lighting_editor_active())cviii_light_history_push(&cviii.lighting);
+    if(!cviii_lighting_editor_active() || slot<0 || slot>=CVIII_OCCLUDER_MAX)
+        return 0;
+    CviiiOccluder *m=&cviii.lighting.masks[slot];
+    if(!m->used || m->room!=cviii_lighting_room())return 0;
+    if(property==0){
+        return cviii_light_mask_remove(&cviii.lighting,slot);
+    }
+    CviiiOccluder t=*m;
+    if(property==1)t.x=value;
+    else if(property==2)t.y=value;
+    else if(property==3)t.w=value;
+    else if(property==4)t.h=value;
+    else if(property==5)t.opacity=value;
+    else if(property==6)t.softness=value;
+    else return 0;
+    if(t.x<0 || t.y<0 || t.w<1 || t.h<1 || t.x>65535-t.w ||
+       t.y>479-t.h || t.opacity<0 || t.opacity>100 ||
+       t.softness<0 || t.softness>CVIII_OCCLUDER_MAX_SOFTNESS)return 0;
+    *m=t;return 1;
+}
+int cviii_lighting_editor_grade(int property,int value){
+    if(cviii_lighting_editor_active())cviii_light_history_push(&cviii.lighting);
+    if(!cviii_lighting_editor_active())return 0;
+    int ev=0,temp=0,sat=100;
+    unsigned room=cviii_lighting_room();
+    cviii_light_grade_get(&cviii.lighting,room,&ev,&temp,&sat);
+    if(property==0)ev=value;
+    else if(property==1)temp=value;
+    else if(property==2)sat=value;
+    else return 0;
+    return cviii_light_grade_set(&cviii.lighting,room,ev,temp,sat);
+}
+
+int cviii_lighting_editor_checkpoint(void){
+    if(!cviii_lighting_editor_active())return 0;
+    cviii_light_history_push(&cviii.lighting);
+    return 1;
+}
+int cviii_lighting_editor_undo(void){
+    return cviii_lighting_editor_active() &&
+        cviii_light_history_undo(&cviii.lighting);
+}
+int cviii_lighting_editor_redo(void){
+    return cviii_lighting_editor_active() &&
+        cviii_light_history_redo(&cviii.lighting);
+}
+int cviii_lighting_editor_can_undo(void){return cviii_light_history_can_undo();}
+int cviii_lighting_editor_can_redo(void){return cviii_light_history_can_redo();}
+
+int cviii_lighting_editor_point(int slot,int *x,int *y)
+{
+    if(!x || !y || slot<0 || slot>=CVIII_LIGHT_MAX)return 0;
+    const CviiiLight *l=&cviii.lighting.light[slot];
+    if(!l->used || l->room!=cviii_lighting_room())return 0;
+    int camera=cviii_lighting_camera();
+    int best=999,screen_y=-1,screen_x=-1;
+    for(int row=CVIII_LIGHT_HUD;row<CVIII_H;++row){
+        int dy=cyc_render_line_scroll_y(row)-l->y;
+        if(dy<0)dy=-dy;
+        if(dy>=best || dy>1)continue;
+        int sc=cyc_render_line_scroll_x(row);
+        int dx=(sc-camera%512+1024)%512;
+        if(dx>256)dx-=512;
+        int xp=l->x-(camera+dx);
+        if(xp<0 || xp>=CVIII_W)continue;
+        best=dy;screen_y=row;screen_x=xp;
+    }
+    if(screen_y<0)return 0;
+    *x=screen_x;*y=screen_y;
+    return 1;
+}
+
+/* Editor preview feedback: host-only, no SDL dependency and no RAM writes. */
+int cviii_lighting_editor_status(char *out,unsigned cap)
+{
+    if(!out || !cap)return 0;
+    const CviiiLighting *v=&cviii.lighting;
+    int i=v->selected;
+    if(i<0 || i>=CVIII_LIGHT_MAX || !v->light[i].used){
+        return snprintf(out,cap,"AMBIENT %d%% | no light selected",v->ambient)>=0;
+    }
+    const CviiiLight *l=&v->light[i];
+    return snprintf(out,cap,"LIGHT %d: R=%d POWER=%d RGB=%u,%u,%u AMB=%d%%",
+                    i+1,l->radius,l->energy,l->red,l->green,l->blue,v->ambient)>=0;
+}
+
+/* Expose only the canonical, bounded SDL key name; no SDL types needed
+ * in this C11 Enhanced module (headless and Windows builds share it). */
+const char *cviii_lighting_editor_key(void)
+{
+    return cviii.lighting_editor_key[0]?cviii.lighting_editor_key:"Home";
+}
+int cviii_lighting_editor_set_key(const char *name)
+{
+    if(!name)return 0;
+    size_t count=strlen(name);
+    if(count==0 || count>=sizeof(cviii.lighting_editor_key))return 0;
+    for(size_t i=0;i<count;++i){
+        char c=name[i];
+        if(!((c>='A' && c<='Z') || (c>='a' && c<='z') ||
+             (c>='0' && c<='9') || c==' ' || c=='-'))return 0;
+    }
+    memcpy(cviii.lighting_editor_key,name,count+1);
+    return 1;
 }
 
 /* JP0623 game-owned Start/Pause state and stable action identities. */
@@ -571,6 +1162,66 @@ static const uint32_t *present(void *context,int *width,int *height)
 {
     CviiiEdition *settings=(CviiiEdition *)context;
     const uint32_t *frame=present_game(context,width,height);
+    if(settings->enhanced &&
+       (settings->lighting.enabled || settings->lighting.edit ||
+        settings->lighting.particles_enabled) &&
+       *width==CVIII_W && *height==CVIII_H){
+        int sx[CVIII_LIGHT_H],sy[CVIII_LIGHT_H];
+        cviii_lighting_scroll(sx,sy);
+        if(frame!=settings->presentation)
+            memcpy(settings->presentation,frame,sizeof settings->presentation);
+        int background_valid=0;
+        if(settings->lighting.particles_enabled){
+            int behind=0;
+            uint32_t room=cviii_lighting_room();
+            for(int i=0;i<CVIII_PARTICLE_EMITTER_MAX;++i)
+                if(settings->lighting.particles[i].used &&
+                   settings->lighting.particles[i].room==room &&
+                   settings->lighting.particles[i].layer==1)behind=1;
+            int widx=cviii_weather_scene_profile(&settings->lighting,room);
+            if(widx>=0 && settings->lighting.weather[widx].layer==1)behind=1;
+            if(behind && cyc_render_background(settings->particle_background)){
+                for(int i=0;i<CVIII_W*CVIII_H;++i)
+                    settings->particle_sprite_mask[i]=
+                        frame[i]!=settings->particle_background[i];
+                background_valid=1;
+                cviii_particle_present_layer(&settings->lighting,
+                    settings->presentation,room,cviii_lighting_camera(),
+                    sx,sy,settings->lighting_frame,1,
+                    settings->particle_sprite_mask);
+            }
+        }
+        /* Original and headless always retain Standard. A GPU failure,
+         * capacity limit or unsupported GPU falls back THIS FRAME without
+         * touching the saved user choice or the NES machine state.
+         * Editing temporarily previews Standard to show mask outlines. */
+        int gpu_ok=0;
+#ifdef CVIII_WITH_GPU_RTGI
+        if((settings->lighting_renderer==1 ||
+            settings->lighting_renderer==2) &&
+           settings->lighting.enabled && !settings->lighting.edit){
+            gpu_ok=cviii_gpu_rtgi_present(&settings->lighting,
+                settings->presentation,cviii_lighting_room(),
+                cviii_lighting_camera(),sx,sy,settings->lighting_frame,
+                settings->lighting_renderer==2?
+                    (settings->lighting_cascade_levels?
+                       settings->lighting_cascade_levels:3):0);
+        }
+#endif
+        if(!gpu_ok)
+            cviii_light_present(&settings->lighting,settings->presentation,
+                CVIII_W,CVIII_H,cviii_lighting_room(),cviii_lighting_camera(),
+                sx,sy,settings->lighting_frame);
+        settings->lighting_gpu_active=gpu_ok;
+        /* Pixel FX are a post-lighting native-resolution layer and also
+         * render when all other lighting is disabled. They never touch
+         * the original guest framebuffer or top HUD. */
+        cviii_particle_present_layer(&settings->lighting,settings->presentation,
+             cviii_lighting_room(),cviii_lighting_camera(),sx,sy,
+             settings->lighting_frame,0,
+             background_valid?settings->particle_sprite_mask:NULL);
+        frame=settings->presentation;
+    }
     if (settings->enhanced && !settings->audio_ui.open &&
         settings->start_menu.open && settings->assets.pixels && *width==CVIII_W && *height==CVIII_H) {
         if(frame!=settings->presentation)
@@ -654,6 +1305,12 @@ static CycHostExtras cviii_extra = {
 
 const CycHostExtras *cyc_host_extras(void)
 {
+    if(!cviii_lighting_ready){
+        cviii_light_init(&cviii.lighting);
+        cviii_light_history_reset();
+        (void)cviii_lighting_editor_set_key("Home");
+        cviii_lighting_ready=1;
+    }
 #ifdef CYC_WITH_RECOMP_UI
     cviii_init_audio_menu(&cviii_extra);
 #endif
