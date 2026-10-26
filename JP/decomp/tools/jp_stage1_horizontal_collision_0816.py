@@ -47,7 +47,7 @@ def word(bank: bytes, cpu: int) -> int:
 
 def phase(camera16: int, direction62: int) -> int:
     """Original $8001 high-byte ASL/ROL*2 + $80D1 $62 add5."""
-    return (((camera16 + 2) & 65535) >> 6 & 255) + (5 if direction62 else 0)
+    return (((((camera16 + 2) & 65535) >> 6) & 255) + (5 if direction62 else 0)) & 255
 
 def event_ptr(bank: bytes, source_id: int, flag07f6: int) -> int:
     a=(source_id << 1) & 255
@@ -124,7 +124,7 @@ def smoke() -> None:
     for c in range(0,65536,37):
         actual=phase(c,0)
         expect=(((c+2)&0xffff)>>6)&0xff
-        require(actual==expect and phase(c,1)==expect+5,
+        require(actual==expect and phase(c,1)==((expect+5)&255),
                 "16-bit camera high-byte rotate arithmetic error")
     require(phase(318,0)==5 and phase(318,1)==10,
             "opening room source rotation sample changed")
