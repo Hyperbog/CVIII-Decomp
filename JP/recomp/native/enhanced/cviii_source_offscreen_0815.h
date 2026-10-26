@@ -1,0 +1,69 @@
+/* JP0815: read-only Stage1 source projection and interaction-policy probe.
+ * The +$37 chapel vertical origin comes from raw0A:$8248; the NES
+ * 256px gameplay image and original CPU interaction remain authoritative.
+ * These pure functions never allocate game actors, move them or grant hits. */
+#ifndef CVIII_SOURCE_OFFSCREEN_0815_H
+#define CVIII_SOURCE_OFFSCREEN_0815_H
+#include <stdint.h>
+#include <limits.h>
+enum {
+    CVIII_PROBE_OUTSIDE_0815=0,
+    CVIII_PROBE_NATIVE_0815=1,
+    CVIII_PROBE_MARGIN_0815=2
+};
+enum {
+    CVIII_INTERACTION_NOT_ACTOR_0815=0,     /* source row $0D */
+    CVIII_INTERACTION_NOT_SPAWNED_0815=1,   /* record not in guest actor slots */
+    CVIII_INTERACTION_SPECIAL_B162_0815=2,  /* $80 takes unknown original path */
+    CVIII_INTERACTION_UNSUPPORTED_0815=3
+};
+typedef struct {
+    int32_t screen_x,screen_y;
+    uint8_t point_region;
+} CviiiSourceProjection0815;
+/* Geometry is in signed 64-bit to avoid overflow when traversing the
+ * authenticated world graph. A point classification is NOT sprite
+ * bounding-box visibility: original compressed PRG26 pieces are authoritative. */
+static inline CviiiSourceProjection0815 cviii_source_project_0815(
+    int64_t object_world_x,int64_t object_world_y,
+    int64_t camera_world_x,int64_t camera_world_y,
+    int native_left,int wide_width,int tall_height)
+{
+    CviiiSourceProjection0815 out={0,0,CVIII_PROBE_OUTSIDE_0815};
+    if(native_left<0 || wide_width<256 || native_left>wide_width-256 ||
+       tall_height!=240)return out;
+    int64_t x=object_world_x-camera_world_x+native_left;
+    int64_t y=object_world_y-camera_world_y;
+    if(x<INT32_MIN || x>INT32_MAX || y<INT32_MIN || y>INT32_MAX)
+        return out;
+    out.screen_x=(int32_t)x;
+    out.screen_y=(int32_t)y;
+    if(y<48 || y>=240 || x<0 || x>=wide_width)return out;
+    out.point_region=(x>=native_left && x<native_left+256) ?
+        CVIII_PROBE_NATIVE_0815:CVIII_PROBE_MARGIN_0815;
+    return out;
+}
+/* Native seven-byte chapel source Y uses the original $37 offset;
+ * the original loader outputs a wrapped byte for the emulated actor.
+ * A source-only shadow keeps the full world-axis Y and does not borrow
+ * the 8-bit screen wrap to invent another room or object. */
+static inline int64_t cviii_chapel_visual_world_y_0815(
+    int64_t room_y,uint16_t original_axis)
+{
+    return room_y+(int64_t)original_axis+0x37;
+}
+/* Proof-bound decision table, not damage/collision resolution.
+ * For $80, original raw0B:$B21D-$B224 branches to $B162
+ * before the ordinary $B339 radius comparison. $B162 effects are
+ * NOT reconstructed. $0D is an event SOURCE, not a guest actor. */
+static inline unsigned cviii_source_interaction_0815(
+    uint8_t source_type,int original_actor_confirmed)
+{
+    if(source_type==0x0du)return CVIII_INTERACTION_NOT_ACTOR_0815;
+    if(source_type==0x80u)
+        return original_actor_confirmed ?
+            CVIII_INTERACTION_SPECIAL_B162_0815 :
+            CVIII_INTERACTION_NOT_SPAWNED_0815;
+    return CVIII_INTERACTION_UNSUPPORTED_0815;
+}
+#endif
