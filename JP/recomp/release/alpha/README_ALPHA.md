@@ -336,7 +336,7 @@ signed horizontal movement from the original PPU scanline scroll X
 (modulo 512). This makes both visible side columns move with the same
 real camera as the NES source picture, even while ROM room attestation
 is momentarily unavailable. Ordinary 511->0 and 0->511 phase rollover
-are handled; steps greater than 16 original pixels per frame, scene
+are handled and covered by an explicit wrap regression; steps greater than 16 original pixels per frame, scene
 selector/page jumps, and out-of-bounds world positions are NOT blindly
 accepted. On revalidation the camera is synchronized to the real
 room-local RAM/PPU position. On death/original mode/missing private ROM,

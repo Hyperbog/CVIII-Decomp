@@ -191,6 +191,29 @@ int main(void)
     if (!require(pixels[32*426+341]!=0xff000000u,
                  "NT1 room origin accepted with matching live tiles"))return 1;
 
+    /* JP0800 signed modulo-512 PPU rollover: native NES page 511->0
+     * is +1 logical px, NOT a room warp or a 512px reverse jump. */
+    cviii_stage1_host_reset_0751(&host);
+    test_ram[0x35]=0;test_ram[0x36]=0;
+    test_ram[0x53]=254;test_ram[0x54]=1;
+    scroll_x=510;
+    seed_visible_room_from_x(first_room,0,512u);
+    w=256;h=240;
+    pixels=cviii_stage1_host_present_0725(&host,original,&w,&h,1);
+    if(!require(host.last_verified_camera==510 &&
+                host.has_ppu_scroll_x && host.last_ppu_scroll_x==510,
+                "source-verified camera near modulo-512 PPU wrap"))return 1;
+    scroll_x=2;w=256;h=240;
+    pixels=cviii_stage1_host_present_0725(&host,original,&w,&h,1);
+    if(!require(host.last_verified_camera==514 &&
+                host.scroll_fallback_frames==1u,
+                "PPU 510 to 2 advances +4px across 512 wrap"))return 1;
+    scroll_x=6;w=256;h=240;
+    pixels=cviii_stage1_host_present_0725(&host,original,&w,&h,1);
+    if(!require(host.last_verified_camera==518 &&
+                host.scroll_fallback_frames==2u,
+                "PPU wrap continues smooth world camera without 4:3 freeze"))
+        return 1;
     /* Transition crossing: old room at physical camera 512, then narrow
      * successor at x0. Native gameplay remains wide X85 on BOTH sides;
      * original game pixels never shift to X170 during the door transfer. */
