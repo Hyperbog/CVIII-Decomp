@@ -332,7 +332,8 @@ int cviii_light_load(CviiiLighting *s,const char *key,const char *value){
         if(sscanf(value,"%d %c",&n,&extra)!=1 || n<35 || n>100)return 0;
         s->ambient=n;return 1;
     }
-    if(!strncmp(key,"GlobalStyle",11) ||
+    if(!strncmp(key,"GlobalAnim",10) ||
+       !strncmp(key,"GlobalStyle",11) ||
        !strncmp(key,"LightLink",9) ||
        !strncmp(key,"SceneAlias",10) ||
        !strncmp(key,"SceneGrade",10) ||
