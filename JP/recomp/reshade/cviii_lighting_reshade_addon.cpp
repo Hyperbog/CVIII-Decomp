@@ -81,13 +81,14 @@ void on_overlay(reshade::api::effect_runtime *){
                            "the exported ReShade host bridge.");
         return;
     }
-    if(!external_open){
-        if(!bridge.session(1)){
-            ImGui::TextDisabled("Lighting editing requires Enhanced gameplay.");
-            return;
-        }
-        external_open=true;
+    /* Refresh the editor session every visible overlay frame. The NES
+     * power/load callbacks can end it without destroying the ReShade UI. */
+    if(!bridge.session(1)){
+        external_open=false;
+        ImGui::TextDisabled("Lighting editing requires Enhanced gameplay.");
+        return;
     }
+    external_open=true;
     last_editor_draw=presented;
 
     const CviiiLighting *s=bridge.model();
