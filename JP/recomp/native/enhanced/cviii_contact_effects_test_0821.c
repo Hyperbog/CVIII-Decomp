@@ -39,7 +39,8 @@ int main(void){
  ok(cviii_effect_b6ce_0821(ram,x,&a) &&
     a.modified_mask==(uint8_t)(0xffu&~(1u<<(4u-1u))) &&
     a.next_flags[1u]==2u && a.next_state[1u]==0x3fu &&
-    a.next_flags[8u]==2u && a.next_state[8u]==0x3fu,
+    a.next_flags[8u]==2u && a.next_state[8u]==0x3fu &&
+    a.returned_x==9u && a.stop_pc==0xb706u,
     "B6CE type49 original slots1..8, skipped flagged child");
  ram[0x054eu+x]=0x3du;
  ram[0x0438u+x]=0x52u;
