@@ -45,6 +45,21 @@ int cviii_light_place_kit_window(int kind,int id,int window_x,int window_y){
         cviii_lighting_editor_apply_builtin(id,native_x,native_y):
         kind==1?cviii_lighting_editor_apply_kit(id,native_x,native_y):0;
 }
+#if defined(_WIN32)
+__declspec(dllexport)
+#endif
+int cviii_light_mask_window_rect(int ax,int ay,int bx,int by){
+    int x0=-1,y0=-1,x1=-1,y1=-1;
+    int wx0=0,wy0=0,wx1=0,wy1=0;
+    zapper_window_point(ax,ay,&x0,&y0,NULL,NULL);
+    zapper_window_point(bx,by,&x1,&y1,NULL,NULL);
+    if(!cviii_lighting_editor_world_point(x0,y0,&wx0,&wy0) ||
+       !cviii_lighting_editor_world_point(x1,y1,&wx1,&wy1))return 0;
+    int x=wx0<wx1?wx0:wx1,y=wy0<wy1?wy0:wy1;
+    int w=(wx0>wx1?wx0-wx1:wx1-wx0)+1;
+    int h=(wy0>wy1?wy0-wy1:wy1-wy0)+1;
+    return cviii_lighting_editor_mask_add(x,y,w,h)>=0;
+}
 static bool cviii_light_rebinding;
 static SDL_Scancode cviii_light_bind_pending=SDL_SCANCODE_UNKNOWN;
 static SDL_Scancode cviii_light_key(void)
@@ -276,6 +291,7 @@ def smoke() -> None:
     assert "cviii_imgui_shutdown();" in product
     assert "cviii_light_place_window(int window_x,int window_y)" in product
     assert "cviii_light_place_kit_window(int kind,int id,int window_x,int window_y)" in product
+    assert "cviii_light_mask_window_rect(int ax,int ay,int bx,int by)" in product
     assert "cviii_light_sdl_status();" in product
     assert "if(code!=4)" in product
     for invalid in (product,fixture.replace(KEY_ANCHOR,"/* changed */")):
