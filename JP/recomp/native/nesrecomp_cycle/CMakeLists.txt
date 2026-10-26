@@ -705,6 +705,10 @@ set_property(TARGET jp_interaction_preflight_test_0819 PROPERTY C_STANDARD 11)
 add_executable(jp_horizontal_lineage_test_0819
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_horizontal_lineage_test_0819.c")
 set_property(TARGET jp_horizontal_lineage_test_0819 PROPERTY C_STANDARD 11)
+# JP0820: original B727/B2B5 counter + contact-state prefix, pure ROM-free.
+add_executable(jp_b727_contact_test_0820
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_b727_contact_test_0820.c")
+set_property(TARGET jp_b727_contact_test_0820 PROPERTY C_STANDARD 11)
 # These four executables are ROM-free; build them in the owner-native tree
 # and run from CTest instead of silently only compiling test targets.
 include(CTest)
@@ -722,6 +726,7 @@ if(BUILD_TESTING)
   add_test(NAME JP0818_OriginalChildLineage COMMAND jp_horizontal_child_test_0818)
   add_test(NAME JP0819_B3ecAndPartners COMMAND jp_interaction_preflight_test_0819)
   add_test(NAME JP0819_SourceParentLifetime COMMAND jp_horizontal_lineage_test_0819)
+  add_test(NAME JP0820_B727ContactPrefix COMMAND jp_b727_contact_test_0820)
 endif()
 
 add_executable(jp_world_sprites_test_0807
