@@ -52,6 +52,39 @@ static inline int64_t cviii_chapel_visual_world_y_0815(
 {
     return room_y+(int64_t)original_axis+0x37;
 }
+/* Authentic PRG26 selector/frame pointer resolution, matching the
+ * existing JP0807 renderer. 'selector' and 'frame' are byte OFFSETS
+ * into pointer tables, not ordinal sprite IDs. Full bank SHA is
+ * verified by the existing ROM-at-launch importer before this call.
+ * No pixel identity is claimed without live CHR/palette mapping. */
+typedef struct {
+    uint16_t descriptor_cpu;
+    uint8_t pieces,valid;
+} CviiiSourceVisual0815;
+static inline CviiiSourceVisual0815 cviii_source_visual_0815(
+    const uint8_t *authenticated_prg26,uint8_t selector,uint8_t frame)
+{
+    CviiiSourceVisual0815 out={0,0,0};
+    if(!authenticated_prg26)return out;
+    const unsigned table=0x817fu+(unsigned)selector;
+    if(table+1u>0xbfffu)return out;
+    const unsigned i=table-0x8000u;
+    const unsigned set=(unsigned)authenticated_prg26[i] |
+        ((unsigned)authenticated_prg26[i+1u]<<8u);
+    if(set<0x8000u || set>0xbfffu)return out;
+    const unsigned at=set+(unsigned)frame;
+    if(at+1u>0xbfffu)return out;
+    const unsigned off=at-0x8000u;
+    const unsigned descriptor=(unsigned)authenticated_prg26[off] |
+        ((unsigned)authenticated_prg26[off+1u]<<8u);
+    if(descriptor<0x8000u || descriptor>0xbfffu)return out;
+    const unsigned count=authenticated_prg26[descriptor-0x8000u];
+    if(count>27u)return out;
+    out.valid=1u;
+    out.descriptor_cpu=(uint16_t)descriptor;
+    out.pieces=(uint8_t)count;
+    return out;
+}
 /* Proof-bound decision table, not damage/collision resolution.
  * For $80, original raw0B:$B21D-$B224 branches to $B162
  * before the ordinary $B339 radius comparison. $B162 effects are
