@@ -48,6 +48,16 @@ typedef struct {
     uint8_t payload_len; /* private original bank0A room-source bytes */
     uint8_t payload[128]; /* bounded per-room resident resource */
 } CviiiWorldSourceRoom0811;
+/* JP0813: original stage0/1/1 ($AB1F) resident 7-byte world sources.
+ * "eligible" is the original $8205 admission, not an active game actor.
+ * Object type remains raw; no guessed candles/AI. Epoch counts advance
+ * only on independently attested chapel camera samples. */
+typedef struct {
+    uint16_t source_cpu, axis_world;
+    uint8_t raw_type, local_x, eligible, local_axis;
+    uint32_t entries, exits;
+} CviiiStage1SourceLife0813;
+enum { CVIII_STAGE1_CHAPEL_SOURCES_0813=9 };
 typedef struct {
     CviiiWorldRoom0803 rooms[CVIII_WORLD_ROOMS_0803];
     CviiiWorldSourceRoom0811 source_rooms[CVIII_WORLD_ROOMS_0803];
@@ -58,6 +68,9 @@ typedef struct {
     uint8_t source_rooms_ready; /* all 8 original stage0 hierarchy keys */
     uint8_t source_payload_ready; /* 8 private original room resources resident */
     uint32_t actor_frame;
+    /* Persistent source identity is independent from 28-slot actor shadows. */
+    CviiiStage1SourceLife0813 chapel[CVIII_STAGE1_CHAPEL_SOURCES_0813];
+    uint32_t chapel_epochs;
 } CviiiLevel1World0803;
 
 /* All eight source rooms are resident on success. One known horizontal
@@ -111,6 +124,11 @@ int cviii_world_preload_templates_0804(CviiiLevel1World0803 *world,
  * contains NO header for current Stage 1 ($34=0). */
 int cviii_world_detect_loader_0805(CviiiLevel1World0803 *world,
             const uint8_t selector[3],const uint8_t ram[2048]);
+/* Read-only source eligibility for vertical Stage1 chapel, valid camera
+ * only. No active actors are created, changed, or prolonged in guest RAM.
+ * Returns number eligible, or -1 for an unsupported/inconsistent state. */
+int cviii_world_track_chapel_0813(CviiiLevel1World0803 *world,
+                  const uint8_t selector[3],int camera_y);
 void cviii_world_clear_live_0805(CviiiLevel1World0803 *world);
 unsigned cviii_world_capture_live_0803(CviiiLevel1World0803 *world,
         const uint8_t selector[3],int local_camera_x,int local_camera_y,
