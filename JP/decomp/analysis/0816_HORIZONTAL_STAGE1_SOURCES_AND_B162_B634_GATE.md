@@ -115,6 +115,24 @@ reaction code, the `$B80E` helper, actor interactions,
 damage, treasure/pickup behavior, native offscreen AI and
 world-wide spawn timing remain independently unproved.
 
+## Guard against sprite invisibility being mistaken for deallocation
+
+The original `$0400,X` byte controls sprite/frame presentation,
+whereas `$054E,X` is the original actor allocator type.
+An actor with frame `0` may remain allocated and processed.
+The existing native world regression previously assumed that setting
+only frame `0` implied an unallocated source; this was a **test error**.
+The corrected source-backed probe distinguishes allocated type `$80`
+and no visible PRG26 sprite. A second test **clears the actual
+`$054E,X` slot**, then requires removal of the source-to-slot
+installation witness without losing its authenticated source record.
+
+The first Windows test attempt also used chapel camera Y=`$0200`
+outside the explicitly supported `0..511` range. The corrected
+source-exit fixture uses Y=`$01FF`, which is within that range.
+These are bounded regression-fixture corrections, **not** evidence
+of a live Mesen natural actor lifetime or collision resolution.
+
 ## 3. Verification and release scope
 
 A local independent original-ROM audit checked the complete
