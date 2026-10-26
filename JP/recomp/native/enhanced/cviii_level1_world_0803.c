@@ -257,6 +257,17 @@ int cviii_world_probe_chapel_0815(CviiiLevel1World0803 *w,
         p->source_cpu=cpu;
         p->source_type=record[2];
         p->linked_slot=0xffu;
+        p->guest_slot=0xffu;
+        /* A bounded postcondition proves $054E slot installation,
+         * even if the original $0470 bit7 hides its sprite from OAM.
+         * Distinct from an actually visible original PRG26 actor. */
+        if(w->chapel_links[i].kind==CVIII_LINK_DIRECT_0814){
+            const unsigned slot=w->chapel_links[i].slot;
+            if(slot>=13u && slot<=18u){
+                p->guest_installed=1u;
+                p->guest_slot=(uint8_t)slot;
+            }
+        }
         /* Event-source X=0..5 links do not directly identify the
          * eventual spawned actor. Only a direct original $80 actor
          * can carry a source-tagged visual descriptor. */
@@ -301,7 +312,7 @@ int cviii_world_probe_chapel_0815(CviiiLevel1World0803 *w,
         p->screen_y=point.screen_y;
         p->point_region=point.point_region;
         p->interaction_policy=(uint8_t)cviii_source_interaction_0815(
-            record[2],p->actor_confirmed);
+            record[2],p->actor_confirmed || p->guest_installed);
         if(p->actor_confirmed &&
            p->point_region==CVIII_PROBE_MARGIN_0815)margin_actors++;
     }
