@@ -11,6 +11,7 @@
 static uint8_t test_ram[2048];
 static uint32_t original[256*240];
 static CviiiStage1Host0725 host;
+static uint32_t isolated_room[426*240]; /* invented ROM test pixels */
 static int scroll_x,requested_mode=-1;
 static uint8_t live_nt[2048];
 uint8_t cyc_render_nametable(uint16_t a) {
@@ -150,6 +151,16 @@ int main(void)
      * authentic NEXT room in the rightmost side before it becomes active. */
     if (!require(pixels[60*426+400]!=0xff000000u,
                  "next area visible at right before transition"))return 1;
+    /* Prevent invisible overlap: test the right-side pixel against the
+     * successor's world-projected atlas in complete isolation. */
+    const uint8_t next_edge_room[3]={0,1,0};
+    memset(isolated_room,0,sizeof isolated_room);
+    if(!require(cviii_stage1_atlas_paint_0724(&host.atlas,
+                  next_edge_room,-256,0,isolated_room,426,240,85,
+                  cyc_render_chr,cyc_render_color)>0 &&
+                pixels[60*426+400]==isolated_room[60*426+400],
+                "next room matches unique source pixel, no tile overlap"))
+        return 1;
     const uint8_t narrow_room[3]={0,1,0};
     test_ram[0x35]=1;test_ram[0x36]=0;
     test_ram[0x53]=0;test_ram[0x54]=0;
@@ -170,6 +181,13 @@ int main(void)
         !require(pixels[40*426+85]==original[40*256] &&
                  pixels[47*426+85]==original[47*256],
                  "HUD cannot slide with player across room seams"))return 1;
+    memset(isolated_room,0,sizeof isolated_room);
+    if(!require(cviii_stage1_atlas_paint_0724(&host.atlas,
+                   first_room,768,0,isolated_room,426,240,85,
+                   cyc_render_chr,cyc_render_color)>0 &&
+                pixels[60*426+40]==isolated_room[60*426+40],
+                "previous room matches true source tile without overlap"))
+        return 1;
     /* Death/game-over and checkpoint respawn in BLK 1-02:0. Neither
      * preloaded room nor its authenticated predecessor may disappear. */
     test_ram[0x18]=6;
