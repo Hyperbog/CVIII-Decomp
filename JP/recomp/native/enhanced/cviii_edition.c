@@ -75,6 +75,8 @@ typedef struct {
     CviiiFrameEvidence frame_evidence; /* opt-in correlated PPU evidence */
     CviiiNtTrace nt_trace; /* opt-in real nametable and attribute reads */
     uint32_t presentation[CVIII_W * CVIII_H];
+    uint32_t particle_background[CVIII_W * CVIII_H]; /* host only */
+    uint8_t particle_sprite_mask[CVIII_W * CVIII_H]; /* host only */
 } CviiiEdition;
 
 static CviiiEdition cviii = { .volume = CVIII_AUDIO_LEVELS_DEFAULT };
@@ -1168,6 +1170,27 @@ static const uint32_t *present(void *context,int *width,int *height)
         cviii_lighting_scroll(sx,sy);
         if(frame!=settings->presentation)
             memcpy(settings->presentation,frame,sizeof settings->presentation);
+        int background_valid=0;
+        if(settings->lighting.particles_enabled){
+            int behind=0;
+            uint32_t room=cviii_lighting_room();
+            for(int i=0;i<CVIII_PARTICLE_EMITTER_MAX;++i)
+                if(settings->lighting.particles[i].used &&
+                   settings->lighting.particles[i].room==room &&
+                   settings->lighting.particles[i].layer==1)behind=1;
+            int widx=cviii_weather_scene_profile(&settings->lighting,room);
+            if(widx>=0 && settings->lighting.weather[widx].layer==1)behind=1;
+            if(behind && cyc_render_background(settings->particle_background)){
+                for(int i=0;i<CVIII_W*CVIII_H;++i)
+                    settings->particle_sprite_mask[i]=
+                        frame[i]!=settings->particle_background[i];
+                background_valid=1;
+                cviii_particle_present_layer(&settings->lighting,
+                    settings->presentation,room,cviii_lighting_camera(),
+                    sx,sy,settings->lighting_frame,1,
+                    settings->particle_sprite_mask);
+            }
+        }
         /* Original and headless always retain Standard. A GPU failure,
          * capacity limit or unsupported GPU falls back THIS FRAME without
          * touching the saved user choice or the NES machine state.
@@ -1193,9 +1216,10 @@ static const uint32_t *present(void *context,int *width,int *height)
         /* Pixel FX are a post-lighting native-resolution layer and also
          * render when all other lighting is disabled. They never touch
          * the original guest framebuffer or top HUD. */
-        cviii_particle_present(&settings->lighting,settings->presentation,
+        cviii_particle_present_layer(&settings->lighting,settings->presentation,
              cviii_lighting_room(),cviii_lighting_camera(),sx,sy,
-             settings->lighting_frame);
+             settings->lighting_frame,0,
+             background_valid?settings->particle_sprite_mask:NULL);
         frame=settings->presentation;
     }
     if (settings->enhanced && !settings->audio_ui.open &&
