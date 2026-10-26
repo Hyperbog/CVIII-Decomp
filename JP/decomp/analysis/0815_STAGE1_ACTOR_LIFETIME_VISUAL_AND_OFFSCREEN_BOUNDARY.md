@@ -72,18 +72,23 @@ palette and original descriptor; otherwise it reports a **non-rendered
 source-only candidate**. The existing JP0807 renderer continues to
 paint only original game actors. No machine-state writes occur.
 
-The interaction policy is deliberately fail-closed:
-source row `$0D` is **not directly an actor**; an unspawned
-type `$80` has **no simulated contact**; a real type `$80`
-has `MAY_ROUTE_B162`, NOT a hitbox or pickup.
-Original raw0B `$B217` first checks `$7E & $F0` and can bypass via
-`$B258`; only on the alternative path does type `$80 >= $69`
-branch to **`$B162`** rather than the ordinary `$B339`
-radius measurement. Its downstream special collision/interaction
-effects have **not** been reconstructed. Neither source-only candidates nor
-installed-but-hidden slots grant any offscreen interaction; a false
-hit/damage/pickup
-implementation here would be incorrect.
+**JP0816 ROM-level correction:** the earlier claim that an original
+type-`$80` can reach `$B162` from the regular `$B1F8`
+entry was incorrect. Original `$B1F8-$B20D` rejects
+`$0470,X & $11` and empty frame first; then
+`CMP #$80; BCS $B258` **bypasses `$B162` for
+types `$80-$82`**. Types `$83+` return earlier.
+Only eligible types `$69-$7F` enter the `$B162`
+type dispatcher from `$B217`, after the `$7E & $F0`
+gate. `$B634` is the first proximity helper there,
+not a game-wide damage or pickup simulator. Therefore
+the former `MAY_ROUTE_B162` policy for `$80`
+is replaced by `TYPE80_B258` (conditional on reaching
+the type test). Source-only candidates and
+allocated-but-hidden slots grant **no offscreen interaction**.
+See [JP0816](0816_HORIZONTAL_STAGE1_SOURCES_AND_B162_B634_GATE.md).
+The source classification, visual identity proof and live
+actor distinction remain separate from this corrected collision path.
 
 **Geographic bound:** all nine original chapel record X coordinates
 are within `$20..$D8` (32..216 pixels). With actual chapel horizontal
