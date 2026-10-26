@@ -147,25 +147,19 @@ float falloff(L l,float2 pixel,float modulate){
     float t=saturate(edge);
     return t*t*(3-2*t);
 }
-float3 bounce(L src,float2 pixel,float modulation){
+float3 bounce(float2 pixel){
     float3 bounced=0;
     [loop] for(uint i=0;i<nwall;++i){
         W surface=wall[i];
-        float2 c=surface.bounds.xy+.5*surface.bounds.zw;
-        float d0=length(c-src.pos.xy);
-        float d1=length(c-pixel);
-        float range=max(1,src.pos.z);
-        if(d0>=2*range || d1>=2*range || d1<2)continue;
-        float t0=saturate(1-d0/(2*range));
-        float t1=saturate(1-d1/(2*range));
-        // The surface emits a low-energy RGB-tinted single diffuse
-        // reflection only if the light can reach it and it can reach us.
-        float vis0=blocked(src.pos.xy,c,(int)i);
-        if(vis0<.01)continue;
-        float vis1=blocked(c,pixel,(int)i);
-        if(vis1<.01)continue;
-        float strength=.20*src.pos.w*.014*modulation*t0*t0*t1*t1;
-        bounced+=strength*vis0*vis1*src.col.rgb*surface.alb.rgb;
+        float2 c=surface.attr.zw;
+        float2 normal=c-(surface.bounds.xy+.5*surface.bounds.zw);
+        float2 displacement=pixel-c;
+        if(dot(normal,displacement)<=0)continue;
+        float distanceTo=length(displacement);
+        if(distanceTo>128 || distanceTo<1)continue;
+        float attenuation=saturate(1-distanceTo/128);
+        float visible=blocked(c,pixel,(int)i);
+        bounced+=surface.alb.rgb*attenuation*attenuation*visible;
     }
     return bounced;
 }
@@ -183,11 +177,12 @@ void main(uint3 id:SV_DispatchThreadID){
         L l=light[i];
         float flicker=waveform(l,i);
         float atten=falloff(l,pixel,flicker);
-        if(atten<=0)continue;
-        float power=flicker*l.pos.w*.014*atten;
-        color+=l.col.rgb*power*blocked(l.pos.xy,pixel,-1);
-        color+=bounce(l,pixel,flicker);
+        if(atten>0){
+            float power=flicker*l.pos.w*.014*atten;
+            color+=l.col.rgb*power*blocked(l.pos.xy,pixel,-1);
+        }
     }
+    color+=bounce(pixel);
     outLight[id.y*128+id.x]=float4(min(color,16),1);
 }
 )CVIIIRTX";
@@ -340,9 +335,41 @@ int run(const CviiiLighting *s,uint32_t *pixels,uint32_t room,int camera,
             reflectance[1]=std::max(.07f,((p>>8)&255)/255.f)*.65f;
             reflectance[2]=std::max(.07f,(p&255)/255.f)*.65f;
         }
-        w.reflect[0]=reflectance[0];
-        w.reflect[1]=reflectance[1];
-        w.reflect[2]=reflectance[2];
+        // Choose the strongest lit wall face as a secondary, one-bounce
+        // virtual emitter. Light transport from sources to this face is
+        // evaluated only once per wall per frame, avoiding O(pixels*L*W^2).
+        float illumination[3]={0,0,0};
+        float strongest=0.f;
+        float faceX=(float)m.x,faceY=(float)m.y+m.h*.5f;
+        for(int k=0;k<nlight;++k){
+            const GpuLight &src=lights[k];
+            float cx=(float)m.x+m.w*.5f,cy=(float)m.y+m.h*.5f;
+            float dx=src.pos[0]-cx,dy=src.pos[1]-cy;
+            float px=cx,py=cy;
+            if(std::fabs(dx)/(m.w?m.w:1)>std::fabs(dy)/(m.h?m.h:1)){
+                px=dx>0?float(m.x+m.w)+.25f:float(m.x)-.25f;
+            }else{
+                py=dy>0?float(m.y+m.h)+.25f:float(m.y)-.25f;
+            }
+            float distance=std::hypot(src.pos[0]-px,src.pos[1]-py);
+            float range=std::max(1.f,src.pos[2]);
+            if(distance>range*1.5f)continue;
+            int lx=(int)std::lround(src.pos[0]),ly=(int)std::lround(src.pos[1]);
+            float visibility=cviii_light_shadow(s,room,lx,ly,
+                                 (int)std::lround(px),(int)std::lround(py));
+            // Skip the current mask geometry to estimate illumination at
+            // its front-facing surface; allow walls to block other walls.
+            if(visibility<.02f)visibility=.1f;
+            float amount=std::max(0.f,1-distance/(1.5f*range));
+            amount=src.pos[3]*.014f*amount*amount*visibility;
+            for(int channel=0;channel<3;++channel)
+                illumination[channel]+=amount*src.rgbshape[channel];
+            if(amount>strongest){strongest=amount;faceX=px;faceY=py;}
+        }
+        w.attrs[2]=faceX;w.attrs[3]=faceY;
+        for(int channel=0;channel<3;++channel)
+            w.reflect[channel]=reflectance[channel]*
+                std::min(1.5f,illumination[channel])*.24f;
     }
     for(int row=0;row<LH;++row){
         int y=CVIII_LIGHT_HUD+2*row;
