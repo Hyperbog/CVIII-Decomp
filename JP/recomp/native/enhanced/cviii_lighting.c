@@ -38,7 +38,7 @@ int cviii_light_event(CviiiLighting *s,int event,int x,int y,uint32_t room,
         if(idx<0){
             for(int i=0;i<CVIII_LIGHT_MAX;++i)if(!s->light[i].used){idx=i;break;}
             if(idx<0)return 0;
-            s->light[idx]=(CviiiLight){room,px,py,56,85,255,167,74,1};
+            s->light[idx]=(CviiiLight){.room=room,.x=px,.y=py,.radius=56,.energy=85,.red=255,.green=167,.blue=74,.used=1};
             s->selected=idx;
         }
         s->enabled=1;s->dragging=1;return 1;
@@ -249,7 +249,7 @@ int cviii_light_load(CviiiLighting *s,const char *key,const char *value){
        &used,&room,&x,&y,&rad,&energy,&r,&g,&b,&end)!=9 || value[end] ||
        used!=1 || x<0 || x>65535 || y<0 || y>479 || rad<12 || rad>160 ||
        energy<5 || energy>160 || r>255 || g>255 || b>255)return 0;
-    s->light[slot]=(CviiiLight){room,x,y,rad,energy,(uint8_t)r,(uint8_t)g,(uint8_t)b,1};
+    s->light[slot]=(CviiiLight){.room=room,.x=x,.y=y,.radius=rad,.energy=energy,.red=(uint8_t)r,.green=(uint8_t)g,.blue=(uint8_t)b,.used=1};
     return 1;
 }
 void cviii_light_save(const CviiiLighting *s,FILE *out){
