@@ -1,0 +1,193 @@
+/* Optional real ReShade add-on for CVIII Enhanced Lighting.
+ * ReShade itself (not our native SDL2 GUI) owns the overlay/context.
+ * Win64, ReShade full-add-on runtime. Do not vendor or bundle ReShade.
+ */
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <Windows.h>
+#define IMGUI_DISABLE_INCLUDE_IMCONFIG_H
+#include <imgui.h>
+#include <reshade.hpp>
+#include <cstdio>
+#include <cstring>
+#include "cviii_lighting.h"
+
+namespace {
+struct Bridge {
+    const CviiiLighting *(*model)()=nullptr;
+    unsigned (*room)()=nullptr;
+    int (*session)(int)=nullptr;
+    int (*select)(int)=nullptr;
+    int (*prop)(int,int)=nullptr;
+    int (*copy)()=nullptr;
+    int (*paste)()=nullptr;
+    int (*duplicate)()=nullptr;
+    int (*name)(const char*)=nullptr;
+    int (*group)(const char*)=nullptr;
+    int (*scene)(int,int)=nullptr;
+    void (*save)()=nullptr;
+} bridge;
+bool external_open=false;
+unsigned long long presented=0,last_editor_draw=0;
+char search[64]={};
+
+template<typename T> T game_export(HMODULE exe,const char *name){
+    return reinterpret_cast<T>(GetProcAddress(exe,name));
+}
+bool bind_game(){
+    if(bridge.model)return true;
+    HMODULE exe=GetModuleHandleW(nullptr);
+    if(!exe)return false;
+    Bridge b{};
+    b.model=game_export<decltype(b.model)>(exe,"cviii_lighting_editor_model");
+    b.room=game_export<decltype(b.room)>(exe,"cviii_lighting_editor_room");
+    b.session=game_export<decltype(b.session)>(exe,"cviii_lighting_editor_external_session");
+    b.select=game_export<decltype(b.select)>(exe,"cviii_lighting_editor_select");
+    b.prop=game_export<decltype(b.prop)>(exe,"cviii_lighting_editor_property");
+    b.copy=game_export<decltype(b.copy)>(exe,"cviii_lighting_editor_copy");
+    b.paste=game_export<decltype(b.paste)>(exe,"cviii_lighting_editor_paste");
+    b.duplicate=game_export<decltype(b.duplicate)>(exe,"cviii_lighting_editor_duplicate");
+    b.name=game_export<decltype(b.name)>(exe,"cviii_lighting_editor_name");
+    b.group=game_export<decltype(b.group)>(exe,"cviii_lighting_editor_group");
+    b.scene=game_export<decltype(b.scene)>(exe,"cviii_lighting_editor_scene");
+    b.save=game_export<decltype(b.save)>(exe,"cviii_light_force_save");
+    if(!b.model || !b.room || !b.session || !b.select || !b.prop ||
+       !b.copy || !b.paste || !b.duplicate || !b.name || !b.group ||
+       !b.scene || !b.save)return false;
+    bridge=b;
+    return true;
+}
+void changed(int result){if(result)bridge.save();}
+void end_session(){
+    if(external_open && bridge.session){
+        bridge.session(0);
+        if(bridge.save)bridge.save();
+    }
+    external_open=false;
+}
+void on_present(reshade::api::effect_runtime *){
+    ++presented;
+    if(external_open && presented-last_editor_draw>2)end_session();
+}
+void on_overlay(reshade::api::effect_runtime *){
+    if(!bind_game()){
+        ImGui::TextDisabled("CVIII Enhanced lighting bridge not found.");
+        ImGui::TextWrapped("Use a Windows lighting-preview build with "
+                           "the exported ReShade host bridge.");
+        return;
+    }
+    if(!external_open){
+        if(!bridge.session(1)){
+            ImGui::TextDisabled("Lighting editing requires Enhanced gameplay.");
+            return;
+        }
+        external_open=true;
+    }
+    last_editor_draw=presented;
+
+    const CviiiLighting *s=bridge.model();
+    const unsigned room=bridge.room();
+    bool enabled=s->enabled!=0;
+    if(ImGui::Checkbox("Enable Lighting",&enabled))
+        changed(bridge.prop(0,enabled?1:0));
+    ImGui::SameLine();
+    ImGui::TextDisabled("Scene %08X",room);
+    ImGui::InputTextWithHint("##filter","Filter lights and groups...",search,sizeof search);
+    if(ImGui::Button("Copy"))(void)bridge.copy();
+    ImGui::SameLine();
+    if(ImGui::Button("Paste in Scene"))changed(bridge.paste());
+    ImGui::SameLine();
+    if(ImGui::Button("Duplicate"))changed(bridge.duplicate());
+    ImGui::SameLine();
+    if(ImGui::Button("Delete Selected")){
+        int i=s->selected;
+        if(i>=0 && i<CVIII_LIGHT_MAX && s->light[i].used){
+            // The native editor's keyboard Delete is also available when
+            // using the stand-alone GUI; ReShade doesn't expose it here.
+            ImGui::OpenPopup("Delete with native editor");
+        }
+    }
+    if(ImGui::BeginPopup("Delete with native editor")){
+        ImGui::TextUnformatted("Use the native editor Delete key to remove it.");
+        ImGui::EndPopup();
+    }
+
+    ImGui::SeparatorText("Scene Lights");
+    if(ImGui::BeginChild("##list",ImVec2(0,175),ImGuiChildFlags_Borders)){
+        for(int i=0;i<CVIII_LIGHT_MAX;++i){
+            const CviiiLight &l=s->light[i];
+            if(!l.used || l.room!=room)continue;
+            if(search[0] &&
+               !std::strstr(l.name,search) && !std::strstr(l.group,search))
+                continue;
+            ImGui::PushID(i);
+            char title[160];
+            std::snprintf(title,sizeof title,"%s  /  %s  [%d,%d]",
+                l.name[0]?l.name:"Unnamed",l.group[0]?l.group:"Ungrouped",
+                l.x,l.y);
+            if(ImGui::Selectable(title,s->selected==i))bridge.select(i);
+            ImGui::PopID();
+        }
+    }
+    ImGui::EndChild();
+    if(s->selected>=0 && s->selected<CVIII_LIGHT_MAX &&
+       s->light[s->selected].used && s->light[s->selected].room==room){
+        const CviiiLight &l=s->light[s->selected];
+        ImGui::SeparatorText("Emitter");
+        char label[CVIII_LIGHT_NAME_CAP],group[CVIII_LIGHT_GROUP_CAP];
+        std::snprintf(label,sizeof label,"%s",l.name);
+        std::snprintf(group,sizeof group,"%s",l.group);
+        if(ImGui::InputText("Name",label,sizeof label))changed(bridge.name(label));
+        if(ImGui::InputText("Group",group,sizeof group))changed(bridge.group(group));
+        int type=l.shape;
+        if(ImGui::Combo("Shape",&type,"Radial\0Cone\0Shaft\0"))
+            changed(bridge.prop(7,type));
+        int radius=l.radius,energy=l.energy;
+        if(ImGui::SliderInt("Range",&radius,12,160))changed(bridge.prop(2,radius));
+        if(ImGui::SliderInt("Intensity",&energy,5,160))changed(bridge.prop(3,energy));
+        if(type!=CVIII_SHAPE_RADIAL){
+            int angle=l.angle;
+            if(ImGui::SliderInt("Direction",&angle,0,359))changed(bridge.prop(8,angle));
+            int param=type==CVIII_SHAPE_CONE?(l.spread?l.spread:30):(l.width?l.width:32);
+            if(ImGui::SliderInt(type==CVIII_SHAPE_CONE?"Cone Angle":"Shaft Width",
+                                &param,type==CVIII_SHAPE_CONE?5:4,
+                                type==CVIII_SHAPE_CONE?85:160))
+                changed(bridge.prop(type==CVIII_SHAPE_CONE?9:10,param));
+        }
+        float rgb[3]={l.red/255.f,l.green/255.f,l.blue/255.f};
+        if(ImGui::ColorEdit3("Emitter Color",rgb,ImGuiColorEditFlags_PickerHueWheel)){
+            for(int k=0;k<3;++k)
+                changed(bridge.prop(4+k,(int)(rgb[k]*255.f+0.5f)));
+        }
+        int flicker=l.flicker;
+        if(ImGui::Combo("Flicker",&flicker,"Subtle\0Steady\0Torch\0"))
+            changed(bridge.prop(12,flicker));
+        bool muted=l.muted!=0;
+        if(ImGui::Checkbox("Mute emitter",&muted))
+            changed(bridge.prop(11,muted?1:0));
+    }
+    ImGui::SeparatorText("Scene Ambient");
+    int lvl=0,tint[3];
+    cviii_light_scene_get(s,room,&lvl,tint);
+    if(ImGui::SliderInt("Ambient Strength",&lvl,0,100,"%d%%"))
+        changed(bridge.scene(0,lvl));
+    float c[3]={tint[0]/255.f,tint[1]/255.f,tint[2]/255.f};
+    if(ImGui::ColorEdit3("Ambient Color",c,ImGuiColorEditFlags_PickerHueWheel))
+        for(int k=0;k<3;++k)
+            changed(bridge.scene(k+1,(int)(c[k]*255.f+0.5f)));
+    ImGui::TextDisabled("Real ReShade overlay. Gameplay light pixels remain "
+                        "owned by CVIII's native presenter.");
+}
+} // namespace
+
+BOOL WINAPI DllMain(HINSTANCE module,DWORD reason,LPVOID){
+    if(reason==DLL_PROCESS_ATTACH){
+        if(!reshade::register_addon(module))return FALSE;
+        reshade::register_event<reshade::addon_event::reshade_present>(&on_present);
+        reshade::register_overlay("CVIII Lighting",&on_overlay);
+    }else if(reason==DLL_PROCESS_DETACH){
+        end_session();
+        reshade::unregister_addon(module);
+    }
+    return TRUE;
+}
