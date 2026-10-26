@@ -31,6 +31,12 @@ struct Bridge {
     int (*mask_add)(int,int,int,int)=nullptr;
     int (*mask_window_rect)(int,int,int,int)=nullptr;
     int (*mask_property)(int,int,int)=nullptr;
+    int (*particle_add)(int,int,int)=nullptr;
+    int (*particle_place_window)(int,int,int)=nullptr;
+    int (*particle_enabled)(int)=nullptr;
+    int (*particle_property)(int,int,int)=nullptr;
+    int (*particle_name)(int,const char*)=nullptr;
+    int (*particle_clone)(int)=nullptr;
     int (*grade)(int,int)=nullptr;
     int (*undo)()=nullptr;
     int (*redo)()=nullptr;
@@ -59,6 +65,8 @@ char kit_name[CVIII_LIGHT_NAME_CAP]="My Lighting Rig";
 int kit_slot=0,global_style_slot=0,mask_slot=0;
 bool mask_drawing=false,mask_first=false;
 int mask_start_x=0,mask_start_y=0;
+int particle_kind=0,particle_selected=-1,particle_pending=-1,particle_edit_slot=-1;
+char particle_edit_name[CVIII_LIGHT_NAME_CAP]={};
 char global_name[CVIII_LIGHT_NAME_CAP]="Global Torch";
 unsigned alias_target=0,last_raw=0;
 unsigned long long presented=0,last_editor_draw=0;
@@ -91,6 +99,12 @@ bool bind_game(){
     b.mask_add=game_export<decltype(b.mask_add)>(exe,"cviii_lighting_editor_mask_add");
     b.mask_window_rect=game_export<decltype(b.mask_window_rect)>(exe,"cviii_light_mask_window_rect");
     b.mask_property=game_export<decltype(b.mask_property)>(exe,"cviii_lighting_editor_mask_property");
+    b.particle_add=game_export<decltype(b.particle_add)>(exe,"cviii_lighting_editor_particle_add");
+    b.particle_place_window=game_export<decltype(b.particle_place_window)>(exe,"cviii_light_particle_window");
+    b.particle_enabled=game_export<decltype(b.particle_enabled)>(exe,"cviii_lighting_editor_particle_enabled");
+    b.particle_property=game_export<decltype(b.particle_property)>(exe,"cviii_lighting_editor_particle_property");
+    b.particle_name=game_export<decltype(b.particle_name)>(exe,"cviii_lighting_editor_particle_name");
+    b.particle_clone=game_export<decltype(b.particle_clone)>(exe,"cviii_lighting_editor_particle_clone");
     b.grade=game_export<decltype(b.grade)>(exe,"cviii_lighting_editor_grade");
     b.undo=game_export<decltype(b.undo)>(exe,"cviii_lighting_editor_undo");
     b.redo=game_export<decltype(b.redo)>(exe,"cviii_lighting_editor_redo");
@@ -117,6 +131,9 @@ bool bind_game(){
        !b.raw_room || !b.alias || !b.global_capture || !b.global_link ||
        !b.global_property || !b.mask_add || !b.mask_window_rect ||
        !b.mask_property || !b.grade ||
+       !b.particle_add || !b.particle_place_window ||
+       !b.particle_enabled || !b.particle_property ||
+       !b.particle_name || !b.particle_clone ||
        !b.undo || !b.redo || !b.kit_manage ||
        !b.renderer || !b.renderer_set ||
        !b.cascade_quality || !b.cascade_quality_set || !b.gpu_status ||
@@ -261,6 +278,82 @@ void on_overlay(reshade::api::effect_runtime *){
         if(ImGui::SmallButton("Cancel placement")){
             placement_pending=false;pending_kit_kind=-1;pending_kit_id=-1;
         }
+    }
+    if(ImGui::CollapsingHeader("Pixel FX / Atmospheric Particles",ImGuiTreeNodeFlags_DefaultOpen)){
+        bool enabled=s->particles_enabled!=0;
+        if(ImGui::Checkbox("Enable Pixel FX",&enabled))
+            changed(bridge.particle_enabled(enabled?1:0));
+        static const char *kinds[]={"Floating Dust","Rising Embers",
+             "Pixel Fog","Falling Ash","Snow","Rain","Fireflies"};
+        ImGui::Combo("Pixel FX Preset",&particle_kind,kinds,CVIII_FX_COUNT);
+        if(ImGui::SmallButton("Add FX at Center")){
+            int at=bridge.particle_add(particle_kind,128,120);
+            if(at>=0){particle_selected=at;bridge.save();}
+        }
+        ImGui::SameLine();
+        if(ImGui::SmallButton("Place FX in Scene")){
+            particle_pending=particle_kind;placement_pending=false;
+            mask_drawing=false;
+        }
+        if(particle_pending>=0){
+            ImGui::TextDisabled("Click exposed gameplay to place FX region");
+            if(ImGui::SmallButton("Cancel FX Placement"))particle_pending=-1;
+        }
+        for(int i=0;i<CVIII_PARTICLE_EMITTER_MAX;++i){
+            const CviiiParticleEmitter &fx=s->particles[i];
+            if(!fx.used || fx.room!=room)continue;
+            ImGui::PushID(10000+i);
+            char title[110];
+            std::snprintf(title,sizeof title,"%02d. %s (%s)",
+                i+1,fx.name,cviii_particle_kind_name(fx.kind));
+            if(ImGui::Selectable(title,particle_selected==i))particle_selected=i;
+            ImGui::PopID();
+        }
+        if(particle_selected>=0 &&
+           particle_selected<CVIII_PARTICLE_EMITTER_MAX &&
+           s->particles[particle_selected].used &&
+           s->particles[particle_selected].room==room){
+            const CviiiParticleEmitter &fx=s->particles[particle_selected];
+            auto change=[&](int property,int value){
+                changed(bridge.particle_property(particle_selected,property,value));
+            };
+            if(particle_edit_slot!=particle_selected){
+                std::snprintf(particle_edit_name,sizeof particle_edit_name,
+                    "%s",fx.name);
+                particle_edit_slot=particle_selected;
+            }
+            if(ImGui::InputText("Region Name##fx",particle_edit_name,
+                                sizeof particle_edit_name))
+                changed(bridge.particle_name(particle_selected,particle_edit_name));
+            int type=fx.kind;
+            if(ImGui::Combo("Effect Kind",&type,kinds,CVIII_FX_COUNT))change(1,type);
+            int x=fx.x,y=fx.y,w=fx.w,h=fx.h;
+            int density=fx.density,speed=fx.speed,wind=fx.wind;
+            int opacity=fx.opacity,size=fx.size;
+            if(ImGui::InputInt("World X##fx",&x))change(2,x);
+            if(ImGui::InputInt("World Y##fx",&y))change(3,y);
+            if(ImGui::SliderInt("Region Width",&w,1,512))change(4,w);
+            if(ImGui::SliderInt("Region Height",&h,1,192))change(5,h);
+            if(ImGui::SliderInt("Particle Count",&density,1,CVIII_PARTICLE_INSTANCE_MAX))
+                change(6,density);
+            if(ImGui::SliderInt("Motion Speed",&speed,0,300,"%d%%"))change(7,speed);
+            if(ImGui::SliderInt("Wind Drift",&wind,-100,100))change(8,wind);
+            if(ImGui::SliderInt("Pixel Opacity",&opacity,0,100))change(9,opacity);
+            if(ImGui::SliderInt("Pixel Size",&size,1,4))change(10,size);
+            float color[3]={fx.red/255.f,fx.green/255.f,fx.blue/255.f};
+            if(ImGui::ColorEdit3("FX Color",color,ImGuiColorEditFlags_PickerHueWheel))
+                for(int c=0;c<3;++c)
+                    change(11+c,(int)(color[c]*255.f+0.5f));
+            if(ImGui::SmallButton("Duplicate FX")){
+                int copy=bridge.particle_clone(particle_selected);
+                if(copy>=0){particle_selected=copy;bridge.save();}
+            }
+            ImGui::SameLine();
+            if(ImGui::SmallButton("Remove FX")){
+                change(0,0);particle_selected=-1;particle_edit_slot=-1;
+            }
+        }
+        ImGui::TextDisabled("Room-scoped native NES-pixel particles; no blur.");
     }
     ImGui::SeparatorText("Scene Lights");
     if(ImGui::BeginChild("##list",ImVec2(0,175),ImGuiChildFlags_Borders)){
@@ -481,6 +574,18 @@ void on_overlay(reshade::api::effect_runtime *){
     }
     ImGui::TextDisabled("2D sky fill; not geometry-aware GI.");
     ImGui::TextDisabled("Real ReShade overlay. CVIII owns gameplay light pixels.");
+    if(particle_pending>=0 &&
+       ImGui::IsMouseClicked(ImGuiMouseButton_Left) &&
+       !ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow)){
+        const ImVec2 pt=ImGui::GetIO().MousePos;
+        if(pt.x>=0 && pt.y>=0){
+            int at=bridge.particle_place_window(
+                particle_pending,(int)pt.x,(int)pt.y);
+            if(at>=0){
+                particle_selected=at;particle_pending=-1;bridge.save();
+            }
+        }
+    }
     if(mask_drawing && ImGui::IsMouseClicked(ImGuiMouseButton_Left) &&
        !ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow)){
         const ImVec2 pt=ImGui::GetIO().MousePos;
