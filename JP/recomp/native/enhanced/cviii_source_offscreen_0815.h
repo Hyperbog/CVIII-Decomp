@@ -13,7 +13,7 @@ enum {
 };
 enum {
     CVIII_INTERACTION_NOT_ACTOR_0815=0,     /* source row $0D */
-    CVIII_INTERACTION_NOT_SPAWNED_0815=1,   /* record not in guest actor slots */
+    CVIII_INTERACTION_ALLOCATION_UNVERIFIED_0815=1,   /* no current original slot proof; not a despawn */
     CVIII_INTERACTION_MAY_ROUTE_B162_0815=2,  /* $80 may take $B162, depending on prior $7E gate */
     CVIII_INTERACTION_UNSUPPORTED_0815=3
 };
@@ -96,7 +96,7 @@ static inline unsigned cviii_source_interaction_0815(
     if(source_type==0x80u)
         return original_actor_confirmed ?
             CVIII_INTERACTION_MAY_ROUTE_B162_0815 :
-            CVIII_INTERACTION_NOT_SPAWNED_0815;
+            CVIII_INTERACTION_ALLOCATION_UNVERIFIED_0815;
     return CVIII_INTERACTION_UNSUPPORTED_0815;
 }
 #endif
