@@ -412,6 +412,12 @@ jobs:
           $build = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win'
           ctest --test-dir $build -C Release -R '^JP0819_' --output-on-failure
           if ($LASTEXITCODE -ne 0) { throw 'JP0819 original B3EC or source-parent lifetime tests failed' }
+      - name: Verify JP0820 original B727 contact-state prefix (ROM-free)
+        shell: pwsh
+        run: |
+          $build = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win'
+          ctest --test-dir $build -C Release -R '^JP0820_' --output-on-failure
+          if ($LASTEXITCODE -ne 0) { throw 'JP0820 B727 original contact-state regression failed' }
       - name: Verify original PRG26 active actors in widescreen columns (ROM-free)
         shell: pwsh
         run: |
