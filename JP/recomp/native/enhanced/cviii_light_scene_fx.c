@@ -129,7 +129,9 @@ int cviii_light_grade_set(CviiiLighting *s,uint32_t room,int ev,int temp,int sat
 }
 void cviii_light_grade_get(const CviiiLighting *s,uint32_t room,
                           int *ev,int *temp,int *sat){
-    if(ev)*ev=0;if(temp)*temp=0;if(sat)*sat=100;
+    if(ev)*ev=0;
+    if(temp)*temp=0;
+    if(sat)*sat=100;
     if(!s)return;
     for(int i=0;i<CVIII_SCENE_AMBIENT_MAX;++i){
         const CviiiSceneAmbient *a=&s->scenes[i];
