@@ -296,5 +296,96 @@ int main(void){
  assert(cviii_light_scene_resolve(&loadedfx,0x12345678u)==7);
  cviii_light_grade_get(&loadedfx,7,&ev,&temp,&saturation);
  assert(ev==55 && temp==30 && saturation==125);
+ /* New candle/torch modulation: deterministic, bounded, adjustable and
+    shared through global styles without moving placed emitters. */
+ CviiiLighting animated;cviii_light_init(&animated);animated.enabled=1;
+ animated.light[0]=(CviiiLight){.used=1,.room=88,.x=88,.y=110,
+  .radius=74,.energy=128,.red=255,.green=158,.blue=65,
+  .flicker=3,.anim_speed=140,.anim_strength=100};
+ int sx2[240],sy2[240];
+ for(int y=0;y<240;++y){sx2[y]=0;sy2[y]=y;}
+ unsigned int pulseframe[256*240];
+ for(unsigned j=0;j<256*240;++j)pulseframe[j]=0xff808080u;
+ cviii_light_present(&animated,pulseframe,256,240,88,0,sx2,sy2,0);
+ unsigned long first=pulseframe[110*256+88];
+ for(unsigned j=0;j<256*240;++j)pulseframe[j]=0xff808080u;
+ cviii_light_present(&animated,pulseframe,256,240,88,0,sx2,sy2,53);
+ unsigned long second=pulseframe[110*256+88];
+ assert(first!=second);
+ int delta=(int)((second>>16)&255)-(int)((first>>16)&255);
+ assert(delta>=-16 && delta<=16);
+ animated.light[0].flicker=1;
+ for(unsigned j=0;j<256*240;++j)pulseframe[j]=0xff808080u;
+ cviii_light_present(&animated,pulseframe,256,240,88,0,sx2,sy2,0);
+ first=pulseframe[110*256+88];
+ for(unsigned j=0;j<256*240;++j)pulseframe[j]=0xff808080u;
+ cviii_light_present(&animated,pulseframe,256,240,88,0,sx2,sy2,179);
+ assert(first==pulseframe[110*256+88]); /* Steady is truly steady. */
+ animated.light[0].flicker=4; /* Ember dip; safe range, no random jumps. */
+ assert(cviii_light_style_capture(&animated,0,0,"Global Animated Flame"));
+ assert(cviii_light_style_link(&animated,0,0));
+ cviii_light_effective(&animated,&animated.light[0],&effective);
+ assert(effective.flicker==4 && effective.anim_speed==140 &&
+        effective.anim_strength==100);
+ FILE *animated_profile=tmpfile();assert(animated_profile);
+ cviii_light_save(&animated,animated_profile);rewind(animated_profile);
+ CviiiLighting recovered;cviii_light_init(&recovered);
+ while(fgets(buf,sizeof buf,animated_profile)){
+   char *eq=strchr(buf,'=');if(!eq)continue;
+   char *key=buf,*val=eq+1;
+   while(eq>key && eq[-1]==' ')--eq;
+   *eq=0;while(*val==' ')++val;
+   size_t size=strlen(val);
+   while(size && (val[size-1]=='\n' || val[size-1]=='\r'))val[--size]=0;
+   assert(cviii_light_load(&recovered,key,val));
+ }
+ fclose(animated_profile);
+ assert(recovered.light[0].flicker==4);
+ assert(recovered.light[0].anim_speed==140);
+ assert(recovered.light[0].anim_strength==100);
+ assert(recovered.styles[0].light.anim_strength==100);
+ assert(!cviii_light_load(&recovered,"LightAnim00","600,20"));
+ assert(!cviii_light_load(&recovered,"GlobalAnim00","150,-2"));
+ /* Penumbrae must vary smoothly in both axes, not clip at mask seam. */
+ CviiiLighting soft;cviii_light_init(&soft);
+ assert(cviii_light_mask_add(&soft,88,130,96,10,25)>=0);
+ assert(soft.masks[0].softness>=8);
+ float last=-1.f,highest_jump=0.f;
+ int partial=0;
+ for(int y=80;y<=165;++y){
+   float visibility=cviii_light_shadow(&soft,88,88,110,180,y);
+   assert(visibility>=0.f && visibility<=1.f);
+   if(visibility>0.01f && visibility<0.99f)++partial;
+   if(last>=0.f){
+     float jump=visibility-last;
+     if(jump<0.f)jump=-jump;
+     if(jump>highest_jump)highest_jump=jump;
+   }
+   last=visibility;
+ }
+ assert(partial>=3 && highest_jump<0.35f);
+ /* Light-kit playback preserves individual animation values after reload. */
+ CviiiLighting motionkit;cviii_light_init(&motionkit);
+ int torch=cviii_light_apply_builtin(&motionkit,1,88,100,130);
+ assert(torch>=0);
+ motionkit.light[torch].anim_speed=175;
+ motionkit.light[torch].anim_strength=65;
+ assert(cviii_light_kit_capture(&motionkit,0,torch,"Animated Torch"));
+ FILE *kitmotion=tmpfile();assert(kitmotion);
+ cviii_light_save(&motionkit,kitmotion);rewind(kitmotion);
+ CviiiLighting restoredkit;cviii_light_init(&restoredkit);
+ while(fgets(buf,sizeof buf,kitmotion)){
+   char *eq=strchr(buf,'=');if(!eq)continue;
+   char *key=buf,*val=eq+1;
+   while(eq>key && eq[-1]==' ')--eq;
+   *eq=0;while(*val==' ')++val;
+   size_t size=strlen(val);
+   while(size && (val[size-1]=='\n' || val[size-1]=='\r'))val[--size]=0;
+   assert(cviii_light_load(&restoredkit,key,val));
+ }
+ fclose(kitmotion);
+ assert(restoredkit.kits[0].used);
+ assert(restoredkit.kits[0].part[0].anim_speed==175);
+ assert(restoredkit.kits[0].part[0].anim_strength==65);
  return 0;
 }
