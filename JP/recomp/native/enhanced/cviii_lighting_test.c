@@ -29,5 +29,36 @@ int main(void){
  CviiiLighting restored;cviii_light_init(&restored);
  assert(cviii_light_load(&restored,"Light00","1,9,532,100,60,85,255,167,74"));
  assert(restored.light[0].x==532 && restored.light[0].room==9);
+ /* The user can return to the same room after travelling out of range. */
+ for(int y=0;y<240;++y)sx[y]=288; /* world camera 800 */
+ unsigned int off[256*240];
+ for(unsigned i=0;i<256*240;++i)off[i]=0xff808080u;
+ cviii_light_present(&l,off,256,240,9,800,sx,sy,0);
+ assert(off[100*256+32]==0xff646464u);
+ for(int y=0;y<240;++y)sx[y]=500;
+ unsigned int back[256*240];
+ for(unsigned i=0;i<256*240;++i)back[i]=0xff808080u;
+ cviii_light_present(&l,back,256,240,9,500,sx,sy,0);
+ assert(back[100*256+32]==frame[100*256+32]);
+ /* Flicker must remain subdued; no instantaneous white-light flashing. */
+ unsigned int flicker[256*240];
+ for(unsigned i=0;i<256*240;++i)flicker[i]=0xff808080u;
+ cviii_light_present(&l,flicker,256,240,9,500,sx,sy,60);
+ const int red0=(int)((back[100*256+32]>>16)&255u);
+ const int red1=(int)((flicker[100*256+32]>>16)&255u);
+ assert(red1-red0<6 && red0-red1<6);
+ /* A bright tile must keep a real highlight gradient, not clip white. */
+ unsigned int bright[256*240];
+ for(unsigned i=0;i<256*240;++i)bright[i]=0xffc8c8c8u;
+ cviii_light_present(&l,bright,256,240,9,500,sx,sy,0);
+ const int highlight=(int)((bright[100*256+32]>>16)&255u);
+ assert(highlight>200 && highlight<255);
+ assert((bright[90*256+32]&0xff000000u)==0xff000000u);
+ /* Ambience is bounded, and corrupt profile entries fail closed. */
+ assert(cviii_light_event(&l,11,-1,-1,9,500,sx,sy));
+ assert(l.ambient==81);
+ assert(!cviii_light_load(&restored,"Light00","1,9,532,100,0,85,255,167,74"));
+ assert(restored.light[0].radius==60);
+ assert(!cviii_light_load(&restored,"Light00","1,9,532,100,60,85,255,167,74junk"));
  return 0;
 }
