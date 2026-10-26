@@ -92,7 +92,7 @@ static void dot(uint32_t *p,int x,int y,unsigned color){
 void cviii_light_present(CviiiLighting *s,uint32_t *p,int w,int h,uint32_t room,
                          int camera,const int sx[CVIII_LIGHT_H],const int sy[CVIII_LIGHT_H],uint64_t frame){
     if(!s || !p || !sx || !sy || w!=256 || h!=240)return;
-    float modulation[CVIII_LIGHT_MAX],cc[CVIII_LIGHT_MAX],ss[CVIII_LIGHT_MAX];
+    float modulation[CVIII_LIGHT_MAX],cc[CVIII_LIGHT_MAX],ss[CVIII_LIGHT_MAX],cone_slope[CVIII_LIGHT_MAX];
     const float radians=0.017453292519943295f;
     /* Gentle multi-band variation, not frame-by-frame white noise.
      * Isolated candles are relatively stable; larger diffusion flames
@@ -111,6 +111,7 @@ void cviii_light_present(CviiiLighting *s,uint32_t *p,int w,int h,uint32_t room,
         modulation[i]=1.f+warm*(slow+fast)*intensity;
         cc[i]=cosf((float)l->angle*radians);
         ss[i]=sinf((float)l->angle*radians);
+        cone_slope[i]=tanf((float)clip(l->spread?l->spread:30,5,85)*radians);
     }
     if(s->enabled){
         int ambient_pct=0,amb_rgb[3]={255,255,255};
@@ -138,8 +139,7 @@ void cviii_light_present(CviiiLighting *s,uint32_t *p,int w,int h,uint32_t room,
                         if(along<0 || along>=rad)continue;
                         float half_width;
                         if(l->shape==CVIII_SHAPE_CONE){
-                            int spread=clip(l->spread?l->spread:30,5,85);
-                            half_width=2.f+along*tanf((float)spread*radians);
+                            half_width=2.f+along*cone_slope[i];
                         }else if(l->shape==CVIII_SHAPE_SHAFT){
                             half_width=0.5f*(float)clip(l->width?l->width:32,4,160);
                         }else continue;
