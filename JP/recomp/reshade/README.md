@@ -61,11 +61,15 @@ in the visible game area. It passes ReShade's window-space pointer
 through the native SDL2 video geometry converter; **Add at Center**
 and exact world X/Y editing remain available if capture/scale
 compatibility is uncertain. This ReShade mouse path has not yet
-received an owner's interactive DPI/resize acceptance test. The add-on is
-separately built and **has not passed** Windows SDK compilation,
-API-function-table compatibility, gameplay input, shader-hook, or
-interactive UI tests in the owner's environment. Do not present
-this as a released or plug-and-play package.
+received an owner's interactive DPI/resize acceptance test. The add-on **compiled successfully** against the official
+pinned ReShade v6.8.0 SDK in the independent Windows CI
+[run 40267293019](https://github.com/Hyperbog/CVIII-Decomp/actions/runs/40267293019),
+which produced a ROM-free artifact named
+`CVIII-ReShade-Lighting-Addon-Experimental`. That proves C++
+compile/link only, **not** dynamic API registration, injected graphics
+backend compatibility, actual Windows game mouse alignment, stage
+transitions or visual acceptance. Keep it experimental until those
+in-game checks pass.
 
 ReShade can postprocess the SDL renderer's D3D/OpenGL output,
 but the native CVIII 2D lighting model continues to own actual
