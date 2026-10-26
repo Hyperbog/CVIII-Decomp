@@ -37,6 +37,8 @@ struct Bridge {
     int (*kit_manage)(int,int,int,const char*)=nullptr;
     int (*renderer)()=nullptr;
     int (*renderer_set)(int)=nullptr;
+    int (*cascade_quality)()=nullptr;
+    int (*cascade_quality_set)(int)=nullptr;
     const char *(*gpu_status)()=nullptr;
     int (*builtin_count)()=nullptr;
     const char *(*builtin_name)(int)=nullptr;
@@ -95,6 +97,8 @@ bool bind_game(){
     b.kit_manage=game_export<decltype(b.kit_manage)>(exe,"cviii_lighting_editor_kit_manage");
     b.renderer=game_export<decltype(b.renderer)>(exe,"cviii_lighting_editor_renderer");
     b.renderer_set=game_export<decltype(b.renderer_set)>(exe,"cviii_lighting_editor_set_renderer");
+    b.cascade_quality=game_export<decltype(b.cascade_quality)>(exe,"cviii_lighting_editor_cascade_quality");
+    b.cascade_quality_set=game_export<decltype(b.cascade_quality_set)>(exe,"cviii_lighting_editor_set_cascade_quality");
     b.gpu_status=game_export<decltype(b.gpu_status)>(exe,"cviii_lighting_editor_gpu_status");
     b.builtin_count=game_export<decltype(b.builtin_count)>(exe,"cviii_lighting_editor_builtin_count");
     b.builtin_name=game_export<decltype(b.builtin_name)>(exe,"cviii_lighting_editor_builtin_name");
@@ -114,7 +118,8 @@ bool bind_game(){
        !b.global_property || !b.mask_add || !b.mask_window_rect ||
        !b.mask_property || !b.grade ||
        !b.undo || !b.redo || !b.kit_manage ||
-       !b.renderer || !b.renderer_set || !b.gpu_status ||
+       !b.renderer || !b.renderer_set ||
+       !b.cascade_quality || !b.cascade_quality_set || !b.gpu_status ||
        !b.builtin_count || !b.builtin_name ||
        !b.event || !b.prop ||
        !b.copy || !b.paste || !b.duplicate || !b.name || !b.group ||
@@ -169,12 +174,20 @@ void on_overlay(reshade::api::effect_runtime *){
     if(ImGui::CollapsingHeader("GPU Lighting Prototype")){
         int mode=bridge.renderer();
         if(ImGui::Combo("Lighting Mode",&mode,
-            "Standard CPU (fallback)\0D3D11 GPU Prototype (1 bounce)\0"))
+            "Standard CPU (fallback)\0D3D11 GPU Prototype (1 bounce)\0D3D11 Radiance Cascades (indirect GI)\0"))
             changed(bridge.renderer_set(mode));
-        ImGui::TextWrapped("D3D11 GPU prototype ray traces manual scene masks "
-           "with sampled single-bounce colored reflections. Full NES image "
-           "resolution is preserved; lightmap is 128x96. Unsupported GPUs "
-           "and excess emitters always fall back to Standard.");
+        if(mode==2){
+            int quality=bridge.cascade_quality()-2;
+            if(ImGui::Combo("Radiance Quality",&quality,
+                "Low / 2 cascades\0Medium / 3 cascades\0High / 4 cascades\0"))
+                changed(bridge.cascade_quality_set(quality+2));
+            ImGui::TextWrapped("Radiance Cascades samples near/far angular "
+                "probes and recursively merges visible distant radiance.");
+        }
+        ImGui::TextWrapped("GPU modes trace author-drawn world-space masks. "
+            "Lightmaps are 128x96 over full NES-resolution graphics. Missing "
+            "GPU resources, excessive lights, or failed shader passes use "
+            "Standard fallback; Original edition remains unmodified.");
         ImGui::TextDisabled("Backend: %s",bridge.gpu_status());
         ImGui::TextDisabled("Standard preview while editor is open; GPU after close.");
     }
