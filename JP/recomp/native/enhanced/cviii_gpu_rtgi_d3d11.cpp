@@ -191,6 +191,24 @@ int run(const CviiiLighting *s,uint32_t *pixels,uint32_t room,int camera,
         l.motion[1]=local.anim_speed?local.anim_speed/100.f:1.f;
         l.motion[2]=local.anim_strength?local.anim_strength/100.f:1.f;
     }
+    /* Up to four opt-in ember/firefly particles become real GPU radial
+     * emitters: direct ray/rectangle visibility and RC wall-facing
+     * radiance. Stay below the fixed 12-light shader budget; these
+     * are not a change to the persistent placed-light library. */
+    CviiiParticleGlow sparks[4]{};
+    int sparks_count=cviii_particle_glow_samples(
+        s,room,camera,sx,sy,frame,sparks);
+    for(int i=0;i<sparks_count && nlight<MAX_L;++i){
+        const CviiiParticleGlow &p=sparks[i];
+        GpuLight &l=lights[nlight++];
+        l.pos[0]=p.x;l.pos[1]=p.y;
+        l.pos[2]=p.radius;l.pos[3]=p.power;
+        l.rgbshape[0]=p.red/255.f;l.rgbshape[1]=p.green/255.f;
+        l.rgbshape[2]=p.blue/255.f;l.rgbshape[3]=0.f;
+        l.direction[0]=1.f;l.direction[1]=0.f;
+        l.direction[2]=.57f;l.direction[3]=16.f;
+        l.motion[0]=1.f;l.motion[1]=1.f;l.motion[2]=1.f;
+    }
     for(int i=0;i<CVIII_OCCLUDER_MAX;++i){
         const CviiiOccluder &m=s->masks[i];
         if(!m.used || m.room!=room)continue;
