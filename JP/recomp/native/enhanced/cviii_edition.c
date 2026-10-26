@@ -47,6 +47,7 @@ typedef struct {
     int stable_sprites; /* optional host-only temporal presentation; off by default */
     CviiiSpriteLayers sprite_layers;
     CviiiLighting lighting; /* separate host-only level lighting */
+    char lighting_editor_key[32]; /* persisted SDL2 scancode name */
     uint64_t lighting_frame; /* host animation, never serialized to guest */
     CviiiObjectOamTrace object_trace; /* read-only JP PRG26 object/OAM correlation */
     CviiiAudioBus audio_bus; /* opt-in nonmutating 2A03/VRC6 sound writes */
@@ -199,6 +200,8 @@ static void load_setting(void *context, const char *key, const char *value)
         (void)parse_boolean(value, &cviii.sprite_unlimited);
     else if (!strcmp(key, "StableSprites"))
         (void)parse_boolean(value, &cviii.stable_sprites);
+    else if (!strcmp(key,"LightingEditorKey"))
+        (void)cviii_lighting_editor_set_key(value);
     else if (!strncmp(key,"Light",5))
         (void)cviii_light_load(&cviii.lighting,key,value);
     else (void)cviii_audio_levels_load(&cviii.volume,key,value);
@@ -212,6 +215,7 @@ static void save_settings(void *context, FILE *file)
             cviii.sprite_unlimited, cviii.stable_sprites);
     cviii_audio_levels_save(&cviii.volume,file);
     cviii_light_save(&cviii.lighting,file);
+    fprintf(file,"LightingEditorKey = %s\n",cviii.lighting_editor_key);
 }
 
 static bool option(void *context, const char *name, const char *value)
@@ -547,6 +551,26 @@ int cviii_lighting_editor_status(char *out,unsigned cap)
                     i+1,l->radius,l->energy,l->red,l->green,l->blue,v->ambient)>=0;
 }
 
+/* Expose only the canonical, bounded SDL key name; no SDL types needed
+ * in this C11 Enhanced module (headless and Windows builds share it). */
+const char *cviii_lighting_editor_key(void)
+{
+    return cviii.lighting_editor_key[0]?cviii.lighting_editor_key:"Home";
+}
+int cviii_lighting_editor_set_key(const char *name)
+{
+    if(!name)return 0;
+    size_t count=strlen(name);
+    if(count==0 || count>=sizeof(cviii.lighting_editor_key))return 0;
+    for(size_t i=0;i<count;++i){
+        char c=name[i];
+        if(!((c>='A' && c<='Z') || (c>='a' && c<='z') ||
+             (c>='0' && c<='9') || c==' ' || c=='-'))return 0;
+    }
+    memcpy(cviii.lighting_editor_key,name,count+1);
+    return 1;
+}
+
 /* JP0623 game-owned Start/Pause state and stable action identities. */
 int cviii_pause_active(void)
 {
@@ -734,6 +758,7 @@ const CycHostExtras *cyc_host_extras(void)
 {
     if(!cviii_lighting_ready){
         cviii_light_init(&cviii.lighting);
+        (void)cviii_lighting_editor_set_key("Home");
         cviii_lighting_ready=1;
     }
 #ifdef CYC_WITH_RECOMP_UI
