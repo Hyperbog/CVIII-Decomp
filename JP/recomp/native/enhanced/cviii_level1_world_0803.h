@@ -24,6 +24,8 @@ typedef struct {
     uint8_t active, room, slot, selector, frame, mirror, flags;
     int32_t x,y;
     uint8_t raw_x,raw_y,attrs;
+    uint8_t original_type; /* original $054E+X slot allocator */
+    uint32_t generation; /* advances only on new slot identity */
 } CviiiWorldActor0803;
 /* Thirty owner-ROM five-field installation records, preloaded once
  * for all five source windows. Records describe original loader inputs,

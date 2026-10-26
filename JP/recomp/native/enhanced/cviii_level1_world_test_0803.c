@@ -117,6 +117,26 @@ int main(void){
     ram[0x400]=0;
     if(!check(cviii_world_capture_live_0803(world,second,104,0,ram)==0 &&
        !world->actors[0].active,"despawn is authoritative; no ghost"))return 7;
+    /* JP0809: one original game-owned object slot may be recycled for
+     * another enemy while its sprite selector remains unchanged.
+     * Original $054E+X type identifies a new slot producer and rejects
+     * stale 8-bit X unwrapping across an unrelated spawn. */
+    ram[0x400]=4;ram[0x054e]=0x13;
+    if(!check(cviii_world_capture_live_0803(world,second,104,0,ram)==1 &&
+              world->actors[0].generation>=2u &&
+              world->actors[0].original_type==0x13u,
+              "original allocator type creates distinct actor generation"))
+        return 21;
+    uint32_t generation=world->actors[0].generation;
+    if(!check(cviii_world_capture_live_0803(world,second,104,0,ram)==1 &&
+              world->actors[0].generation==generation,
+              "same slot/type does not recreate or duplicate original actor"))
+        return 22;
+    ram[0x054e]=0x14;
+    if(!check(cviii_world_capture_live_0803(world,second,104,0,ram)==1 &&
+              world->actors[0].generation==generation+1u,
+              "reused slot with different source type is new identity"))
+        return 23;
     CviiiLevel1World0803 before=*world;
     atlas->loaded=0;
     if(!check(!cviii_world_build_0803(world,atlas) &&

@@ -370,6 +370,17 @@ const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
         memcpy(selector,h->last_verified_selector,sizeof selector);
         camera_x=h->last_verified_camera;
         center=h->last_verified_center;
+        /* A transient PPU nametable validation gap must NOT freeze
+         * active source actors while the game keeps moving them.
+         * Safely update from original actor RAM only if the ORIGINAL
+         * CPU still selects the same authenticated room. An incomplete
+         * scene switch invalidates the actor shadow instead of leaving
+         * old animated enemies painted beside the next room. */
+        if(ram && ram[0x34u]==selector[0] &&
+           ram[0x35u]==selector[1] && ram[0x36u]==selector[2])
+            (void)cviii_world_capture_live_0803(&h->world,
+                        selector,camera_x,0,ram);
+        else cviii_world_clear_live_0805(&h->world);
         valid_camera=1;
     }
     if(!horizontal_play && !valid_camera) {
