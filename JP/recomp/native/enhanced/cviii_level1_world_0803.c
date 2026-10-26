@@ -134,6 +134,8 @@ int cviii_world_preload_horizontal_0816(CviiiLevel1World0803 *w,
     w->parent_new_witnesses=0u;
     w->parent_lost_witnesses=0u;
     w->parent_released_while_child_allocated=0u;
+    w->horizontal_unresolved_lineage_mask=0u;
+    w->horizontal_source_reuse_warnings=0u;
     return 1;
 }
 int cviii_world_observe_horizontal_0816(CviiiLevel1World0803 *w,
@@ -250,6 +252,30 @@ int cviii_world_observe_children_0818(CviiiLevel1World0803 *w,
                 w->parent_released_while_child_allocated++;
         }
     }
+    /* JP0820: a six-slot scheduler SOURCE can be recycled while the
+     * original child $054E,X remains allocated. If a child witnesses
+     * its parent row disappearing, never relabel it as belonging
+     * to a newly installed row32 at the same numeric source index. */
+    const int continuous=w->horizontal_child_samples &&
+        w->horizontal_child_room==(uint8_t)room;
+    uint16_t ambiguous=continuous ?
+        w->horizontal_unresolved_lineage_mask:0u;
+    for(unsigned x=1u;x<=12u;x++){
+        const uint16_t bit=(uint16_t)(1u<<x);
+        const CviiiHorizontalChild0818 old=w->horizontal_children[x];
+        const CviiiHorizontalChild0818 cur=next[x];
+        if(!cur.allocated || !continuous || !old.allocated ||
+           old.parent_source!=cur.parent_source)
+            ambiguous=(uint16_t)(ambiguous&~bit);
+        if(cur.allocated && !cur.source_row_is_32)
+            ambiguous=(uint16_t)(ambiguous|bit);
+        if(continuous && cur.allocated && cur.source_row_is_32 &&
+           old.allocated && !old.source_row_is_32 &&
+           (ambiguous&bit) &&
+           w->horizontal_source_reuse_warnings!=UINT32_MAX)
+            w->horizontal_source_reuse_warnings++;
+    }
+    w->horizontal_unresolved_lineage_mask=ambiguous;
     memcpy(w->parent_census,parent_next,sizeof parent_next);
     if(w->parent_census_epochs!=UINT32_MAX)
         w->parent_census_epochs++;
@@ -517,6 +543,8 @@ void cviii_world_clear_live_0805(CviiiLevel1World0803 *w){
     w->parent_new_witnesses=0u;
     w->parent_lost_witnesses=0u;
     w->parent_released_while_child_allocated=0u;
+    w->horizontal_unresolved_lineage_mask=0u;
+    w->horizontal_source_reuse_warnings=0u;
 }
 
 /* JP0811: independent original PRG0A room hierarchy, stage selector0.
