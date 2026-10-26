@@ -229,12 +229,21 @@ int main(void) {
     assert(cviii_lighting_editor_model()->particles_enabled);
     assert(cviii_lighting_editor_model()->particles[dust_fx].room==saved_room);
     assert(!cviii_lighting_editor_particle_property(dust_fx,6,999));
+    assert(cviii_lighting_editor_weather_template(0,1));
+    assert(cviii_lighting_editor_weather_link(0));
+    assert(cviii_weather_scene_profile(cviii_lighting_editor_model(),saved_room)==0);
+    assert(cviii_lighting_editor_weather_property(0,7,100));
+    assert(!cviii_lighting_editor_weather_property(0,8,0));
+    assert(cviii_lighting_editor_weather_name(0,"Global Thunder"));
+    assert(!strcmp(cviii_lighting_editor_model()->weather[0].name,
+                   "Global Thunder"));
     e->power_on(e->ctx);
     assert(!cviii_lighting_editor_active());
     assert(cviii_lighting_editor_model()->light[chosen].used);
     assert(cviii_lighting_editor_model()->light[chosen].room==saved_room);
     assert(cviii_lighting_editor_model()->light[chosen].radius==120);
     assert(cviii_lighting_editor_model()->particles[dust_fx].used);
+    assert(cviii_weather_scene_profile(cviii_lighting_editor_model(),saved_room)==0);
     e->state_loaded(e->ctx);
     assert(cviii_lighting_editor_model()->particles[dust_fx].used);
     assert(cviii_lighting_editor_model()->particles[dust_fx].wind==-15);
