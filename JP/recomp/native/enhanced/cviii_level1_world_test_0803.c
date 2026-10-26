@@ -436,14 +436,33 @@ int main(void){
     if(!check(!world->actors[13].source_cpu_0814 &&
               !world->actors[13].source_generation_0814,
               "actor deactivation invalidates source tag"))return 30;
+    /* Blank graphics frame is NOT proof the original actor type was
+     * deallocated. Keep $054E genuine allocator state separate from
+     * JP0807 visual shadow until the guest itself clears the type. */
+    (void)cviii_world_link_chapel_0814(world,vertical,ram);
     if(!check(cviii_world_probe_chapel_0815(
                   world,vertical,80,0x180,85,426,fake_sprites)==0 &&
               !world->chapel_projection[0].actor_confirmed &&
               world->chapel_projection[0].source_cpu==0xab1fu &&
+              world->chapel_projection[0].guest_installed &&
+              world->chapel_projection[0].guest_slot==13u &&
+              world->chapel_projection[0].interaction_policy==
+                  CVIII_INTERACTION_TYPE80_B258_0816,
+              "frame-zero source remains allocated but visually suppressed"))
+        return 34;
+    /* Actual original slot deallocation requires $054E,X=0;
+     * no silent inference of a despawn from $0400,X alone. */
+    ram[0x054eu+13u]=0u;
+    (void)cviii_world_link_chapel_0814(world,vertical,ram);
+    if(!check(cviii_world_probe_chapel_0815(
+                  world,vertical,80,0x180,85,426,fake_sprites)==0 &&
+              !world->chapel_projection[0].actor_confirmed &&
+              !world->chapel_projection[0].guest_installed &&
+              world->chapel_projection[0].source_cpu==0xab1fu &&
               world->chapel_projection[0].interaction_policy==
                   CVIII_INTERACTION_ALLOCATION_UNVERIFIED_0815,
-              "source remains resident without claimed actor allocation"))
-        return 34;
+              "original $054E slot removed while ROM source remains resident"))
+        return 43;
     uint32_t previous_links=world->chapel_link_epochs;
     if(!check(cviii_world_link_chapel_0814(world,second,ram)==-1 &&
               world->chapel_link_epochs==previous_links,
