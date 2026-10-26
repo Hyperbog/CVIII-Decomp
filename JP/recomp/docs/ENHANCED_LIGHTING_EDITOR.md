@@ -50,36 +50,46 @@ are presentation settings and do not enter the original NES save state.
 - Vertical world coordinates currently retain the PPU 0..479 wrap domain.
   Full vertically extended levels need additional unwrapping and QA.
 
-## ReShade-style lighting workbench (interactive SDL dock)
+## Dear ImGui lighting studio — genuine modern in-game editor
 
-Press **Home** (or your remapped key) during Enhanced gameplay. A dark,
-semi-opaque lighting workbench opens on the right side of the game. It is
-rendered by SDL2, not by the NES PPU, and does not use a new DLL.
+This is now an **actual Dear ImGui UI**, not a hand-drawn 256×240
+pixel-art dock. Press Home (or your mappable shortcut) in Enhanced
+gameplay to pause and open the resizable, movable
+**CVIII | LIGHTING STUDIO** window. The UI is drawn at desktop/window
+resolution *over* the pixel-perfect NES image. The menu does not write
+to the emulated CPU, PPU, OAM, or game save states.
 
-- **SCENE LIGHTS**: six visible rows, scroll the list with the mouse wheel.
-  Click a row to select that light even when its on-screen center is obscured
-  by the dock. The selected row is highlighted. Only the current candidate
-  stage/room's lights are listed.
-- **ADD / PLACE**: click ADD, then click in the exposed gameplay area to
-  insert a new light at that coordinate. The PLACE highlight indicates
-  the pending action. **DELETE** removes the selected light.
-- **ENABLE**: clickable square toggles the lighting effect without deleting
-  the authored lights.
-- **AMB / RADIUS / POWER / RED / GREEN / BLUE**: click or drag the colored
-  slider bars. Values update in the paused scene immediately, with no
-  frame advance or emulated-game state change.
-- **CLOSE**: dismiss the panel and resume gameplay (equivalent to Home).
-- **Direct manipulation**: high-contrast square handles and selection
-  crosshairs are rendered over visible light centers. Click/drag in the
-  gameplay area within 20 world pixels of a center; use the list if a
-  handle lies underneath the panel. Previous tiny handles were 10-pixel
-  hit targets and difficult to locate.
+The UI uses Dear ImGui v1.93.0 (MIT), fetched and built at its pinned
+tag, with the official SDL2 SDL_Renderer backend. OpenGL is **not**
+assumed: SDL2 selects the system's accelerated renderer (often D3D
+on Windows, sometimes OpenGL), and the bridge works either way.
+No ReShade injection, Windows graphics driver hooks or extra runtime
+graphics DLL are required.
 
-The dock is drawn in 256×240 *logical* SDL render coordinates so it scales
-with the game and uses the same window-to-game pointer mapping as the
-engine. It occupies the right part of the picture only while authoring.
-It is **ReShade-inspired**, not an integration of ReShade or Dear ImGui;
-it does not alter graphics drivers or shaders.
+- **Scene Lights**: genuine scrollable selectable list for the current
+  candidate room. Click any row to select a light, even if its center
+  lies behind the window.
+- **Add Light**: click the button, then click any exposed part of the
+  scene. Drag the existing light handle (20 game-pixel grab radius).
+- **Radius / Intensity**: full mouse sliders with numeric values.
+- **Light Color**: full color-edit control with hue wheel, RGB numerical
+  editing, and warm candle/cold blue/white presets.
+- **Enable Lighting / Ambient**: checkbox and adjustable ambient slider.
+- **Delete Selected / Resume Game**: explicit buttons; Home/Escape
+  also close the editor.
+- **Persistence**: changes use the existing config.ini lighting keys.
+  UI placement is not written to imgui.ini in the working directory.
+
+The rendering bridge is
+`JP/recomp/native/enhanced/cviii_imgui_editor.cpp` (C++17) and is
+built **only for windowed Enhanced-host builds**. The original game
+remains C11. The public build kit still contains no ROM or game binary;
+the private Windows Alpha includes the pinned Dear ImGui MIT license.
+
+**QA pending:** Although CI can compile the actual SDL window renderer,
+mouse capture, HiDPI scaling, sliders and screenshot legibility still
+need an owner's Windows visual acceptance pass. Do not treat a
+successful build as proof of interaction or lighting fidelity.
 
 ## Windows owner visual acceptance — Stage 1
 
