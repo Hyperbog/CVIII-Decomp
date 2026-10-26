@@ -121,6 +121,11 @@ static bool cviii_light_sdl_event(const SDL_Event *ev, bool other_open)
         return true;
     }
     if(!cviii_lighting_editor_active())return false;
+    /* ReShade handles mouse input inside its own overlay. Never let
+     * its clicks also drag a gameplay emitter in the native editor. */
+    if(cviii_lighting_editor_external_active() &&
+       (ev->type==SDL_MOUSEBUTTONDOWN || ev->type==SDL_MOUSEBUTTONUP ||
+        ev->type==SDL_MOUSEMOTION || ev->type==SDL_MOUSEWHEEL))return true;
     if(cviii_imgui_event(ev,s_win,s_ren))return true;
     if(ev->type==SDL_KEYDOWN){
         const SDL_Scancode sc=ev->key.keysym.scancode;
