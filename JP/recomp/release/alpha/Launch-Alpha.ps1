@@ -43,9 +43,37 @@ if (-not (Test-Path -LiteralPath $game) -or -not (Test-Path -LiteralPath $dll)) 
         (Join-Path $env:USERPROFILE 'CVIII-Alpha\AlphaCandidate')+
         '. Do not download an unrelated SDL2.dll.')
 }
-$sprites=if ($Edition -eq 'Enhanced' -and $UnlimitedSprites) {'1'} else {'0'}
-$stable=if ($Edition -eq 'Enhanced' -and $StableSprites) {'1'} else {'0'}
-Write-Host "CVIII Enhanced (extra-OAM $sprites; experimental stable sprite layers $stable)"
+# JP0750: Only explicit launch switches override saved renderer preferences.
+# Previous launcher always passed --stable-sprites 0 and --unlimited-sprites 0
+# by default, undoing the persisted Enhanced sprite stabilization each launch.
+# Keep the experimental compositor opt-in until the owner validates retail play.
+function Get-CviiiSpriteLaunchOptions {
+ param(
+  [string]$Edition,
+  [bool]$UnlimitedSprites,
+  [bool]$StableSprites,
+  [bool]$OverrideUnlimited,
+  [bool]$OverrideStable
+ )
+ if ($OverrideUnlimited) {
+  '--unlimited-sprites'
+  if ($Edition -eq 'Enhanced' -and $UnlimitedSprites) {'1'} else {'0'}
+ }
+ if ($OverrideStable) {
+  '--stable-sprites'
+  if ($Edition -eq 'Enhanced' -and $StableSprites) {'1'} else {'0'}
+ }
+}
+$extraSpriteArgs=@(Get-CviiiSpriteLaunchOptions -Edition $Edition ` 
+    -UnlimitedSprites ([bool]$UnlimitedSprites) ` 
+    -StableSprites ([bool]$StableSprites) ` 
+    -OverrideUnlimited ($PSBoundParameters.ContainsKey('UnlimitedSprites')) ` 
+    -OverrideStable ($PSBoundParameters.ContainsKey('StableSprites')))
+if ($extraSpriteArgs.Count) {
+ Write-Host ('Explicit host-only sprite presentation override: '+($extraSpriteArgs -join ' '))
+} else {
+ Write-Host 'Sprite options: using saved settings from config.ini (no launcher override).'
+}
 Write-Host 'Controls: arrows=D-pad, Z=A, X=B, Enter=Start, Backslash=Select.'
 Write-Host 'Enhanced Pause: F4 opens Save State / Load State / Audio / Quit; arrows navigate, Enter selects, Esc closes.'
 Write-Host 'Pause menu uses authenticated CHR. Save/Load opens slot 0..9: Left/Right chooses, Enter confirms, Esc returns.'
@@ -77,7 +105,7 @@ if ($ControlsProfile) {
 }
 Push-Location $PSScriptRoot
 try {
- $gameArgs=@($romPath,'--edition',$Edition.ToLowerInvariant(),'--unlimited-sprites',$sprites,'--stable-sprites',$stable)
+ $gameArgs=@($romPath,'--edition',$Edition.ToLowerInvariant()) + $extraSpriteArgs
  if ($PSBoundParameters.ContainsKey('MasterVolume')) {
   $gameArgs+=@('--master-volume',[string]$MasterVolume)
   Write-Host ('Enhanced master output gain override: '+$MasterVolume+'%')

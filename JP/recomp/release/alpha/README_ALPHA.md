@@ -101,6 +101,54 @@ Only the pinned headless state serializer is tested. Actual Windows F4
 Save/Load, F8/F9 slots, F6 Audio modal, F10 stage tool, gameplay input
 and visual/audio output still require brief owner GUI testing. Do not
 replace the functioning CVIII-Alpha install with the seeded test build.
+## JP0750 — Owner Windows acceptance and sprite regression
+
+2026-10-25 owner report for the **separately installed, owner-private
+seeded AlphaCandidate**: original Japanese ROM, 2100 Enhanced frames,
+99.999867% compiled PRG CPU execution, 76 interpreted-ROM cycles and
+identical native/interpreter full-machine frame hashes. Owner confirms
+normal Windows launch, playable stages beyond Stage 1, correct graphics
+apart from noted defects, VRC6 music/SFX, controller/keyboard, F8/F9
+save/load, continued play after load, F4/F6/F10 menu access, and stored
+settings. The automated second-phase save-roundtrip returned **no
+reported error**, but its explicit report status was not supplied;
+therefore do not mark independent midpoint state replay as accepted.
+
+**Blocking regression:** owner saw sprite flicker return in the seeded
+build launched without `-StableSprites`. This option's actual host-only
+renderer remains compiled in; the old launcher explicitly sent
+`--stable-sprites 0` *on every launch without the switch*, overwriting
+the persistent `StableSprites` configuration. JP0750 forwards sprite
+presentation flags **only when explicitly requested**. The corrected
+launcher therefore respects saved `config.ini` sprite preferences.
+Use `Launch-Alpha.ps1 -Edition Enhanced -StableSprites` for the first
+opt-in retail visual check; `-StableSprites:$false` explicitly turns it
+off for an A/B comparison. This does **not yet prove** the owner-visible
+flicker is fixed; do not force an experimental temporal compositor on
+for every user until that comparative playtest passes.
+
+**Two separate widescreen limitations:** the JP0725 side margins are
+read-only original-ROM **background-only** atlas imagery. Gameplay
+actors, torch/candle sprites and collision/spawn logic still operate
+inside the authoritative original 256×240 picture. Painting fake
+interactive offscreen enemies would change original gameplay semantics
+without evidence. During incomplete room transitions, the presenter
+deliberately rejects uncertain PPU/world/selector alignment and can
+black out previous-room side columns: transition continuity remains
+unfinished. Neither is fixed by JP0750.
+
+**Menu clarification:** direct gameplay F6 modal owns input; F4 will not
+open while F6 is active. Enter F4 from gameplay, select the Audio item,
+and closing Audio should return to the parent F4 menu. Owner reports
+normal menu access but has not confirmed that *nested* path. Player
+keyboard remapping is not yet an in-game menu: existing
+`Controls.bat` supports presets and external `config.ini` bindings.
+
+Promotion is **requested by owner but on hold** until current
+flicker is A/B-tested and any unacceptable widescreen regressions are
+handled. Keep prior working `CVIII-Alpha` as rollback. ROM and generated
+PRG C/binaries are never added to Git.
+
 ## JP0661 native keyboard controls: profiles and recoverable presets
 
 The working native game already supports persistent SDL keyboard/gamepad

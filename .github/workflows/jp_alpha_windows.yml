@@ -249,6 +249,11 @@ jobs:
             [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path -LiteralPath $file).Path,[ref]$tokens,[ref]$parseErrors) | Out-Null
             if ($parseErrors.Count -gt 0) { throw ("PowerShell syntax check failed: " + $file + ": " + ($parseErrors | Out-String)) }
           }
+      - name: Verify Enhanced sprite preferences survive Windows launcher restarts (ROM-free)
+        shell: pwsh
+        run: |
+          & JP/recomp/tools/test_alpha_sprite_options_0750.ps1
+
       - name: Validate private AlphaCandidate companion sources (ROM-free)
         shell: pwsh
         run: |
