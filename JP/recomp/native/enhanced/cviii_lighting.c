@@ -122,10 +122,20 @@ void cviii_light_present(CviiiLighting *s,uint32_t *p,int w,int h,uint32_t room,
         float ar=(float)ambient_pct*amb_rgb[0]/25500.f;
         float ag=(float)ambient_pct*amb_rgb[1]/25500.f;
         float ab=(float)ambient_pct*amb_rgb[2]/25500.f;
+        int sky_strength=0,sky_color[3]={186,209,255},sky_dir=-1;
+        cviii_light_sky_get(s,room,&sky_strength,sky_color,&sky_dir);
         for(int y=CVIII_LIGHT_HUD;y<h;++y){
+            /* Separate additive sky fill instead of subtractive RGB tint. */
+            float vertical=(float)(y-CVIII_LIGHT_HUD)/(float)(CVIII_LIGHT_H-CVIII_LIGHT_HUD-1);
+            float exposure=sky_dir==0?0.7f:sky_dir<0?
+                1.f-0.75f*vertical:0.25f+0.75f*vertical;
+            float sky=(float)sky_strength*0.014f*exposure;
+            float rr=ar+sky*(float)sky_color[0]/255.f;
+            float rg=ag+sky*(float)sky_color[1]/255.f;
+            float rb=ab+sky*(float)sky_color[2]/255.f;
             int origin=unwrap(sx[y],camera,512),yy=sy[y];
             for(int x=0;x<w;++x){
-                float r=ar,g=ag,b=ab;
+                float r=rr,g=rg,b=rb;
                 int world=origin+x;
                 for(int n=0;n<active_count;++n){
                     int i=active[n];
@@ -259,6 +269,15 @@ int cviii_light_load(CviiiLighting *s,const char *key,const char *value){
         if(sscanf(value,"%d %c",&n,&extra)!=1 || n<35 || n>100)return 0;
         s->ambient=n;return 1;
     }
+    if(!strncmp(key,"RoomSky",7)){
+        unsigned slot,room;int strength,r,g,b,dir,n=0;char tail;
+        if(sscanf(key,"RoomSky%2u%c",&slot,&tail)!=1 ||
+           slot>=CVIII_SCENE_AMBIENT_MAX)return 0;
+        if(sscanf(value,"%u,%d,%d,%d,%d,%d%n",
+            &room,&strength,&r,&g,&b,&dir,&n)!=6 || value[n])return 0;
+        return cviii_light_sky_set(s,room,strength,r,g,b,dir);
+    }
+    if(!strncmp(key,"LightKit",8))return cviii_light_kit_load(s,key,value);
     if(!strncmp(key,"RoomAmbient",11))return scene_load(s,key,value);
     if(!strncmp(key,"LightStyle",10))return style_load(s,key,value);
     unsigned slot;char extra;
@@ -295,7 +314,15 @@ void cviii_light_save(const CviiiLighting *s,FILE *out){
     }
     for(int i=0;i<CVIII_SCENE_AMBIENT_MAX;++i){
         const CviiiSceneAmbient *a=&s->scenes[i];
-        if(a->used)fprintf(out,"RoomAmbient%02d = %u,%d,%d,%d,%d\n",
-            i,a->room,a->level,a->red,a->green,a->blue);
+        if(a->used){
+            fprintf(out,"RoomAmbient%02d = %u,%d,%d,%d,%d\n",
+                i,a->room,a->level,a->red,a->green,a->blue);
+            if(a->sky){
+                fprintf(out,"RoomSky%02d = %u,%d,%d,%d,%d,%d\n",
+                    i,a->room,a->sky,a->sky_red,a->sky_green,
+                    a->sky_blue,a->sky_facing);
+            }
+        }
     }
+    cviii_light_kit_save(s,out);
 }
