@@ -533,6 +533,20 @@ int cviii_lighting_editor_input(int event,int x,int y)
         event==2 || event==3 || event==13 ? sy : NULL);
 }
 
+/* Editor preview feedback: host-only, no SDL dependency and no RAM writes. */
+int cviii_lighting_editor_status(char *out,unsigned cap)
+{
+    if(!out || !cap)return 0;
+    const CviiiLighting *v=&cviii.lighting;
+    int i=v->selected;
+    if(i<0 || i>=CVIII_LIGHT_MAX || !v->light[i].used){
+        return snprintf(out,cap,"AMBIENT %d%% | no light selected",v->ambient)>=0;
+    }
+    const CviiiLight *l=&v->light[i];
+    return snprintf(out,cap,"LIGHT %d: R=%d POWER=%d RGB=%u,%u,%u AMB=%d%%",
+                    i+1,l->radius,l->energy,l->red,l->green,l->blue,v->ambient)>=0;
+}
+
 /* JP0623 game-owned Start/Pause state and stable action identities. */
 int cviii_pause_active(void)
 {
