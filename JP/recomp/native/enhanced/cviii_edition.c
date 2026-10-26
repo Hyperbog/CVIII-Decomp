@@ -537,6 +537,88 @@ int cviii_lighting_editor_input(int event,int x,int y)
         event==2 || event==3 || event==13 ? sy : NULL);
 }
 
+/* Bounded game-owned edit operations. SDL only chooses user-visible values;
+ * ownership, stage keys and original-frame PPU scroll stay here. */
+const CviiiLighting *cviii_lighting_editor_model(void)
+{
+    return &cviii.lighting;
+}
+unsigned cviii_lighting_editor_room(void)
+{
+    return cviii_lighting_room();
+}
+int cviii_lighting_editor_select(int slot)
+{
+    CviiiLighting *v=&cviii.lighting;
+    if(!cviii_lighting_editor_active() || slot<0 || slot>=CVIII_LIGHT_MAX ||
+       !v->light[slot].used || v->light[slot].room!=cviii_lighting_room())
+        return 0;
+    v->selected=slot;
+    v->dragging=0;
+    return 1;
+}
+int cviii_lighting_editor_add(int x,int y)
+{
+    CviiiLighting *v=&cviii.lighting;
+    if(!cviii_lighting_editor_active() || x<0 || x>=CVIII_W ||
+       y<CVIII_LIGHT_HUD || y>=CVIII_H)return 0;
+    int slot=-1;
+    for(int i=0;i<CVIII_LIGHT_MAX;++i)
+        if(!v->light[i].used){slot=i;break;}
+    if(slot<0)return 0;
+    int camera=cviii_lighting_camera();
+    int origin=cyc_render_line_scroll_x(y);
+    int delta=(origin-camera%512+1024)%512;
+    if(delta>256)delta-=512;
+    int wx=camera+delta+x;
+    int wy=cyc_render_line_scroll_y(y);
+    if(wx<0 || wx>65535 || wy<0 || wy>479)return 0;
+    v->light[slot]=(CviiiLight){cviii_lighting_room(),wx,wy,56,85,255,167,74,1};
+    v->selected=slot;
+    v->enabled=1;
+    v->dragging=0;
+    return 1;
+}
+int cviii_lighting_editor_property(int property,int value)
+{
+    CviiiLighting *v=&cviii.lighting;
+    if(!cviii_lighting_editor_active())return 0;
+    if(property==0){v->enabled=value!=0;return 1;}
+    if(property==1){v->ambient=value<35?35:(value>100?100:value);return 1;}
+    if(v->selected<0 || v->selected>=CVIII_LIGHT_MAX)return 0;
+    CviiiLight *l=&v->light[v->selected];
+    if(!l->used || l->room!=cviii_lighting_room())return 0;
+    if(property==2)l->radius=value<12?12:(value>160?160:value);
+    else if(property==3)l->energy=value<5?5:(value>160?160:value);
+    else if(property==4)l->red=(uint8_t)(value<0?0:(value>255?255:value));
+    else if(property==5)l->green=(uint8_t)(value<0?0:(value>255?255:value));
+    else if(property==6)l->blue=(uint8_t)(value<0?0:(value>255?255:value));
+    else return 0;
+    return 1;
+}
+int cviii_lighting_editor_point(int slot,int *x,int *y)
+{
+    if(!x || !y || slot<0 || slot>=CVIII_LIGHT_MAX)return 0;
+    const CviiiLight *l=&cviii.lighting.light[slot];
+    if(!l->used || l->room!=cviii_lighting_room())return 0;
+    int camera=cviii_lighting_camera();
+    int best=999,screen_y=-1,screen_x=-1;
+    for(int row=CVIII_LIGHT_HUD;row<CVIII_H;++row){
+        int dy=cyc_render_line_scroll_y(row)-l->y;
+        if(dy<0)dy=-dy;
+        if(dy>=best || dy>1)continue;
+        int sc=cyc_render_line_scroll_x(row);
+        int dx=(sc-camera%512+1024)%512;
+        if(dx>256)dx-=512;
+        int xp=l->x-(camera+dx);
+        if(xp<0 || xp>=CVIII_W)continue;
+        best=dy;screen_y=row;screen_x=xp;
+    }
+    if(screen_y<0)return 0;
+    *x=screen_x;*y=screen_y;
+    return 1;
+}
+
 /* Editor preview feedback: host-only, no SDL dependency and no RAM writes. */
 int cviii_lighting_editor_status(char *out,unsigned cap)
 {
