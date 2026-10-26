@@ -123,6 +123,10 @@ $hasLauncher=Test-Path -LiteralPath $coverageLauncher -PathType Leaf
 if ($hasVerifier -and $hasLauncher) {
  Copy-Item -LiteralPath $coverageTool -Destination (Join-Path $stage 'Verify-Compiled.py') -Force
  Copy-Item -LiteralPath $coverageLauncher -Destination (Join-Path $stage 'Verify-Compiled.ps1') -Force
+ $roundtripTool=Join-Path $repoPath 'JP/recomp/tools/verify_enhanced_save_roundtrip.py'
+ if (Test-Path -LiteralPath $roundtripTool -PathType Leaf) {
+  Copy-Item -LiteralPath $roundtripTool -Destination (Join-Path $stage 'Verify-SaveRoundtrip.py') -Force
+ }
 } elseif ($hasVerifier -or $hasLauncher) {
  throw 'Incomplete compiled-product verifier source; refusing partial private package.'
 } else {

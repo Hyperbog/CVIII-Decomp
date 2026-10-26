@@ -84,6 +84,23 @@ is mostly CPU RAM, lowering the PRG threshold or blindly adding seeds
 would not change actual PRG compilation coverage. No automatic build or
 modification to the existing executable is performed by acceptance.
 
+## Windows Enhanced full-machine save/load acceptance
+
+The seeded private Windows Enhanced compiled-runtime gate passed 2100 frames
+at 99.999867% compiled PRG with identical compiled/interpreter frame hashes.
+The follow-on ROM-free packaged Verify-SaveRoundtrip.py program accepts the
+same original ROM, existing controller input, candidate EXE and original
+compiled_product_acceptance.json. It authenticates all inputs and compares
+a full headless save-producing run and compiled/interpreter continuations
+against the accepted hashes. With 2100 frames its default save checkpoint
+is after frame 1049, resuming at frame 1050 (1050 frames in each mode).
+All private state files and machine hashes remain outside Git. Both
+runs use --no-save and do not modify the original player's cartridge saves.
+
+Only the pinned headless state serializer is tested. Actual Windows F4
+Save/Load, F8/F9 slots, F6 Audio modal, F10 stage tool, gameplay input
+and visual/audio output still require brief owner GUI testing. Do not
+replace the functioning CVIII-Alpha install with the seeded test build.
 ## JP0661 native keyboard controls: profiles and recoverable presets
 
 The working native game already supports persistent SDL keyboard/gamepad

@@ -109,6 +109,11 @@ jobs:
         run: |
           python JP/recomp/tools/test_verify_compiled_product.py
           if ($LASTEXITCODE -ne 0) { throw 'Compiled PRG acceptance contract failed' }
+      - name: Verify Enhanced save/load continuation contract (ROM-free)
+        shell: pwsh
+        run: |
+          python JP/recomp/tools/test_verify_enhanced_save_roundtrip.py
+          if ($LASTEXITCODE -ne 0) { throw 'Enhanced full-machine state acceptance contract failed' }
       - name: JP0725 verify real Windows 426x240 native framebuffer (synthetic layout)
         shell: pwsh
         run: |
