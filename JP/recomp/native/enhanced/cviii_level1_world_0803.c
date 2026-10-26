@@ -375,6 +375,10 @@ void cviii_world_clear_live_0805(CviiiLevel1World0803 *w){
     memset(w->chapel_projection,0,sizeof w->chapel_projection);
     w->chapel_projection_epochs=0u;
     w->chapel_margin_actor_count=0u;
+    /* Original room geometry and typed source definitions remain resident,
+     * while transient camera/phase observation is reset on savestate. */
+    memset(&w->horizontal_last,0,sizeof w->horizontal_last);
+    w->horizontal_observations=0u;
 }
 
 /* JP0811: independent original PRG0A room hierarchy, stage selector0.
