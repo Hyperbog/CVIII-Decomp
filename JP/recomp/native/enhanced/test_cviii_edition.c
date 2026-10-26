@@ -83,6 +83,16 @@ void cyc_render_sprites(uint32_t *out,int w,int h,int x,const uint8_t *bg,
 int main(void) {
     const CycHostExtras *e=cyc_host_extras();
     assert(e && e->options && e->option && e->present);
+    /* JP0752: Enhanced temporal-stable sprite presentation is ON in the
+     * new C11 default. Exercise legacy opt-out explicitly below, rather
+     * than implicitly assuming the old unwanted flicker setting. */
+    FILE *defaults=tmpfile();assert(defaults);
+    e->save_settings(e->ctx,defaults);rewind(defaults);
+    char default_text[256]={0};
+    assert(fread(default_text,1,sizeof(default_text)-1,defaults)>0);
+    fclose(defaults);
+    assert(strstr(default_text,"StableSprites = 1"));
+    assert(e->option(e->ctx,"--stable-sprites","0"));
     /* JP0646: all diagnostic CLI options must be advertised to the host,
      * rather than silently unreachable despite an implemented callback. */
     assert(e->option_count == 22);
