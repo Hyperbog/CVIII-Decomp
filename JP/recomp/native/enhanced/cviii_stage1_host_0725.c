@@ -365,7 +365,8 @@ const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
                  * emission stay unchanged, even outside the 256px image. */
                 (void)cviii_world_probe_chapel_0815(
                     &h->world,selector,camera_x,camera_y,
-                    CVIII_STAGE1_ORIGIN_0725,CVIII_STAGE1_WIDE_0725);
+                    CVIII_STAGE1_ORIGIN_0725,CVIII_STAGE1_WIDE_0725,
+                    h->sprite_bank_valid_0807?h->sprite_bank_0807:NULL);
             }
             center=chapel?CVIII_STAGE1_ORIGIN_0725:
                 viewport_center_0790(selector,camera_x);
