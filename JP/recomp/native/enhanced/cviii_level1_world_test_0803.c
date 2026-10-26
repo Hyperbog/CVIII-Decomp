@@ -301,7 +301,7 @@ int main(void){
               world->chapel[0].world_y==world->rooms[2].y+0x180 &&
               world->chapel[0].entries==1u && world->chapel_epochs==1u,
               "original world-axis admission") ||
-       !check(cviii_world_track_chapel_0813(world,vertical,0x200)==0 &&
+       !check(cviii_world_track_chapel_0813(world,vertical,0x1ff)==0 &&
               world->chapel[0].exits==1u && !world->chapel[0].eligible &&
               world->chapel[0].axis_world==0x0180u,
               "source persists after leaving original admission window") ||
