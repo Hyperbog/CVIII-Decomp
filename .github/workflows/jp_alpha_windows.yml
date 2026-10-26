@@ -406,6 +406,12 @@ jobs:
           $build = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win'
           ctest --test-dir $build -C Release -R '^JP0818_' --output-on-failure
           if ($LASTEXITCODE -ne 0) { throw 'JP0818 original reaction or child ancestry regression failed' }
+      - name: Verify JP0819 player and partner collision preflight, original source lifetime
+        shell: pwsh
+        run: |
+          $build = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win'
+          ctest --test-dir $build -C Release -R '^JP0819_' --output-on-failure
+          if ($LASTEXITCODE -ne 0) { throw 'JP0819 original B3EC or source-parent lifetime tests failed' }
       - name: Verify original PRG26 active actors in widescreen columns (ROM-free)
         shell: pwsh
         run: |
