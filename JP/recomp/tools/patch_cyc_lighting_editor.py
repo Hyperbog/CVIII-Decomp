@@ -264,6 +264,7 @@ def smoke() -> None:
     assert "cviii_imgui_window_point(s_ren,ev->button.x,ev->button.y,&mx,&my)" in product
     assert "cviii_imgui_scene_click(code,x,y)" in product
     assert "cviii_imgui_shutdown();" in product
+    assert "cviii_light_place_window(int window_x,int window_y)" in product
     assert "cviii_light_sdl_status();" in product
     assert "if(code!=4)" in product
     for invalid in (product,fixture.replace(KEY_ANCHOR,"/* changed */")):
