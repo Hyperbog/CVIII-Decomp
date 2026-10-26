@@ -42,7 +42,10 @@ behavior. It is not a signed-host `abs(world-camera)` approximation.
 persistent world registry's nine original seven-byte source identities.
 Each record retains original source CPU offset, world-axis coordinate,
 orthogonal source X, raw actor type, original eligibility,
-projected axis and saturated entry/exit counters. An object leaving
+projected axis and saturated entry/exit counters. Once the independently
+verified room graph places this chapel, original source XY is projected to
+global world XY as (room.x+record[3], room.y+16-bit axis). Unknown room
+connections leave world_placed=0 and NO guessed global position. An object leaving
 the original activation window remains **resident as source geometry**
 and can re-enter without a fresh ROM extraction. This tracking is
 independent of PRG26's original 28 *active* sprite/actor slots.
