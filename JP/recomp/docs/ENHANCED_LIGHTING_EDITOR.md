@@ -380,9 +380,22 @@ when the lighting feature itself is disabled. Emitter regions survive
 game reset, death, savestate loading, room scrolling and return
 through the existing scene identity/config.ini path.
 
-See [**Pixel FX guide and acceptance checklist**](ENHANCED_PIXEL_PARTICLES.md)
-for supported controls, saved keys, performance budgets and current
-sprite-occlusion limitations.
+**Randomized Global Weather** now offers named live profiles
+(Rain Showers, Thunderstorm, Winter Snow, Drifting Mist, Volcanic Ash,
+and Night Fireflies), shareable among room scenes. Each profile has
+a reproducible seed, chance of active weather, front duration,
+strength/opacity, wind, and layer settings. Front intensity changes
+smoothly over time without modifying the NES random-number generator.
+
+Individual Ember or Firefly regions can be **attached to named
+torches/candles** and configured with optional **GPU Particle Glow**,
+feeding a bounded number of genuine sources into the D3D11
+direct-light and Radiance Cascades passes. Foreground effects layer
+over sprites; behind-sprites effects use a read-only background-image
+mask when that layer can be reconstructed.
+
+See [**Pixel FX, Weather, and Particle Lighting guide**](ENHANCED_PIXEL_PARTICLES.md)
+for controls, save keys, rendering budgets, and remaining visual QA.
 
 ## Windows owner visual acceptance — Stage 1
 
