@@ -712,6 +712,21 @@ extern "C" int cviii_imgui_render(SDL_Window *window,SDL_Renderer *renderer){
         }
         if(ImGui::BeginTabItem("Settings")){
             current_tab=2;
+            ImGui::SeparatorText("Renderer Backend");
+            int renderer=cviii_lighting_editor_renderer();
+            if(ImGui::Combo("Lighting Mode",&renderer,
+                    "Standard (CPU, always available)\0GPU Prototype (D3D11, one bounce)\0")){
+                if(cviii_lighting_editor_set_renderer(renderer))dirty=true;
+            }
+            ImGui::TextWrapped("Standard uses the existing renderer. GPU Prototype "
+                "traces the manually authored wall masks and samples a single "
+                "diffuse bounce at 128x96. The original NES picture remains "
+                "full resolution. This experimental pass uses a D3D11 compute "
+                "device and reads back the light map; it is not Radiance Cascades.");
+            ImGui::Text("Backend: %s",cviii_lighting_editor_gpu_status());
+            ImGui::TextDisabled("While editing, Standard is shown for mask handles; "
+                "GPU renders after closing the editor. If unavailable or over "
+                "capacity, each frame automatically uses Standard.");
             ImGui::SeparatorText("Global Lighting");
             if(ImGui::Checkbox("Enable all lighting",&enabled))
                 maybe_change(0,enabled?1:0);
