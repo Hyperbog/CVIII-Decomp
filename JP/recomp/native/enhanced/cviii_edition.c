@@ -47,6 +47,7 @@ typedef struct {
     int stable_sprites; /* optional host-only temporal presentation; off by default */
     CviiiSpriteLayers sprite_layers;
     CviiiLighting lighting; /* separate host-only level lighting */
+    uint64_t lighting_frame; /* host animation, never serialized to guest */
     CviiiObjectOamTrace object_trace; /* read-only JP PRG26 object/OAM correlation */
     CviiiAudioBus audio_bus; /* opt-in nonmutating 2A03/VRC6 sound writes */
     CviiiSoundRequests sound_requests; /* original fixed $E249 ingress only */
@@ -350,6 +351,7 @@ static void power_on(void *context)
     cviii_layers_reset(&settings->sprite_layers);
     settings->lighting.edit=0;
     settings->lighting.dragging=0;
+    settings->lighting_frame=0;
     cviii_audio_menu_state_close(&settings->audio_ui); /* reset cannot leave a stale modal */
     cviii_start_close(&settings->start_menu);
     cviii_slot_cancel(&settings->slot_menu);
@@ -380,6 +382,7 @@ static void state_loaded(void *context)
     cviii_layers_reset(&settings->sprite_layers);
     settings->lighting.edit=0;
     settings->lighting.dragging=0;
+    settings->lighting_frame=0;
     cviii_audio_menu_state_close(&settings->audio_ui); /* loaded gameplay never owns a stale modal */
     cviii_start_close(&settings->start_menu);
     cviii_slot_cancel(&settings->slot_menu);
@@ -404,6 +407,7 @@ static void frame_begin(void *context)
 static void frame_end(void *context)
 {
     CviiiEdition *settings = (CviiiEdition *)context;
+    ++settings->lighting_frame;
     if (settings->object_trace.out)
         cviii_object_oam_trace_frame(&settings->object_trace,
                                     cyc_cpu_ram(), cyc_ppu_oam());
@@ -628,7 +632,7 @@ static const uint32_t *present(void *context,int *width,int *height)
             memcpy(settings->presentation,frame,sizeof settings->presentation);
         cviii_light_present(&settings->lighting,settings->presentation,
             CVIII_W,CVIII_H,cviii_lighting_room(),cviii_lighting_camera(),
-            sx,sy,cyc_frame_index());
+            sx,sy,settings->lighting_frame);
         frame=settings->presentation;
     }
     if (settings->enhanced && !settings->audio_ui.open &&
