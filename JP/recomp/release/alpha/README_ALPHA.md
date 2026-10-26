@@ -393,6 +393,39 @@ native presenter uses the new explicit-table implementation. Synthetic
 CI checks disjoint CHR table output, invalid table rejection and
 Stage 1-03 acceptance with PPU BG table $0000.
 
+## JP0803–JP0805 — Persistent original Level 1 world and actor resources
+
+An Enhanced-only world model is now constructed when the owner-original
+ROM's full eight-room Stage 1 background atlas passes SHA-256 and source
+validation. All eight backgrounds stay resident; the verified first
+1-01 → 1-02:0 connection has persistent world coordinates. Other
+subareas remain **loaded but deliberately unplaced** until a real
+original-game transition confirms their adjacency. Connections may
+branch horizontally or vertically. Death and savestate restore clear
+live actor display shadows, not known map geometry or resources.
+
+The model also observes all 28 original PRG26 live object slots each
+frame, with their original frame, attributes and current projected
+screen position. A released object slot is cleared; the model does
+not invent an offscreen enemy or interfere with native CPU/PPU state.
+
+The original authenticated raw0E resource window (175 bytes,
+BE8B–BF39) is separately SHA-256 pinned and decoded into five
+original actor-installation streams comprising 30 typed, five-field
+templates. The templates remain private in memory only. The original
+B7F7 loader's exact RAM postcondition is required before the world
+registry marks a group activated; revisiting an identical postcondition
+cannot duplicate the group. These are raw CPU object-installation
+fields, not guaranteed gameplay-world spawn coordinates.
+
+**Still to implement:** verified coordinate connections for all
+remaining Stage 1 branches and the offscreen-update/rendering system
+using original actor spawn lifetimes, AI state, collision and PRG26
+sprite descriptor animations. The currently accepted NES CPU remains
+the gameplay authority. Preloading all templates does NOT yet make
+enemies outside the original 4:3 screen spawn or act; public synthetic
+tests cannot certify that behavior. The current builds are development
+candidates, not ready for promotion on the basis of JP0803 alone.
 ## JP0661 native keyboard controls: profiles and recoverable presets
 
 The working native game already supports persistent SDL keyboard/gamepad
