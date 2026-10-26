@@ -78,6 +78,14 @@ void cyc_render_sprites(uint32_t *out,int w,int h,int x,const uint8_t *bg,
 }
 int main(void) {
     const CycHostExtras *e=cyc_host_extras();
+    assert(!strcmp(cviii_lighting_editor_key(),"Home"));
+    assert(cviii_lighting_editor_set_key("End"));
+    assert(!strcmp(cviii_lighting_editor_key(),"End"));
+    assert(!cviii_lighting_editor_set_key("Unknown\tKey"));
+    assert(!cviii_lighting_editor_set_key(""));
+    assert(!strcmp(cviii_lighting_editor_key(),"End"));
+    e->load_setting(e->ctx,"LightingEditorKey","Insert");
+    assert(!strcmp(cviii_lighting_editor_key(),"Insert"));
     assert(e && e->options && e->option && e->present);
     /* JP0646: all diagnostic CLI options must be advertised to the host,
      * rather than silently unreachable despite an implemented callback. */
@@ -154,6 +162,7 @@ int main(void) {
     assert(strstr(text,"MasterVolume = 50"));
     assert(strstr(text,"MusicVolume = 28"));
     assert(strstr(text,"SoundEffectsVolume = 64"));
+    assert(strstr(text,"LightingEditorKey = Insert"));
     /* Light editor must not affect original mode and must leave HUD intact. */
     assert(!cviii_lighting_editor_active());
     assert(!cviii_lighting_editor_input(1,-1,-1)); /* Original selected */
