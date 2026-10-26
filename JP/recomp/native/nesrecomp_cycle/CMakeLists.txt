@@ -138,6 +138,17 @@ if(WIN32 AND NOT JP_CYCLE_HEADLESS AND JP_EDITION_HOST_EXTRAS AND JP_SAVE_STATE_
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_gpu_rtgi_d3d11.cpp")
  target_compile_definitions(jp_akumajou_densetsu PRIVATE CVIII_WITH_GPU_RTGI=1)
  target_link_libraries(jp_akumajou_densetsu PRIVATE d3d11 d3dcompiler)
+ # Compile and EXECUTE the same embedded HLSL kernel as an unconditional
+ # ROM-free prerequisite of the private Windows game target. A successful
+ # C++ link alone does not guarantee a valid Direct3D compute shader.
+ add_executable(cviii_gpu_shader_smoke
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_gpu_rtgi_shader_test.cpp")
+ target_link_libraries(cviii_gpu_shader_smoke PRIVATE d3dcompiler)
+ target_compile_features(cviii_gpu_shader_smoke PRIVATE cxx_std_17)
+ add_custom_command(TARGET cviii_gpu_shader_smoke POST_BUILD
+  COMMAND "$<TARGET_FILE:cviii_gpu_shader_smoke>"
+  COMMENT "ROM-free D3D11 CS5.0 shader compiler smoke")
+ add_dependencies(jp_akumajou_densetsu cviii_gpu_shader_smoke)
  message(STATUS "CVIII: optional GPU Prototype RTGI via D3D11 compute, Standard fallback")
 endif()
 if(NOT JP_CYCLE_HEADLESS AND JP_SAVE_STATE_SLOTS)
