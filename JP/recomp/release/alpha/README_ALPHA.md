@@ -426,6 +426,42 @@ the gameplay authority. Preloading all templates does NOT yet make
 enemies outside the original 4:3 screen spawn or act; public synthetic
 tests cannot certify that behavior. The current builds are development
 candidates, not ready for promotion on the basis of JP0803 alone.
+## JP0806–JP0807 — One source-backed camera and active actor drawing
+
+**JP0806** makes the eight-room Stage 1 atlas a single resident world
+background model. A single global camera projects *every* placed,
+originally authenticated room into the 426-wide frame: the first
+768-pixel room, the proven 256-pixel successor and any later observed
+connections. Source room clipping uses the full 426-pixel canvas,
+not the former 256-pixel native viewport, so narrow next rooms enter
+the right margin as their physical tile geometry becomes visible.
+Original gameplay's 256 pixels and fixed top HUD are not overwritten.
+Unknown connections and the vertical chapel remain loaded in the
+original-ROM atlas, but placement and vertical scroll projection
+require genuine original-game transition evidence.
+
+**JP0807** imports the original PRG26+27 16KiB frame/descriptor window
+from the SHA-256-authenticated owner-private Japanese ROM, and checks
+that physical bank's hash separately. A read-only original compressed
+sprite descriptor painter reconstructs pieces for **already active**
+original PRG26 28-slot actors whose tracked world position reaches
+the 85-pixel widescreen side columns. The original sprite tile bytes,
+palette, mirroring, descriptor Y/X deltas and live NES CHR are used;
+the 256-pixel NES viewport, OAM, native AI, collisions, audio and
+save-state contents remain untouched. Object slot X wrap tracking
+preserves authentic live actors moving just beyond native X=0/X=255,
+without creating a second actor.
+
+Neither JP0806 nor JP0807 is a complete offscreen gameplay simulation.
+**Original sprite slots must exist and remain active** for this first
+sprite extension to draw them. Objects not spawned by the original
+CPU are still absent, and entirely unloaded enemy AI does not start
+early. Full connected Level 1 vertical/branch graph, collision-map
+integration, world-coordinate spawn scheduling, independent original
+AI lift, and actor synchronization/despawn across distant zones remain
+**OPEN**, not silently simulated with decorative clones. This build
+requires owner-private real-scene Windows QA before promotion.
+
 ## JP0661 native keyboard controls: profiles and recoverable presets
 
 The working native game already supports persistent SDL keyboard/gamepad
