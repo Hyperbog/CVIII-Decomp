@@ -549,6 +549,8 @@ int cviii_lighting_editor_active(void)
 int cviii_lighting_editor_input(int event,int x,int y)
 {
     if(!cviii.enhanced)return 0;
+    if(event==2 || event==5 || (event>=6 && event<=12))
+        cviii_light_history_push(&cviii.lighting);
     int sx[CVIII_LIGHT_H],sy[CVIII_LIGHT_H];
     /* No private SDL pointer or guest state is ever handed to the editor. */
     if(event==2 || event==3 || event==13)
@@ -581,6 +583,7 @@ int cviii_lighting_editor_select(int slot)
 }
 int cviii_lighting_editor_add(int x,int y)
 {
+    if(cviii_lighting_editor_active())cviii_light_history_push(&cviii.lighting);
     CviiiLighting *v=&cviii.lighting;
     if(!cviii_lighting_editor_active() || x<0 || x>=CVIII_W ||
        y<CVIII_LIGHT_HUD || y>=CVIII_H)return 0;
@@ -603,6 +606,7 @@ int cviii_lighting_editor_add(int x,int y)
 }
 int cviii_lighting_editor_property(int property,int value)
 {
+    if(cviii_lighting_editor_active())cviii_light_history_push(&cviii.lighting);
     CviiiLighting *v=&cviii.lighting;
     if(!cviii_lighting_editor_active())return 0;
     if(property==0){v->enabled=value!=0;return 1;}
@@ -633,6 +637,7 @@ int cviii_lighting_editor_copy(void)
 }
 int cviii_lighting_editor_paste(void)
 {
+    if(cviii_lighting_editor_active())cviii_light_history_push(&cviii.lighting);
     CviiiLighting *v=&cviii.lighting;
     if(!cviii_lighting_editor_active() || !v->clipboard_valid)return 0;
     /* Paste into current scene's center, not original stage/viewport.
@@ -647,24 +652,28 @@ int cviii_lighting_editor_paste(void)
 }
 int cviii_lighting_editor_duplicate(void)
 {
+    if(cviii_lighting_editor_active())cviii_light_history_push(&cviii.lighting);
     CviiiLighting *v=&cviii.lighting;
     return cviii_lighting_editor_active() &&
         cviii_light_duplicate(v,v->selected)>=0;
 }
 int cviii_lighting_editor_name(const char *text)
 {
+    if(cviii_lighting_editor_active())cviii_light_history_push(&cviii.lighting);
     CviiiLighting *v=&cviii.lighting;
     return cviii_lighting_editor_active() &&
         cviii_light_rename(v,v->selected,text);
 }
 int cviii_lighting_editor_group(const char *text)
 {
+    if(cviii_lighting_editor_active())cviii_light_history_push(&cviii.lighting);
     CviiiLighting *v=&cviii.lighting;
     return cviii_lighting_editor_active() &&
         cviii_light_group(v,v->selected,text);
 }
 int cviii_lighting_editor_scene(int property,int value)
 {
+    if(cviii_lighting_editor_active())cviii_light_history_push(&cviii.lighting);
     if(!cviii_lighting_editor_active())return 0;
     int pct=0,rgb[3];
     const uint32_t room=cviii_lighting_room();
@@ -700,6 +709,7 @@ const char *cviii_lighting_editor_builtin_name(int id)
 }
 int cviii_lighting_editor_apply_builtin(int id,int native_x,int native_y)
 {
+    if(cviii_lighting_editor_active())cviii_light_history_push(&cviii.lighting);
     int wx=0,wy=0;
     if(!cviii_lighting_placement(native_x,native_y,&wx,&wy))return 0;
     return cviii_light_apply_builtin(&cviii.lighting,id,
@@ -707,6 +717,7 @@ int cviii_lighting_editor_apply_builtin(int id,int native_x,int native_y)
 }
 int cviii_lighting_editor_apply_kit(int slot,int native_x,int native_y)
 {
+    if(cviii_lighting_editor_active())cviii_light_history_push(&cviii.lighting);
     int wx=0,wy=0;
     if(!cviii_lighting_placement(native_x,native_y,&wx,&wy))return 0;
     return cviii_light_kit_apply(&cviii.lighting,slot,
@@ -714,6 +725,7 @@ int cviii_lighting_editor_apply_kit(int slot,int native_x,int native_y)
 }
 int cviii_lighting_editor_capture_kit(int slot,const char *name)
 {
+    if(cviii_lighting_editor_active())cviii_light_history_push(&cviii.lighting);
     if(!cviii_lighting_editor_active())return 0;
     CviiiLighting *v=&cviii.lighting;
     if(v->selected<0 || v->selected>=CVIII_LIGHT_MAX ||
@@ -723,6 +735,7 @@ int cviii_lighting_editor_capture_kit(int slot,const char *name)
 }
 int cviii_lighting_editor_sky(int property,int value)
 {
+    if(cviii_lighting_editor_active())cviii_light_history_push(&cviii.lighting);
     if(!cviii_lighting_editor_active())return 0;
     int level=0,rgb[3],face=-1;
     uint32_t room=cviii_lighting_room();
@@ -739,10 +752,12 @@ int cviii_lighting_editor_sky(int property,int value)
  * Existing room IDs are unmodified until the user explicitly maps one. */
 unsigned cviii_lighting_editor_raw_room(void){return cviii_lighting_raw_room();}
 int cviii_lighting_editor_alias(unsigned stable){
+    if(cviii_lighting_editor_active())cviii_light_history_push(&cviii.lighting);
     return cviii_lighting_editor_active() &&
         cviii_light_scene_alias(&cviii.lighting,cviii_lighting_raw_room(),stable);
 }
 int cviii_lighting_editor_global_capture(int slot,const char *name){
+    if(cviii_lighting_editor_active())cviii_light_history_push(&cviii.lighting);
     if(!cviii_lighting_editor_active())return 0;
     int selected=cviii.lighting.selected;
     if(selected<0 || selected>=CVIII_LIGHT_MAX ||
@@ -751,6 +766,7 @@ int cviii_lighting_editor_global_capture(int slot,const char *name){
     return cviii_light_style_capture(&cviii.lighting,slot,selected,name);
 }
 int cviii_lighting_editor_global_link(int slot,int group){
+    if(cviii_lighting_editor_active())cviii_light_history_push(&cviii.lighting);
     if(!cviii_lighting_editor_active())return 0;
     int selected=cviii.lighting.selected;
     if(selected<0 || selected>=CVIII_LIGHT_MAX ||
@@ -761,10 +777,12 @@ int cviii_lighting_editor_global_link(int slot,int group){
         cviii_light_style_link(&cviii.lighting,selected,slot);
 }
 int cviii_lighting_editor_mask_add(int x,int y,int w,int h){
+    if(cviii_lighting_editor_active())cviii_light_history_push(&cviii.lighting);
     if(!cviii_lighting_editor_active())return -1;
     return cviii_light_mask_add(&cviii.lighting,cviii_lighting_room(),x,y,w,h);
 }
 int cviii_lighting_editor_mask_property(int slot,int property,int value){
+    if(cviii_lighting_editor_active())cviii_light_history_push(&cviii.lighting);
     if(!cviii_lighting_editor_active() || slot<0 || slot>=CVIII_OCCLUDER_MAX)
         return 0;
     CviiiOccluder *m=&cviii.lighting.masks[slot];
@@ -786,6 +804,7 @@ int cviii_lighting_editor_mask_property(int slot,int property,int value){
     *m=t;return 1;
 }
 int cviii_lighting_editor_grade(int property,int value){
+    if(cviii_lighting_editor_active())cviii_light_history_push(&cviii.lighting);
     if(!cviii_lighting_editor_active())return 0;
     int ev=0,temp=0,sat=100;
     unsigned room=cviii_lighting_room();
