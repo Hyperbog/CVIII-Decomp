@@ -39,6 +39,8 @@ CVIII_LIGHT_EXPORT int cviii_lighting_editor_apply_builtin(int id,int x,int y);
 CVIII_LIGHT_EXPORT int cviii_lighting_editor_apply_kit(int slot,int x,int y);
 CVIII_LIGHT_EXPORT int cviii_lighting_editor_capture_kit(int slot,const char *name);
 CVIII_LIGHT_EXPORT int cviii_lighting_editor_sky(int property,int value);
+CVIII_LIGHT_EXPORT int cviii_lighting_editor_builtin_count(void);
+CVIII_LIGHT_EXPORT const char *cviii_lighting_editor_builtin_name(int id);
 
 
 #ifdef __cplusplus
