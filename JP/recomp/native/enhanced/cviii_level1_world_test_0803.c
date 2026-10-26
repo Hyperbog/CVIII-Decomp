@@ -608,10 +608,20 @@ int main(void){
               world->parent_census[3].source_cleared_with_child &&
               !world->parent_census[3].visible_candidates &&
               world->parent_released_while_child_allocated==1u &&
+              (world->horizontal_unresolved_lineage_mask&(1u<<2)) &&
               !world->horizontal_child_allocations &&
               !world->horizontal_child_removals,
               "original hidden actor retains parent but no OAM claim"))
         return 49;
+    /* An identically numbered source slot can restart row32 while
+     * its previous child remains allocated; no new identity credit. */
+    ram[0x07c2u+3u]=0x32u;
+    if(!check(cviii_world_observe_children_0818(world,first,ram)==1 &&
+              (world->horizontal_unresolved_lineage_mask&(1u<<2)) &&
+              world->horizontal_source_reuse_warnings==1u &&
+              !world->parent_new_witnesses,
+              "original recycled row32 cannot reassign survivor's identity"))
+         return 52;
     ram[0x054eu+2u]=0u;
     if(!check(cviii_world_observe_children_0818(world,first,ram)==0 &&
               world->horizontal_child_removals==1u &&
@@ -637,7 +647,9 @@ int main(void){
               !world->horizontal_children[2].allocated &&
               !world->parent_census_epochs &&
               !world->parent_lost_witnesses &&
-              !world->parent_released_while_child_allocated,
+              !world->parent_released_while_child_allocated &&
+              !world->horizontal_unresolved_lineage_mask &&
+              !world->horizontal_source_reuse_warnings,
               "transient original source phase reset preserves source directory"))
          return 42;
     if(!check(!world->actors[0].active &&
