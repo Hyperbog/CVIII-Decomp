@@ -129,6 +129,11 @@ int cviii_world_preload_horizontal_0816(CviiiLevel1World0803 *w,
     w->horizontal_child_allocations=0u;
     w->horizontal_child_removals=0u;
     w->horizontal_child_room=0xffu;
+    memset(w->parent_census,0,sizeof w->parent_census);
+    w->parent_census_epochs=0u;
+    w->parent_new_witnesses=0u;
+    w->parent_lost_witnesses=0u;
+    w->parent_released_while_child_allocated=0u;
     return 1;
 }
 int cviii_world_observe_horizontal_0816(CviiiLevel1World0803 *w,
@@ -221,6 +226,33 @@ int cviii_world_observe_children_0818(CviiiLevel1World0803 *w,
                 w->horizontal_child_removals++;
         }
     }
+    CviiiParentCensus0819 parent_next[CVIII_SOURCE_PARENTS_0819];
+    if(cviii_parent_census_0819(ram,parent_next)<0)return -1;
+    if(w->horizontal_child_samples &&
+       w->horizontal_child_room==(uint8_t)room){
+        for(unsigned parent=0;parent<CVIII_SOURCE_PARENTS_0819;parent++){
+            const CviiiParentCensus0819 old=w->parent_census[parent];
+            const CviiiParentCensus0819 cur=parent_next[parent];
+            for(unsigned x=1u;x<=12u;x++){
+                const unsigned bit=1u<<x;
+                if((cur.actor_slot_mask&bit) &&
+                   !(old.actor_slot_mask&bit) &&
+                   w->parent_new_witnesses!=UINT32_MAX)
+                    w->parent_new_witnesses++;
+                if((old.actor_slot_mask&bit) &&
+                   !(cur.actor_slot_mask&bit) &&
+                   w->parent_lost_witnesses!=UINT32_MAX)
+                    w->parent_lost_witnesses++;
+            }
+            if(old.event_row==0x32u &&
+               cur.event_row!=0x32u && cur.children &&
+               w->parent_released_while_child_allocated!=UINT32_MAX)
+                w->parent_released_while_child_allocated++;
+        }
+    }
+    memcpy(w->parent_census,parent_next,sizeof parent_next);
+    if(w->parent_census_epochs!=UINT32_MAX)
+        w->parent_census_epochs++;
     memcpy(w->horizontal_children,next,sizeof next);
     w->horizontal_child_room=(uint8_t)room;
     if(w->horizontal_child_samples!=UINT32_MAX)
@@ -480,6 +512,11 @@ void cviii_world_clear_live_0805(CviiiLevel1World0803 *w){
     w->horizontal_child_allocations=0u;
     w->horizontal_child_removals=0u;
     w->horizontal_child_room=0xffu;
+    memset(w->parent_census,0,sizeof w->parent_census);
+    w->parent_census_epochs=0u;
+    w->parent_new_witnesses=0u;
+    w->parent_lost_witnesses=0u;
+    w->parent_released_while_child_allocated=0u;
 }
 
 /* JP0811: independent original PRG0A room hierarchy, stage selector0.
