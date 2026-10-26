@@ -2,8 +2,6 @@
  * ReShade itself (not our native SDL2 GUI) owns the overlay/context.
  * Win64, ReShade full-add-on runtime. Do not vendor or bundle ReShade.
  */
-#define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
 #include <Windows.h>
 #define IMGUI_DISABLE_INCLUDE_IMCONFIG_H
 #include <imgui.h>
@@ -172,8 +170,15 @@ void on_overlay(reshade::api::effect_runtime *){
             changed(bridge.prop(11,muted?1:0));
     }
     ImGui::SeparatorText("Scene Ambient");
-    int lvl=0,tint[3];
-    cviii_light_scene_get(s,room,&lvl,tint);
+    int lvl=s->ambient,tint[3]={255,255,255};
+    /* ReShade DLL only reads the C ABI snapshot; it never links directly
+     * against the original C11 executable's internal helper objects. */
+    for(int i=0;i<CVIII_SCENE_AMBIENT_MAX;++i){
+        const CviiiSceneAmbient &a=s->scenes[i];
+        if(!a.used || a.room!=room)continue;
+        lvl=a.level;tint[0]=a.red;tint[1]=a.green;tint[2]=a.blue;
+        break;
+    }
     if(ImGui::SliderInt("Ambient Strength",&lvl,0,100,"%d%%"))
         changed(bridge.scene(0,lvl));
     float c[3]={tint[0]/255.f,tint[1]/255.f,tint[2]/255.f};
