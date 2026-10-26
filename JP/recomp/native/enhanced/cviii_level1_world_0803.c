@@ -65,6 +65,16 @@ int cviii_world_detect_loader_0805(CviiiLevel1World0803 *w,
     unsigned g=ram[0x7a0u];
     if(g>=CVIII_WORLD_GROUPS_0804)return -1;
     CviiiWorldObjectGroup0804 *group=&w->groups[g];
+    /* JP0810: original cross-bank $B808–$B82C decodes the FIRST
+     * header byte into $34(high nibble)/$35(low nibble) and the SECOND
+     * header high nibble into $36. The five records in raw0E are
+     * generic stage examples (4,1,8,2,11), NOT Stage 1 ($34=0).
+     * A byte-equal installed stream in another room does not prove an
+     * original loader event or grant permission to spawn NPCs. */
+    if((group->header[0]>>4u)!=key[0] ||
+       (group->header[0]&15u)!=key[1] ||
+       (group->header[1]>>4u)!=key[2])
+        return -1;
     for(unsigned i=0;i<group->record_count;i++){
         unsigned x=i+1u;
         const CviiiWorldObjectTemplate0804 *t=

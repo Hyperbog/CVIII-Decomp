@@ -480,6 +480,18 @@ The physical relationship between the chapel and adjacent segments
 and original offscreen NPC behavior are not proven by this vertical
 camera feature; Stage1 remains an in-progress connected-world lift.
 
+**JP0810 source correction:** Original raw0E stream headers decode
+into room selectors via original $B808–$B82C. Their high-nibble
+stage identifiers are 4, 1, 8, 2, B, respectively. The Japanese
+Stage 1 layout currently uses original $34=0. **None of the five
+175-byte resource streams is a Stage 1 object-spawn definition.**
+JP0810 now checks the original three-field room selector against
+both resource header bytes before accepting an object-loader event;
+cross-stage false activation is rejected. The typed decoder remains
+useful for its actual source domain but cannot substitute for a
+correct Stage 1 spawn-resource and original AI trace. The separate
+Stage 1 background atlas remains source-authenticated.
+
 ## JP0661 native keyboard controls: profiles and recoverable presets
 
 The working native game already supports persistent SDL keyboard/gamepad

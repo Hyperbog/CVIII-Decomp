@@ -27,9 +27,9 @@ typedef struct {
     uint8_t original_type; /* original $054E+X slot allocator */
     uint32_t generation; /* advances only on new slot identity */
 } CviiiWorldActor0803;
-/* Thirty owner-ROM five-field installation records, preloaded once
- * for all five source windows. Records describe original loader inputs,
- * NOT simulated actors or invented AI/spawn positions. */
+/* Five owner-ROM five-field source windows decode 30 generic room
+ * installation records across stages 4,1,8,2,B (hex), NOT Stage 1.
+ * A stage0 room must never activate any of these by accident. */
 typedef struct {
     uint8_t source_group,source_index;
     uint8_t sprite_selector,frame_offset,initial_x,initial_y,mirror;
@@ -84,8 +84,9 @@ int cviii_world_visit_0803(CviiiLevel1World0803 *world,
  * physical source window first; this exact bounded parser fails atomically. */
 int cviii_world_preload_templates_0804(CviiiLevel1World0803 *world,
                 const uint8_t *raw0e_source,size_t source_len);
-/* Require the original CPU loader's complete RAM postcondition,
- * never spawn a template merely because it was preloaded. */
+/* Require BOTH the original CPU loader's decoded $34/$35/$36 stage
+ * header and complete postcondition. This imported raw0E window
+ * contains NO header for current Stage 1 ($34=0). */
 int cviii_world_detect_loader_0805(CviiiLevel1World0803 *world,
             const uint8_t selector[3],const uint8_t ram[2048]);
 void cviii_world_clear_live_0805(CviiiLevel1World0803 *world);

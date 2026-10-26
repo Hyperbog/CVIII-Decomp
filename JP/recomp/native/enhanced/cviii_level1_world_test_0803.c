@@ -181,6 +181,12 @@ int main(void){
     /* Original CPU loader postcondition: the five-field records must
      * actually be installed into game RAM before a resource is active. */
     ram[0x7a0]=4;
+    /* Invented synthetic stream for Stage1 key 00/01/00. Original
+     * JP raw0E group4 instead begins $B1, which is Stage B, not 0. */
+    block[starts[4]]=0x01u;
+    block[starts[4]+1u]=0u;
+    world->groups[4].header[0]=0x01u;
+    world->groups[4].header[1]=0u;
     for(unsigned i=0;i<world->groups[4].record_count;i++){
         const CviiiWorldObjectTemplate0804 *row=&world->templates[
             world->groups[4].record_start+i];
@@ -200,6 +206,12 @@ int main(void){
     if(!check(cviii_world_detect_loader_0805(world,second,ram)==4 &&
               world->groups[4].activations==1,
               "successive matching frames do not duplicate actors"))return 13;
+    world->groups[4].header[0]=0xB1u;
+    if(!check(cviii_world_detect_loader_0805(world,second,ram)==-1 &&
+              world->groups[4].activations==1,
+              "genuine other-stage header cannot become Stage1 actor spawn"))
+        return 24;
+    world->groups[4].header[0]=0x01u;
     ram[0x54f]=0;
     if(!check(cviii_world_detect_loader_0805(world,second,ram)==-1 &&
               world->groups[4].activations==1,
