@@ -364,7 +364,7 @@ int main(void){
               world->chapel_projection[0].point_region==
                   CVIII_PROBE_MARGIN_0815 &&
               world->chapel_projection[0].interaction_policy==
-                  CVIII_INTERACTION_MAY_ROUTE_B162_0815,
+                  CVIII_INTERACTION_TYPE80_B258_0816,
               "only original installed actor projects into synthetic margin"))
         return 31;
     if(!check(cviii_world_probe_chapel_0815(
@@ -395,7 +395,7 @@ int main(void){
               !world->chapel_projection[0].actor_confirmed &&
               !world->chapel_projection[0].visual_valid &&
               world->chapel_projection[0].interaction_policy==
-                  CVIII_INTERACTION_MAY_ROUTE_B162_0815,
+                  CVIII_INTERACTION_TYPE80_B258_0816,
               "hidden original actor is allocated but never ghost-rendered"))
         return 35;
     /* Restore a synthetic visible guest actor for later recycling tests. */
