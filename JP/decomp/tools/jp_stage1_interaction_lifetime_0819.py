@@ -22,6 +22,12 @@ WINDOWS = {
         "1a56eba8c0ea0a5f3000e99f672c73af872cb4e91fb90d2c3b99343a915922a4"),
     "80B3_absolute_6502_difference": (11, 0x80B3, 0x80D5,
         "efe15ed5964c3547b205c6e02aa1cdd4740c0e59d4ea9022fe581c7572341d48"),
+    "B727_counter_exception": (11, 0xB727, 0xB73A,
+        "cba0bb3bb196bba95ab64ee80cb78f408f273fa978472b74bd469455422e257c"),
+    "B2B5_contact_effect_prefix": (11, 0xB2B5, 0xB317,
+        "8c04be37a562747e49c4edd5feeed46858ad803a80cdde0804744b62fe5fbe33"),
+    "B32D_special_low_nibble": (11, 0xB32D, 0xB339,
+        "fd2a07970cb44e6ddeb400cb1984159f9b06f90de83ba8306b7fb5ad2e767a6b"),
     "8B2C_original_row32_child": (10, 0x8B2C, 0x8B73,
         "c68f0be607e8d22d89415ce59d526a36881c046270dbd09af7f6f3598a8231e3")
 }
@@ -63,7 +69,16 @@ def prove(path: Path) -> None:
     if part(0xB2B5,0xB2C1) != bytes.fromhex(
         "20 27 b7 20 23 b3 19 20 b3 9d 8d 06"):
         raise ValueError("B727 contact and 068D mask mutation changed")
-    print("PASS JP0819 owner-ROM SHA, physical bank SHA and six original CPU windows")
+    if part(0xB727,0xB73A) != bytes.fromhex(
+        "ad 4e 05 c9 02 d0 09 a4 9b b9 4e 05 c9 08 f0 02 e6 99 60"):
+        raise ValueError("original B727 player2/partner8 counter exception changed")
+    if part(0xB2B5,0xB2BE) != bytes.fromhex(
+        "20 27 b7 20 23 b3 19 20 b3"):
+        raise ValueError("original B727 plus B323 contact mask sequence changed")
+    if part(0xB32D,0xB339) != bytes.fromhex(
+        "29 0f c9 03 d0 05 b9 4e 05 c9 02 60"):
+        raise ValueError("original B32D low-nibble and partner2 exception changed")
+    print("PASS JP0820 owner-ROM SHA, physical bank SHA and nine CPU windows")
     print("PASS B3EC, E5BE deferral, partner 20-22 bitmask 02/04/08, B727 stop")
     print("No natural-game collision or offscreen AI assertion")
 
