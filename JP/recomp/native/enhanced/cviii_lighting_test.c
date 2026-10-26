@@ -71,6 +71,7 @@ int main(void){
  assert(!strcmp(l.light[copy].group,"Stage 1 torches"));
  int duplicate=cviii_light_duplicate(&l,0);
  assert(duplicate==2 && l.light[duplicate].x==544 && l.light[duplicate].y==108);
+ l.light[duplicate].room=30; /* isolate cone footprint from cloned radial light */
  assert(cviii_light_shape(&l,0,CVIII_SHAPE_CONE));
  l.light[0].angle=0;l.light[0].spread=30;l.light[0].width=32;
  assert(!cviii_light_shape(&l,0,99));
