@@ -186,7 +186,7 @@ if(NOT JP_CYCLE_HEADLESS AND JP_SAVE_STATE_SLOTS)
   if(NOT JP_AUDIO_RETURN_PATCH_RESULT EQUAL 0)
    message(FATAL_ERROR "Nested Audio return SDL patch failed: ${JP_AUDIO_RETURN_PATCH_ERROR}")
   endif()
-  # Eighth owner-private SDL layer: F7 lighting editor and mouse routing.
+  # Eighth owner-private SDL layer: Home lighting workbench, sliders and mouse routing.
   set(JP_LIGHTING_OVERLAY "${NESRECOMP_EXTERNAL_ROOT}/runner/cyc/cviii_cyc_sdl_lighting.c")
   execute_process(
    COMMAND "${Python3_EXECUTABLE}"
@@ -195,7 +195,7 @@ if(NOT JP_CYCLE_HEADLESS AND JP_SAVE_STATE_SLOTS)
    RESULT_VARIABLE JP_LIGHTING_PATCH_RESULT
    ERROR_VARIABLE JP_LIGHTING_PATCH_ERROR)
   if(NOT JP_LIGHTING_PATCH_RESULT EQUAL 0)
-   message(FATAL_ERROR "F7 lighting editor SDL overlay failed: ${JP_LIGHTING_PATCH_ERROR}")
+   message(FATAL_ERROR "Home lighting workbench SDL overlay failed: ${JP_LIGHTING_PATCH_ERROR}")
   endif()
   set(JP_FINAL_SDL_OVERLAY "${JP_LIGHTING_OVERLAY}")
  endif()
