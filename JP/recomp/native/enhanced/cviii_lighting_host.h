@@ -56,6 +56,12 @@ CVIII_LIGHT_EXPORT int cviii_lighting_editor_undo(void);
 CVIII_LIGHT_EXPORT int cviii_lighting_editor_redo(void);
 CVIII_LIGHT_EXPORT int cviii_lighting_editor_can_undo(void);
 CVIII_LIGHT_EXPORT int cviii_lighting_editor_can_redo(void);
+/* 0 Standard = always supported; 1 GPU Prototype = Windows D3D11 compute.
+ * The active frame falls back to Standard if the GPU backend fails. */
+CVIII_LIGHT_EXPORT int cviii_lighting_editor_renderer(void);
+CVIII_LIGHT_EXPORT int cviii_lighting_editor_set_renderer(int mode);
+CVIII_LIGHT_EXPORT const char *cviii_lighting_editor_gpu_status(void);
+CVIII_LIGHT_EXPORT int cviii_lighting_editor_gpu_active(void);
 
 
 #ifdef __cplusplus
