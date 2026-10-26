@@ -65,17 +65,40 @@ void ui_handles(SDL_Renderer *renderer) {
 }
 } // namespace
 
+/* SDL_RenderSetLogicalSize() makes SDL2 rewrite mouse events into
+ * NES 256x240 logical coordinates. Dear ImGui's SDL2 backend, however,
+ * computes io.DisplaySize using SDL_GetWindowSize(). Restore window
+ * coordinates BEFORE forwarding the event, including drag/motion.
+ * SDL_RenderLogicalToWindow also accounts for letterboxing and resizing. */
+extern "C" void cviii_imgui_window_point(SDL_Renderer *r,int ex,int ey,
+                                          int *wx,int *wy){
+    if(!wx || !wy)return;
+    *wx=ex;*wy=ey;
+    if(!r)return;
+    int lw=0,lh=0;
+    SDL_RenderGetLogicalSize(r,&lw,&lh);
+    if(lw>0 && lh>0)
+        SDL_RenderLogicalToWindow(r,(float)ex,(float)ey,wx,wy);
+}
 extern "C" int cviii_imgui_event(const SDL_Event *e,SDL_Window *w,SDL_Renderer *r){
     if(!e || !cviii_lighting_editor_active() || !init(w,r))return 0;
-    ImGui_ImplSDL2_ProcessEvent(e);
+    SDL_Event window_event=*e;
+    if(e->type==SDL_MOUSEMOTION){
+        cviii_imgui_window_point(r,e->motion.x,e->motion.y,
+                                 &window_event.motion.x,&window_event.motion.y);
+    }else if(e->type==SDL_MOUSEBUTTONDOWN || e->type==SDL_MOUSEBUTTONUP){
+        cviii_imgui_window_point(r,e->button.x,e->button.y,
+                                 &window_event.button.x,&window_event.button.y);
+    }
+    ImGui_ImplSDL2_ProcessEvent(&window_event);
     switch(e->type){
     case SDL_MOUSEBUTTONDOWN:
     case SDL_MOUSEBUTTONUP: {
-        const int x=e->button.x,y=e->button.y;
+        const int x=window_event.button.x,y=window_event.button.y;
         return within_panel(x,y)||ImGui::GetIO().WantCaptureMouse;
     }
     case SDL_MOUSEMOTION:
-        return within_panel(e->motion.x,e->motion.y)||
+        return within_panel(window_event.motion.x,window_event.motion.y)||
                ImGui::GetIO().WantCaptureMouse;
     case SDL_MOUSEWHEEL: {
         int x=0,y=0;SDL_GetMouseState(&x,&y);
