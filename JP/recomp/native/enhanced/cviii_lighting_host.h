@@ -20,6 +20,13 @@ int cviii_lighting_editor_select(int slot);
 int cviii_lighting_editor_add(int x,int y);
 int cviii_lighting_editor_property(int property,int value);
 int cviii_lighting_editor_point(int slot,int *x,int *y);
+/* ReShade/ImGui-neutral authoring operations. All require editor open. */
+int cviii_lighting_editor_copy(void);
+int cviii_lighting_editor_paste(void);
+int cviii_lighting_editor_duplicate(void);
+int cviii_lighting_editor_name(const char *name);
+int cviii_lighting_editor_group(const char *group);
+int cviii_lighting_editor_scene(int property,int value);
 
 #ifdef __cplusplus
 }
