@@ -201,12 +201,25 @@ void cviii_light_kit_save(const CviiiLighting *s,FILE *f){
             fputc(',',f);
             if(!l->group[0])fputc('-',f);else hex_write(f,l->group);
             fputc('\n',f);
+            if(l->anim_speed || l->anim_strength)
+                fprintf(f,"LightKitMotion%02d_%d = %d,%d\n",
+                    k,i,l->anim_speed,l->anim_strength);
         }
     }
 }
 int cviii_light_kit_load(CviiiLighting *s,const char *key,const char *value){
     if(!s || !key || !value)return 0;
     unsigned kit=0,part=0;int n=0;char tail;
+    if(!strncmp(key,"LightKitMotion",14)){
+        int speed=0,strength=0;
+        if(sscanf(key,"LightKitMotion%2u_%1u%c",&kit,&part,&tail)!=2 ||
+           kit>=CVIII_KIT_MAX || part>=CVIII_KIT_PARTS ||
+           sscanf(value,"%d,%d%n",&speed,&strength,&n)!=2 || value[n] ||
+           speed<0 || speed>400 || strength<0 || strength>100)return 0;
+        s->kits[kit].part[part].anim_speed=speed;
+        s->kits[kit].part[part].anim_strength=strength;
+        return 1;
+    }
     if(sscanf(key,"LightKitPart%2u_%1u%c",&kit,&part,&tail)==2 &&
        kit<CVIII_KIT_MAX && part<CVIII_KIT_PARTS){
         CviiiLight v={0};
@@ -221,7 +234,7 @@ int cviii_light_kit_load(CviiiLighting *s,const char *key,const char *value){
            v.radius<12 || v.radius>160 || v.energy<5 || v.energy>160 ||
            v.shape<0 || v.shape>2 || v.angle<0 || v.angle>359 ||
            v.spread<0 || v.spread>85 || v.width<0 || v.width>160 ||
-           v.muted<0 || v.muted>1 || v.flicker<0 || v.flicker>2 ||
+           v.muted<0 || v.muted>1 || v.flicker<0 || v.flicker>4 ||
            v.x< -65535 || v.x>65535 || v.y< -479 || v.y>479 ||
            (strcmp(label,"-") && !hex_read(v.name,sizeof v.name,label)) ||
            (strcmp(group,"-") && !hex_read(v.group,sizeof v.group,group)))return 0;
