@@ -103,6 +103,72 @@ int main(void)
     for(int y=0;y<240;y++)for(int x=0;x<256;x++)
       if (!require(pixels[y*426+(y<CVIII_STAGE1_HUD_ROWS_0781?85:0)+x]==original[y*256+x],
                    "all 61,440 NES pixels preserved at boundary-aware offset"))return 1;
+    /* JP0801 regression: Stage 1-03 / Stage 1-04 selection is always
+     * source-backed, not tied to the first room's $5A-$5D TSA pointers.
+     * Each room's natural width and each native PPU page is verified.
+     * The previous buggy gate would reject every one of these cases
+     * before testing any visible source tiles. */
+    {
+        static const uint8_t later_keys[][3]={
+           {0,1,2},{0,1,3},{0,2,0},{0,2,1},{0,3,0}
+        };
+        static const int natural_width[]={768,512,768,768,1024};
+        cviii_stage1_host_reset_0751(&host);
+        for(unsigned area=0;area<5;area++) {
+            const uint8_t *key=later_keys[area];
+            if(!require(cviii_stage1_atlas_horizontal_width_0801(
+                   &host.atlas,key)==natural_width[area],
+                   "all known later Stage1 subarea geometries loaded"))
+                return 1;
+            /* Authentic ROM layout confirms the visible nametable even
+             * when original per-room TSA producer pointers differ. */
+            test_ram[0x34]=key[0];test_ram[0x35]=key[1];
+            test_ram[0x36]=key[2];
+            test_ram[0x5a]=0x00;test_ram[0x5b]=0x00;
+            test_ram[0x5c]=0x00;test_ram[0x5d]=0x00;
+            test_ram[0x53]=0;test_ram[0x54]=0;
+            memset(live_nt,0,sizeof live_nt);
+            seed_visible_room(key,0);
+            scroll_x=0;w=256;h=240;
+            pixels=cviii_stage1_host_present_0725(
+                &host,original,&w,&h,1);
+            if(!require(host.has_verified_scene &&
+                        !memcmp(host.last_verified_selector,key,3) &&
+                        host.last_verified_camera==0 &&
+                        pixels[96*426+400]!=0xff000000u,
+                        "later room accepted with ROM/PPU proof and wide scenery"))
+                return 1;
+            /* Source on the next screen: physical PPU nametable page1
+             * and RAM $53/$54 advance to 256+40 within the same room. */
+            test_ram[0x53]=40;test_ram[0x54]=1;
+            memset(live_nt,0,sizeof live_nt);
+            seed_visible_room_from_x(key,1,256);
+            scroll_x=296;w=256;h=240;
+            pixels=cviii_stage1_host_present_0725(
+                &host,original,&w,&h,1);
+            if(!require(host.has_verified_scene &&
+                        !memcmp(host.last_verified_selector,key,3) &&
+                        host.last_verified_camera==296,
+                        "later room page1 camera verified without 4:3 fallback"))
+                return 1;
+        }
+        /* Truly nonhorizontal room 1-02:1 is never painted sideways. */
+        const uint8_t vertical[3]={0,1,1};
+        if(!require(cviii_stage1_atlas_horizontal_width_0801(
+               &host.atlas,vertical)==0,
+               "vertical chapel must not receive horizontal fake map"))
+            return 1;
+        /* Return the fixture to an authenticated first-room state. */
+        cviii_stage1_host_reset_0751(&host);
+        memset(live_nt,0,sizeof live_nt);
+        test_ram[0x34]=0;test_ram[0x35]=0;test_ram[0x36]=0;
+        test_ram[0x53]=0;test_ram[0x54]=0;
+        test_ram[0x5a]=0x41;test_ram[0x5b]=0x84;
+        test_ram[0x5c]=0x51;test_ram[0x5d]=0x8d;
+        seed_visible_room(first_room,0);
+        scroll_x=0;w=256;h=240;
+        (void)cviii_stage1_host_present_0725(&host,original,&w,&h,1);
+    }
     /* JP0800 video regression: authoritative NES PPU moves while RAM
      * $53/$54 and nametable attestation lag. Old host froze BOTH side
      * columns while 4:3 NES gameplay moved. Advance by PPU delta, not by

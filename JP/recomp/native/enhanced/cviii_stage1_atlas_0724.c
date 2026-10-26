@@ -73,6 +73,15 @@ int cviii_stage1_atlas_width_0751(const CviiiStage1Atlas0724 *a,
     return idx<0 ? 0 : (int)a->rooms[idx].width_tiles*8;
 }
 
+int cviii_stage1_atlas_horizontal_width_0801(
+    const CviiiStage1Atlas0724 *a,const uint8_t key[3])
+{
+    if(!a || !a->loaded)return 0;
+    const int idx=locate(key);
+    if(idx<0 || a->rooms[idx].vertical)return 0;
+    return (int)a->rooms[idx].width_tiles*8;
+}
+
 uint32_t cviii_stage1_atlas_paint_0724(const CviiiStage1Atlas0724 *a,
     const uint8_t key[3],int camera_x,int camera_y,
     uint32_t *dst,int width,int height,int center_x,

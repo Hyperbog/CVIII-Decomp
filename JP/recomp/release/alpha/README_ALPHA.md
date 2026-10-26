@@ -351,6 +351,33 @@ A separate C11 fixture checks neighboring room projection beyond an
 old room's last visible 256px window. Authentic Windows owner visual
 acceptance is still needed.
 
+## JP0801 — All original Stage 1 horizontal subareas (including 1-03)
+
+The Stage 1 atlas was already loading all 8 original Japanese ROM
+layouts from the start. The **actual presenter** nevertheless applied
+the 1-01-specific original CPU $5A-$5D TSA pointer values to every
+future room. That can cause 1-03/1-04 to fail stage-camera validation
+despite fully present authentic ROM scenery: the renderer kept moving
+the old-room side camera and eventually painted nothing beyond the
+native 256-pixel screen. The owner saw that exact 4:3/black-margin
+symptom in BLK 1-03.
+
+JP0801 removes that frozen **opening-room pointer** gate, replacing
+it with a source-indexed lookup of every known horizontal Stage 1
+layout followed by the original, unchanged live PPU nametable
+attestation (12 probes/75%), CPU gameplay state, background rendering
+flags and scroll phase consistency. Unknown stage selectors and
+vertical 1-02:1 remain unsupported. 1-01, 1-02:0/2/3, 1-03:0/1 and
+1-04:0 are eligible; sprites are still original-game active objects,
+not automatically moved beyond the 4:3 picture.
+
+Synthetic C11 regression exercises all five later horizontal keys
+at local X0 and at X296 on physical NT1, with deliberately changed
+TSA source pointers, plus explicit rejection of the vertical chapel.
+No original game data is stored in public source. Windows retail
+verification is still required, particularly at original screenshot
+BLK 1-03 where graphics previously vanished.
+
 ## JP0661 native keyboard controls: profiles and recoverable presets
 
 The working native game already supports persistent SDL keyboard/gamepad

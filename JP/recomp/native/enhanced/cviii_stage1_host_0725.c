@@ -112,15 +112,19 @@ static int camera(const CviiiStage1Host0725 *h,uint8_t sel[3],
 {
     const uint8_t *ram=cyc_cpu_ram();
     if (!ram || ram[0x18u]!=4u ||
-        ram[0x5Au]!=0x41u || ram[0x5Bu]!=0x84u ||
-        ram[0x5Cu]!=0x51u || ram[0x5Du]!=0x8Du ||
         (cyc_render_line_mask(120)&0x08u)==0 ||
-        cyc_render_line_bg_table(120)!=0x1000u) return 0;
+        cyc_render_line_bg_table(120)!=0x1000u)return 0;
     sel[0]=ram[0x34u];sel[1]=ram[0x35u];sel[2]=ram[0x36u];
-    /* Original $65 bit7 identifies vertical-stage movement, not X.
-     * That layout is only 256 pixels wide and cannot fill side margins. */
-    if (sel[0]!=0u || (ram[0x65u]&0x80u) ||
-        (sel[1]==1u && sel[2]==1u)) return 0;
+    /* JP0801: ALL original Stage 1 rooms are already ROM-decoded.
+     * $5A/$5B/$5C/$5D were observed as $8441/$8D51 only in an opening
+     * area; demanding those transient source pointers for the whole
+     * level silently rejects later stages and leaves the side camera
+     * stranded in the old room. Verify the selected ROM room AND live
+     * PPU nametable contents instead of assuming a pointer never moves.
+     * Other stages, unknown keys and vertical maps fail closed. */
+    if((ram[0x65u]&0x80u) ||
+       cviii_stage1_atlas_horizontal_width_0801(&h->atlas,sel)<256)
+        return 0;
     int local_x=(int)ram[0x53u]+((int)ram[0x54u]<<8);
     int ppu_x=cyc_render_line_scroll_x(120)&511;
     int ppu_y=cyc_render_line_scroll_y(120);
@@ -200,7 +204,7 @@ const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
         (cyc_render_line_mask(120)&0x08u);
     int center=CVIII_STAGE1_ORIGIN_0725;
     if(valid_camera) {
-        int room_width=cviii_stage1_atlas_width_0751(&h->atlas,selector);
+        int room_width=cviii_stage1_atlas_horizontal_width_0801(&h->atlas,selector);
         if(room_width>=256 && camera_x>=0 && camera_x<=room_width-256) {
             cviii_stage1_join_accept_0751(&h->join,selector,camera_x,room_width);
             cviii_stage1_join_restore_0782(&h->join,selector,camera_x,room_width);
@@ -273,7 +277,7 @@ const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
                256u*sizeof(uint32_t));
     }
     if(valid_camera) {
-        const int width_px=cviii_stage1_atlas_width_0751(&h->atlas,selector);
+        const int width_px=cviii_stage1_atlas_horizontal_width_0801(&h->atlas,selector);
         if(width_px>=256) {
             (void)cviii_stage1_atlas_paint_0724(&h->atlas,selector,
                 camera_x,camera_y,h->pixels,CVIII_STAGE1_WIDE_0725,240,
