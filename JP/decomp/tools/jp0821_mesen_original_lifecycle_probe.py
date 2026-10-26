@@ -55,7 +55,7 @@ def bounded_probe(mesen:Path,rom:Path,root:Path,state:Path,
     cpu=json.loads(state_json.read_text())
     slot=cpu.get("cpu.x")
     typelist=memory(events,0x540)
-    original_types=[typelist[0x054eu+i-0x540] for i in (1,2)]
+    original_types=[typelist[0x054e+i-0x540] for i in (1,2)]
     report={"status":"original_breakpoint_hit",
             "frame":summary.get("final_frame"),
             "cycles":cpu.get("cpu.cycleCount"),
@@ -63,8 +63,8 @@ def bounded_probe(mesen:Path,rom:Path,root:Path,state:Path,
             "actor_slot":slot,
             "type1_type2":original_types}
     if isinstance(slot,int) and 1<=slot<=18:
-        type_now=typelist[0x054eu+slot-0x540]
-        flags=memory(events,0x400)[0x0470u+slot-0x400] if False else memory(events,0x400)[0x470+slot-0x400]
+        type_now=typelist[0x054e+slot-0x540]
+        flags=memory(events,0x400)[0x0470+slot-0x400] if False else memory(events,0x400)[0x470+slot-0x400]
         parent=memory(events,0x640)[0x645+slot-0x640]
         report["actor_type"]=type_now
         report["original_row32_child_witness"]=(
