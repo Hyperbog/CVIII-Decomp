@@ -3,6 +3,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+static uint8_t chroma(uint16_t addr){(void)addr;return 255u;}
+static uint32_t palette(int index){return 0xff400000u+(uint32_t)index;}
+static uint32_t panorama[426*240];
 static int check(int ok,const char *name){
     if(!ok)fprintf(stderr,"JP0803 FAIL %s\n",name);
     return ok;
@@ -50,6 +53,35 @@ int main(void){
        || !check(!cviii_world_connect_0803(world,first,vertical,
                                       CVIII_WORLD_RIGHT_0803),
               "overlap and contradictory placement rejected"))return 5;
+    /* JP0806: one world camera paints genuine scenery on both margins
+     * across first, second and third connected rooms; never overpaint
+     * the native 256px image or the complete HUD. */
+    memset(panorama,0,sizeof panorama);
+    for(int row=0;row<240;row++)
+        for(int col=85;col<341;col++)
+            panorama[row*426+col]=0xff112233u;
+    uint32_t n=cviii_world_paint_0806(world,atlas,first,700,0,
+                        panorama,426,240,85,0x1000u,chroma,palette);
+    if(!check(n>0 && panorama[100*426+0]!=0u &&
+               panorama[100*426+370]!=0u,
+               "placed consecutive rooms share the same pan camera") ||
+       !check(panorama[100*426+85]==0xff112233u &&
+               panorama[100*426+340]==0xff112233u &&
+               panorama[25*426+0]==0u,
+               "unmodified native 4:3 pixels and fixed HUD"))return 16;
+    memset(panorama,0,sizeof panorama);
+    n=cviii_world_paint_0806(world,atlas,second,0,0,
+                        panorama,426,240,85,0x1000u,chroma,palette);
+    if(!check(n>0 && panorama[100*426+0]!=0u &&
+               panorama[100*426+370]!=0u,
+               "world camera same source pixels after authoritative selector switch"))
+        return 17;
+    /* No projection into an unknown branch, no repeated fake geometry. */
+    memset(panorama,0,sizeof panorama);
+    if(!check(cviii_world_paint_0806(world,atlas,(uint8_t[]){0,1,3},
+                        0,0,panorama,426,240,85,0x1000u,
+                        chroma,palette)==0u,
+              "unproven graph edge never fabricated"))return 18;
     uint8_t ram[2048]={0};
     ram[0x400]=4;ram[0x41c]=100;ram[0x438]=60;
     ram[0x454]=3;ram[0x470]=0;ram[0x48c]=8;ram[0x4a8]=1;

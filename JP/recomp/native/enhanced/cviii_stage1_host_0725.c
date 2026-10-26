@@ -324,26 +324,30 @@ const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
         const uint16_t bg_table=cyc_render_line_bg_table(120);
         const int width_px=cviii_stage1_atlas_horizontal_width_0801(&h->atlas,selector);
         if(width_px>=256) {
-            (void)cviii_stage1_atlas_paint_bg_table_0802(&h->atlas,selector,
-                camera_x,camera_y,h->pixels,CVIII_STAGE1_WIDE_0725,240,
-                center,bg_table,cyc_render_chr,cyc_render_color);
-            /* JP0790: the predecoded Stage 1 atlas is a continuous
-             * world scene, not a timed scene-copy effect. Paint each known
-             * room ONLY in its true neighboring world coordinate. Current
-             * room atlas rejects out-of-bounds tiles, so none overlaps.
-             * This also fills the next room's right margin BEFORE the NES
-             * selector changes; no speculative future-camera snap. */
-            uint8_t neighbor[3];int neighbor_x=0;
-            if(cviii_stage1_join_neighbor_0790(&h->join,selector,
-                    camera_x,width_px,-1,neighbor,&neighbor_x))
-                (void)cviii_stage1_atlas_paint_bg_table_0802(&h->atlas,neighbor,
-                    neighbor_x,camera_y,h->pixels,CVIII_STAGE1_WIDE_0725,240,
+            /* A single world-space camera paints EVERY source-confirmed
+             * placed Level1 room. This survives all native room switches
+             * without a second camera pan or view-local tile repetition. */
+            const uint32_t world_pixels=cviii_world_paint_0806(&h->world,
+                &h->atlas,selector,camera_x,camera_y,h->pixels,
+                CVIII_STAGE1_WIDE_0725,240,center,bg_table,
+                cyc_render_chr,cyc_render_color);
+            if(!world_pixels) {
+                /* Rooms reached by an unobserved branch stay fully
+                 * preloaded but unplaced. Preserve the old PPU-validated
+                 * per-room fallback until original transition evidence
+                 * establishes their physical position in the graph. */
+                (void)cviii_stage1_atlas_paint_bg_table_0802(&h->atlas,selector,
+                    camera_x,camera_y,h->pixels,CVIII_STAGE1_WIDE_0725,240,
                     center,bg_table,cyc_render_chr,cyc_render_color);
-            if(cviii_stage1_join_neighbor_0790(&h->join,selector,
-                    camera_x,width_px,1,neighbor,&neighbor_x))
-                (void)cviii_stage1_atlas_paint_bg_table_0802(&h->atlas,neighbor,
-                    neighbor_x,camera_y,h->pixels,CVIII_STAGE1_WIDE_0725,240,
-                    center,bg_table,cyc_render_chr,cyc_render_color);
+                uint8_t neighbor[3];int neighbor_x=0;
+                for(int side=-1;side<=1;side+=2)
+                    if(cviii_stage1_join_neighbor_0790(&h->join,selector,
+                            camera_x,width_px,side,neighbor,&neighbor_x))
+                        (void)cviii_stage1_atlas_paint_bg_table_0802(
+                            &h->atlas,neighbor,neighbor_x,camera_y,h->pixels,
+                            CVIII_STAGE1_WIDE_0725,240,center,bg_table,
+                            cyc_render_chr,cyc_render_color);
+            }
         }
     }
     *width=CVIII_STAGE1_WIDE_0725;

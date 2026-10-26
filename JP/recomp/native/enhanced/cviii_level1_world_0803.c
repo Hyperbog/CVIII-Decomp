@@ -162,6 +162,42 @@ int cviii_world_connect_0803(CviiiLevel1World0803 *w,
     w->placed_count++;
     return 1;
 }
+/* JP0806 world compositor: every loaded/positioned room uses the same
+ * global camera and independently verified source coordinates.
+ * A room's atlas painter bounds itself to that room's original layout,
+ * so physically adjacent rooms cannot duplicate or freeze side tiles.
+ * Unknown branches are never invented to fill black pixels.
+ */
+uint32_t cviii_world_paint_0806(const CviiiLevel1World0803 *w,
+    const CviiiStage1Atlas0724 *atlas,const uint8_t key[3],
+    int camera_x,int camera_y,uint32_t *dest,
+    int width,int height,int center,uint16_t bg_table,
+    uint8_t (*chr)(uint16_t),uint32_t (*color)(int))
+{
+    if(!w || !w->ready || !atlas || !atlas->loaded ||
+       !key || !dest || !chr || !color || width<=256 ||
+       height!=240 || center<0 || center+256>width)return 0;
+    const int selected=cviii_world_index_0803(w,key);
+    if(selected<0 || !w->rooms[selected].placed)return 0;
+    const int64_t world_x=(int64_t)w->rooms[selected].x+camera_x;
+    const int64_t world_y=(int64_t)w->rooms[selected].y+camera_y;
+    uint32_t pixels=0;
+    for(int i=0;i<CVIII_WORLD_ROOMS_0803;i++){
+        const CviiiWorldRoom0803 *room=&w->rooms[i];
+        if(!room->placed)continue;
+        const int64_t rx=world_x-room->x,ry=world_y-room->y;
+        /* No source geometry for this room can reach viewport margins. */
+        if(rx<=-room->width || rx>=room->width+width ||
+           ry<=-room->height || ry>=room->height+height)continue;
+        if(rx<INT_MIN || rx>INT_MAX || ry<INT_MIN || ry>INT_MAX)
+            continue;
+        pixels+=cviii_stage1_atlas_paint_bg_table_0802(
+           atlas,room->selector,(int)rx,(int)ry,dest,
+           width,height,center,bg_table,chr,color);
+    }
+    return pixels;
+}
+
 int cviii_world_camera_0803(const CviiiLevel1World0803 *w,
     const uint8_t selector[3],int cx,int cy,int32_t *x,int32_t *y){
     int i=cviii_world_index_0803(w,selector);

@@ -62,6 +62,16 @@ int cviii_world_connect_0803(CviiiLevel1World0803 *world,
 int cviii_world_camera_0803(const CviiiLevel1World0803 *world,
                 const uint8_t selector[3],int local_x,int local_y,
                 int32_t *x,int32_t *y);
+/* JP0806: project ALL physically placed, original-ROM-derived rooms
+ * through ONE global camera. Never tile-repeat edge pixels and never
+ * write over the native 256px gameplay picture or 48-line HUD.
+ * Returns 0 for unknown camera topology (caller can use legacy
+ * source-verified neighboring-room extension). */
+uint32_t cviii_world_paint_0806(const CviiiLevel1World0803 *world,
+    const CviiiStage1Atlas0724 *atlas,const uint8_t room_key[3],
+    int camera_x,int camera_y,uint32_t *dest,
+    int width,int height,int native_center,uint16_t bg_table,
+    uint8_t (*read_chr)(uint16_t),uint32_t (*read_color)(int));
 int cviii_world_visit_0803(CviiiLevel1World0803 *world,
                            const uint8_t selector[3]);
 /* Read the ACTUAL original 28 PRG26 object slots. Screen coordinates are

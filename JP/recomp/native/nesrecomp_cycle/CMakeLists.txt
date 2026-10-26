@@ -656,6 +656,8 @@ set_property(TARGET jp_stage1_join_test_0751 PROPERTY C_STANDARD 11)
 
 # JP0803 all-eight-room original-ROM world graph and actor lifecycle shadow.
 add_executable(jp_level1_world_test_0803
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_stage1_rom_0724.c"
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_stage1_atlas_0724.c"
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_level1_world_0803.c"
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_level1_world_test_0803.c")
 set_property(TARGET jp_level1_world_test_0803 PROPERTY C_STANDARD 11)
