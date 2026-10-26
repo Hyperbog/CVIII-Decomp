@@ -149,6 +149,51 @@ static int room_loaded(const CviiiStage1Host0725 *h,
      * Limited mutable tiles are allowed, wholesale wrong layout is not. */
     return total>=6u && agree*4u>=total*3u;
 }
+/* JP0808: original Stage1 chapel $53/$54 is vertical Y, not X.
+ * Original PPU scroll phases wrap at 480, while the ROM layout
+ * includes two 256px-tall source screens. Refuse guessed topology.
+ */
+static int chapel_camera_0808(const CviiiStage1Host0725 *h,
+    const uint8_t *ram,const uint8_t sel[3],int *x,int *y)
+{
+    static const uint8_t chapel[3]={0,1,1};
+    static const int lines[3]={64,120,176};
+    static const int cols[4]={24,88,152,216};
+    if(!h || !h->atlas.loaded || !ram ||
+       memcmp(sel,chapel,3) || !(ram[0x65u]&0x80u))
+       return 0;
+    int local=(int)ram[0x53u]+((int)ram[0x54u]<<8);
+    if(h->atlas.rooms[2].height_tiles!=64u ||
+       local<0 || local>272)return 0;
+    unsigned total=0,agree=0;
+    for(unsigned row=0;row<3u;row++){
+        int line=lines[row],py=cyc_render_line_scroll_y(line);
+        int px=cyc_render_line_scroll_x(line)&511;
+        if(py<0 || py>=480 ||
+           !((px<=2) || (px>=254 && px<=258) || px>=510))
+            return 0;
+        int phase=(py-(local+line)%480+480)%480;
+        if(phase>2 && phase<478)return 0;
+        for(unsigned col=0;col<4u;col++){
+            int sy=local+line-32;
+            if(sy<0 || sy>=512)continue;
+            unsigned horizontal=(unsigned)(px+cols[col])&511u;
+            unsigned nt=(horizontal>=256u?1u:0u)+(py>=240?2u:0u);
+            unsigned offset=(unsigned)(py%240)/8u*32u+
+                            (horizontal&255u)/8u;
+            uint8_t tile=0,pal=0;
+            if(!cviii_stage1_atlas_get_0724(&h->atlas,sel,
+                (unsigned)cols[col]/8u,(unsigned)sy/8u,
+                &tile,&pal))continue;
+            total++;
+            agree+=(cyc_render_nametable((uint16_t)
+                 (0x2000u+nt*1024u+offset))==tile);
+        }
+    }
+    if(total<9u || agree*4u<total*3u)return 0;
+    *x=0;*y=local;return 1;
+}
+
 static int camera(const CviiiStage1Host0725 *h,uint8_t sel[3],
                   int *x,int *y)
 {
@@ -158,6 +203,8 @@ static int camera(const CviiiStage1Host0725 *h,uint8_t sel[3],
         (cyc_render_line_bg_table(120)!=0x1000u &&
          cyc_render_line_bg_table(120)!=0u))return 0;
     sel[0]=ram[0x34u];sel[1]=ram[0x35u];sel[2]=ram[0x36u];
+    if(ram[0x65u]&0x80u)
+        return chapel_camera_0808(h,ram,sel,x,y);
     /* JP0801: ALL original Stage 1 rooms are already ROM-decoded.
      * $5A/$5B/$5C/$5D were observed as $8441/$8D51 only in an opening
      * area; demanding those transient source pointers for the whole
@@ -165,8 +212,7 @@ static int camera(const CviiiStage1Host0725 *h,uint8_t sel[3],
      * stranded in the old room. Verify the selected ROM room AND live
      * PPU nametable contents instead of assuming a pointer never moves.
      * Other stages, unknown keys and vertical maps fail closed. */
-    if((ram[0x65u]&0x80u) ||
-       cviii_stage1_atlas_horizontal_width_0801(&h->atlas,sel)<256)
+    if(cviii_stage1_atlas_horizontal_width_0801(&h->atlas,sel)<256)
         return 0;
     int local_x=(int)ram[0x53u]+((int)ram[0x54u]<<8);
     int ppu_x=cyc_render_line_scroll_x(120)&511;
@@ -251,10 +297,16 @@ const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
         (cyc_render_line_mask(120)&0x08u);
     int center=CVIII_STAGE1_ORIGIN_0725;
     if(valid_camera) {
-        int room_width=cviii_stage1_atlas_horizontal_width_0801(&h->atlas,selector);
-        if(room_width>=256 && camera_x>=0 && camera_x<=room_width-256) {
-            cviii_stage1_join_accept_0751(&h->join,selector,camera_x,room_width);
-            cviii_stage1_join_restore_0782(&h->join,selector,camera_x,room_width);
+        const int chapel=ram && (ram[0x65u]&0x80u);
+        int room_width=chapel?
+            cviii_stage1_atlas_width_0751(&h->atlas,selector):
+            cviii_stage1_atlas_horizontal_width_0801(&h->atlas,selector);
+        if(room_width>=256 && camera_x>=0 &&
+           (chapel?camera_x==0:camera_x<=room_width-256)) {
+            if(!chapel) {
+                cviii_stage1_join_accept_0751(&h->join,selector,camera_x,room_width);
+                cviii_stage1_join_restore_0782(&h->join,selector,camera_x,room_width);
+            } else cviii_stage1_join_soft_reset_0782(&h->join);
             /* A crossing only becomes a world connection after BOTH
              * original room selectors passed real PPU/atlas verification.
              * The immutable layouts remain in RAM across gameover. */
@@ -270,7 +322,8 @@ const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
             (void)cviii_world_detect_loader_0805(&h->world,selector,ram);
             (void)cviii_world_capture_live_0803(&h->world,selector,
                          camera_x,camera_y,ram);
-            center=viewport_center_0790(selector,camera_x);
+            center=chapel?CVIII_STAGE1_ORIGIN_0725:
+                viewport_center_0790(selector,camera_x);
             memcpy(h->last_verified_selector,selector,sizeof selector);
             h->last_verified_camera=camera_x;
             h->last_verified_center=center;
@@ -319,7 +372,7 @@ const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
         center=h->last_verified_center;
         valid_camera=1;
     }
-    if(!horizontal_play) {
+    if(!horizontal_play && !valid_camera) {
         /* A death changes live game state, not the preloaded room atlas or
          * authenticated map of adjacent rooms. Keep graph and last scene;
          * the next valid checkpoint camera can recover its predecessor. */
@@ -340,7 +393,9 @@ const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
     }
     if(valid_camera) {
         const uint16_t bg_table=cyc_render_line_bg_table(120);
-        const int width_px=cviii_stage1_atlas_horizontal_width_0801(&h->atlas,selector);
+        const int width_px=ram && (ram[0x65u]&0x80u)?
+            cviii_stage1_atlas_width_0751(&h->atlas,selector):
+            cviii_stage1_atlas_horizontal_width_0801(&h->atlas,selector);
         if(width_px>=256) {
             /* A single world-space camera paints EVERY source-confirmed
              * placed Level1 room. This survives all native room switches
@@ -371,8 +426,7 @@ const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
     /* Project only authentic, still-active PRG26 actor descriptors
      * into the extra world margins. The native 256px original picture
      * is always left untouched and remains gameplay-authoritative. */
-    if(valid_camera && horizontal_play &&
-       h->sprite_bank_valid_0807 && ram)
+    if(valid_camera && h->sprite_bank_valid_0807 && ram)
         (void)cviii_world_sprites_draw_0807(&h->world,
             selector,camera_x,camera_y,center,h->pixels,
             CVIII_STAGE1_WIDE_0725,240,h->sprite_bank_0807,ram,
