@@ -264,6 +264,7 @@ endif()
 # ROM-free standalone verification of scrolling lights, room gating and HUD.
 add_executable(jp_lighting_test
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_lighting.c"
+ "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_light_authoring.c"
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_lighting_test.c")
 set_property(TARGET jp_lighting_test PROPERTY C_STANDARD 11)
 if(NOT WIN32)
