@@ -400,6 +400,53 @@ void cviii_particle_present_layer(const CviiiLighting *s,
     }
 }
 
+int cviii_particle_glow_samples(const CviiiLighting *s,uint32_t room,
+    int camera,const int sx[CVIII_LIGHT_H],const int sy[CVIII_LIGHT_H],
+    uint64_t frame,CviiiParticleGlow out[4]){
+    if(!s || !out || !sx || !sy || !s->particles_enabled)return 0;
+    int count=0;
+    float seconds=(float)((frame%216000u)/60.0);
+    for(int slot=0;slot<CVIII_PARTICLE_EMITTER_MAX && count<4;++slot){
+        CviiiParticleEmitter world;
+        const CviiiParticleEmitter *src=&s->particles[slot];
+        if(!src->used || src->room!=room || src->glow<=0 ||
+           (src->kind!=CVIII_FX_EMBERS && src->kind!=CVIII_FX_FIREFLIES) ||
+           !cviii_particle_world_region(s,src,&world))continue;
+        for(int i=0;i<world.density && i<3 && count<4;++i){
+            unsigned id=(unsigned)(slot+1)*0x9e3779b9u ^
+                         (unsigned)i*0x45d9f3bu;
+            float fx=hash01(id+1u),fy=hash01(id+17u),phase=hash01(id+91u);
+            float time=seconds*((float)world.speed/100.f);
+            float wind=(float)world.wind/100.f*time*7.f;
+            float wobble=sinf(time*(.7f+phase)+phase*6.28318f)*1.3f;
+            float x,y;
+            if(world.kind==CVIII_FX_EMBERS){
+                x=world.x+wrapf(fx*world.w+wind+wobble,world.w);
+                y=world.y+wrapf(fy*world.h-time*(11.f+phase*10.f),world.h);
+            }else{
+                x=world.x+wrapf(fx*world.w+wind+wobble*5.f,world.w);
+                y=world.y+wrapf(fy*world.h+
+                         sinf(time*.5f+phase*10.f)*5.f,world.h);
+            }
+            int py=(int)floorf(y);
+            if(py<0 || py>=480)continue;
+            int inview=0;
+            for(int row=CVIII_LIGHT_HUD;row<240;++row){
+                if(sy[row]!=(int)floorf(y))continue;
+                int vx=(int)floorf(x)-unwrap(sx[row],camera);
+                if(vx>=-32 && vx<288)inview=1;
+                break;
+            }
+            if(!inview)continue;
+            CviiiParticleGlow *g=&out[count++];
+            g->x=x;g->y=y;
+            g->radius=8.f+world.glow*.27f;
+            g->power=8.f+world.glow*.38f;
+            g->red=world.red;g->green=world.green;g->blue=world.blue;
+        }
+    }
+    return count;
+}
 /* Legacy test/editor caller renders both layers without sprite depth. */
 void cviii_particle_present(const CviiiLighting *s,
     uint32_t pixels[CVIII_LIGHT_W*CVIII_LIGHT_H],uint32_t room,int camera,
