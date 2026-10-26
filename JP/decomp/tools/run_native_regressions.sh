@@ -359,6 +359,8 @@ python3 "$root/JP/decomp/tools/jp_room_resources_0659.py" --smoke
 python3 "$root/JP/decomp/tools/jp_stage1_visual_identity_0815.py" --smoke
 # JP0816: 6502 source phase and 16-bit camera arithmetic, ROM-free.
 python3 "$root/JP/decomp/tools/jp_stage1_horizontal_collision_0816.py" --smoke
+# JP0817 original event-source motion and response predicates.
+python3 "$root/JP/decomp/tools/jp_stage1_activation_response_0817.py" --smoke
 
 # JP0738: original/native camera-actor comparison parser on entirely invented
 # ZIP/CYCFRAME records; authentic owner gameplay requires separate private logs.
