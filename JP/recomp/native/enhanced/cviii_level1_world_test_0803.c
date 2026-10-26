@@ -342,12 +342,23 @@ int main(void){
     world->actors[13].y=world->rooms[2].y+0x180+0x37;
     world->actors[13].selector=0x0eu;
     world->actors[13].mirror=1u;
+    /* Invented authenticated-bank SHAPE, not copyrighted sprite art.
+     * JP0807 selector/frame bytes are pointer-table offsets. */
+    uint8_t fake_sprites[16384]={0};
+    fake_sprites[0x818du-0x8000u]=0x00u;
+    fake_sprites[0x818eu-0x8000u]=0x90u;
+    fake_sprites[0x9001u-0x8000u]=0x00u;
+    fake_sprites[0x9002u-0x8000u]=0x91u;
+    fake_sprites[0x9100u-0x8000u]=4u;
     if(!check(cviii_world_probe_chapel_0815(
-                  world,vertical,80,0x180,85,426)==1 &&
+                  world,vertical,80,0x180,85,426,fake_sprites)==1 &&
               world->chapel_projection[0].actor_confirmed &&
               world->chapel_projection[0].linked_slot==13u &&
               world->chapel_projection[0].sprite_selector==0x0eu &&
               world->chapel_projection[0].sprite_frame==1u &&
+              world->chapel_projection[0].visual_valid &&
+              world->chapel_projection[0].sprite_descriptor_cpu==0x9100u &&
+              world->chapel_projection[0].sprite_pieces==4u &&
               world->chapel_projection[0].screen_x==37 &&
               world->chapel_projection[0].screen_y==55 &&
               world->chapel_projection[0].point_region==
@@ -357,7 +368,7 @@ int main(void){
               "only original installed actor projects into synthetic margin"))
         return 31;
     if(!check(cviii_world_probe_chapel_0815(
-                  world,vertical,0,0x180,85,426)==0 &&
+                  world,vertical,0,0x180,85,426,fake_sprites)==0 &&
               world->chapel_projection[0].point_region==
                   CVIII_PROBE_NATIVE_0815 &&
               world->chapel_projection[0].screen_x==117,
@@ -365,7 +376,7 @@ int main(void){
         return 32;
     uint32_t projected_epochs=world->chapel_projection_epochs;
     if(!check(cviii_world_probe_chapel_0815(
-                  world,second,0,0x180,85,426)==-1 &&
+                  world,second,0,0x180,85,426,fake_sprites)==-1 &&
               projected_epochs==world->chapel_projection_epochs,
               "wrong source selector cannot mutate projection"))
         return 33;
@@ -401,7 +412,7 @@ int main(void){
               !world->actors[13].source_generation_0814,
               "actor deactivation invalidates source tag"))return 30;
     if(!check(cviii_world_probe_chapel_0815(
-                  world,vertical,80,0x180,85,426)==0 &&
+                  world,vertical,80,0x180,85,426,fake_sprites)==0 &&
               !world->chapel_projection[0].actor_confirmed &&
               world->chapel_projection[0].source_cpu==0xab1fu &&
               world->chapel_projection[0].interaction_policy==
