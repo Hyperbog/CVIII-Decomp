@@ -394,6 +394,13 @@ jobs:
           if (!(Test-Path -LiteralPath $test)) { throw 'JP0803 world registry test missing' }
           & $test
           if ($LASTEXITCODE -ne 0) { throw 'JP0803 persistent world graph and object shadow failed' }
+      - name: Verify original PRG26 active actors in widescreen columns (ROM-free)
+        shell: pwsh
+        run: |
+          $test = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win/Release/jp_world_sprites_test_0807.exe'
+          if (!(Test-Path -LiteralPath $test)) { throw 'JP0807 world sprite projection binary missing' }
+          & $test
+          if ($LASTEXITCODE -ne 0) { throw 'JP0807 original sprite descriptor test failed' }
       - name: Verify previous-room join and bounded side continuation (ROM-free)
         shell: pwsh
         run: |

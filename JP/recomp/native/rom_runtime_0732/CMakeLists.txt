@@ -227,6 +227,7 @@ if(JP0732_ENHANCED)
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_stage1_host_0725.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_stage1_join_0751.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_level1_world_0803.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_world_sprites_0807.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_runtime_resources_0727.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_resource_cache_0729.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_rom_tsa_catalog_0730.c"
