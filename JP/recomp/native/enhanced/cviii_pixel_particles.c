@@ -247,7 +247,7 @@ void cviii_particle_present(const CviiiLighting *s,uint32_t pixels[CVIII_LIGHT_W
                         int edge=rx<ww/2?rx:ww-rx-1;
                         if((mix(id^(unsigned)(rx+ry*17))&7u)>=(unsigned)(edge+1))
                             continue;
-                        if(((rx+ry+(int)(frame/24))&3)==0)continue;
+                        if(((rx+ry+(int)(time*2.f))&3)==0)continue;
                         put(pixels,shifted+rx-ww/2,row,e,opacity/2);
                     }
                 }
