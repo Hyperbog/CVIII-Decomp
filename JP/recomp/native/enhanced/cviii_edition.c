@@ -684,6 +684,14 @@ static int cviii_lighting_placement(int native_x,int native_y,int *wx,int *wy)
     if(x<0 || x>65535 || y<0 || y>479)return 0;
     *wx=x;*wy=y;return 1;
 }
+int cviii_lighting_editor_builtin_count(void)
+{
+    return cviii_light_builtin_count();
+}
+const char *cviii_lighting_editor_builtin_name(int id)
+{
+    return cviii_light_builtin_name(id);
+}
 int cviii_lighting_editor_apply_builtin(int id,int native_x,int native_y)
 {
     int wx=0,wy=0;
