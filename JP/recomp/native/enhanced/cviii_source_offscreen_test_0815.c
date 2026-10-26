@@ -49,8 +49,8 @@ int main(void){
            CVIII_INTERACTION_ALLOCATION_UNVERIFIED_0815,
        "unverified source never acquires interaction authority");
     ok(cviii_source_interaction_0815(0x80,1)==
-           CVIII_INTERACTION_MAY_ROUTE_B162_0815,
-       "active type80 defers unresolved original special collision");
+           CVIII_INTERACTION_TYPE80_B258_0816,
+       "eligible type80 bypasses B162; other behavior remains unknown");
     ok(cviii_source_interaction_0815(0x3d,1)==
            CVIII_INTERACTION_UNSUPPORTED_0815,
        "unknown original source tag rejected");
