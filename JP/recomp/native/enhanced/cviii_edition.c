@@ -612,6 +612,8 @@ int cviii_lighting_editor_property(int property,int value)
     else if(property==10)l->width=value<4?4:(value>160?160:value);
     else if(property==11)l->muted=value!=0;
     else if(property==12)l->flicker=value<0?0:(value>2?2:value);
+    else if(property==13)l->x=value<0?0:(value>65535?65535:value);
+    else if(property==14)l->y=value<0?0:(value>479?479:value);
     else return 0;
     return 1;
 }
