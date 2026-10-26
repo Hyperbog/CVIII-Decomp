@@ -67,9 +67,17 @@ coordinates and clip naturally when scrolled away.
 - **Original:** no Enhanced presentation changes (existing parity).
 - **Enhanced / Standard:** current artist-directed CPU renderer with smooth
   flame animation, low-cost soft shadows, additive sky fill and grading.
-- **Enhanced / RTGI (future opt-in):** shader-backed 2D indirect lighting
-  using explicit room geometry, with a user-selectable quality preset and
-  automatic fallback to Standard on unsupported GPUs.
+- **Enhanced / GPU Prototype (implemented, Windows experimental):** an
+  independent D3D11 CS5.0 compute pass traces direct visibility against
+  authored world-rectangle masks, accumulates a sampled diffuse wall-face
+  bounce, interpolates an HDR 128×96 lightmap over the NES's full 256×240
+  source frame, and automatically falls back to Standard. It compiles only
+  in private Windows GUI builds. This is NOT automatic collision geometry
+  or the future Radiance Cascades transport solver.
+- **Enhanced / Radiance Cascades (future opt-in):** a higher-quality GPU
+  renderer with hierarchical directional radiance probes, verified room
+  geometry, proper GPU-resident compositing and a Standard fallback.
+  This mode is not offered in the UI until genuinely implemented.
 
 ### RTGI prototype: technically viable in 2D, not free
 
@@ -124,6 +132,35 @@ that on tested machines. Use low/medium/high presets and hard caps.
   deliberately tunable rather than misrepresented as measured photometry.
 - NVIDIA GPU Gems on percentage-closer filtering of shadow visibility:
   https://developer.nvidia.com/gpugems/gpugems3/part-ii-light-and-shadows/chapter-8-summed-area-variance-shadow-maps
+
+## GPU Prototype implementation status (October 2026)
+
+The first D3D11 compute-lighting prototype is now in
+[`cviii_gpu_rtgi_d3d11.cpp`](../native/enhanced/cviii_gpu_rtgi_d3d11.cpp),
+with the actual CS5.0 kernel shared by the ROM-free Windows
+[`shader compile fixture`](../native/enhanced/cviii_gpu_rtgi_shader_test.cpp)
+and
+[`WARP execution fixture`](../native/enhanced/cviii_gpu_rtgi_warp_test.cpp).
+
+Choose **Standard** or **GPU Prototype** in Lighting Studio / Settings
+or the genuine ReShade add-on UI. Config persists `LightingRenderer =
+Standard` or `LightingRenderer = GPUPrototype`. GPU init failure or
+prototype light/occluder capacity exhaustion transparently falls back
+on that frame without affecting Original mode, game hardware state or
+the user's config. The editor previews Standard while open to preserve
+the placement/occluder authoring handles.
+
+The GPU pass currently uses **explicit author-created masks**, not
+automatically reconstructed solid tiles. Its indirect light is a
+single per-face virtual-emitter bounce, informed by sampled visible
+NES RGB or a neutral unknown-wall albedo. It is intentionally not
+presented as converged path-traced lighting or Radiance Cascades.
+The dedicated D3D11 device uses a GPU-to-CPU staging readback and
+bilinear lightmap compositing; replacing that stall with a shared
+display texture remains the first performance upgrade.
+
+See [**GPU Prototype setup and acceptance**](ENHANCED_LIGHTING_GPU_PROTOTYPE.md)
+for exact bounds, quality expectations, compatibility and fallback.
 
 ## Owner testing checklist for the next Windows session
 
