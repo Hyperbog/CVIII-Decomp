@@ -110,14 +110,30 @@ void cviii_light_present(CviiiLighting *s,uint32_t *p,int w,int h,uint32_t room,
         cviii_light_effective(s,src,&effective[i]);
         const CviiiLight *l=&effective[i];
         active[active_count++]=i;
-        float t=(float)((double)(frame%216000u)/60.0);
+        float speed=l->anim_speed?(float)l->anim_speed/100.f:1.f;
+        float strength=l->anim_strength?(float)l->anim_strength/100.f:1.f;
+        float t=(float)((double)(frame%216000u)/60.0)*speed;
         float phase=(float)i*1.6180339f;
         float warm=(l->red>l->blue && l->red>=l->green)?1.f:0.f;
         float slow=0.018f*sinf(6.2831853f*0.73f*t+phase)
                   +0.012f*sinf(6.2831853f*1.71f*t+phase*2.3f);
         float fast=l->energy>=100?0.009f*sinf(6.2831853f*10.2f*t+phase):0.f;
-        float intensity=l->flicker==1?0.f:l->flicker==2?2.7f:1.f;
-        modulation[i]=1.f+warm*(slow+fast)*intensity;
+        float wave=0.f;
+        if(l->flicker==0)wave=warm*(slow+fast);
+        else if(l->flicker==2)wave=warm*(slow+fast)*2.7f;
+        else if(l->flicker==3){
+            /* Soft slow swell, with per-emitter phase instead of synchronized flashes. */
+            wave=0.115f*sinf(6.2831853f*0.43f*t+phase)
+                +0.035f*sinf(6.2831853f*0.97f*t+phase*0.61f);
+        }else if(l->flicker==4){
+            /* Smooth, asymmetric ember dips rather than frame-by-frame noise. */
+            float beat=0.5f+0.5f*sinf(6.2831853f*0.67f*t+phase);
+            float dip=beat*beat*beat*beat;
+            wave=0.018f*sinf(6.2831853f*2.1f*t+phase*2.f)-0.16f*dip;
+        }
+        modulation[i]=1.f+strength*wave;
+        if(modulation[i]<0.70f)modulation[i]=0.70f;
+        if(modulation[i]>1.35f)modulation[i]=1.35f;
         cc[i]=cosf((float)l->angle*radians);
         ss[i]=sinf((float)l->angle*radians);
         cone_slope[i]=tanf((float)clip(l->spread?l->spread:30,5,85)*radians);
@@ -154,7 +170,8 @@ void cviii_light_present(CviiiLighting *s,uint32_t *p,int w,int h,uint32_t room,
                     int i=active[n];
                     const CviiiLight *l=&effective[i];
                     float dx=(float)(world-l->x),dy=(float)(yy-l->y);
-                    float rad=(float)l->radius,t;
+                    float rad=(float)l->radius*
+                        (1.f+0.16f*(modulation[i]-1.f)),t;
                     if(l->shape==CVIII_SHAPE_RADIAL){
                         float d2=dx*dx+dy*dy;
                         if(d2>=rad*rad)continue;
@@ -293,7 +310,7 @@ static int style_load(CviiiLighting *s,const char *key,const char *val){
       &shape,&angle,&spread,&width,&mute,&flicker,&n)!=6 || val[n] ||
       shape<0 || shape>2 || angle<0 || angle>359 ||
       spread<0 || spread>85 || width<0 || width>160 ||
-      mute<0 || mute>1 || flicker<0 || flicker>2)return 0;
+      mute<0 || mute>1 || flicker<0 || flicker>4)return 0;
     CviiiLight *l=&s->light[i];
     l->shape=shape;l->angle=angle;l->spread=spread;
     l->width=width;l->muted=mute;l->flicker=flicker;
@@ -329,6 +346,16 @@ int cviii_light_load(CviiiLighting *s,const char *key,const char *value){
             &room,&strength,&r,&g,&b,&dir,&n)!=6 || value[n])return 0;
         return cviii_light_sky_set(s,room,strength,r,g,b,dir);
     }
+    if(!strncmp(key,"LightAnim",9)){
+        unsigned slot;char suffix;int speed,depth,end=0;
+        if(sscanf(key,"LightAnim%3u%c",&slot,&suffix)!=1 ||
+           slot>=CVIII_LIGHT_MAX)return 0;
+        if(sscanf(value,"%d,%d%n",&speed,&depth,&end)!=2 || value[end] ||
+           speed<0 || speed>400 || depth<0 || depth>100)return 0;
+        s->light[slot].anim_speed=speed;
+        s->light[slot].anim_strength=depth;
+        return 1;
+    }
     if(!strncmp(key,"LightKit",8))return cviii_light_kit_load(s,key,value);
     if(!strncmp(key,"RoomAmbient",11))return scene_load(s,key,value);
     if(!strncmp(key,"LightStyle",10))return style_load(s,key,value);
@@ -360,6 +387,9 @@ void cviii_light_save(const CviiiLighting *s,FILE *out){
                 i,l->room,l->x,l->y,l->radius,l->energy,l->red,l->green,l->blue);
             fprintf(out,"LightStyle%02d = %d,%d,%d,%d,%d,%d\n",
                 i,l->shape,l->angle,l->spread,l->width,l->muted,l->flicker);
+            if(l->anim_speed || l->anim_strength)
+                fprintf(out,"LightAnim%02d = %d,%d\n",
+                    i,l->anim_speed,l->anim_strength);
             label_write(out,"LightName",i,l->name);
             label_write(out,"LightGroup",i,l->group);
         }
