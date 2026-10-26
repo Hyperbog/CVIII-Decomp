@@ -258,7 +258,7 @@ logic. Full original pixels are copied unmodified; the NES viewport's
 If the original PPU temporarily has an incomplete nametable/selector,
 the last source-verified room/camera continues to draw its preloaded
 background in the side columns for as long as that same horizontal
-gameplay stage is active. There is **no 30-frame expiration**, no
+gameplay stage is active. There is **no 30-frame or 90-frame expiration**, no
 edge duplication and no repetition-based fill. Known prior rooms may
 still appear at validated door joins. Leaving the stage, loading a
 state, entering Original mode, or resetting the console clears the

@@ -32,8 +32,9 @@ int main(void) {
     cviii_stage1_join_accept_0751(j,a,512,768);
     for(int i=0;i<CVIII_JOIN_GAP_MAX+1;i++)cviii_stage1_join_gap_0751(j);
     cviii_stage1_join_accept_0751(j,b,0,256);
-    if(!check(!cviii_stage1_join_previous_0751(j,0,256,old,&offset),
-       "expired source association"))return 5;
+    if(!check(cviii_stage1_join_previous_0751(j,0,256,old,&offset) &&
+       !memcmp(old,a,3) && offset==768,
+       "persistent preloaded room survives any transition duration"))return 5;
     for(int y=0;y<CVIII_JOIN_H;y++)for(int x=0;x<CVIII_JOIN_W;x++)
         frame[y*CVIII_JOIN_W+x]=x<85 ? 0xff101010u:
            (x>=341 ? 0xff202020u:0xffabcdefu);

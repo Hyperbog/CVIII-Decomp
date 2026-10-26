@@ -13,7 +13,9 @@ void cviii_stage1_join_accept_0751(CviiiStage1Join0751 *j,
         /* Source-verified scene crossing near a horizontal room edge.
          * Teleports, stale selectors and long scene loads fail closed. */
         j->joined=0;
-        if(j->gap<=CVIII_JOIN_GAP_MAX && j->last_width>=256) {
+        /* Gap length does not invalidate immutable, preloaded source room.
+         * The physical old/new camera edge guard still rejects warps. */
+        if(j->last_width>=256) {
             if(j->last_camera>=j->last_width-256-96 &&
                camera<CVIII_JOIN_SIDE) {
                 j->joined=1;
