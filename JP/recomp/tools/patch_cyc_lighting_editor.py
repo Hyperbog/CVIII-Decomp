@@ -109,7 +109,7 @@ static bool cviii_light_sdl_event(const SDL_Event *ev, bool other_open)
             else {
                 save_settings();
                 note("LIGHT EDITOR",cviii_lighting_editor_active()?
-                    "LMB place/drag, RMB select; wheel radius, Shift wheel power":
+                    "Workbench: ADD then click level; select from list; drag sliders":
                     "Closed; level lighting remains visible");
             }
         }
