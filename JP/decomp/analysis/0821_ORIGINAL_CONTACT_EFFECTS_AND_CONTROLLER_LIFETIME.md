@@ -101,28 +101,24 @@ Its natural creation witness is **not** a natural contact
 or eventual deallocation witness. It does not establish
 that source-parent `$0645` stayed unchanged across frames.
 
-For a full controller-reached lifecycle, the new
-`jp0821_mesen_original_lifecycle_probe.py` reuses
-the same JP0509 cold-boot controller schedule and
-checks that authentic frame3092/600-step actor creation
-still exactly reproduces; then from the **same unmodified
-post-creation save-state** it probes:
-- Bank-qualified original `$B727` instruction execution,
-  checking that original CPU X is *one of those same two*
-  original child slots, type `$3D`, flagged by
-  `$0470` bit `$04`, and source index `$0645=$03`.
-- First natural **writes** to original actor type
-  `$054F` and `$0550`; independently steps each
-  writer to determine whether type changed to zero.
-- Only chronological **same-child**
-  contact-before-type-zero writer from that
-  same replay baseline may count as a complete candidate
-  lifecycle; all unrelated actors, nonzero writes,
-  timeouts or missing breakpoints report incomplete
-  evidence. The driver never edits the original
-  CPU PC, register, mapper or RAM. Private savestates
-  and full traces exist only in a temporary directory,
-  with compact event status reported separately.
+The single supported owner-local controller-replay driver is
+`jp_stage1_natural_contact_lifetime_0821.py`. It locks the
+original Mesen-agent *and* MesenCore.so hashes from JP0509 and
+replays that original cold-boot controller schedule, preserving
+the correct **phase-489 input epoch** after the frame-3092 hit.
+It snapshots original type-`$3D` child slots 1 and 2,
+`$0470` flags, `$0645` source parent and room selector
+at bounded frame intervals until a room discontinuity, type-zero
+observation or horizon. Its second independent replay from
+the same original source state sets the bank-qualified
+`$B727` execution breakpoint. A hit for another actor
+is reported as such; original type-`$3D` plus parent link
+is reported separately. **A sampled deallocation interval
+does not establish its exact writer PC or a complete
+contact-before-death identity chain.** The driver reports
+observations without claiming a full lifecycle on their
+own. All Mesen savestates, CPU RAM and full traces remain
+private in a temporary directory.
 
 **Execution blocker:** the Mesen headless agent and
 matching core are not installed in this session;
@@ -134,10 +130,10 @@ not as claimed proof of contact/deallocation.
 ```sh
 python3 JP/decomp/tools/jp_stage1_contact_effects_0821.py \
   --smoke --rom "/private/Akumajou Densetsu (Japan).nes"
-python3 JP/decomp/tools/jp0821_mesen_original_lifecycle_probe.py \
+python3 JP/decomp/tools/jp_stage1_natural_contact_lifetime_0821.py \
   --rom "/private/Akumajou Densetsu (Japan).nes" \
-  --mesen "/private/mesen-agent" --frames 1200 \
-  --report "/private/jp0821_lifecycle.json"
+  --mesen "/private/mesen-agent" \
+  --follow-frames 360 --sample-frames 30
 ```
 
 ## Regression evidence and further boundary
