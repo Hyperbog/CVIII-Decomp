@@ -347,6 +347,12 @@ const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
             (void)cviii_world_detect_loader_0805(&h->world,selector,ram);
             (void)cviii_world_capture_live_0803(&h->world,selector,
                          camera_x,camera_y,ram);
+            /* JP0813: follow the genuine vertical chapel camera with
+             * resident source identities. CPU actor state stays authoritative;
+             * no offscreen AI/guest-RAM writes or fabricated sprites. */
+            if(chapel)
+                (void)cviii_world_track_chapel_0813(
+                    &h->world,selector,camera_y);
             center=chapel?CVIII_STAGE1_ORIGIN_0725:
                 viewport_center_0790(selector,camera_x);
             memcpy(h->last_verified_selector,selector,sizeof selector);
