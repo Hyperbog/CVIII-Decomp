@@ -213,8 +213,9 @@ extern "C" int cviii_imgui_render(SDL_Window *window,SDL_Renderer *renderer){
             ImGui::SetNextItemWidth(-1.f);
             ImGui::InputTextWithHint("##Search","Search names, groups, light types...",
                                      search_text,sizeof search_text);
-            if(ImGui::Button(place_pending?"PLACE: CLICK SCENE":"Add Light",ImVec2(115,27)))
-                place_pending=true;
+            if(ImGui::Button(place_pending?"PLACE: CLICK SCENE":"Add Light",ImVec2(115,27))){
+                place_pending=true;pending_kit_type=-1;pending_kit_id=-1;
+            }
             ImGui::SameLine();
             if(ImGui::Button("Duplicate",ImVec2(82,27)))
                 if(cviii_lighting_editor_duplicate())dirty=true;
@@ -403,9 +404,13 @@ extern "C" int cviii_imgui_render(SDL_Window *window,SDL_Renderer *renderer){
                 }
                 ImGui::PopID();
             }
-            if(pending_kit_type>=0)
+            if(pending_kit_type>=0){
                 ImGui::TextColored(ImVec4(.9f,.75f,.3f,1.f),
                     "PLACEMENT ACTIVE - click the exposed gameplay");
+                if(ImGui::Button("Cancel Placement")){
+                    pending_kit_type=-1;pending_kit_id=-1;place_pending=false;
+                }
+            }
             ImGui::EndTabItem();
         }
         if(ImGui::BeginTabItem("Scene")){
