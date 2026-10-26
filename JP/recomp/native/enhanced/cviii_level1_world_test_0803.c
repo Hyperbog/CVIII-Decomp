@@ -364,7 +364,7 @@ int main(void){
               world->chapel_projection[0].point_region==
                   CVIII_PROBE_MARGIN_0815 &&
               world->chapel_projection[0].interaction_policy==
-                  CVIII_INTERACTION_SPECIAL_B162_0815,
+                  CVIII_INTERACTION_MAY_ROUTE_B162_0815,
               "only original installed actor projects into synthetic margin"))
         return 31;
     if(!check(cviii_world_probe_chapel_0815(
