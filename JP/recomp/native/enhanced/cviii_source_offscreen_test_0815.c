@@ -49,7 +49,7 @@ int main(void){
            CVIII_INTERACTION_NOT_SPAWNED_0815,
        "source-only must not interact");
     ok(cviii_source_interaction_0815(0x80,1)==
-           CVIII_INTERACTION_SPECIAL_B162_0815,
+           CVIII_INTERACTION_MAY_ROUTE_B162_0815,
        "active type80 defers unresolved original special collision");
     ok(cviii_source_interaction_0815(0x3d,1)==
            CVIII_INTERACTION_UNSUPPORTED_0815,
