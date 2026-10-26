@@ -64,10 +64,10 @@ function Get-CviiiSpriteLaunchOptions {
   if ($Edition -eq 'Enhanced' -and $StableSprites) {'1'} else {'0'}
  }
 }
-$extraSpriteArgs=@(Get-CviiiSpriteLaunchOptions -Edition $Edition ` 
-    -UnlimitedSprites ([bool]$UnlimitedSprites) ` 
-    -StableSprites ([bool]$StableSprites) ` 
-    -OverrideUnlimited ($PSBoundParameters.ContainsKey('UnlimitedSprites')) ` 
+$extraSpriteArgs=@(Get-CviiiSpriteLaunchOptions -Edition $Edition `
+    -UnlimitedSprites ([bool]$UnlimitedSprites) `
+    -StableSprites ([bool]$StableSprites) `
+    -OverrideUnlimited ($PSBoundParameters.ContainsKey('UnlimitedSprites')) `
     -OverrideStable ($PSBoundParameters.ContainsKey('StableSprites')))
 if ($extraSpriteArgs.Count) {
  Write-Host ('Explicit host-only sprite presentation override: '+($extraSpriteArgs -join ' '))
