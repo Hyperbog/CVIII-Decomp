@@ -48,6 +48,23 @@ static int load(CviiiStage1Host0725 *h)
         }
         if(!ok)fprintf(stderr,
             "CVIII JP0804: original object-resource preload not verified; continuing stock object behavior\n");
+        /* Owner-authenticated PRG26 sprite descriptor bank (16KiB).
+         * Separate SHA check protects against mixed/private data files.
+         * The bytes stay in process memory and out of public Git. */
+        static const uint8_t sprite_sha[32]={0x04,0x2d,0x91,0xa4,0xfe,0x2b,0xe4,0x44,0x46,0x5b,0x4e,0xbd,0xac,0x1e,0xe4,0x19,0xed,0x58,0xf7,0x49,0x76,0xbc,0x1e,0x9e,0xdb,0xb9,0x29,0x95,0xa7,0xfb,0x69,0x59};
+        FILE *sprites=fopen(h->rom_path,"rb");
+        uint8_t sprite_digest[32];
+        int sprite_ok=sprites &&
+            fseek(sprites,16L+26L*8192L,SEEK_SET)==0 &&
+            fread(h->sprite_bank_0807,1,sizeof h->sprite_bank_0807,
+                  sprites)==sizeof h->sprite_bank_0807;
+        if(sprites)fclose(sprites);
+        if(sprite_ok){
+            cviii_sha256_0727(h->sprite_bank_0807,
+                       sizeof h->sprite_bank_0807,sprite_digest);
+            sprite_ok=memcmp(sprite_sha,sprite_digest,32u)==0;
+        }
+        h->sprite_bank_valid_0807=sprite_ok;
         return 1;
     }
     fprintf(stderr,"CVIII JP0727: runtime Stage 1 resource load rejected (status %d); stock presentation retained\\n",
@@ -85,6 +102,7 @@ int cviii_stage1_host_rom_0725(CviiiStage1Host0725 *h,const char *path)
     cviii_stage1_host_reset_0751(h);
     h->attempted=0;
     h->atlas.loaded=0;
+    h->sprite_bank_valid_0807=0;
     return 1;
 }
 int cviii_stage1_host_cache_0729(CviiiStage1Host0725 *h,const char *path)
@@ -350,6 +368,17 @@ const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
             }
         }
     }
+    /* Project only authentic, still-active PRG26 actor descriptors
+     * into the extra world margins. The native 256px original picture
+     * is always left untouched and remains gameplay-authoritative. */
+    if(valid_camera && horizontal_play &&
+       h->sprite_bank_valid_0807 && ram)
+        (void)cviii_world_sprites_draw_0807(&h->world,
+            selector,camera_x,camera_y,center,h->pixels,
+            CVIII_STAGE1_WIDE_0725,240,h->sprite_bank_0807,ram,
+            cyc_render_line_sprite_table(120),
+            cyc_render_line_sprite16(120),
+            cyc_render_chr,cyc_render_color);
     *width=CVIII_STAGE1_WIDE_0725;
     return h->pixels;
 }
