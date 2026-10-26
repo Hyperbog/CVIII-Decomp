@@ -104,6 +104,16 @@ int main(void){
               !world->actors[1].active,"original fields and world transform")
        || !check(world->visited_count==1 && world->actor_frame==1,
               "one room activation recorded"))return 6;
+    /* Original 8-bit sprite X wraps from +2 to $FE as the camera
+     * advances 6px. A real previously-live actor continues just LEFT of
+     * the native viewport, available to the wider source sprite pass. */
+    world->actors[0].x=970;
+    ram[0x438]=254;
+    if(!check(cviii_world_capture_live_0803(world,second,206,0,ram)==1 &&
+              world->actors[0].x==972 && world->actors[0].active &&
+              world->actors[0].raw_x==254,
+              "live source object unwraps offscreen into world X-2"))
+        return 20;
     ram[0x400]=0;
     if(!check(cviii_world_capture_live_0803(world,second,104,0,ram)==0 &&
        !world->actors[0].active,"despawn is authoritative; no ghost"))return 7;

@@ -236,10 +236,32 @@ unsigned cviii_world_capture_live_0803(CviiiLevel1World0803 *w,
             actor->active=0;
             continue;
         }
+        const uint8_t selector=ram[0x48cu+i];
+        /* Original PRG26 sprite base coordinates are 8-bit local X.
+         * When an original actor crosses native X0, the source byte
+         * wraps to $FF but its physical WORLD position remains near its
+         * preceding world position. Only unwrap if the already-live
+         * slot/descriptor retains its original identity and displacement
+         * is within genuine per-frame motion bounds; never fabricate a
+         * spawn or synthesize an absent actor. */
+        int32_t world_x=w->rooms[idx].x+cx+ram[0x438u+i];
+        if(actor->active && actor->room==(uint8_t)idx &&
+           actor->slot==(uint8_t)i && actor->selector==selector) {
+            int64_t predicted=(int64_t)actor->x;
+            int64_t candidate=world_x;
+            if(candidate-predicted>=224 &&
+               candidate-256-predicted>=-32 &&
+               candidate-256-predicted<=32)
+                world_x-=256;
+            else if(predicted-candidate>=224 &&
+               candidate+256-predicted>=-32 &&
+               candidate+256-predicted<=32)
+                world_x+=256;
+        }
         actor->active=1;
         actor->room=(uint8_t)idx;
         actor->slot=(uint8_t)i;
-        actor->selector=ram[0x48cu+i];
+        actor->selector=selector;
         actor->frame=frame;
         actor->mirror=ram[0x4a8u+i];
         actor->flags=flags;
@@ -248,7 +270,7 @@ unsigned cviii_world_capture_live_0803(CviiiLevel1World0803 *w,
         actor->attrs=ram[0x454u+i];
         /* Authentic CPU array contains viewport-local sprite base XY;
          * projection is observational, not permission to simulate AI. */
-        actor->x=w->rooms[idx].x+cx+actor->raw_x;
+        actor->x=world_x;
         actor->y=w->rooms[idx].y+cy+actor->raw_y;
         count++;
     }
