@@ -101,6 +101,50 @@ mouse capture, HiDPI scaling, sliders and screenshot legibility still
 need an owner's Windows visual acceptance pass. Do not treat a
 successful build as proof of interaction or lighting fidelity.
 
+## Expanded editing — groups, shapes, ambient and real ReShade
+
+**Native studio:** The revised Dear ImGui workspace now uses Home, Scene,
+Settings, Statistics and About tabs, inspired by ReShade's preset/effect
+list layout. This is the existing embedded UI, not an add-on DLL.
+
+- **Light names and groups** can be assigned independently and viewed
+  under collapsible group headings; the light list can be searched by
+  name or group. Lights can be muted or enabled without deleting them.
+- **Copy, Paste and Duplicate** operate on complete light properties,
+  including source room-independent metadata. Ctrl+C/V/D are supported
+  when the cursor is not editing text. Paste inserts into the current
+  room near the visible camera center. Duplicate offsets 12×8 pixels.
+- **Shapes:** point/radial (original soft glow), **cone** (direction +
+  adjustable half-angle), and **shaft** (direction + beam width).
+  These are physically *illustrative 2D masks*, not 3D light transport
+  or occlusion-aware volumetric shadows. Existing radial light
+  profiles load unchanged.
+- **Flicker:** Subtle, Steady and Torch controls are per light.
+- **Exact coordinates:** X and Y can be entered numerically to move
+  lights, including those hidden under the editor.
+- **Scene ambient:** the Scene tab defines brightness 0–100 and RGB
+  tint for a particular candidate stage/room; rooms without an
+  explicit override inherit the original global ambient setting.
+- **Settings serialization** retains the old `Light00` entries and
+  adds `LightStyle00`, hex-encoded `LightName00` /
+  `LightGroup00` (UTF-8) and `RoomAmbient00`. Old configs remain
+  readable. Invalid labels are rejected rather than partially loaded.
+  A maximum of 24 lights and 32 ambient overrides are supported.
+
+**Actual ReShade overlay:** An independent optional add-on project is
+now under [`JP/recomp/reshade/`](../reshade/README.md).
+It uses ReShade's `register_overlay("CVIII Lighting", ...)`, so when
+installed against the full-add-on-enabled ReShade runtime, the
+controls are intended to appear within **ReShade itself**. It must
+be compiled and installed separately, and is **not yet owner-tested**
+or included with the standard private Alpha. Its first iteration
+supports named lights, groups, clipboard, shape and scene controls;
+new ReShade-side lights are created at the visible scene center
+and then moved using exact X/Y. Direct scene-click placement in the
+ReShade add-on is still pending. ReShade Home may conflict with the
+native Home editor shortcut: set `LightingEditorKey = End` for
+ReShade testing.
+
 ## Windows owner visual acceptance — Stage 1
 
 This is a reproducible manual test, **not a claim of completed gameplay QA**.
