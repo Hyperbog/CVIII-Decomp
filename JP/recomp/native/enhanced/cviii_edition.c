@@ -520,6 +520,19 @@ static void cviii_lighting_scroll(int sx[CVIII_LIGHT_H],int sy[CVIII_LIGHT_H])
         sy[y]=cyc_render_line_scroll_y(y);
     }
 }
+static int cviii_external_light_editor;
+int cviii_lighting_editor_external_active(void)
+{
+    return cviii_external_light_editor;
+}
+int cviii_lighting_editor_external_session(int open)
+{
+    if(open && !cviii.enhanced)return 0;
+    cviii_external_light_editor=open!=0;
+    cviii.lighting.edit=open!=0;
+    cviii.lighting.dragging=0;
+    return 1;
+}
 int cviii_lighting_editor_active(void)
 {
     return cviii.enhanced && cviii.lighting.edit;
