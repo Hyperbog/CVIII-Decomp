@@ -145,6 +145,10 @@ int main(){
  }
  std::printf("PASS CVIII D3D11 WARP direct=%f shadow=%f bounced=%f\n",
              directNear,shadowBehind,afterBounce-beforeBounce);
+ // Radiance Cascades mode disables the legacy sampled wall bounce in the
+ // direct shader. Assert the new hierarchical pass is the ONLY indirect
+ // contribution, rather than merely adding over the old one-bounce effect.
+ args.pad=1;
  // Exact Radiance Cascades runtime module on WARP, levels 2/3/4. Verify
  // hierarchical probe integration contributes measurable extra bounce
  // over the proven direct + face-sampled baseline, without NaNs.
