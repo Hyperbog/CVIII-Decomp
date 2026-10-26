@@ -6,7 +6,10 @@
 #define CVIII_LEVEL1_WORLD_0803_H
 #include "cviii_stage1_atlas_0724.h"
 #include <stdint.h>
-enum { CVIII_WORLD_ROOMS_0803=8, CVIII_WORLD_ACTORS_0803=28 };
+#include <stddef.h>
+enum { CVIII_WORLD_ROOMS_0803=8, CVIII_WORLD_ACTORS_0803=28,
+       CVIII_WORLD_GROUPS_0804=5, CVIII_WORLD_TEMPLATES_0804=30,
+       CVIII_WORLD_SOURCE_BYTES_0804=175 };
 typedef enum {
     CVIII_WORLD_LEFT_0803=0, CVIII_WORLD_RIGHT_0803=1,
     CVIII_WORLD_UP_0803=2, CVIII_WORLD_DOWN_0803=3
@@ -22,10 +25,22 @@ typedef struct {
     int32_t x,y;
     uint8_t raw_x,raw_y,attrs;
 } CviiiWorldActor0803;
+/* Thirty owner-ROM five-field installation records, preloaded once
+ * for all five source windows. Records describe original loader inputs,
+ * NOT simulated actors or invented AI/spawn positions. */
+typedef struct {
+    uint8_t source_group,source_index;
+    uint8_t sprite_selector,frame_offset,initial_x,initial_y,mirror;
+} CviiiWorldObjectTemplate0804;
+typedef struct {
+    uint8_t source_group,record_start,record_count,header[4];
+} CviiiWorldObjectGroup0804;
 typedef struct {
     CviiiWorldRoom0803 rooms[CVIII_WORLD_ROOMS_0803];
     CviiiWorldActor0803 actors[CVIII_WORLD_ACTORS_0803];
-    uint8_t ready,placed_count,visited_count;
+    CviiiWorldObjectTemplate0804 templates[CVIII_WORLD_TEMPLATES_0804];
+    CviiiWorldObjectGroup0804 groups[CVIII_WORLD_GROUPS_0804];
+    uint8_t ready,placed_count,visited_count,templates_ready;
     uint32_t actor_frame;
 } CviiiLevel1World0803;
 
@@ -51,6 +66,10 @@ int cviii_world_visit_0803(CviiiLevel1World0803 *world,
  * transformed to placed-room coordinates; live actor state is not invented
  * when original 6502 has not yet spawned/updated that object. The registry
  * is a nonauthoritative bridge for future Enhanced renderer integration. */
+/* Original raw0E:$BE8B-$BF39. Caller authenticates the original SHA256
+ * physical source window first; this exact bounded parser fails atomically. */
+int cviii_world_preload_templates_0804(CviiiLevel1World0803 *world,
+                const uint8_t *raw0e_source,size_t source_len);
 unsigned cviii_world_capture_live_0803(CviiiLevel1World0803 *world,
         const uint8_t selector[3],int local_camera_x,int local_camera_y,
         const uint8_t ram[2048]);

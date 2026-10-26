@@ -6,6 +6,53 @@ static const uint8_t keys[CVIII_WORLD_ROOMS_0803][3]={
     {0,0,0},{0,1,0},{0,1,1},{0,1,2},
     {0,1,3},{0,2,0},{0,2,1},{0,3,0}
 };
+/* JP0804: original JP raw0E physical room-installation resources.
+ * Source structure, five field destination offsets and FF terminators
+ * are proven by JP0659 original-6502/native execution. No inference
+ * from these raw fields to later AI behavior is made here.
+ */
+int cviii_world_preload_templates_0804(CviiiLevel1World0803 *w,
+                      const uint8_t *block,size_t len){
+    static const unsigned start[CVIII_WORLD_GROUPS_0804]={
+        25u,80u,120u,0u,145u
+    };
+    static const unsigned counts[CVIII_WORLD_GROUPS_0804]={
+        10u,7u,4u,4u,5u
+    };
+    if(!w || !w->ready || !block ||
+       len!=CVIII_WORLD_SOURCE_BYTES_0804)return 0;
+    CviiiWorldObjectTemplate0804 items[CVIII_WORLD_TEMPLATES_0804]={0};
+    CviiiWorldObjectGroup0804 groups[CVIII_WORLD_GROUPS_0804]={0};
+    unsigned used=0;
+    for(unsigned g=0;g<CVIII_WORLD_GROUPS_0804;g++){
+        unsigned pos=start[g],count=counts[g];
+        if(pos+4u+5u*count>=len ||
+           block[pos+4u+5u*count]!=0xffu ||
+           used+count>CVIII_WORLD_TEMPLATES_0804)return 0;
+        groups[g].source_group=(uint8_t)g;
+        groups[g].record_start=(uint8_t)used;
+        groups[g].record_count=(uint8_t)count;
+        memcpy(groups[g].header,block+pos,4u);
+        for(unsigned j=0;j<count;j++){
+            unsigned at=pos+4u+5u*j;
+            if(block[at]==0xffu)return 0;
+            CviiiWorldObjectTemplate0804 *item=&items[used++];
+            item->source_group=(uint8_t)g;
+            item->source_index=(uint8_t)j;
+            item->sprite_selector=block[at];    /* CPU $048C,X */
+            item->frame_offset=block[at+1u];   /* CPU $0400,X */
+            item->initial_x=block[at+2u];      /* CPU $0438,X */
+            item->initial_y=block[at+3u];      /* CPU $041C,X */
+            item->mirror=block[at+4u];         /* CPU $04A8,X */
+        }
+    }
+    if(used!=CVIII_WORLD_TEMPLATES_0804)return 0;
+    memcpy(w->templates,items,sizeof items);
+    memcpy(w->groups,groups,sizeof groups);
+    w->templates_ready=1;
+    return 1;
+}
+
 int cviii_world_index_0803(const CviiiLevel1World0803 *w,
                            const uint8_t selector[3]){
     if(!w || !w->ready || !selector)return -1;

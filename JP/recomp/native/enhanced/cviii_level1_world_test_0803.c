@@ -70,7 +70,43 @@ int main(void){
     if(!check(!cviii_world_build_0803(world,atlas) &&
                 memcmp(world,&before,sizeof before)==0,
               "failed preload transactional"))return 8;
+    /* No cartridge bytes in this test: invented raw0E five-field streams
+     * with original control structure, including 30 record instances. */
+    uint8_t block[CVIII_WORLD_SOURCE_BYTES_0804]={0};
+    static const unsigned starts[]={25,80,120,0,145};
+    static const unsigned counts[]={10,7,4,4,5};
+    for(unsigned g=0;g<5;g++){
+        for(unsigned i=0;i<4;i++)
+            block[starts[g]+i]=(uint8_t)(g+i);
+        for(unsigned i=0;i<counts[g];i++){
+            unsigned at=starts[g]+4u+5u*i;
+            block[at]=(uint8_t)(2+2*g);
+            block[at+1u]=4;
+            block[at+2u]=(uint8_t)(20+i);
+            block[at+3u]=(uint8_t)(40+i);
+            block[at+4u]=1;
+        }
+        block[starts[g]+4+5*counts[g]]=0xffu;
+    }
+    if(!check(cviii_world_preload_templates_0804(world,block,sizeof block) &&
+              world->templates_ready &&
+              world->groups[0].record_count==10 &&
+              world->groups[4].record_count==5 &&
+              world->templates[0].initial_x==20 &&
+              world->templates[29].source_group==4,
+              "all five source streams and thirty original loader records"))
+        return 9;
+    CviiiLevel1World0803 unchanged=*world;
+    block[starts[2]+4]=0xffu;
+    if(!check(!cviii_world_preload_templates_0804(world,block,sizeof block) &&
+              memcmp(world,&unchanged,sizeof unchanged)==0,
+              "early source terminator leaves world intact"))return 10;
+    block[starts[2]+4]=6;
+    block[starts[0]+4+5*counts[0]]=0;
+    if(!check(!cviii_world_preload_templates_0804(world,block,sizeof block) &&
+              memcmp(world,&unchanged,sizeof unchanged)==0,
+              "missing FF terminator leaves world intact"))return 11;
     free(atlas);free(world);
-    puts("PASS JP0803 8 ROM-resident rooms, branching graph, world actor registry and guarded desawns");
+    puts("PASS JP0803/0804 world graph, authoritative actors and original object templates");
     return 0;
 }

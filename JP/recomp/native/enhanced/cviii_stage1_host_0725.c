@@ -28,9 +28,26 @@ static int load(CviiiStage1Host0725 *h)
     CviiiResourceStatus0727 result=cviii_game_resources_cached_open_0729(
         h->rom_path,h->resource_cache_path,&h->atlas,assets);
     if(result==CVIII_RESOURCE_READY_0727) {
-        /* Always construct the full eight-room coordinate graph from the
-         * authenticated original Japanese ROM atlas in one operation. */
         if(!cviii_world_build_0803(&h->world,&h->atlas))return 0;
+        /* The original file was authenticated by the combined resource
+         * importer. Load the small, independently hashed raw0E object
+         * window once at stage initialization, even on atlas cache hits.
+         * Leave guest CPU spawn/AI completely authoritative. */
+        static const uint8_t expected[32]={0x97,0x77,0x45,0xb3,0x41,0xcf,0xa5,0x60,0x56,0xbe,0x96,0xe4,0x54,0xd2,0xe4,0x9e,0x5d,0x91,0x08,0x4b,0x79,0x8e,0x82,0xb1,0xa1,0xe8,0x19,0xdc,0xfc,0xda,0xb4,0x79};
+        uint8_t source_block[CVIII_WORLD_SOURCE_BYTES_0804],digest[32];
+        FILE *f=fopen(h->rom_path,"rb");
+        int ok=f && fseek(f,16L+14L*16384L+
+            (0xBE8BL-0x8000L),SEEK_SET)==0 &&
+            fread(source_block,1,sizeof source_block,f)==sizeof source_block;
+        if(f)fclose(f);
+        if(ok) {
+            cviii_sha256_0727(source_block,sizeof source_block,digest);
+            ok=memcmp(expected,digest,32u)==0 &&
+               cviii_world_preload_templates_0804(
+                   &h->world,source_block,sizeof source_block);
+        }
+        if(!ok)fprintf(stderr,
+            "CVIII JP0804: original object-resource preload not verified; continuing stock object behavior\n");
         return 1;
     }
     fprintf(stderr,"CVIII JP0727: runtime Stage 1 resource load rejected (status %d); stock presentation retained\\n",
