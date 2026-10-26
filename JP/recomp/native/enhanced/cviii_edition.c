@@ -74,6 +74,7 @@ typedef struct {
 static CviiiEdition cviii = { .volume = CVIII_AUDIO_LEVELS_DEFAULT };
 static int cviii_start_ready;
 static int cviii_lighting_ready;
+static int cviii_external_light_editor;
 
 /* JP0620: optional built-in paused runtime menu rows for recomp-ui builds.
  * The separate F6 modal now uses the original CHR overlay on all supported
@@ -355,6 +356,7 @@ static void power_on(void *context)
     cviii_layers_reset(&settings->sprite_layers);
     settings->lighting.edit=0;
     settings->lighting.dragging=0;
+    cviii_external_light_editor=0;
     settings->lighting_frame=0;
     cviii_audio_menu_state_close(&settings->audio_ui); /* reset cannot leave a stale modal */
     cviii_start_close(&settings->start_menu);
@@ -386,6 +388,7 @@ static void state_loaded(void *context)
     cviii_layers_reset(&settings->sprite_layers);
     settings->lighting.edit=0;
     settings->lighting.dragging=0;
+    cviii_external_light_editor=0;
     settings->lighting_frame=0;
     cviii_audio_menu_state_close(&settings->audio_ui); /* loaded gameplay never owns a stale modal */
     cviii_start_close(&settings->start_menu);
@@ -520,7 +523,6 @@ static void cviii_lighting_scroll(int sx[CVIII_LIGHT_H],int sy[CVIII_LIGHT_H])
         sy[y]=cyc_render_line_scroll_y(y);
     }
 }
-static int cviii_external_light_editor;
 int cviii_lighting_editor_external_active(void)
 {
     return cviii_external_light_editor;
