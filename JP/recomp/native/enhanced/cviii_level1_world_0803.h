@@ -8,6 +8,7 @@
 #include "cviii_room_catalog_0657.h"
 #include "cviii_stage1_source_link_0814.h"
 #include "cviii_source_offscreen_0815.h"
+#include "cviii_horizontal_sources_0816.h"
 #include <stdint.h>
 #include <stddef.h>
 enum { CVIII_WORLD_ROOMS_0803=8, CVIII_WORLD_ACTORS_0803=28,
@@ -98,6 +99,11 @@ typedef struct {
     CviiiSourceOffscreen0815 chapel_projection[CVIII_STAGE1_CHAPEL_SOURCES_0813];
     uint32_t chapel_projection_epochs;
     uint8_t chapel_margin_actor_count;
+    /* JP0816: resident original room-cell tables; not spawned actors. */
+    CviiiHorizontalRoom0816 horizontal[CVIII_HORIZONTAL_ROOMS_0816];
+    CviiiHorizontalSelection0816 horizontal_last;
+    uint32_t horizontal_observations;
+    uint8_t horizontal_ready;
 } CviiiLevel1World0803;
 
 /* All eight source rooms are resident on success. One known horizontal
@@ -154,6 +160,16 @@ int cviii_world_detect_loader_0805(CviiiLevel1World0803 *world,
 /* Read-only source eligibility for vertical Stage1 chapel, valid camera
  * only. No active actors are created, changed, or prolonged in guest RAM.
  * Returns number eligible, or -1 for an unsupported/inconsistent state. */
+/* Called ONCE with already authenticated owner raw0A before its temporary
+ * source bank is released. Transactional; never stores original code bank.
+ * All seven horizontal leaves are source-indexed; no spawn simulation. */
+int cviii_world_preload_horizontal_0816(CviiiLevel1World0803 *world,
+                      const uint8_t raw0a[16384],size_t bank_len);
+/* Observe original CPU $53/$54/$62/$07F6 and source phase; returns
+ * selected source cell, 0 for no bounded source, -1 for unsupported.
+ * Read-only original source identities, no hitboxes or guest RAM writes. */
+int cviii_world_observe_horizontal_0816(CviiiLevel1World0803 *world,
+                    const uint8_t selector[3],const uint8_t ram[2048]);
 int cviii_world_track_chapel_0813(CviiiLevel1World0803 *world,
                   const uint8_t selector[3],int camera_y);
 /* Correlate source bytes with exact original $82xx RAM postconditions.
