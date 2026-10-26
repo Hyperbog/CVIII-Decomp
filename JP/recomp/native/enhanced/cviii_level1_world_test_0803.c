@@ -416,8 +416,8 @@ int main(void){
               !world->chapel_projection[0].actor_confirmed &&
               world->chapel_projection[0].source_cpu==0xab1fu &&
               world->chapel_projection[0].interaction_policy==
-                  CVIII_INTERACTION_NOT_SPAWNED_0815,
-              "source remains resident but never fabricates a ghost actor"))
+                  CVIII_INTERACTION_ALLOCATION_UNVERIFIED_0815,
+              "source remains resident without claimed actor allocation"))
         return 34;
     uint32_t previous_links=world->chapel_link_epochs;
     if(!check(cviii_world_link_chapel_0814(world,second,ram)==-1 &&
