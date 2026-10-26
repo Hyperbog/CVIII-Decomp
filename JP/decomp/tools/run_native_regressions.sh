@@ -365,6 +365,9 @@ python3 "$root/JP/decomp/tools/jp_stage1_activation_response_0817.py" --smoke
 python3 "$root/JP/decomp/tools/jp_stage1_reaction_lineage_0818.py" --smoke
 # JP0819: original $B3EC absolute-byte and partner-mask arithmetic.
 python3 "$root/JP/decomp/tools/jp_stage1_interaction_lifetime_0819.py" --smoke
+# JP0821: owner-ROM source audit and private natural Mesen replay CLI smoke.
+python3 "$root/JP/decomp/tools/jp_stage1_contact_effects_0821.py" --smoke
+python3 "$root/JP/decomp/tools/jp_stage1_natural_contact_lifetime_0821.py" --smoke
 
 # JP0738: original/native camera-actor comparison parser on entirely invented
 # ZIP/CYCFRAME records; authentic owner gameplay requires separate private logs.
