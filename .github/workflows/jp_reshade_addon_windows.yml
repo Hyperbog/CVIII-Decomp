@@ -1,6 +1,12 @@
 name: Optional CVIII ReShade Add-on Compile
 on:
   workflow_dispatch:
+  pull_request:
+    branches: [decompilation]
+    paths:
+      - "JP/recomp/reshade/**"
+      - "JP/recomp/native/enhanced/cviii_lighting.h"
+      - ".github/workflows/jp_reshade_addon_windows.yml"
   push:
     branches: [decompilation, feature/enhanced-lighting-foundation]
     paths:
