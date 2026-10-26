@@ -14,6 +14,9 @@
 
 namespace {
 bool ready=false, place_pending=false, dirty=false;
+int pending_kit_type=-1,pending_kit_id=-1; /* 0 builtin, 1 saved custom */
+char kit_capture_name[CVIII_LIGHT_NAME_CAP]="My Lighting Rig";
+int kit_capture_slot=0;
 char search_text[64]={};
 int current_tab=0;
 SDL_Window *active_window=nullptr;
@@ -134,13 +137,21 @@ extern "C" int cviii_imgui_event(const SDL_Event *e,SDL_Window *w,SDL_Renderer *
     }
 }
 extern "C" int cviii_imgui_scene_click(int event,int x,int y){
-    if(!cviii_lighting_editor_active() || !place_pending || event!=2)return 0;
-    const bool ok=cviii_lighting_editor_add(x,y)!=0;
-    if(ok){place_pending=false;dirty=true;}
+    if(!cviii_lighting_editor_active() || event!=2 ||
+       (!place_pending && pending_kit_type<0))return 0;
+    int ok=pending_kit_type==0?
+        cviii_lighting_editor_apply_builtin(pending_kit_id,x,y):
+        pending_kit_type==1?
+        cviii_lighting_editor_apply_kit(pending_kit_id,x,y):
+        cviii_lighting_editor_add(x,y);
+    if(ok){
+        place_pending=false;pending_kit_type=-1;pending_kit_id=-1;dirty=true;
+    }
     return ok?2:1;
 }
 extern "C" void cviii_imgui_reset(void){
     place_pending=false;
+    pending_kit_type=-1;pending_kit_id=-1;
     panel_min=ImVec2(0,0);panel_max=ImVec2(0,0);
 }
 extern "C" void cviii_imgui_shutdown(void){
@@ -347,6 +358,56 @@ extern "C" int cviii_imgui_render(SDL_Window *window,SDL_Renderer *renderer){
             }else ImGui::TextDisabled("Select a light from the list to edit it.");
             ImGui::EndTabItem();
         }
+        if(ImGui::BeginTabItem("Library")){
+            current_tab=5;
+            ImGui::TextWrapped("Global rigs are reusable named sets of emitters. "
+                "Apply at camera center, or click Place and select a spot "
+                "in the level. All lights become part of the current room.");
+            ImGui::SeparatorText("Built-in Global Rigs");
+            for(int i=0;i<cviii_light_builtin_count();++i){
+                ImGui::PushID(i);
+                ImGui::TextUnformatted(cviii_light_builtin_name(i));
+                ImGui::SameLine(185);
+                if(ImGui::SmallButton("Apply Here")){
+                    if(cviii_lighting_editor_apply_builtin(i,-1,-1))dirty=true;
+                }
+                ImGui::SameLine();
+                if(ImGui::SmallButton("Place...")){
+                    pending_kit_type=0;pending_kit_id=i;place_pending=false;
+                }
+                ImGui::PopID();
+            }
+            ImGui::SeparatorText("Your Global Kits");
+            ImGui::SetNextItemWidth(-100.f);
+            ImGui::InputText("Kit name",kit_capture_name,sizeof kit_capture_name);
+            ImGui::SliderInt("Library slot",&kit_capture_slot,0,CVIII_KIT_MAX-1);
+            if(ImGui::Button("Save Selected Group as Global Kit")){
+                if(cviii_lighting_editor_capture_kit(kit_capture_slot,kit_capture_name))
+                    dirty=true;
+            }
+            ImGui::TextDisabled("Captures the selected light and up to %d "
+                                "members of the same named group.",
+                                CVIII_KIT_PARTS);
+            for(int k=0;k<CVIII_KIT_MAX;++k){
+                if(!model->kits[k].used)continue;
+                ImGui::PushID(k+1000);
+                ImGui::Text("%02d. %s (%d emitters)",k+1,model->kits[k].name,
+                            model->kits[k].count);
+                ImGui::SameLine(210);
+                if(ImGui::SmallButton("Apply")){
+                    if(cviii_lighting_editor_apply_kit(k,-1,-1))dirty=true;
+                }
+                ImGui::SameLine();
+                if(ImGui::SmallButton("Place")){
+                    pending_kit_type=1;pending_kit_id=k;place_pending=false;
+                }
+                ImGui::PopID();
+            }
+            if(pending_kit_type>=0)
+                ImGui::TextColored(ImVec4(.9f,.75f,.3f,1.f),
+                    "PLACEMENT ACTIVE - click the exposed gameplay");
+            ImGui::EndTabItem();
+        }
         if(ImGui::BeginTabItem("Scene")){
             current_tab=1;
             ImGui::Text("Scene: %08X",room);
@@ -363,8 +424,48 @@ extern "C" int cviii_imgui_render(SDL_Window *window,SDL_Renderer *renderer){
                     if(cviii_lighting_editor_scene(i+1,
                          (int)(tint[i]*255.f+0.5f)))dirty=true;
             }
-            ImGui::TextWrapped("Ambient is a scene-wide flat light level. "
-                               "Shafts and spot cones remain positioned local lights.");
+            if(ImGui::Button("Neutral white ambient (recommended)")){
+                for(int i=0;i<3;++i)
+                    if(cviii_lighting_editor_scene(i+1,255))dirty=true;
+            }
+            ImGui::SeparatorText("Independent Sky / Hemisphere Fill");
+            int sky_strength=0,sky_rgb[3],sky_direction=-1;
+            cviii_light_sky_get(model,room,&sky_strength,sky_rgb,&sky_direction);
+            if(ImGui::SliderInt("Sky Brightness",&sky_strength,0,100,"%d%%"))
+                if(cviii_lighting_editor_sky(0,sky_strength))dirty=true;
+            float sky_color[3]={sky_rgb[0]/255.f,sky_rgb[1]/255.f,sky_rgb[2]/255.f};
+            if(ImGui::ColorEdit3("Sky Light Color",sky_color,
+                    ImGuiColorEditFlags_PickerHueWheel|ImGuiColorEditFlags_DisplayRGB)){
+                for(int i=0;i<3;++i)
+                    if(cviii_lighting_editor_sky(i+1,
+                       (int)(sky_color[i]*255.f+0.5f)))dirty=true;
+            }
+            int direction=sky_direction+1;
+            if(ImGui::Combo("Sky Gradient Direction",&direction,
+                            "Upper sky\0Uniform fill\0Lower bounce\0"))
+                if(cviii_lighting_editor_sky(4,direction-1))dirty=true;
+            if(ImGui::Button("Daylight")){
+                if(cviii_lighting_editor_sky(0,32))dirty=true;
+                const int c[3]={204,224,255};
+                for(int i=0;i<3;++i)
+                    if(cviii_lighting_editor_sky(i+1,c[i]))dirty=true;
+                if(cviii_lighting_editor_sky(4,-1))dirty=true;
+            }
+            ImGui::SameLine();
+            if(ImGui::Button("Moonlight")){
+                if(cviii_lighting_editor_sky(0,20))dirty=true;
+                const int c[3]={123,157,245};
+                for(int i=0;i<3;++i)
+                    if(cviii_lighting_editor_sky(i+1,c[i]))dirty=true;
+                if(cviii_lighting_editor_sky(4,-1))dirty=true;
+            }
+            ImGui::SameLine();
+            if(ImGui::Button("No Sky")){
+                if(cviii_lighting_editor_sky(0,0))dirty=true;
+            }
+            ImGui::TextWrapped("Sky fill adds softly lit color without "
+                "subtracting palette channels. It is art-directed 2D "
+                "hemispherical fill, not true bounce-light GI.");
             ImGui::SeparatorText("Authoring Notes");
             ImGui::BulletText("Lighting only changes final presentation pixels.");
             ImGui::BulletText("Emitters are attached to candidate room IDs.");
@@ -453,7 +554,7 @@ extern "C" int cviii_imgui_render(SDL_Window *window,SDL_Renderer *renderer){
     SDL_RenderSetLogicalSize(renderer,native_w,native_h);
     if(!stay_open){
         (void)cviii_lighting_editor_input(1,-1,-1);
-        place_pending=false;dirty=true;
+        place_pending=false;pending_kit_type=-1;dirty=true;
     }
     if(dirty && !ImGui::IsMouseDown(ImGuiMouseButton_Left)){
         dirty=false;
