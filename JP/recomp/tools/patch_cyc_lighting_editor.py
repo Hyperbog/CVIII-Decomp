@@ -22,6 +22,11 @@ SHELL=r'''
 #include "cviii_lighting_host.h"
 static void zapper_window_point(int,int,int*,int*,int*,int*);
 #include "cviii_imgui_editor.h"
+/* Called by optional genuine ReShade add-on through host C export. */
+#if defined(_WIN32)
+__declspec(dllexport)
+#endif
+void cviii_light_force_save(void){save_settings();}
 static bool cviii_light_rebinding;
 static SDL_Scancode cviii_light_bind_pending=SDL_SCANCODE_UNKNOWN;
 static SDL_Scancode cviii_light_key(void)
