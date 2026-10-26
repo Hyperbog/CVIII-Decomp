@@ -50,7 +50,16 @@ environment. The ReShade add-on is **not** a graphics-driver rewrite.
    range, brightness, mute, flicker and scene ambient settings.
    The add-on writes via the game's exported editor C API and calls
    the game's existing `config.ini` serializer.
-4. When the ReShade panel is no longer drawn, a short presentation
+4. In **Global Lighting Library**, use Candle, Torch, Lantern,
+   Window, Moonlight, Sunbeam, and Magic. Choose **Apply here** to
+   place an independent group in the current room or **Place...**
+   then click the game view. Name and group your own arranged lights,
+   choose a global kit slot, and save it for reuse in later rooms.
+5. Under **Sky Illumination**, set a separately additive colored
+   upper-sky, uniform, or lower-bounce fill. Neutralize the old
+   ambient tint first if you want sky color without a subtractive
+   color filter. These are 2D approximations, not geometry-aware GI.
+6. When the ReShade panel is no longer drawn, a short presentation
    watchdog closes the external editing session and resumes the NES
    simulation. ReShade itself owns mouse input while its overlay
    is open; the native lighting studio does not render simultaneously.
