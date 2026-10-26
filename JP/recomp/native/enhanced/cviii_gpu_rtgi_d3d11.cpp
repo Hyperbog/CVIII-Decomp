@@ -268,6 +268,7 @@ int run(const CviiiLighting *s,uint32_t *pixels,uint32_t room,int camera,
     args.lightCount=(uint32_t)nlight;
     args.wallCount=(uint32_t)nwall;
     args.frame=(uint32_t)(frame%216000);
+    args.unused=cascade_levels?1u:0u; /* disable legacy virtual-face bounce in RC */
     for(int c=0;c<3;++c){
         args.ambientSky[c]=ambient*amb[c]/25500.f;
         args.skyColor[c]=skyRgb[c]/255.f;
