@@ -185,6 +185,19 @@ int main(void) {
     assert(cviii_lighting_editor_property(6,34));
     assert(cviii_lighting_editor_model()->light[chosen].radius==120);
     assert(cviii_lighting_editor_model()->light[chosen].red==211);
+    /* Real host lifecycle callbacks reset editor/modal presentation but
+       NEVER delete owner-authored room lights or global preset settings. */
+    const unsigned saved_room=cviii_lighting_editor_room();
+    e->power_on(e->ctx);
+    assert(!cviii_lighting_editor_active());
+    assert(cviii_lighting_editor_model()->light[chosen].used);
+    assert(cviii_lighting_editor_model()->light[chosen].room==saved_room);
+    assert(cviii_lighting_editor_model()->light[chosen].radius==120);
+    e->state_loaded(e->ctx);
+    assert(cviii_lighting_editor_model()->light[chosen].used);
+    assert(cviii_lighting_editor_model()->light[chosen].red==211);
+    assert(cviii_lighting_editor_input(1,-1,-1)); /* reopen owner editor */
+    assert(cviii_lighting_editor_active());
     assert(!cviii_lighting_editor_property(19,50));
     assert(!cviii_lighting_editor_input(2,72,20)); /* original HUD */
     assert(cviii_lighting_editor_input(2,72,90));
