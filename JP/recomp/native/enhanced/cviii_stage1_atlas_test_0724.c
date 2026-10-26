@@ -37,7 +37,17 @@ int main(void){
  for(int i=0;i<426*240;i++)p[i]=0xff123456;
  unsigned ext=cviii_stage1_atlas_extend_edges_0760(a,key,0,0,
      p,426,240,85,pixel,color);
+ /* Camera at left room edge: only LEFT side is out of bounds.
+  * Right side is valid source world geometry; don't overwrite it. */
  assert(ext>0u && p[32*426+0]!=0xff123456 &&
+        p[32*426+425]==0xff123456 &&
+        p[32*426+85]==0xff123456);
+ for(int i=0;i<426*240;i++)p[i]=0xff123456;
+ unsigned extent=cviii_stage1_atlas_width_0751(a,key);
+ assert(extent>=256);
+ ext=cviii_stage1_atlas_extend_edges_0760(a,key,(int)extent-256,0,
+     p,426,240,85,pixel,color);
+ assert(ext>0u && p[32*426+0]==0xff123456 &&
         p[32*426+425]!=0xff123456 &&
         p[32*426+85]==0xff123456);
  rom[0x2014c]=200;
