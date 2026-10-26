@@ -154,6 +154,7 @@ void end_session(){
     placement_pending=false;
     pending_kit_kind=-1;
     mask_drawing=false;mask_first=false;
+    particle_pending=-1;
 }
 void on_present(reshade::api::effect_runtime *){
     ++presented;
@@ -305,7 +306,8 @@ void on_overlay(reshade::api::effect_runtime *){
             ImGui::PushID(10000+i);
             char title[110];
             std::snprintf(title,sizeof title,"%02d. %s (%s)",
-                i+1,fx.name,cviii_particle_kind_name(fx.kind));
+                i+1,fx.name,(fx.kind>=0 && fx.kind<CVIII_FX_COUNT)?
+                    kinds[fx.kind]:"Unknown");
             if(ImGui::Selectable(title,particle_selected==i))particle_selected=i;
             ImGui::PopID();
         }
