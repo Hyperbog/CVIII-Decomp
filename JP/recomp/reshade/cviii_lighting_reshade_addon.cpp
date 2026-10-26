@@ -23,6 +23,16 @@ struct Bridge {
     int (*apply_kit)(int,int,int)=nullptr;
     int (*capture_kit)(int,const char*)=nullptr;
     int (*sky)(int,int)=nullptr;
+    unsigned (*raw_room)()=nullptr;
+    int (*alias)(unsigned)=nullptr;
+    int (*global_capture)(int,const char*)=nullptr;
+    int (*global_link)(int,int)=nullptr;
+    int (*global_property)(int,int,int)=nullptr;
+    int (*mask_add)(int,int,int,int)=nullptr;
+    int (*mask_property)(int,int,int)=nullptr;
+    int (*grade)(int,int)=nullptr;
+    int (*undo)()=nullptr;
+    int (*redo)()=nullptr;
     int (*builtin_count)()=nullptr;
     const char *(*builtin_name)(int)=nullptr;
     int (*event)(int,int,int)=nullptr;
@@ -39,7 +49,9 @@ bool external_open=false;
 bool placement_pending=false;
 int pending_kit_kind=-1,pending_kit_id=-1;
 char kit_name[CVIII_LIGHT_NAME_CAP]="My Lighting Rig";
-int kit_slot=0;
+int kit_slot=0,global_style_slot=0,mask_slot=0;
+char global_name[CVIII_LIGHT_NAME_CAP]="Global Torch";
+unsigned alias_target=0,last_raw=0;
 unsigned long long presented=0,last_editor_draw=0;
 char search[64]={};
 
@@ -62,6 +74,16 @@ bool bind_game(){
     b.apply_kit=game_export<decltype(b.apply_kit)>(exe,"cviii_lighting_editor_apply_kit");
     b.capture_kit=game_export<decltype(b.capture_kit)>(exe,"cviii_lighting_editor_capture_kit");
     b.sky=game_export<decltype(b.sky)>(exe,"cviii_lighting_editor_sky");
+    b.raw_room=game_export<decltype(b.raw_room)>(exe,"cviii_lighting_editor_raw_room");
+    b.alias=game_export<decltype(b.alias)>(exe,"cviii_lighting_editor_alias");
+    b.global_capture=game_export<decltype(b.global_capture)>(exe,"cviii_lighting_editor_global_capture");
+    b.global_link=game_export<decltype(b.global_link)>(exe,"cviii_lighting_editor_global_link");
+    b.global_property=game_export<decltype(b.global_property)>(exe,"cviii_lighting_editor_global_property");
+    b.mask_add=game_export<decltype(b.mask_add)>(exe,"cviii_lighting_editor_mask_add");
+    b.mask_property=game_export<decltype(b.mask_property)>(exe,"cviii_lighting_editor_mask_property");
+    b.grade=game_export<decltype(b.grade)>(exe,"cviii_lighting_editor_grade");
+    b.undo=game_export<decltype(b.undo)>(exe,"cviii_lighting_editor_undo");
+    b.redo=game_export<decltype(b.redo)>(exe,"cviii_lighting_editor_redo");
     b.builtin_count=game_export<decltype(b.builtin_count)>(exe,"cviii_lighting_editor_builtin_count");
     b.builtin_name=game_export<decltype(b.builtin_name)>(exe,"cviii_lighting_editor_builtin_name");
     b.event=game_export<decltype(b.event)>(exe,"cviii_lighting_editor_input");
@@ -76,6 +98,9 @@ bool bind_game(){
     if(!b.model || !b.room || !b.session || !b.select || !b.add ||
        !b.place_window || !b.place_kit_window || !b.apply_builtin ||
        !b.apply_kit || !b.capture_kit || !b.sky ||
+       !b.raw_room || !b.alias || !b.global_capture || !b.global_link ||
+       !b.global_property || !b.mask_add || !b.mask_property || !b.grade ||
+       !b.undo || !b.redo ||
        !b.builtin_count || !b.builtin_name ||
        !b.event || !b.prop ||
        !b.copy || !b.paste || !b.duplicate || !b.name || !b.group ||
@@ -121,6 +146,11 @@ void on_overlay(reshade::api::effect_runtime *){
         changed(bridge.prop(0,enabled?1:0));
     ImGui::SameLine();
     ImGui::TextDisabled("Scene %08X",room);
+    if(ImGui::SmallButton("Undo"))changed(bridge.undo());
+    ImGui::SameLine();
+    if(ImGui::SmallButton("Redo"))changed(bridge.redo());
+    ImGui::SameLine();
+    ImGui::TextDisabled("Undo/Redo affect lighting only");
     ImGui::InputTextWithHint("##filter","Filter lights and groups...",search,sizeof search);
     if(ImGui::Button(placement_pending?"CLICK ON LEVEL...":"Add Light: Click Level")){
         placement_pending=true;pending_kit_kind=-1;pending_kit_id=-1;
@@ -250,6 +280,100 @@ void on_overlay(reshade::api::effect_runtime *){
     if(ImGui::ColorEdit3("Ambient Color",c,ImGuiColorEditFlags_PickerHueWheel))
         for(int k=0;k<3;++k)
             changed(bridge.scene(k+1,(int)(c[k]*255.f+0.5f)));
+    if(ImGui::CollapsingHeader("Global Styles / Linked Groups",ImGuiTreeNodeFlags_DefaultOpen)){
+        ImGui::TextWrapped("Capture a light as a shared style; link any placed "
+                           "light or named group to it across all rooms.");
+        ImGui::InputText("Global Name",global_name,sizeof global_name);
+        ImGui::SliderInt("Global Slot",&global_style_slot,0,CVIII_GLOBAL_STYLE_MAX-1);
+        if(ImGui::Button("Capture Selected"))changed(bridge.global_capture(global_style_slot,global_name));
+        ImGui::SameLine();
+        if(ImGui::Button("Link Selected"))changed(bridge.global_link(global_style_slot,0));
+        ImGui::SameLine();
+        if(ImGui::Button("Link Group"))changed(bridge.global_link(global_style_slot,1));
+        if(ImGui::Button("Unlink Selected"))changed(bridge.global_link(-1,0));
+        const CviiiGlobalStyle &style=s->styles[global_style_slot];
+        if(style.used){
+            ImGui::Text("Shared style: %s",style.name);
+            int radius=style.light.radius,energy=style.light.energy;
+            if(ImGui::SliderInt("Global Range",&radius,12,160))
+                changed(bridge.global_property(global_style_slot,2,radius));
+            if(ImGui::SliderInt("Global Power",&energy,5,160))
+                changed(bridge.global_property(global_style_slot,3,energy));
+            float color[3]={style.light.red/255.f,style.light.green/255.f,style.light.blue/255.f};
+            if(ImGui::ColorEdit3("Global RGB",color,ImGuiColorEditFlags_PickerHueWheel))
+                for(int k=0;k<3;++k)
+                    changed(bridge.global_property(global_style_slot,4+k,
+                      (int)(color[k]*255.f+0.5f)));
+        }
+        for(int i=0;i<CVIII_GLOBAL_STYLE_MAX;++i)if(s->styles[i].used){
+            ImGui::PushID(i+800);
+            if(ImGui::Selectable(s->styles[i].name,i==global_style_slot))global_style_slot=i;
+            ImGui::PopID();
+        }
+    }
+    if(ImGui::CollapsingHeader("Masks / Soft Occlusion")){
+        const int selected=s->selected;
+        if(selected>=0 && selected<CVIII_LIGHT_MAX &&
+           s->light[selected].used && s->light[selected].room==room){
+            if(ImGui::Button("Add Wall Mask Near Selected Light")){
+                const CviiiLight &l=s->light[selected];
+                int y=l.y>25?l.y-15:l.y;
+                changed(bridge.mask_add(l.x+18,y,10,30)>=0);
+            }
+        }
+        for(int i=0;i<CVIII_OCCLUDER_MAX;++i){
+            if(!s->masks[i].used || s->masks[i].room!=room)continue;
+            char title[32];std::snprintf(title,sizeof title,"Mask %02d",i+1);
+            if(ImGui::Selectable(title,i==mask_slot))mask_slot=i;
+        }
+        if(mask_slot>=0 && mask_slot<CVIII_OCCLUDER_MAX &&
+           s->masks[mask_slot].used && s->masks[mask_slot].room==room){
+            const CviiiOccluder &mask=s->masks[mask_slot];
+            int x=mask.x,y=mask.y,w=mask.w,h=mask.h,alpha=mask.opacity,soft=mask.softness;
+            if(ImGui::InputInt("X##mask",&x))changed(bridge.mask_property(mask_slot,1,x));
+            if(ImGui::InputInt("Y##mask",&y))changed(bridge.mask_property(mask_slot,2,y));
+            if(ImGui::SliderInt("Width##mask",&w,1,160))
+                changed(bridge.mask_property(mask_slot,3,w));
+            if(ImGui::SliderInt("Height##mask",&h,1,160))
+                changed(bridge.mask_property(mask_slot,4,h));
+            if(ImGui::SliderInt("Shadow Opacity",&alpha,0,100))
+                changed(bridge.mask_property(mask_slot,5,alpha));
+            if(ImGui::SliderInt("Penumbra Softness",&soft,0,16))
+                changed(bridge.mask_property(mask_slot,6,soft));
+            if(ImGui::Button("Remove Mask"))changed(bridge.mask_property(mask_slot,0,0));
+        }
+        ImGui::TextDisabled("Manually authored 2D masks; no tile collision inference.");
+    }
+    if(ImGui::CollapsingHeader("Exposure / White Balance")){
+        int ev=0,temp=0,sat=100;
+        for(int i=0;i<CVIII_SCENE_AMBIENT_MAX;++i){
+            const CviiiSceneAmbient &a=s->scenes[i];
+            if(!a.used || a.room!=room || !a.graded)continue;
+            ev=a.exposure;temp=a.temperature;sat=a.saturation;
+            break;
+        }
+        if(ImGui::SliderInt("Exposure (EV x100)",&ev,-200,200))
+            changed(bridge.grade(0,ev));
+        if(ImGui::SliderInt("White Balance",&temp,-100,100))
+            changed(bridge.grade(1,temp));
+        if(ImGui::SliderInt("Saturation",&sat,0,200))
+            changed(bridge.grade(2,sat));
+        if(ImGui::Button("Reset Grade")){
+            changed(bridge.grade(0,0));changed(bridge.grade(1,0));
+            changed(bridge.grade(2,100));
+        }
+    }
+    if(ImGui::CollapsingHeader("Persistent Scene Identity")){
+        unsigned raw=bridge.raw_room();
+        if(raw!=last_raw){last_raw=raw;alias_target=room;}
+        ImGui::Text("Raw %08X   Linked Scene %08X",raw,room);
+        ImGui::TextWrapped("If revisiting a room produces a different raw key, "
+           "enter the original saved scene ID to restore the same lights.");
+        ImGui::InputScalar("Saved Scene ID",ImGuiDataType_U32,&alias_target,
+                           nullptr,nullptr,"%08X",ImGuiInputTextFlags_CharsHexadecimal);
+        if(ImGui::Button("Link Current Selector to Saved Scene"))
+            changed(bridge.alias(alias_target));
+    }
     ImGui::SeparatorText("Sky Illumination (additive fill)");
     int sky_strength=0,skycolor[3]={186,209,255},skyface=-1;
     for(int i=0;i<CVIII_SCENE_AMBIENT_MAX;++i){
