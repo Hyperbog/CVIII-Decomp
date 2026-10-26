@@ -14,7 +14,10 @@ typedef struct {
     uint32_t pixels[CVIII_STAGE1_WIDE_0725*240];
     char rom_path[1024];
     char resource_cache_path[1024]; /* optional user-private JP0729 cache */
-    CviiiStage1Join0751 join; /* validated scene seam and transient sides */
+    CviiiStage1Join0751 join; /* preloaded previous room, no pixel repetition */
+    uint8_t last_verified_selector[3];
+    int last_verified_camera, last_verified_center;
+    int has_verified_scene; /* retained until stage/mode/state reset */
     int enabled, attempted, video_wide;
 } CviiiStage1Host0725;
 /* Options are only applied to this presentation object, not guest memory. */

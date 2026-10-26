@@ -31,25 +31,6 @@ int main(void){
  uint32_t count=cviii_stage1_atlas_paint_0724(a,key,85,0,p,426,240,85,pixel,color);
  assert(count==170u*192u && p[32*426+0] != 0xff123456 &&
         p[32*426+85]==0xff123456 && p[32*426+85+255]==0xff123456);
- /* Extending side background never changes the 256-pixel NES
-  * picture. Both left and right margins must be covered at a room
-  * boundary without a solid-black geometry gap. */
- for(int i=0;i<426*240;i++)p[i]=0xff123456;
- unsigned ext=cviii_stage1_atlas_extend_edges_0760(a,key,0,0,
-     p,426,240,85,pixel,color);
- /* Camera at left room edge: only LEFT side is out of bounds.
-  * Right side is valid source world geometry; don't overwrite it. */
- assert(ext>0u && p[32*426+0]!=0xff123456 &&
-        p[32*426+425]==0xff123456 &&
-        p[32*426+85]==0xff123456);
- for(int i=0;i<426*240;i++)p[i]=0xff123456;
- unsigned extent=cviii_stage1_atlas_width_0751(a,key);
- assert(extent>=256);
- ext=cviii_stage1_atlas_extend_edges_0760(a,key,(int)extent-256,0,
-     p,426,240,85,pixel,color);
- assert(ext>0u && p[32*426+0]==0xff123456 &&
-        p[32*426+425]!=0xff123456 &&
-        p[32*426+85]==0xff123456);
  rom[0x2014c]=200;
  assert(cviii_stage1_atlas_load_0724(a,rom,393232)==-1);
  assert(cviii_stage1_atlas_get_0724(a,key,3,3,&tile,&pal)&&tile==15&&pal==3);

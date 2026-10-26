@@ -83,31 +83,31 @@ int main(void)
     if (!require(pixels!=NULL&&pixels!=original&&w==426&&h==240,
                  "wide dimensions") ||
         !require(requested_mode==NES_VIDEO_16_9,"host video mode") ||
-        !require(pixels[32*426+85]==original[32*256],
-                 "original left center") ||
-        !require(pixels[200*426+340]==original[200*256+255],
-                 "original right center") ||
+        !require(pixels[32*426+0]==original[32*256],
+                 "scene start uses genuine first-world pixel, not repeated strip") ||
+        !require(pixels[200*426+255]==original[200*256+255],
+                 "last native pixel at stage origin") ||
+        !require(pixels[0*426+85]==original[0],
+                 "HUD remains centered independently") ||
         !require(pixels[32*426+341]!=0xff000000u,
                  "preloaded margin before visit") ||
         !require(pixels[0]==0xff000000u,"no world over HUD"))
        return 1;
     for(int y=0;y<240;y++)for(int x=0;x<256;x++)
-      if (!require(pixels[y*426+85+x]==original[y*256+x],
-                   "all 61,440 native gameplay pixels unchanged"))return 1;
-    /* A temporary PPU/room-camera mismatch retains prior original-ROM
-     * scenery for only 30 frames, and then fails closed. */
+      if (!require(pixels[y*426+(y<32?85:0)+x]==original[y*256+x],
+                   "all 61,440 NES pixels preserved at boundary-aware offset"))return 1;
+    /* Unlike the old 30-frame fading side cache, the already-loaded
+     * ROM atlas remains visible after an arbitrary long NT mismatch. */
     scroll_x=123;w=256;h=240;
     pixels=cviii_stage1_host_present_0725(&host,original,&w,&h,1);
-    if (!require(pixels[32*426+341]!=0xff000000u,
-                 "source-backed margin held across transition"))return 1;
-    for(unsigned attempt=1;attempt<CVIII_JOIN_HOLD_MAX;attempt++) {
+    if (!require(pixels[32*426+400]!=0xff000000u,
+                 "already-loaded valid room retains scenery"))return 1;
+    for(unsigned attempt=0;attempt<CVIII_JOIN_HOLD_MAX*4u;attempt++) {
         w=256;h=240;
         pixels=cviii_stage1_host_present_0725(&host,original,&w,&h,1);
     }
-    w=256;h=240;
-    pixels=cviii_stage1_host_present_0725(&host,original,&w,&h,1);
-    if (!require(pixels[32*426+341]==0xff000000u,
-                 "expired camera disagreement must not show stale room"))return 1;
+    if (!require(pixels[32*426+400]!=0xff000000u,
+                 "persistent stage atlas never expires after 30 frames"))return 1;
     /* BLK 1-02 starts at physical nametable 1 even when room-local X=0.
      * A selector alone cannot accept previous-room tile data. */
     test_ram[0x35]=1;test_ram[0x36]=3;
@@ -139,13 +139,15 @@ int main(void)
     seed_visible_room(narrow_room,1);
     w=256;h=240;
     pixels=cviii_stage1_host_present_0725(&host,original,&w,&h,1);
+    /* Dynamic center is 170 in a forward seam; the old room is
+     * actually rendered to the left, not fabricated by repeating. */
     if (!require(host.join.joined && host.join.direction==1 &&
                  !memcmp(host.join.adjacent,first_room,3),
                  "actual current/previous room joined") ||
         !require(pixels[60*426+40]!=0xff000000u,
                  "original preceding scenery appears in next-room margin") ||
-        !require(pixels[60*426+85]==original[60*256],
-                 "NES center unchanged by the seam"))return 1;
+        !require(pixels[60*426+170]==original[60*256],
+                 "native gameplay pixels preserved at forward seam"))return 1;
     test_ram[0x35]=0;test_ram[0x36]=0;
     scroll_x=0;test_ram[0x65]=0x80;w=256;h=240;
     pixels=cviii_stage1_host_present_0725(&host,original,&w,&h,1);

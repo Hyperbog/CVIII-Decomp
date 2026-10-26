@@ -73,48 +73,6 @@ int cviii_stage1_atlas_width_0751(const CviiiStage1Atlas0724 *a,
     return idx<0 ? 0 : (int)a->rooms[idx].width_tiles*8;
 }
 
-/* JP0760: anti-black side margins. Known original-ROM edge CHR art is
- * repeated within the overdraw margin only; gameplay/OAM never changes.
- * The caller paints source-valid room pixels and cross-room joins over it. */
-uint32_t cviii_stage1_atlas_extend_edges_0760(
-    const CviiiStage1Atlas0724 *a,const uint8_t key[3],
-    int camera_x,int camera_y,uint32_t *dst,
-    int width,int height,int center_x,
-    uint8_t (*chr)(uint16_t),uint32_t (*color)(int)) {
-    if(!a || !a->loaded || !key || !dst || !chr || !color ||
-       width<=256 || width>864 || height!=240 ||
-       center_x<0 || center_x+256>width)return 0;
-    const int room=locate(key);
-    if(room<0)return 0;
-    const CviiiStage1Room0724 *r=&a->rooms[room];
-    const int extent=(int)r->width_tiles*8;
-    if(extent<16)return 0;
-    uint32_t count=0;
-    for(int y=32;y<height;y++) {
-        const int wy=camera_y+y-32;
-        if(wy<0 || wy>=(int)r->height_tiles*8)continue;
-        for(int x=0;x<width;x++) {
-            if(x>=center_x && x<center_x+256)continue;
-            const int wx=camera_x+x-center_x;
-            if(wx>=0 && wx<extent)continue; /* real scenery wins */
-            /* Use a 16-pixel ORIGINAL border segment, not one flat
-             * stretched pixel. Negative wx uses positive modular phase. */
-            const int relative=wx<0 ? ((wx%16)+16)%16 : (wx-extent)%16;
-            const int sx=wx<0 ? relative : extent-16+relative;
-            const unsigned at=a->offsets[room]+
-                (unsigned)(wy/8)*r->width_tiles+(unsigned)(sx/8);
-            const unsigned tile=a->tile[at],pal=a->palette[at];
-            const uint16_t pattern=(uint16_t)(0x1000u+tile*16u);
-            const unsigned row=(unsigned)wy%8u,bit=7u-(unsigned)(sx%8);
-            const unsigned idx=((chr((uint16_t)(pattern+row))>>bit)&1u)|
-                (((chr((uint16_t)(pattern+row+8u))>>bit)&1u)<<1u);
-            dst[(size_t)y*(unsigned)width+(unsigned)x]=
-                color(idx?(int)(pal*4u+idx):0);
-            count++;
-        }
-    }
-    return count;
-}
 uint32_t cviii_stage1_atlas_paint_0724(const CviiiStage1Atlas0724 *a,
     const uint8_t key[3],int camera_x,int camera_y,
     uint32_t *dst,int width,int height,int center_x,

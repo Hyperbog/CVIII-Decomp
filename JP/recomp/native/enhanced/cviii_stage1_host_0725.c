@@ -35,7 +35,10 @@ static int load(CviiiStage1Host0725 *h)
 
 void cviii_stage1_host_reset_0751(CviiiStage1Host0725 *h)
 {
-    if(h)cviii_stage1_join_reset_0751(&h->join);
+    if(h) {
+        cviii_stage1_join_reset_0751(&h->join);
+        h->has_verified_scene=0;
+    }
 }
 int cviii_stage1_host_rom_0725(CviiiStage1Host0725 *h,const char *path)
 {
@@ -123,6 +126,22 @@ static int camera(const CviiiStage1Host0725 *h,uint8_t sel[3],
     *y=0;
     return 1;
 }
+/* JP0770: never fabricate scenery by repeating ROM edge strips.
+ * Slide the original NES picture within the 16:9 viewport when the
+ * authenticated world coordinate is within 85px of a room boundary.
+ * This makes the stage BEGIN with real pixel zero and exposes only
+ * preloaded, physically available room scenery in the side columns. */
+static int viewport_center_0770(int camera_x,int room_width,
+                                 const CviiiStage1Join0751 *join)
+{
+    if(join && join->joined && join->direction==1) return 170;
+    if(join && join->joined && join->direction==-1) return 0;
+    if(room_width<426) return 85; /* cannot invent unknown adjacent rooms */
+    int left=camera_x-85;
+    if(left<0)left=0;
+    if(left>room_width-426)left=room_width-426;
+    return camera_x-left;
+}
 const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
     const uint32_t *frame,int *width,int *height,int enhanced)
 {
@@ -141,48 +160,59 @@ const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
         cyc_video_set_mode(NES_VIDEO_16_9);
         h->video_wide=1;
     }
-    for (int row=0;row<240;row++) {
-        uint32_t *dest=h->pixels+(size_t)row*CVIII_STAGE1_WIDE_0725;
-        for (int i=0;i<CVIII_STAGE1_WIDE_0725;i++)dest[i]=0xFF000000u;
-        memcpy(dest+CVIII_STAGE1_ORIGIN_0725,frame+(size_t)row*256u,
+
+    /* Source attestation identifies camera/page, not the lifespan of the
+     * already loaded map. Keep the LAST authenticated scene across arbitrarily
+     * long horizontal room loads; never tile/copy a 16-pixel stage edge. */
+    uint8_t selector[3]={0}; int camera_x=0,camera_y=0;
+    int valid_camera=camera(h,selector,&camera_x,&camera_y);
+    const uint8_t *ram=cyc_cpu_ram();
+    const int horizontal_play=ram && ram[0x18u]==4u &&
+        ram[0x34u]==0u && !(ram[0x65u]&0x80u) &&
+        (cyc_render_line_mask(120)&0x08u);
+    int center=CVIII_STAGE1_ORIGIN_0725;
+    if(valid_camera) {
+        int room_width=cviii_stage1_atlas_width_0751(&h->atlas,selector);
+        if(room_width>=256 && camera_x>=0 && camera_x<=room_width-256) {
+            cviii_stage1_join_accept_0751(&h->join,selector,camera_x,room_width);
+            center=viewport_center_0770(camera_x,room_width,&h->join);
+            memcpy(h->last_verified_selector,selector,sizeof selector);
+            h->last_verified_camera=camera_x;
+            h->last_verified_center=center;
+            h->has_verified_scene=1;
+        } else valid_camera=0;
+    }
+    if(!valid_camera && horizontal_play && h->has_verified_scene) {
+        memcpy(selector,h->last_verified_selector,sizeof selector);
+        camera_x=h->last_verified_camera;
+        center=h->last_verified_center;
+        valid_camera=1; /* display only the persistent atlas, no new trust */
+    }
+    if(!horizontal_play) cviii_stage1_host_reset_0751(h);
+    for(int row=0;row<240;row++) {
+        uint32_t *dst=h->pixels+(size_t)row*CVIII_STAGE1_WIDE_0725;
+        for(int x=0;x<CVIII_STAGE1_WIDE_0725;x++)
+            dst[x]=UINT32_C(0xFF000000);
+        /* NES HUD remains centered in widescreen. Gameplay pixels are
+         * bit-identical but are shifted at known finite world boundaries
+         * so no invented scenery or repeating strips appear on the left. */
+        int native_x=row<32 ? CVIII_STAGE1_ORIGIN_0725 : center;
+        memcpy(dst+native_x,frame+(size_t)row*256u,
                256u*sizeof(uint32_t));
     }
-    uint8_t selector[3]; int camera_x,camera_y;
-    if (camera(h,selector,&camera_x,&camera_y)) {
-        const int room_width=cviii_stage1_atlas_width_0751(&h->atlas,selector);
-        if (room_width>=256 && camera_x>=0 && camera_x<=room_width-256) {
-            cviii_stage1_join_accept_0751(&h->join,selector,camera_x,room_width);
-            /* First populate real-room out-of-bounds margins with a
-             * repeated authentic CHR edge strip. Real room and previous
-             * room atlases below always take precedence. */
-            (void)cviii_stage1_atlas_extend_edges_0760(&h->atlas,selector,
-                camera_x,camera_y,h->pixels,CVIII_STAGE1_WIDE_0725,240,
-                CVIII_STAGE1_ORIGIN_0725,cyc_render_chr,cyc_render_color);
-            /* The actual current-room atlas fills side columns first. */
+    if(valid_camera) {
+        const int width_px=cviii_stage1_atlas_width_0751(&h->atlas,selector);
+        if(width_px>=256) {
             (void)cviii_stage1_atlas_paint_0724(&h->atlas,selector,
                 camera_x,camera_y,h->pixels,CVIII_STAGE1_WIDE_0725,240,
-                CVIII_STAGE1_ORIGIN_0725,cyc_render_chr,cyc_render_color);
-            /* Source-verified previous room adjoins the new room where
-             * current room geometry is out-of-bounds. The original center
-             * and all original sprite/collision hardware remain untouched. */
-            uint8_t prior[3]; int prior_camera;
-            if (cviii_stage1_join_previous_0751(&h->join,camera_x,room_width,
-                                                 prior,&prior_camera))
+                center,cyc_render_chr,cyc_render_color);
+            uint8_t prior[3];int old_x=0;
+            if(cviii_stage1_join_previous_0751(&h->join,
+                    camera_x,width_px,prior,&old_x))
                 (void)cviii_stage1_atlas_paint_0724(&h->atlas,prior,
-                    prior_camera,camera_y,h->pixels,CVIII_STAGE1_WIDE_0725,240,
-                    CVIII_STAGE1_ORIGIN_0725,cyc_render_chr,cyc_render_color);
-            cviii_stage1_join_cache_0751(&h->join,h->pixels);
-        } else cviii_stage1_join_gap_0751(&h->join);
-    } else {
-        const uint8_t *ram=cyc_cpu_ram();
-        /* Hold only across short, horizontal Stage1 gameplay transitions.
-         * Never hold over title, game-over, vertical rooms or state reset. */
-        int eligible=ram && ram[0x18u]==4u && ram[0x34u]==0u &&
-            !(ram[0x65u]&0x80u) && (cyc_render_line_mask(120)&0x08u);
-        if (eligible) {
-            cviii_stage1_join_gap_0751(&h->join);
-            (void)cviii_stage1_join_hold_0751(&h->join,h->pixels);
-        } else cviii_stage1_host_reset_0751(h);
+                    old_x,camera_y,h->pixels,CVIII_STAGE1_WIDE_0725,240,
+                    center,cyc_render_chr,cyc_render_color);
+        }
     }
     *width=CVIII_STAGE1_WIDE_0725;
     return h->pixels;

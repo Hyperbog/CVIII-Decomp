@@ -238,6 +238,38 @@ new, separately generated eighth SDL owner-private overlay and uses
 the original host pause/input release barrier. Original edition is
 excluded from F7 Enhanced-only options.
 
+## JP0770 — Restore preloaded Stage 1 atlas persistence; delete edge tiling
+
+Owner screen feedback showed that JP0760's repeating 16-pixel room edge
+was visually incorrect at the very beginning of Stage 1. **JP0760 has
+been removed entirely**. The original-ROM Stage 1 layout already loads
+all eight known rooms once into read-only atlas storage when the game
+opens; it does not need another per-transition ROM load.
+
+In Enhanced 16:9, the camera window now clamps to the available real
+room geometry at its left/right boundary: at world X=0 the **native
+256-pixel gameplay picture starts at wide X=0**, the genuine remainder
+of the preloaded room fills X=256..425, and the HUD stays centered at
+wide X=85. As the camera moves past world X=85 the NES picture smoothly
+returns to its normal center X=85. The opposite boundary uses the same
+logic. Full original pixels are copied unmodified; the NES viewport's
+*screen position* can move near a physical world boundary.
+
+If the original PPU temporarily has an incomplete nametable/selector,
+the last source-verified room/camera continues to draw its preloaded
+background in the side columns for as long as that same horizontal
+gameplay stage is active. There is **no 30-frame expiration**, no
+edge duplication and no repetition-based fill. Known prior rooms may
+still appear at validated door joins. Leaving the stage, loading a
+state, entering Original mode, or resetting the console clears the
+camera/room history but does not mutate cartridge graphics.
+
+This change preserves the existing original NES CPU/PPU state,
+compiled-PRG coverage and game-input path. It does NOT reconstruct
+unknown scenery before the actual beginning of the cartridge level,
+nor does it create nonexistent offscreen enemies. On-screen Windows
+visual validation is still required.
+
 ## JP0661 native keyboard controls: profiles and recoverable presets
 
 The working native game already supports persistent SDL keyboard/gamepad
