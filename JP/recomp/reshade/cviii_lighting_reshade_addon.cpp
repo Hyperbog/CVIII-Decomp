@@ -29,6 +29,7 @@ struct Bridge {
     int (*global_link)(int,int)=nullptr;
     int (*global_property)(int,int,int)=nullptr;
     int (*mask_add)(int,int,int,int)=nullptr;
+    int (*mask_window_rect)(int,int,int,int)=nullptr;
     int (*mask_property)(int,int,int)=nullptr;
     int (*grade)(int,int)=nullptr;
     int (*undo)()=nullptr;
@@ -51,6 +52,8 @@ bool placement_pending=false;
 int pending_kit_kind=-1,pending_kit_id=-1;
 char kit_name[CVIII_LIGHT_NAME_CAP]="My Lighting Rig";
 int kit_slot=0,global_style_slot=0,mask_slot=0;
+bool mask_drawing=false,mask_first=false;
+int mask_start_x=0,mask_start_y=0;
 char global_name[CVIII_LIGHT_NAME_CAP]="Global Torch";
 unsigned alias_target=0,last_raw=0;
 unsigned long long presented=0,last_editor_draw=0;
@@ -81,6 +84,7 @@ bool bind_game(){
     b.global_link=game_export<decltype(b.global_link)>(exe,"cviii_lighting_editor_global_link");
     b.global_property=game_export<decltype(b.global_property)>(exe,"cviii_lighting_editor_global_property");
     b.mask_add=game_export<decltype(b.mask_add)>(exe,"cviii_lighting_editor_mask_add");
+    b.mask_window_rect=game_export<decltype(b.mask_window_rect)>(exe,"cviii_light_mask_window_rect");
     b.mask_property=game_export<decltype(b.mask_property)>(exe,"cviii_lighting_editor_mask_property");
     b.grade=game_export<decltype(b.grade)>(exe,"cviii_lighting_editor_grade");
     b.undo=game_export<decltype(b.undo)>(exe,"cviii_lighting_editor_undo");
@@ -101,7 +105,8 @@ bool bind_game(){
        !b.place_window || !b.place_kit_window || !b.apply_builtin ||
        !b.apply_kit || !b.capture_kit || !b.sky ||
        !b.raw_room || !b.alias || !b.global_capture || !b.global_link ||
-       !b.global_property || !b.mask_add || !b.mask_property || !b.grade ||
+       !b.global_property || !b.mask_add || !b.mask_window_rect ||
+       !b.mask_property || !b.grade ||
        !b.undo || !b.redo || !b.kit_manage ||
        !b.builtin_count || !b.builtin_name ||
        !b.event || !b.prop ||
@@ -119,6 +124,7 @@ void end_session(){
     external_open=false;
     placement_pending=false;
     pending_kit_kind=-1;
+    mask_drawing=false;mask_first=false;
 }
 void on_present(reshade::api::effect_runtime *){
     ++presented;
@@ -338,6 +344,13 @@ void on_overlay(reshade::api::effect_runtime *){
                 changed(bridge.mask_add(l.x+18,y,10,30)>=0);
             }
         }
+        if(ImGui::Button(mask_drawing?"MASK: CLICK TWO CORNERS":"Draw Mask (2 clicks)")){
+            mask_drawing=true;mask_first=false;placement_pending=false;
+        }
+        if(mask_drawing){
+            ImGui::TextDisabled(mask_first?"Click second corner":"Click first corner");
+            if(ImGui::SmallButton("Cancel Mask Draw")){mask_drawing=false;mask_first=false;}
+        }
         for(int i=0;i<CVIII_OCCLUDER_MAX;++i){
             if(!s->masks[i].used || s->masks[i].room!=room)continue;
             char title[32];std::snprintf(title,sizeof title,"Mask %02d",i+1);
@@ -416,6 +429,19 @@ void on_overlay(reshade::api::effect_runtime *){
     }
     ImGui::TextDisabled("2D sky fill; not geometry-aware GI.");
     ImGui::TextDisabled("Real ReShade overlay. CVIII owns gameplay light pixels.");
+    if(mask_drawing && ImGui::IsMouseClicked(ImGuiMouseButton_Left) &&
+       !ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow)){
+        const ImVec2 pt=ImGui::GetIO().MousePos;
+        if(pt.x>=0 && pt.y>=0){
+            if(!mask_first){
+                mask_start_x=(int)pt.x;mask_start_y=(int)pt.y;mask_first=true;
+            }else if(bridge.mask_window_rect(mask_start_x,mask_start_y,
+                                                (int)pt.x,(int)pt.y)){
+                bridge.save();
+                mask_drawing=false;mask_first=false;
+            }
+        }
+    }
     if(placement_pending && ImGui::IsMouseClicked(ImGuiMouseButton_Left) &&
        !ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow)){
         const ImVec2 pos=ImGui::GetIO().MousePos;
