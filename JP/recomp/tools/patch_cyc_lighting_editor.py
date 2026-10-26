@@ -21,6 +21,7 @@ SHELL=r'''
  * Event routing is presentation only; no emulated buttons are changed. */
 #include "cviii_lighting_host.h"
 static void zapper_window_point(int,int,int*,int*,int*,int*);
+#include "cviii_lighting_panel_sdl.h"
 static bool cviii_light_rebinding;
 static SDL_Scancode cviii_light_bind_pending=SDL_SCANCODE_UNKNOWN;
 static SDL_Scancode cviii_light_key(void)
@@ -156,6 +157,11 @@ static bool cviii_light_sdl_event(const SDL_Event *ev, bool other_open)
                 code=13;
         }
         if(code){
+            int panel=cviii_light_ui_mouse(code,x,y);
+            if(panel){
+                if(panel==2 && code!=3)save_settings();
+                return true;
+            }
             if(cviii_lighting_editor_input(code,x,y) && code!=3){
                 save_settings();
                 if(code!=4)cviii_light_sdl_status();
@@ -164,6 +170,10 @@ static bool cviii_light_sdl_event(const SDL_Event *ev, bool other_open)
         return true;
     }
     if(ev->type==SDL_MOUSEWHEEL){
+        int mx=0,my=0,x=-1,y=-1;
+        SDL_GetMouseState(&mx,&my);
+        zapper_window_point(mx,my,&x,&y,NULL,NULL);
+        if(cviii_light_ui_wheel(x,y,ev->wheel.y))return true;
         int delta=ev->wheel.y;
         if(ev->wheel.direction==SDL_MOUSEWHEEL_FLIPPED)delta=-delta;
         if(delta>8)delta=8;
@@ -207,6 +217,8 @@ def generate(text: str) -> str:
 '''+KEY_ANCHOR)
     text=once(text,START,START[:-1]+" || cviii_lighting_editor_active() || cviii_light_rebinding;")
     text=once(text,FINAL,FINAL[:-1]+" || cviii_lighting_editor_active() || cviii_light_rebinding;")
+    text=once(text,"    if (s_ui_shot_id >= 0) {",
+        "    cviii_light_ui_draw();\n    if (s_ui_shot_id >= 0) {")
     return text
 
 def smoke() -> None:
@@ -222,6 +234,10 @@ def smoke() -> None:
     assert product.count("|| cviii_light_rebinding;")==2
     assert "cviii_pause_active() || cviii_lighting_editor_active() ||\n                     cviii_light_rebinding;" in product
     assert "SDL_MOUSEMOTION" in product and "SDL_MOUSEWHEEL" in product
+    assert '#include "cviii_lighting_panel_sdl.h"' in product
+    assert "cviii_light_ui_draw();" in product
+    assert "cviii_light_ui_mouse(code,x,y)" in product
+    assert "cviii_light_ui_wheel(x,y,ev->wheel.y)" in product
     assert "cviii_light_sdl_status();" in product
     assert "if(code!=4)" in product
     for invalid in (product,fixture.replace(KEY_ANCHOR,"/* changed */")):
