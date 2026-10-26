@@ -93,6 +93,7 @@ void cviii_light_present(CviiiLighting *s,uint32_t *p,int w,int h,uint32_t room,
                          int camera,const int sx[CVIII_LIGHT_H],const int sy[CVIII_LIGHT_H],uint64_t frame){
     if(!s || !p || !sx || !sy || w!=256 || h!=240)return;
     float modulation[CVIII_LIGHT_MAX],cc[CVIII_LIGHT_MAX],ss[CVIII_LIGHT_MAX],cone_slope[CVIII_LIGHT_MAX];
+    int active[CVIII_LIGHT_MAX],active_count=0;
     const float radians=0.017453292519943295f;
     /* Gentle multi-band variation, not frame-by-frame white noise.
      * Isolated candles are relatively stable; larger diffusion flames
@@ -101,6 +102,8 @@ void cviii_light_present(CviiiLighting *s,uint32_t *p,int w,int h,uint32_t room,
      * experimental measurements. Each light has an independent phase. */
     for(int i=0;i<CVIII_LIGHT_MAX;++i){
         const CviiiLight *l=&s->light[i];
+        if(!l->used || l->muted || l->room!=room)continue;
+        active[active_count++]=i;
         float t=(float)((double)(frame%216000u)/60.0);
         float phase=(float)i*1.6180339f;
         float warm=(l->red>l->blue && l->red>=l->green)?1.f:0.f;
@@ -124,9 +127,9 @@ void cviii_light_present(CviiiLighting *s,uint32_t *p,int w,int h,uint32_t room,
             for(int x=0;x<w;++x){
                 float r=ar,g=ag,b=ab;
                 int world=origin+x;
-                for(int i=0;i<CVIII_LIGHT_MAX;++i){
+                for(int n=0;n<active_count;++n){
+                    int i=active[n];
                     const CviiiLight *l=&s->light[i];
-                    if(!l->used || l->muted || l->room!=room)continue;
                     float dx=(float)(world-l->x),dy=(float)(yy-l->y);
                     float rad=(float)l->radius,t;
                     if(l->shape==CVIII_SHAPE_RADIAL){
@@ -229,7 +232,7 @@ static void label_write(FILE *f,const char *key,int i,const char *v){
 }
 static int style_load(CviiiLighting *s,const char *key,const char *val){
     unsigned i;char tail;int shape,angle,spread,width,mute,flicker,n=0;
-    if(sscanf(key,"LightStyle%2u%c",&i,&tail)!=1 || i>=CVIII_LIGHT_MAX)return 0;
+    if(sscanf(key,"LightStyle%3u%c",&i,&tail)!=1 || i>=CVIII_LIGHT_MAX)return 0;
     if(sscanf(val,"%d,%d,%d,%d,%d,%d%n",
       &shape,&angle,&spread,&width,&mute,&flicker,&n)!=6 || val[n] ||
       shape<0 || shape>2 || angle<0 || angle>359 ||
@@ -260,14 +263,14 @@ int cviii_light_load(CviiiLighting *s,const char *key,const char *value){
     if(!strncmp(key,"LightStyle",10))return style_load(s,key,value);
     unsigned slot;char extra;
     if(!strncmp(key,"LightName",9)){
-        if(sscanf(key,"LightName%2u%c",&slot,&extra)!=1 || slot>=CVIII_LIGHT_MAX)return 0;
+        if(sscanf(key,"LightName%3u%c",&slot,&extra)!=1 || slot>=CVIII_LIGHT_MAX)return 0;
         return hex_label(s->light[slot].name,CVIII_LIGHT_NAME_CAP,value);
     }
     if(!strncmp(key,"LightGroup",10)){
-        if(sscanf(key,"LightGroup%2u%c",&slot,&extra)!=1 || slot>=CVIII_LIGHT_MAX)return 0;
+        if(sscanf(key,"LightGroup%3u%c",&slot,&extra)!=1 || slot>=CVIII_LIGHT_MAX)return 0;
         return hex_label(s->light[slot].group,CVIII_LIGHT_GROUP_CAP,value);
     }
-    if(sscanf(key,"Light%2u%c",&slot,&extra)!=1 || slot>=CVIII_LIGHT_MAX)return 0;
+    if(sscanf(key,"Light%3u%c",&slot,&extra)!=1 || slot>=CVIII_LIGHT_MAX)return 0;
     unsigned room,r,g,b;int x,y,rad,energy,used,end=0;
     if(sscanf(value,"%d,%u,%d,%d,%d,%d,%u,%u,%u%n",
        &used,&room,&x,&y,&rad,&energy,&r,&g,&b,&end)!=9 || value[end] ||
