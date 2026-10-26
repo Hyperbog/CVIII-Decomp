@@ -355,6 +355,8 @@ python3 "$root/JP/decomp/tools/jp_room_clear_0658.py" --smoke
 # JP0659 synthetic stage-room source and exact reversible resource geometry.
 python3 "$root/JP/decomp/tools/jp_room_stream_0659.py" --smoke
 python3 "$root/JP/decomp/tools/jp_room_resources_0659.py" --smoke
+# JP0815: ROM-free visual descriptor ABI and unsafe-count rejection.
+python3 "$root/JP/decomp/tools/jp_stage1_visual_identity_0815.py" --smoke
 
 # JP0738: original/native camera-actor comparison parser on entirely invented
 # ZIP/CYCFRAME records; authentic owner gameplay requires separate private logs.
