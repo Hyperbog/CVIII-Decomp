@@ -797,6 +797,22 @@ int cviii_lighting_editor_grade(int property,int value){
     return cviii_light_grade_set(&cviii.lighting,room,ev,temp,sat);
 }
 
+int cviii_lighting_editor_checkpoint(void){
+    if(!cviii_lighting_editor_active())return 0;
+    cviii_light_history_push(&cviii.lighting);
+    return 1;
+}
+int cviii_lighting_editor_undo(void){
+    return cviii_lighting_editor_active() &&
+        cviii_light_history_undo(&cviii.lighting);
+}
+int cviii_lighting_editor_redo(void){
+    return cviii_lighting_editor_active() &&
+        cviii_light_history_redo(&cviii.lighting);
+}
+int cviii_lighting_editor_can_undo(void){return cviii_light_history_can_undo();}
+int cviii_lighting_editor_can_redo(void){return cviii_light_history_can_redo();}
+
 int cviii_lighting_editor_point(int slot,int *x,int *y)
 {
     if(!x || !y || slot<0 || slot>=CVIII_LIGHT_MAX)return 0;
@@ -1041,6 +1057,7 @@ const CycHostExtras *cyc_host_extras(void)
 {
     if(!cviii_lighting_ready){
         cviii_light_init(&cviii.lighting);
+        cviii_light_history_reset();
         (void)cviii_lighting_editor_set_key("Home");
         cviii_lighting_ready=1;
     }
