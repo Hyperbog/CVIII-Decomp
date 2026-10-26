@@ -5,6 +5,7 @@
 #ifndef CVIII_LEVEL1_WORLD_0803_H
 #define CVIII_LEVEL1_WORLD_0803_H
 #include "cviii_stage1_atlas_0724.h"
+#include "cviii_room_catalog_0657.h"
 #include <stdint.h>
 #include <stddef.h>
 enum { CVIII_WORLD_ROOMS_0803=8, CVIII_WORLD_ACTORS_0803=28,
@@ -39,12 +40,20 @@ typedef struct {
     uint8_t active,room_index; /* last independently observed loader event */
     uint32_t activations; /* event count per distinct room */
 } CviiiWorldObjectGroup0804;
+/* Authentic original bank0A typed 4-byte / 7-byte source root per
+ * stage-zero room. Spans are PROVEN STRUCTURE, not NPC spawn IDs. */
+typedef struct {
+    uint16_t root,end_exclusive,record_count;
+    uint8_t width;
+} CviiiWorldSourceRoom0811;
 typedef struct {
     CviiiWorldRoom0803 rooms[CVIII_WORLD_ROOMS_0803];
+    CviiiWorldSourceRoom0811 source_rooms[CVIII_WORLD_ROOMS_0803];
     CviiiWorldActor0803 actors[CVIII_WORLD_ACTORS_0803];
     CviiiWorldObjectTemplate0804 templates[CVIII_WORLD_TEMPLATES_0804];
     CviiiWorldObjectGroup0804 groups[CVIII_WORLD_GROUPS_0804];
     uint8_t ready,placed_count,visited_count,templates_ready;
+    uint8_t source_rooms_ready; /* all 8 original stage0 hierarchy keys */
     uint32_t actor_frame;
 } CviiiLevel1World0803;
 
@@ -53,6 +62,12 @@ typedef struct {
  * but do not receive invented coordinates. Safe to call repeatedly. */
 int cviii_world_build_0803(CviiiLevel1World0803 *world,
                           const CviiiStage1Atlas0724 *atlas);
+/* Attach all EIGHT original stage0 source hierarchy leaves, not only
+ * seen rooms; catalog must have passed original bank0A validation.
+ * Transactional: no partially loaded world on unsupported leaf.
+ */
+int cviii_world_attach_source_rooms_0811(CviiiLevel1World0803 *world,
+                   const CviiiRoomCatalog0657 *catalog);
 int cviii_world_index_0803(const CviiiLevel1World0803 *world,
                            const uint8_t selector[3]);
 /* Source-proven physical edge: reject inconsistent positions/cycles.

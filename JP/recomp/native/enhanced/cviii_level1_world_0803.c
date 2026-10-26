@@ -100,6 +100,47 @@ void cviii_world_clear_live_0805(CviiiLevel1World0803 *w){
     memset(w->actors,0,sizeof w->actors);
 }
 
+/* JP0811: independent original PRG0A room hierarchy, stage selector0.
+ * This is not an actor list: width4/width7 are room resources whose
+ * source producer semantics must be proved before enabling NPC spawn.
+ * All eight known stage0 selectors are matched exactly and atomically. */
+int cviii_world_attach_source_rooms_0811(CviiiLevel1World0803 *w,
+                        const CviiiRoomCatalog0657 *cat)
+{
+    if(!w || !w->ready || !cat || cat->leaf_count!=135u)return 0;
+    CviiiWorldSourceRoom0811 metadata[CVIII_WORLD_ROOMS_0803]={0};
+    for(unsigned room=0;room<CVIII_WORLD_ROOMS_0803;room++){
+        const uint8_t *key=w->rooms[room].selector;
+        int match=-1;
+        for(unsigned j=0;j<cat->leaf_count;j++){
+            const CviiiRoomLeaf0657 *leaf=&cat->leaves[j];
+            if(leaf->stage!=key[0] ||
+               leaf->second!=key[1] || leaf->third!=key[2])continue;
+            if(match>=0)return 0;
+            match=(int)j;
+        }
+        if(match<0)return 0;
+        const CviiiRoomLeaf0657 *leaf=&cat->leaves[match];
+        if(leaf->root<0x93ccu || leaf->end_exclusive<=leaf->root ||
+           leaf->end_exclusive>0xafa4u ||
+           (leaf->width!=4u && leaf->width!=7u))return 0;
+        unsigned size=(unsigned)leaf->end_exclusive-leaf->root;
+        if(leaf->width==7u){
+            if(size<8u || (size-1u)%7u)return 0;
+            metadata[room].record_count=(uint16_t)((size-1u)/7u);
+        }else{
+            if(size%4u)return 0;
+            metadata[room].record_count=(uint16_t)(size/4u);
+        }
+        metadata[room].root=leaf->root;
+        metadata[room].end_exclusive=leaf->end_exclusive;
+        metadata[room].width=leaf->width;
+    }
+    memcpy(w->source_rooms,metadata,sizeof metadata);
+    w->source_rooms_ready=1u;
+    return 1;
+}
+
 int cviii_world_index_0803(const CviiiLevel1World0803 *w,
                            const uint8_t selector[3]){
     if(!w || !w->ready || !selector)return -1;

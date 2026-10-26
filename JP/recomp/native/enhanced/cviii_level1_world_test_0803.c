@@ -92,6 +92,34 @@ int main(void){
                         0,0,panorama,426,240,85,0x1000u,
                         chroma,palette)==0u,
               "unproven graph edge never fabricated"))return 18;
+    /* JP0811 the independent authenticated bank0A hierarchy has
+     * EIGHT stage0 leaves, one for every original stage1 atlas room.
+     * The typed hierarchy remains source metadata, not fake enemies. */
+    CviiiRoomCatalog0657 catalog={0};
+    catalog.leaf_count=135;
+    for(unsigned i=0;i<8u;i++){
+        CviiiRoomLeaf0657 *leaf=&catalog.leaves[i];
+        leaf->stage=world->rooms[i].selector[0];
+        leaf->second=world->rooms[i].selector[1];
+        leaf->third=world->rooms[i].selector[2];
+        leaf->width=(uint8_t)(i==2?7u:4u);
+        leaf->root=(uint16_t)(i==2?0xab1fu:0x9400u+4u*i);
+        leaf->end_exclusive=(uint16_t)(leaf->root+
+                                     (leaf->width==7u?15u:8u));
+    }
+    if(!check(cviii_world_attach_source_rooms_0811(world,&catalog) &&
+               world->source_rooms_ready &&
+               world->source_rooms[2].width==7u &&
+               world->source_rooms[2].record_count==2u &&
+               world->source_rooms[7].record_count==2u,
+               "all eight stage0 original room source leaves resident"))
+        return 25;
+    CviiiWorldSourceRoom0811 existing[8];
+    memcpy(existing,world->source_rooms,sizeof existing);
+    catalog.leaves[5].stage=1; /* absent 0/2/0 source */
+    if(!check(!cviii_world_attach_source_rooms_0811(world,&catalog) &&
+               memcmp(existing,world->source_rooms,sizeof existing)==0,
+               "missing real stage0 leaf rejected atomically"))return 26;
     uint8_t ram[2048]={0};
     ram[0x400]=4;ram[0x41c]=100;ram[0x438]=60;
     ram[0x454]=3;ram[0x470]=0;ram[0x48c]=8;ram[0x4a8]=1;
