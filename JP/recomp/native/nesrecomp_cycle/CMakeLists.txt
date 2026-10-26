@@ -681,6 +681,9 @@ set_property(TARGET jp_horizontal_sources_test_0816 PROPERTY C_STANDARD 11)
 add_executable(jp_collision_route_test_0816
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_collision_route_test_0816.c")
 set_property(TARGET jp_collision_route_test_0816 PROPERTY C_STANDARD 11)
+add_executable(jp_collision_b634_test_0816
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_collision_b634_test_0816.c")
+set_property(TARGET jp_collision_b634_test_0816 PROPERTY C_STANDARD 11)
 # These four executables are ROM-free; build them in the owner-native tree
 # and run from CTest instead of silently only compiling test targets.
 include(CTest)
@@ -691,6 +694,7 @@ if(BUILD_TESTING)
   add_test(NAME JP0815_OffscreenProbe COMMAND jp_source_offscreen_test_0815)
   add_test(NAME JP0816_HorizontalSources COMMAND jp_horizontal_sources_test_0816)
   add_test(NAME JP0816_CollisionRoute COMMAND jp_collision_route_test_0816)
+  add_test(NAME JP0816_B634ContactGate COMMAND jp_collision_b634_test_0816)
 endif()
 
 add_executable(jp_world_sprites_test_0807
