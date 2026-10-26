@@ -72,7 +72,7 @@ def audit(path: Path) -> None:
     if span(11, 0xB26B, 0xB281) != bytes.fromhex(
         "BD 8D 06 29 01 D0 2B AD 30 06 F0 26 AD 13 04 F0 21 20 EC B3 B0 1C"):
         raise ValueError("original B26B/B3EC prerequisite changed")
-    if span(10, 0x8B50, 0x8B5F) != bytes.fromhex(
+    if span(10, 0x8B50, 0x8B60) != bytes.fromhex(
         "BD 70 04 09 04 9D 70 04 A5 69 9D 45 06 8A 48 A6"):
         raise ValueError("original B8B50 child $0645 parent installation changed")
     if banks[10][0x91C6 - 0x8000] != 0x13 or banks[10][0x921E - 0x8000] != 0x3D:
