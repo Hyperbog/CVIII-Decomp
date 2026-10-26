@@ -355,3 +355,5 @@ python3 "$root/JP/decomp/tools/jp_room_clear_0658.py" --smoke
 # JP0659 synthetic stage-room source and exact reversible resource geometry.
 python3 "$root/JP/decomp/tools/jp_room_stream_0659.py" --smoke
 python3 "$root/JP/decomp/tools/jp_room_resources_0659.py" --smoke
+# JP0664: original two-channel Stage 1-02 source resolver and refresh gate.
+python3 "$root/JP/decomp/tools/jp_stage1_actor_sources_0664.py" --smoke
