@@ -229,7 +229,6 @@ void cviii_particle_present(const CviiiLighting *s,uint32_t pixels[CVIII_LIGHT_W
             }
             int xx=(int)floorf(x),wy=(int)floorf(y);
             if(wy<0 || wy>=480 || screen[wy]<CVIII_LIGHT_HUD)continue;
-            int yy=screen[wy];
             int opacity=e->opacity;
             if(e->kind==CVIII_FX_FIREFLIES){
                 float pulse=.3f+.7f*(.5f+.5f*sinf(time*(2.f+phase*3.f)+phase*12.f));
