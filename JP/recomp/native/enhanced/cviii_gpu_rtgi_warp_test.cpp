@@ -11,6 +11,10 @@
 #include <cstdio>
 #include <cstring>
 #include <cmath>
+#include <vector>
+extern "C" int cviii_rc_apply(ID3D11Device*,ID3D11DeviceContext*,
+    ID3D11ShaderResourceView*,ID3D11ShaderResourceView*,
+    ID3D11UnorderedAccessView*,unsigned,unsigned);
 #include "cviii_gpu_rtgi_shader_hlsl.h"
 #pragma comment(lib,"d3d11.lib")
 #pragma comment(lib,"d3dcompiler.lib")
@@ -141,6 +145,42 @@ int main(){
  }
  std::printf("PASS CVIII D3D11 WARP direct=%f shadow=%f bounced=%f\n",
              directNear,shadowBehind,afterBounce-beforeBounce);
+ // Exact Radiance Cascades runtime module on WARP, levels 2/3/4. Verify
+ // hierarchical probe integration contributes measurable extra bounce
+ // over the proven direct + face-sampled baseline, without NaNs.
+ for(unsigned quality=2;quality<=4;++quality){
+    if(!dispatch(afterNear,afterBehind,afterBounce))return 1;
+    std::vector<float> baseline(count*4);
+    D3D11_MAPPED_SUBRESOURCE read{};
+    if(FAILED(ctx->Map(readback,0,D3D11_MAP_READ,0,&read)))return 1;
+    memcpy(baseline.data(),read.pData,baseline.size()*sizeof(float));
+    ctx->Unmap(readback,0);
+    if(!cviii_rc_apply(dev,ctx,srv[1],srv[2],uav,1,quality)){
+        std::fprintf(stderr,"Radiance Cascades WARP dispatch failed at quality %u\n",quality);
+        return 1;
+    }
+    ctx->CopyResource(readback,output);
+    if(FAILED(ctx->Map(readback,0,D3D11_MAP_READ,0,&read)))return 1;
+    const float *result=(const float*)read.pData;
+    float additional=0.f;
+    bool finite=true;
+    for(unsigned j=0;j<count;++j){
+        for(int c=0;c<3;++c){
+            float n=result[j*4+c];
+            if(!std::isfinite(n) || n<0.f || n>16.f)finite=false;
+            additional+=n-baseline[j*4+c];
+        }
+    }
+    ctx->Unmap(readback,0);
+    if(!finite || additional<0.001f){
+        std::fprintf(stderr,
+          "Radiance Cascades quality %u invalid contribution: %f finite=%d\n",
+          quality,additional,(int)finite);
+        return 1;
+    }
+    std::printf("PASS Radiance Cascades WARP quality=%u indirect sum=%f\n",
+               quality,additional);
+ }
  drop(uav);for(auto &v:srv)drop(v);
  drop(readback);drop(output);drop(uniform);drop(scan);drop(walls);drop(lights);
  drop(shader);drop(ctx);drop(dev);
