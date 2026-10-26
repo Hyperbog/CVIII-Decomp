@@ -86,6 +86,16 @@ built **only for windowed Enhanced-host builds**. The original game
 remains C11. The public build kit still contains no ROM or game binary;
 the private Windows Alpha includes the pinned Dear ImGui MIT license.
 
+**Mouse tracking fix:** SDL2's game renderer sets a 256x240 logical
+size, which automatically scales SDL2 mouse events to game pixels.
+The Dear ImGui SDL2 backend expects coordinates in *window* pixels.
+The editor now reverses that scaling with
+`SDL_RenderLogicalToWindow()` before forwarding mouse-motion and
+button events, including panel hit testing. Scene placement converts
+those same window pixels back through the original game's coordinate
+conversion once (not twice). This handles integer scaling, resize,
+and letterboxing without modifying game renderer output.
+
 **QA pending:** Although CI can compile the actual SDL window renderer,
 mouse capture, HiDPI scaling, sliders and screenshot legibility still
 need an owner's Windows visual acceptance pass. Do not treat a
