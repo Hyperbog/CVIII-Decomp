@@ -70,7 +70,12 @@ static int valid(const CviiiParticleEmitter *e){
            e->speed>=0 && e->speed<=300 &&
            e->wind>=-100 && e->wind<=100 &&
            e->opacity>=0 && e->opacity<=100 &&
-           e->size>=1 && e->size<=4;
+           e->size>=1 && e->size<=4 &&
+           e->light_link>=0 && e->light_link<=CVIII_LIGHT_MAX &&
+           e->link_dx>=-512 && e->link_dx<=512 &&
+           e->link_dy>=-512 && e->link_dy<=512 &&
+           e->layer>=0 && e->layer<=1 &&
+           e->glow>=0 && e->glow<=100;
 }
 int cviii_particle_property(CviiiLighting *s,int slot,int property,int value){
     if(!s || slot<0 || slot>=CVIII_PARTICLE_EMITTER_MAX ||
@@ -91,10 +96,53 @@ int cviii_particle_property(CviiiLighting *s,int slot,int property,int value){
         case 11:if(value<0||value>255)return 0;copy.red=(uint8_t)value;break;
         case 12:if(value<0||value>255)return 0;copy.green=(uint8_t)value;break;
         case 13:if(value<0||value>255)return 0;copy.blue=(uint8_t)value;break;
+        case 14:copy.layer=value;break;
+        case 15:copy.glow=value;break;
         default:return 0;
+    }
+    if(copy.light_link){
+        const CviiiLight *l=&s->light[copy.light_link-1];
+        if(!l->used || l->room!=copy.room)return 0;
+        if(property==2)copy.link_dx=value-l->x;
+        if(property==3)copy.link_dy=value-l->y;
     }
     if(!valid(&copy))return 0;
     s->particles[slot]=copy;
+    return 1;
+}
+int cviii_particle_world_region(const CviiiLighting *s,
+    const CviiiParticleEmitter *e,CviiiParticleEmitter *world){
+    if(!s || !e || !world || !e->used)return 0;
+    *world=*e;
+    if(e->light_link){
+        const CviiiLight *l=&s->light[e->light_link-1];
+        if(!l->used || l->muted || l->room!=e->room)return 0;
+        world->x=l->x+e->link_dx;
+        world->y=l->y+e->link_dy;
+    }
+    return valid(world);
+}
+int cviii_particle_attach(CviiiLighting *s,int slot,int light_slot){
+    if(!s || slot<0 || slot>=CVIII_PARTICLE_EMITTER_MAX ||
+       !s->particles[slot].used || light_slot<-1 ||
+       light_slot>=CVIII_LIGHT_MAX)return 0;
+    CviiiParticleEmitter *e=&s->particles[slot],world;
+    if(!cviii_particle_world_region(s,e,&world)){
+        if(e->light_link)return 0;
+        world=*e;
+    }
+    if(light_slot>=0){
+        const CviiiLight *l=&s->light[light_slot];
+        if(!l->used || l->room!=e->room ||
+           world.x-l->x < -512 || world.x-l->x>512 ||
+           world.y-l->y < -512 || world.y-l->y>512)return 0;
+        e->link_dx=world.x-l->x;
+        e->link_dy=world.y-l->y;
+        e->light_link=light_slot+1;
+    }else{
+        e->x=world.x;e->y=world.y;
+        e->light_link=0;e->link_dx=0;e->link_dy=0;
+    }
     return 1;
 }
 int cviii_particle_name(CviiiLighting *s,int slot,const char *name){
@@ -120,6 +168,20 @@ int cviii_particle_load(CviiiLighting *s,const char *key,const char *value){
         s->particles_enabled=value[0]=='1';return 1;
     }
     unsigned slot=0;char tail=0;
+    if(!strncmp(key,"ParticleAttach",14)){
+        int n=0,link,dx,dy,layer,glow;
+        if(sscanf(key,"ParticleAttach%2u%c",&slot,&tail)!=1 ||
+            slot>=CVIII_PARTICLE_EMITTER_MAX ||
+            sscanf(value,"%d,%d,%d,%d,%d%n",
+                 &link,&dx,&dy,&layer,&glow,&n)!=5 || value[n] ||
+            link<0 || link>CVIII_LIGHT_MAX ||
+            dx<-512 || dx>512 || dy<-512 || dy>512 ||
+            layer<0 || layer>1 || glow<0 || glow>100)return 0;
+        CviiiParticleEmitter *e=&s->particles[slot];
+        e->light_link=link;e->link_dx=dx;e->link_dy=dy;
+        e->layer=layer;e->glow=glow;
+        return 1;
+    }
     if(!strncmp(key,"ParticleName",12)){
         if(sscanf(key,"ParticleName%2u%c",&slot,&tail)!=1 ||
            slot>=CVIII_PARTICLE_EMITTER_MAX)return 0;
@@ -155,6 +217,9 @@ void cviii_particle_save(const CviiiLighting *s,FILE *file){
         fprintf(file,"Particle%02d = 1,%u,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%u,%u,%u\n",
             i,e->room,e->kind,e->x,e->y,e->w,e->h,e->density,
             e->speed,e->wind,e->opacity,e->size,e->red,e->green,e->blue);
+        if(e->light_link || e->layer || e->glow)
+            fprintf(file,"ParticleAttach%02d = %d,%d,%d,%d,%d\n",
+                i,e->light_link,e->link_dx,e->link_dy,e->layer,e->glow);
         if(e->name[0]){
             fprintf(file,"ParticleName%02d = ",i);
             for(const unsigned char *p=(const unsigned char*)e->name;*p;++p)
