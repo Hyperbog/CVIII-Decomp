@@ -668,6 +668,58 @@ int cviii_lighting_editor_scene(int property,int value)
     return cviii_light_scene_set(&cviii.lighting,room,pct,rgb[0],rgb[1],rgb[2]);
 }
 
+static int cviii_lighting_placement(int native_x,int native_y,int *wx,int *wy)
+{
+    if(!wx || !wy || !cviii_lighting_editor_active())return 0;
+    if(native_x<0)native_x=128;
+    if(native_y<0)native_y=120;
+    if(native_x>=CVIII_W || native_y<CVIII_LIGHT_HUD ||
+       native_y>=CVIII_H)return 0;
+    int cam=cviii_lighting_camera();
+    int sc=cyc_render_line_scroll_x(native_y);
+    int d=(sc-cam%512+1024)%512;
+    if(d>256)d-=512;
+    int x=cam+d+native_x,y=cyc_render_line_scroll_y(native_y);
+    if(x<0 || x>65535 || y<0 || y>479)return 0;
+    *wx=x;*wy=y;return 1;
+}
+int cviii_lighting_editor_apply_builtin(int id,int native_x,int native_y)
+{
+    int wx=0,wy=0;
+    if(!cviii_lighting_placement(native_x,native_y,&wx,&wy))return 0;
+    return cviii_light_apply_builtin(&cviii.lighting,id,
+        cviii_lighting_room(),wx,wy)>=0;
+}
+int cviii_lighting_editor_apply_kit(int slot,int native_x,int native_y)
+{
+    int wx=0,wy=0;
+    if(!cviii_lighting_placement(native_x,native_y,&wx,&wy))return 0;
+    return cviii_light_kit_apply(&cviii.lighting,slot,
+        cviii_lighting_room(),wx,wy)>=0;
+}
+int cviii_lighting_editor_capture_kit(int slot,const char *name)
+{
+    if(!cviii_lighting_editor_active())return 0;
+    CviiiLighting *v=&cviii.lighting;
+    if(v->selected<0 || v->selected>=CVIII_LIGHT_MAX ||
+       !v->light[v->selected].used ||
+       v->light[v->selected].room!=cviii_lighting_room())return 0;
+    return cviii_light_kit_capture(v,slot,v->selected,name);
+}
+int cviii_lighting_editor_sky(int property,int value)
+{
+    if(!cviii_lighting_editor_active())return 0;
+    int level=0,rgb[3],face=-1;
+    uint32_t room=cviii_lighting_room();
+    cviii_light_sky_get(&cviii.lighting,room,&level,rgb,&face);
+    if(property==0)level=value;
+    else if(property>=1 && property<=3)rgb[property-1]=value;
+    else if(property==4)face=value;
+    else return 0;
+    return cviii_light_sky_set(&cviii.lighting,room,level,
+                               rgb[0],rgb[1],rgb[2],face);
+}
+
 int cviii_lighting_editor_point(int slot,int *x,int *y)
 {
     if(!x || !y || slot<0 || slot>=CVIII_LIGHT_MAX)return 0;
