@@ -624,7 +624,9 @@ int cviii_lighting_editor_property(int property,int value)
     else if(property==9)l->spread=value<5?5:(value>85?85:value);
     else if(property==10)l->width=value<4?4:(value>160?160:value);
     else if(property==11)l->muted=value!=0;
-    else if(property==12)l->flicker=value<0?0:(value>2?2:value);
+    else if(property==12)l->flicker=value<0?0:(value>4?4:value);
+    else if(property==15)l->anim_speed=value<0?0:(value>400?400:value);
+    else if(property==16)l->anim_strength=value<0?0:(value>100?100:value);
     else if(property==13)l->x=value<0?0:(value>65535?65535:value);
     else if(property==14)l->y=value<0?0:(value>479?479:value);
     else return 0;
@@ -806,7 +808,9 @@ int cviii_lighting_editor_global_property(int slot,int property,int value)
     else if(property==8)p->angle=value<0?0:value>359?359:value;
     else if(property==9)p->spread=value<5?5:value>85?85:value;
     else if(property==10)p->width=value<4?4:value>160?160:value;
-    else if(property==12)p->flicker=value<0?0:value>2?2:value;
+    else if(property==12)p->flicker=value<0?0:value>4?4:value;
+    else if(property==15)p->anim_speed=value<0?0:value>400?400:value;
+    else if(property==16)p->anim_strength=value<0?0:value>100?100:value;
     else return 0;
     return 1;
 }
