@@ -674,6 +674,15 @@ set_property(TARGET jp_stage1_source_link_test_0814 PROPERTY C_STANDARD 11)
 add_executable(jp_source_offscreen_test_0815
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_source_offscreen_test_0815.c")
 set_property(TARGET jp_source_offscreen_test_0815 PROPERTY C_STANDARD 11)
+# These four executables are ROM-free; build them in the owner-native tree
+# and run from CTest instead of silently only compiling test targets.
+include(CTest)
+if(BUILD_TESTING)
+  add_test(NAME JP0803_Level1World COMMAND jp_level1_world_test_0803)
+  add_test(NAME JP0813_OriginalSourceAxis COMMAND jp_stage1_source_window_test_0813)
+  add_test(NAME JP0814_SourceAllocatorLink COMMAND jp_stage1_source_link_test_0814)
+  add_test(NAME JP0815_OffscreenProbe COMMAND jp_source_offscreen_test_0815)
+endif()
 
 add_executable(jp_world_sprites_test_0807
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_stage1_rom_0724.c"
