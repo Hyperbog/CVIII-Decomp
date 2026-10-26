@@ -96,6 +96,47 @@ int cviii_world_detect_loader_0805(CviiiLevel1World0803 *w,
     (void)cviii_world_visit_0803(w,key);
     return (int)g;
 }
+/* JP0816: build typed horizontal room-cell source metadata from the
+ * original physical raw0A while it is privately loaded. The 7 horizontal
+ * rooms have 4-byte packed cells (two source/aux pairs each). No original
+ * source byte tables are compiled or serialized into this game binary. */
+int cviii_world_preload_horizontal_0816(CviiiLevel1World0803 *w,
+                     const uint8_t bank[16384],size_t bank_len)
+{
+    if(!w || !w->ready || !w->source_rooms_ready ||
+       !w->source_payload_ready || !bank || bank_len!=16384u)return 0;
+    CviiiHorizontalRoom0816 tmp[CVIII_HORIZONTAL_ROOMS_0816]={0};
+    for(unsigned i=0;i<CVIII_HORIZONTAL_ROOMS_0816;i++){
+        if(i==2u)continue; /* seven-byte vertical chapel */
+        const CviiiWorldSourceRoom0811 *src=&w->source_rooms[i];
+        if(src->width!=4u ||
+           !cviii_horizontal_build_room_0816(
+                &tmp[i],i,src->root,src->payload,src->payload_len,
+                bank,bank_len))return 0;
+    }
+    memcpy(w->horizontal,tmp,sizeof tmp);
+    w->horizontal_ready=1u;
+    memset(&w->horizontal_last,0,sizeof w->horizontal_last);
+    w->horizontal_observations=0u;
+    return 1;
+}
+int cviii_world_observe_horizontal_0816(CviiiLevel1World0803 *w,
+                const uint8_t key[3],const uint8_t ram[2048])
+{
+    if(!w || !w->ready || !w->horizontal_ready ||
+       !key || !ram || key[0]!=0u)return -1;
+    const int room=cviii_world_index_0803(w,key);
+    if(room<0 || room==2 || !w->horizontal[room].valid)return -1;
+    const uint16_t camera=(uint16_t)((uint16_t)ram[0x53u] |
+                                    ((uint16_t)ram[0x54u]<<8u));
+    const CviiiHorizontalSelection0816 next=cviii_horizontal_select_0816(
+         &w->horizontal[room],(unsigned)room,camera,ram[0x62u],
+         ram[0x7f6u]!=0u);
+    w->horizontal_last=next;
+    if(w->horizontal_observations!=UINT32_MAX)
+        w->horizontal_observations++;
+    return next.valid ? 1:0;
+}
 /* JP0813: retain the original Stage 1 chapel's resident source identities
  * while independently observing the original 6502 $8213-$8254 admission
  * window. A source is NOT an active actor. Authentic game actor allocation,
