@@ -123,6 +123,13 @@ extern "C" int cviii_imgui_event(const SDL_Event *e,SDL_Window *w,SDL_Renderer *
     }
     case SDL_TEXTINPUT:
         return ImGui::GetIO().WantTextInput;
+    case SDL_KEYDOWN:
+        if(ImGui::GetIO().WantCaptureKeyboard)return 1;
+        if((e->key.keysym.mod & KMOD_CTRL) &&
+           (e->key.keysym.scancode==SDL_SCANCODE_C ||
+            e->key.keysym.scancode==SDL_SCANCODE_V ||
+            e->key.keysym.scancode==SDL_SCANCODE_D))return 1;
+        return 0;
     default: return 0;
     }
 }
@@ -209,7 +216,7 @@ extern "C" int cviii_imgui_render(SDL_Window *window,SDL_Renderer *renderer){
                 if(cviii_lighting_editor_paste())dirty=true;
             ImGui::SameLine();
             ImGui::TextDisabled("Ctrl+C / Ctrl+V / Ctrl+D");
-            if(ImGui::GetIO().KeyCtrl){
+            if(ImGui::GetIO().KeyCtrl && !ImGui::GetIO().WantTextInput){
                 if(ImGui::IsKeyPressed(ImGuiKey_C,false))
                     (void)cviii_lighting_editor_copy();
                 if(ImGui::IsKeyPressed(ImGuiKey_V,false) && cviii_lighting_editor_paste())
@@ -410,7 +417,7 @@ extern "C" int cviii_imgui_render(SDL_Window *window,SDL_Renderer *renderer){
         ImGui::EndTabBar();
     }
     ImGui::Separator();
-    if(ImGui::Button("Save Preset",ImVec2(120,30)))dirty=true;
+    if(ImGui::Button("Save Settings",ImVec2(120,30)))dirty=true;
     ImGui::SameLine();
     if(ImGui::Button("Resume Game",ImVec2(-1,30)))stay_open=false;
     ImGui::End();
