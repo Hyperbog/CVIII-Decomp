@@ -20,7 +20,14 @@ from pathlib import Path
 from audit_mesen_actor_live_0509 import run, memory, ROM_SHA
 
 AGENT_SHA="95bcda9d4ff6428937183093386d993649c2d740273871ced78217d3d8f234d0"
-CORE_SHA="d2831c26d42aba675ed5d2cf392b2e12a67cb25274d981ef2c7741e552b72040"
+# Two separately SHA-attested Mesen2.1.1 cores. The v0.1.0 release
+# with core fa0e... reproduced original frame3092 and exact JP0509
+# 600-instruction trace in a fresh sandbox on 2026-10-26.
+CORE_SHA_APPROVED={
+    "d2831c26d42aba675ed5d2cf392b2e12a67cb25274d981ef2c7741e552b72040",
+    "fa0e7af858dce0171f5857837f8cad92090078c354631ce74f8279185df97bd1",
+}
+CREATION_TRACE_SHA="dce02d6ce15c65a4b2dbdeea880b3171206514eeb7d35bb9168fcff56db48d93"
 
 def hashfile(p:Path)->str:
     return hashlib.sha256(p.read_bytes()).hexdigest()
@@ -81,7 +88,8 @@ def validate_snapshots(prev:dict,cur:dict)->list[dict]:
 
 def witness(mesen:Path,rom:Path,horizon:int,sample:int)->dict:
     if hashfile(rom)!=ROM_SHA:raise ValueError("JP original ROM SHA mismatch")
-    if hashfile(mesen)!=AGENT_SHA or hashfile(mesen.parent/"MesenCore.so")!=CORE_SHA:
+    core_hash=hashfile(mesen.parent/"MesenCore.so")
+    if hashfile(mesen)!=AGENT_SHA or core_hash not in CORE_SHA_APPROVED:
         raise ValueError("JP0509 independent Mesen agent/core identity mismatch")
     with tempfile.TemporaryDirectory(prefix="jp0821_original_owner_") as name:
         root=Path(name)
@@ -108,10 +116,14 @@ def witness(mesen:Path,rom:Path,horizon:int,sample:int)->dict:
         if summary.get("reason")!="debugger_break" or summary["final_frame"]!=3092:
             raise AssertionError("original row32 controller reached breakpoint differed")
         args=["--load-state",str(root/"hit.mss"),"--frames","0","--step","600",
-              "--timeout","30","--save-state",str(root/"spawn.mss")]
+              "--timeout","30","--trace",str(root/"spawn600.trace"),
+              "--save-state",str(root/"spawn.mss")]
         for a in ("0x540:160","0x400:256","0x630:224","0x7C2:56","0x30:32"):
             args+=["--read-memory","NesInternalRam:"+a]
         events,_=run(mesen,rom,root,"spawn600",args)
+        creation_sha=hashfile(root/"spawn600.trace")
+        if creation_sha!=CREATION_TRACE_SHA:
+            raise AssertionError("original JP0509 600-instruction trace changed")
         start=snapshot(events,3092)
         if any(x["original_type"]!=0x3d for x in start["children"]):
             raise AssertionError("natural type3D created original slots 1/2 differ")
@@ -173,6 +185,8 @@ def witness(mesen:Path,rom:Path,horizon:int,sample:int)->dict:
                 "actor-source correlation requires source-linked type3D, "
                 "and exact downstream poststate requires separate CPU step trace")
         return {"original_rom_sha256":ROM_SHA,"agent_sha256":AGENT_SHA,
+                "core_sha256":core_hash,
+                "creation_trace_sha256":creation_sha,
                 "creation":{"frame":3092,"original_type":"3D","slots":[1,2],
                             "original_source_handler":"raw0A:8B2C"},
                 "sample_interval_frames":sample,"sampled_snapshots":observations,
