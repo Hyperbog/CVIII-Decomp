@@ -12,6 +12,8 @@
 #include "cviii_frame_evidence_0601.h"
 #include "cviii_nt_trace_0606.h"
 #include "cviii_sprite_layers_0608.h"
+#include "cviii_lighting.h"
+#include "cviii_lighting_host.h"
 #include "cviii_object_oam_trace_0609.h"
 #include "cviii_audio_bus_0610.h"
 #include "cviii_sound_requests_0612.h"
@@ -44,6 +46,7 @@ typedef struct {
     int sprite_unlimited;
     int stable_sprites; /* optional host-only temporal presentation; off by default */
     CviiiSpriteLayers sprite_layers;
+    CviiiLighting lighting; /* separate host-only level lighting */
     CviiiObjectOamTrace object_trace; /* read-only JP PRG26 object/OAM correlation */
     CviiiAudioBus audio_bus; /* opt-in nonmutating 2A03/VRC6 sound writes */
     CviiiSoundRequests sound_requests; /* original fixed $E249 ingress only */
@@ -68,6 +71,7 @@ typedef struct {
 
 static CviiiEdition cviii = { .volume = CVIII_AUDIO_LEVELS_DEFAULT };
 static int cviii_start_ready;
+static int cviii_lighting_ready;
 
 /* JP0620: optional built-in paused runtime menu rows for recomp-ui builds.
  * The separate F6 modal now uses the original CHR overlay on all supported
@@ -194,6 +198,8 @@ static void load_setting(void *context, const char *key, const char *value)
         (void)parse_boolean(value, &cviii.sprite_unlimited);
     else if (!strcmp(key, "StableSprites"))
         (void)parse_boolean(value, &cviii.stable_sprites);
+    else if (!strncmp(key,"Light",5))
+        (void)cviii_light_load(&cviii.lighting,key,value);
     else (void)cviii_audio_levels_load(&cviii.volume,key,value);
 }
 
@@ -204,6 +210,7 @@ static void save_settings(void *context, FILE *file)
             cviii.enhanced ? "Enhanced" : "Original",
             cviii.sprite_unlimited, cviii.stable_sprites);
     cviii_audio_levels_save(&cviii.volume,file);
+    cviii_light_save(&cviii.lighting,file);
 }
 
 static bool option(void *context, const char *name, const char *value)
@@ -341,6 +348,8 @@ static void power_on(void *context)
      * Do not recapture in frame_begin: that clears the saved history.
      */
     cviii_layers_reset(&settings->sprite_layers);
+    settings->lighting.edit=0;
+    settings->lighting.dragging=0;
     cviii_audio_menu_state_close(&settings->audio_ui); /* reset cannot leave a stale modal */
     cviii_start_close(&settings->start_menu);
     cviii_slot_cancel(&settings->slot_menu);
@@ -369,6 +378,8 @@ static void state_loaded(void *context)
 {
     CviiiEdition *settings = (CviiiEdition *)context;
     cviii_layers_reset(&settings->sprite_layers);
+    settings->lighting.edit=0;
+    settings->lighting.dragging=0;
     cviii_audio_menu_state_close(&settings->audio_ui); /* loaded gameplay never owns a stale modal */
     cviii_start_close(&settings->start_menu);
     cviii_slot_cancel(&settings->slot_menu);
@@ -480,6 +491,44 @@ static const uint32_t *present_game(void *context, int *width, int *height)
     return settings->presentation;
 }
 
+/* Present-frame, read-only camera. These original RAM selector meanings need
+ * real-route QA before any stage geometry is considered certified. */
+static uint32_t cviii_lighting_room(void)
+{
+    const uint8_t *ram=cyc_cpu_ram();
+    if(!ram)return UINT32_MAX;
+    return ((uint32_t)ram[0x34u]<<24)|((uint32_t)ram[0x35u]<<16)|
+           ((uint32_t)ram[0x36u]<<8)|(uint32_t)ram[0x07a0u];
+}
+static int cviii_lighting_camera(void)
+{
+    const uint8_t *ram=cyc_cpu_ram();
+    return ram ? ((int)ram[0x53u]|((int)ram[0x54u]<<8)) : 0;
+}
+static void cviii_lighting_scroll(int sx[CVIII_LIGHT_H],int sy[CVIII_LIGHT_H])
+{
+    for(int y=0;y<CVIII_LIGHT_H;++y){
+        sx[y]=cyc_render_line_scroll_x(y);
+        sy[y]=cyc_render_line_scroll_y(y);
+    }
+}
+int cviii_lighting_editor_active(void)
+{
+    return cviii.enhanced && cviii.lighting.edit;
+}
+int cviii_lighting_editor_input(int event,int x,int y)
+{
+    if(!cviii.enhanced)return 0;
+    int sx[CVIII_LIGHT_H],sy[CVIII_LIGHT_H];
+    /* No private SDL pointer or guest state is ever handed to the editor. */
+    if(event==2 || event==3 || event==13)
+        cviii_lighting_scroll(sx,sy);
+    return cviii_light_event(&cviii.lighting,event,x,y,
+        cviii_lighting_room(),cviii_lighting_camera(),
+        event==2 || event==3 || event==13 ? sx : NULL,
+        event==2 || event==3 || event==13 ? sy : NULL);
+}
+
 /* JP0623 game-owned Start/Pause state and stable action identities. */
 int cviii_pause_active(void)
 {
@@ -571,6 +620,17 @@ static const uint32_t *present(void *context,int *width,int *height)
 {
     CviiiEdition *settings=(CviiiEdition *)context;
     const uint32_t *frame=present_game(context,width,height);
+    if(settings->enhanced && (settings->lighting.enabled || settings->lighting.edit) &&
+       *width==CVIII_W && *height==CVIII_H){
+        int sx[CVIII_LIGHT_H],sy[CVIII_LIGHT_H];
+        cviii_lighting_scroll(sx,sy);
+        if(frame!=settings->presentation)
+            memcpy(settings->presentation,frame,sizeof settings->presentation);
+        cviii_light_present(&settings->lighting,settings->presentation,
+            CVIII_W,CVIII_H,cviii_lighting_room(),cviii_lighting_camera(),
+            sx,sy,cyc_frame_index());
+        frame=settings->presentation;
+    }
     if (settings->enhanced && !settings->audio_ui.open &&
         settings->start_menu.open && settings->assets.pixels && *width==CVIII_W && *height==CVIII_H) {
         if(frame!=settings->presentation)
@@ -654,6 +714,10 @@ static CycHostExtras cviii_extra = {
 
 const CycHostExtras *cyc_host_extras(void)
 {
+    if(!cviii_lighting_ready){
+        cviii_light_init(&cviii.lighting);
+        cviii_lighting_ready=1;
+    }
 #ifdef CYC_WITH_RECOMP_UI
     cviii_init_audio_menu(&cviii_extra);
 #endif
