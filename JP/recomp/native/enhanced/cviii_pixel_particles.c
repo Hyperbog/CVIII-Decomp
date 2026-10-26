@@ -183,7 +183,8 @@ void cviii_particle_present(const CviiiLighting *s,uint32_t pixels[CVIII_LIGHT_W
                             uint32_t room,int camera,
                             const int sx[CVIII_LIGHT_H],const int sy[CVIII_LIGHT_H],
                             uint64_t frame){
-    if(!s || !pixels || !sx || !sy || !s->particles_enabled)return;
+    if(!s || !pixels || !sx || !sy ||
+       (!s->particles_enabled && !s->edit))return;
     /* Rebuild reverse scanline mapping from the ACTUAL rendered PPU
      * scroll: both stage scroll and visible room IDs remain authoritative. */
     int screen[480];
@@ -193,7 +194,8 @@ void cviii_particle_present(const CviiiLighting *s,uint32_t pixels[CVIII_LIGHT_W
     float seconds=(float)((frame%216000u)/60.0);
     for(int slot=0;slot<CVIII_PARTICLE_EMITTER_MAX;++slot){
         const CviiiParticleEmitter *e=&s->particles[slot];
-        if(!e->used || e->room!=room || !valid(e) || e->opacity<=0)continue;
+        if(!e->used || e->room!=room || !valid(e) ||
+           !s->particles_enabled || e->opacity<=0)continue;
         const float time=seconds*((float)e->speed/100.f);
         for(int i=0;i<e->density;++i){
             unsigned id=(unsigned)(slot+1)*0x9e3779b9u ^ (unsigned)i*0x45d9f3bu;
@@ -228,7 +230,6 @@ void cviii_particle_present(const CviiiLighting *s,uint32_t pixels[CVIII_LIGHT_W
             int xx=(int)floorf(x),wy=(int)floorf(y);
             if(wy<0 || wy>=480 || screen[wy]<CVIII_LIGHT_HUD)continue;
             int yy=screen[wy];
-            int vx=xx-unwrap(sx[yy],camera);
             int opacity=e->opacity;
             if(e->kind==CVIII_FX_FIREFLIES){
                 float pulse=.3f+.7f*(.5f+.5f*sinf(time*(2.f+phase*3.f)+phase*12.f));
@@ -269,6 +270,29 @@ void cviii_particle_present(const CviiiLighting *s,uint32_t pixels[CVIII_LIGHT_W
                     int at=xx-unwrap(sx[row],camera);
                     for(int dx=0;dx<side;++dx)
                         put(pixels,at+dx,row,e,opacity);
+                }
+            }
+        }
+    }
+    if(s->edit){
+        /* Sharp 1px world-space region outlines are EDITOR-ONLY.
+         * Scanline PPU scroll keeps them attached to stage geometry. */
+        for(int slot=0;slot<CVIII_PARTICLE_EMITTER_MAX;++slot){
+            const CviiiParticleEmitter *e=&s->particles[slot];
+            if(!e->used || e->room!=room || !valid(e))continue;
+            for(int y=CVIII_LIGHT_HUD;y<240;++y){
+                int wy=sy[y];
+                if(wy<e->y || wy>e->y+e->h)continue;
+                int left=e->x-unwrap(sx[y],camera);
+                if(wy==e->y || wy==e->y+e->h){
+                    for(int x=left;x<=left+e->w;++x)
+                        if(x>=0 && x<256)
+                            pixels[y*256+x]=0xff4dd2e6u;
+                }else{
+                    if(left>=0 && left<256)
+                        pixels[y*256+left]=0xff4dd2e6u;
+                    if(left+e->w>=0 && left+e->w<256)
+                        pixels[y*256+left+e->w]=0xff4dd2e6u;
                 }
             }
         }
