@@ -312,6 +312,49 @@ int main(void){
               world->chapel[0].entries==2u,
               "wrong selector rejected without mutation"))
         return 25;
+    /* JP0814 original-ROM installation signatures, fabricated RAM only.
+     * The observation MUST NOT create or prolong a game actor. */
+    ram[0x53u]=0x80u;ram[0x54u]=0x01u; /* original CPU camera $0180 */
+    ram[0x054eu+13u]=0x80u;
+    ram[0x0438u+13u]=chapel->payload[3];
+    ram[0x05d8u+13u]=chapel->payload[4];
+    ram[0x041cu+13u]=0x37u;
+    ram[0x05efu+13u]=0x30u;
+    if(!check(cviii_world_link_chapel_0814(world,vertical,ram)==1 &&
+              world->chapel_links[0].kind==CVIII_LINK_DIRECT_0814 &&
+              world->chapel_links[0].slot==13u &&
+              world->chapel_link_epochs==1u,
+              "type80 direct original installer exact match"))return 26;
+    /* Two records claiming one original slot are both ambiguous. */
+    memcpy(chapel->payload+7u,chapel->payload,7u);
+    if(!check(cviii_world_link_chapel_0814(world,vertical,ram)==0 &&
+              world->chapel_links[0].kind==CVIII_LINK_AMBIGUOUS_0814 &&
+              world->chapel_links[1].kind==CVIII_LINK_AMBIGUOUS_0814,
+              "reject multiple sources to one direct allocator slot"))
+        return 27;
+    /* Original nonnegative $0D source follows $8287-$82A8,
+     * not the direct-object branch at $82B2. */
+    chapel->payload[7u+2u]=0x0du;
+    chapel->payload[7u+3u]=0xd8u;
+    chapel->payload[7u+5u]=0x7au;
+    chapel->payload[7u+6u]=0x4cu;
+    ram[0x07c2u+3u]=0x0du;
+    ram[0x07dau+3u]=0xd8u;
+    ram[0x07e6u+3u]=0x7au;
+    ram[0x07ceu+3u]=0x4cu;
+    ram[0x07d4u+3u]=0x37u;
+    ram[0x07c8u+3u]=0u;ram[0x07e0u+3u]=0u;
+    if(!check(cviii_world_link_chapel_0814(world,vertical,ram)==2 &&
+              world->chapel_links[1].kind==CVIII_LINK_EVENT_0814 &&
+              world->chapel_links[1].slot==3u &&
+              world->chapel_links[0].kind==CVIII_LINK_DIRECT_0814,
+              "source-event and direct actor paths stay separate"))
+        return 28;
+    uint32_t previous_links=world->chapel_link_epochs;
+    if(!check(cviii_world_link_chapel_0814(world,second,ram)==-1 &&
+              world->chapel_link_epochs==previous_links,
+              "wrong room must not change source identities"))
+        return 29;
     cviii_world_clear_live_0805(world);
     if(!check(!world->actors[0].active &&
               world->groups[4].active && world->templates_ready &&
