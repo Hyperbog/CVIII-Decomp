@@ -135,7 +135,8 @@ endif()
 # Headless and non-Windows game binaries retain the strict C11 Standard path.
 if(WIN32 AND NOT JP_CYCLE_HEADLESS AND JP_EDITION_HOST_EXTRAS AND JP_SAVE_STATE_SLOTS)
  target_sources(jp_akumajou_densetsu PRIVATE
-  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_gpu_rtgi_d3d11.cpp")
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_gpu_rtgi_d3d11.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_radiance_cascades_d3d11.cpp")
  target_compile_definitions(jp_akumajou_densetsu PRIVATE CVIII_WITH_GPU_RTGI=1)
  target_link_libraries(jp_akumajou_densetsu PRIVATE d3d11 d3dcompiler)
  # Compile and EXECUTE the same embedded HLSL kernel as an unconditional
@@ -153,7 +154,8 @@ if(WIN32 AND NOT JP_CYCLE_HEADLESS AND JP_EDITION_HOST_EXTRAS AND JP_SAVE_STATE_
  # occlusion, finite float output and one reflected-light contribution.
  # Skip only when the hosted Windows runner does not expose WARP.
  add_executable(cviii_gpu_warp_test
-  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_gpu_rtgi_warp_test.cpp")
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_gpu_rtgi_warp_test.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_radiance_cascades_d3d11.cpp")
  target_link_libraries(cviii_gpu_warp_test PRIVATE d3d11 d3dcompiler)
  target_compile_features(cviii_gpu_warp_test PRIVATE cxx_std_17)
  add_custom_command(TARGET cviii_gpu_warp_test POST_BUILD
