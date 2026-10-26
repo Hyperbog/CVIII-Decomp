@@ -45,6 +45,7 @@ CVIII_LIGHT_EXPORT unsigned cviii_lighting_editor_raw_room(void);
 CVIII_LIGHT_EXPORT int cviii_lighting_editor_alias(unsigned stable);
 CVIII_LIGHT_EXPORT int cviii_lighting_editor_global_capture(int slot,const char *name);
 CVIII_LIGHT_EXPORT int cviii_lighting_editor_global_link(int slot,int group);
+CVIII_LIGHT_EXPORT int cviii_lighting_editor_global_property(int slot,int property,int value);
 CVIII_LIGHT_EXPORT int cviii_lighting_editor_mask_add(int x,int y,int w,int h);
 CVIII_LIGHT_EXPORT int cviii_lighting_editor_mask_property(int slot,int property,int value);
 CVIII_LIGHT_EXPORT int cviii_lighting_editor_grade(int property,int value);
