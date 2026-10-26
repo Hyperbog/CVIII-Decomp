@@ -149,6 +149,17 @@ if(WIN32 AND NOT JP_CYCLE_HEADLESS AND JP_EDITION_HOST_EXTRAS AND JP_SAVE_STATE_
   COMMAND "$<TARGET_FILE:cviii_gpu_shader_smoke>"
   COMMENT "ROM-free D3D11 CS5.0 shader compiler smoke")
  add_dependencies(jp_akumajou_densetsu cviii_gpu_shader_smoke)
+ # Hardware-independent WARP dispatch checks actual buffer binding, scene
+ # occlusion, finite float output and one reflected-light contribution.
+ # Skip only when the hosted Windows runner does not expose WARP.
+ add_executable(cviii_gpu_warp_test
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_gpu_rtgi_warp_test.cpp")
+ target_link_libraries(cviii_gpu_warp_test PRIVATE d3d11 d3dcompiler)
+ target_compile_features(cviii_gpu_warp_test PRIVATE cxx_std_17)
+ add_custom_command(TARGET cviii_gpu_warp_test POST_BUILD
+  COMMAND "$<TARGET_FILE:cviii_gpu_warp_test>"
+  COMMENT "ROM-free D3D11 WARP ray/one-bounce execution smoke")
+ add_dependencies(jp_akumajou_densetsu cviii_gpu_warp_test)
  message(STATUS "CVIII: optional GPU Prototype RTGI via D3D11 compute, Standard fallback")
 endif()
 if(NOT JP_CYCLE_HEADLESS AND JP_SAVE_STATE_SLOTS)
