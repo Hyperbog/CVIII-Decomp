@@ -88,6 +88,10 @@ int cviii_light_scene_set(CviiiLighting *s,uint32_t room,int level,int red,int g
     /* Keep independent sky fill when editing neutral ambient intensity.
      * Restoring only the first fields here silently wiped sky light. */
     CviiiSceneAmbient *a=&s->scenes[index];
+    if(!a->used){
+        a->sky_red=186;a->sky_green=209;a->sky_blue=255;
+        a->sky_facing=-1;
+    }
     a->room=room;a->level=level;a->red=red;a->green=green;
     a->blue=blue;a->used=1;
     return 1;
