@@ -158,6 +158,10 @@ int main(void)
     test_ram[0x53]=0;test_ram[0x54]=0;
     scroll_x=0;w=256;h=240;
     (void)cviii_stage1_host_present_0725(&host,original,&w,&h,1);
+    /* The PPU-scroll regression populated NT1 with authentic invented
+     * pixels. Restore the original fixture's empty NT1 before testing
+     * rejection of a stale selector; fixtures must not bleed state. */
+    memset(live_nt+1024,0,1024);
     /* Unlike the old 30-frame fading side cache, the already-loaded
      * ROM atlas remains visible after an arbitrary long NT mismatch. */
     scroll_x=123;w=256;h=240;
