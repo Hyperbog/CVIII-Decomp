@@ -295,6 +295,60 @@ full vertical world-coordinate unwrapping above the 480-pixel
 PPU domain. Do not merge until Stage 1 and multiple vertical room
 transitions and death/reload loops visibly retain all authored lights.
 
+## Animated candles, feathered shadows and future RTGI
+
+### Flame animation in the editor
+
+Each light now has five animation modes: **Candle Flicker**,
+**Steady**, **Torch Turbulence**, **Soft Pulse**, and **Ember Dips**.
+The native studio and genuine ReShade add-on expose **Flame Speed**
+(1–400%) and **Flame Strength** (1–100%). Choosing 0 for either
+restores the existing automatic value, preserving legacy settings.
+Intensity and a very small amount of source radius breathe together
+using continuous deterministic functions instead of per-frame random
+flashes; each source has an independent stable phase.
+
+New animation data persists as optional `LightAnimXX`,
+`GlobalAnimXX` (shared linked global styles), and
+`LightKitMotionXX_N` (captured reusable multi-light kits).
+Steady sources remain steady across gameplay frames. Candles, torches
+and magic lights can have distinct rhythms.
+
+These frequencies are artistic choices. Experiments on *coupled*
+candle flames report approximately 10 Hz oscillations, but that
+finding should not be treated as a precise rule for isolated candle
+light or torches. The animator exposes pace and amplitude rather
+than pretending the RGB modulation is a measured photometric model.
+
+### Soft shadow seam refinement
+
+The old mask occlusion used **five horizontally separated binary
+visibility rays**. It could leave narrow vertical and diagonal
+terminator steps, particularly noticeable on moving sprite art.
+The updated renderer uses a deterministic **3×3, binomial-weighted
+area-source visibility filter along both X and Y**, with a larger
+available 0–32 pixel mask softness range. New masks start at a
+softer 10-pixel setting with moderate opacity; previously authored
+mask values are retained for backwards compatibility.
+
+This improves spatial edge smoothness, but not every possible seam:
+the present CPU renderer lights the already-composited NES frame,
+so a moving sprite crossing a shadow can still reveal how the
+shadow boundary affects foreground and background together. The
+next compositor upgrade should separate sprite/background layers
+and then apply distinct shadow interaction before recombining them.
+Nine shadow-visibility rays also increase CPU cost in affected
+regions versus five; FPS must be checked on the owner's PC.
+
+### Optional GPU RTGI architecture
+
+See [**Lighting RTGI Roadmap**](ENHANCED_LIGHTING_RTGI_ROADMAP.md)
+for selectable Standard and future RTGI rendering modes,
+GPU distance fields, Radiance Cascades, first-bounce indirect
+illumination, global moonlight environment profiles, separated
+sprite/background shading and performance/fallback requirements.
+**The RTGI mode is a proposal, not an implemented or tested feature.**
+
 ## Windows owner visual acceptance — Stage 1
 
 This is a reproducible manual test, **not a claim of completed gameplay QA**.
