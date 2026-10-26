@@ -23,7 +23,7 @@ typedef struct {
  uint8_t actor_slot,modified_mask; /* 1..8 original actor slots for type49 */
  uint8_t next_flags[9],next_state[9]; /* only indices in modified_mask valid */
  uint16_t stop_pc;
- uint8_t supported;
+ uint8_t supported, returned_x; /* type49 sweep exits at X=$09 */
 } CviiiB6ceEffect0821;
 /* The original type49 path iterates 1..8, not 1..18; it does not
  * require each child's current type >=$30 inside that loop. */
@@ -33,10 +33,14 @@ static inline int cviii_effect_b6ce_0821(
  if(!ram || !out || x<1u || x>18u)return 0;
  CviiiB6ceEffect0821 r={0};
  r.actor_slot=(uint8_t)x;r.supported=1u;
- r.stop_pc=0xb6f4u;
+ r.stop_pc=0xb6f4u;r.returned_x=(uint8_t)x;
  const uint8_t type=ram[0x054eu+x];
  const unsigned start=type==0x49u ? 1u:x;
  const unsigned end=type==0x49u ? 8u:x;
+ if(type==0x49u){
+   r.returned_x=9u; /* $B6F5 LD X=1 ... CPX #9 / RTS at $B706 */
+   r.stop_pc=0xb706u;
+ }
  if(type<0x30u || type>=0x58u){*out=r;return 1;}
  for(unsigned y=start;y<=end;y++){
    const uint8_t old=ram[0x0470u+y];
