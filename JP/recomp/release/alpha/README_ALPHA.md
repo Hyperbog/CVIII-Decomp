@@ -33,11 +33,13 @@ For a private test:
    `%USERPROFILE%\\CVIII-Lighting-Preview\\_cviisource` and compiles into
    `%USERPROFILE%\\CVIII-Lighting-Preview\\AlphaCandidate`.
    The normal Alpha installation remains unchanged.
-4. The preview launches Enhanced automatically. In gameplay, press F7 to
+4. The preview launches Enhanced automatically. In gameplay, press Home to
    pause and open the lighting editor. Left-click places a light; drag moves;
    right-click selects; wheel changes radius; Shift+wheel power; Ctrl+wheel
-   ambient; C changes color; Delete removes. Edit status shows numeric
-   radius, power, RGB and ambient values. F7 resumes the game.
+   ambient; C changes color; Delete removes. Press Ctrl+Home to remap
+   the editor toggle key at any time (Home is the default, saved as
+   LightingEditorKey in config.ini). Edit status shows numeric
+   radius, power, RGB and ambient values. Home resumes the game.
 5. Record Stage 1 scroll-out/scroll-back, nametable crossing, room changes,
    F4/F6/F10 menu return and restart/persistence behavior. Further details
    are in
