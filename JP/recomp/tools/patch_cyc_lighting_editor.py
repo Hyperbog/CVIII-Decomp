@@ -146,10 +146,14 @@ static bool cviii_light_sdl_event(const SDL_Event *ev, bool other_open)
         int x=-1,y=-1,code=0;
         if(ev->type==SDL_MOUSEMOTION){
             if(!(ev->motion.state&SDL_BUTTON_LMASK))return true;
-            zapper_window_point(ev->motion.x,ev->motion.y,&x,&y,NULL,NULL);
+            int mx=0,my=0;
+            cviii_imgui_window_point(s_ren,ev->motion.x,ev->motion.y,&mx,&my);
+            zapper_window_point(mx,my,&x,&y,NULL,NULL);
             code=3;
         }else{
-            zapper_window_point(ev->button.x,ev->button.y,&x,&y,NULL,NULL);
+            int mx=0,my=0;
+            cviii_imgui_window_point(s_ren,ev->button.x,ev->button.y,&mx,&my);
+            zapper_window_point(mx,my,&x,&y,NULL,NULL);
             if(ev->type==SDL_MOUSEBUTTONUP && ev->button.button==SDL_BUTTON_LEFT)
                 code=4;
             else if(ev->type==SDL_MOUSEBUTTONDOWN && ev->button.button==SDL_BUTTON_LEFT)
@@ -238,6 +242,8 @@ def smoke() -> None:
     assert '#include "cviii_imgui_editor.h"' in product
     assert "cviii_imgui_render(s_win,s_ren)" in product
     assert "cviii_imgui_event(ev,s_win,s_ren)" in product
+    assert "cviii_imgui_window_point(s_ren,ev->motion.x,ev->motion.y,&mx,&my)" in product
+    assert "cviii_imgui_window_point(s_ren,ev->button.x,ev->button.y,&mx,&my)" in product
     assert "cviii_imgui_scene_click(code,x,y)" in product
     assert "cviii_imgui_shutdown();" in product
     assert "cviii_light_sdl_status();" in product
