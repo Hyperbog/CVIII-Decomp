@@ -76,6 +76,16 @@ int main(void){
                panorama[100*426+370]!=0u,
                "world camera same source pixels after authoritative selector switch"))
         return 17;
+    /* Regression for the exact first room->256px successor onset:
+     * at camera X512 the next original room begins at viewport X341;
+     * it must be visible at x400 before the NES switches selectors. */
+    memset(panorama,0,sizeof panorama);
+    n=cviii_world_paint_0806(world,atlas,first,512,0,
+                        panorama,426,240,85,0x1000u,chroma,palette);
+    if(!check(n>0 && panorama[100*426+400]!=0u &&
+               panorama[100*426+341]!=0u,
+               "preloaded narrow successor enters right widescreen margin"))
+        return 19;
     /* No projection into an unknown branch, no repeated fake geometry. */
     memset(panorama,0,sizeof panorama);
     if(!check(cviii_world_paint_0806(world,atlas,(uint8_t[]){0,1,3},

@@ -187,8 +187,12 @@ uint32_t cviii_world_paint_0806(const CviiiLevel1World0803 *w,
         if(!room->placed)continue;
         const int64_t rx=world_x-room->x,ry=world_y-room->y;
         /* No source geometry for this room can reach viewport margins. */
-        if(rx<=-room->width || rx>=room->width+width ||
-           ry<=-room->height || ry>=room->height+height)continue;
+        /* World source at wx = rx + screen_x - center, with
+         * screen_x in [0,width-1]. A NEXT room 256px ahead is
+         * already visible in the 85px right margin. Do NOT clip
+         * against the room's own width or the 256px NES viewport! */
+        if(rx<=center-width || rx>=room->width+center ||
+           ry<=-(height-32) || ry>=room->height)continue;
         if(rx<INT_MIN || rx>INT_MAX || ry<INT_MIN || ry>INT_MAX)
             continue;
         pixels+=cviii_stage1_atlas_paint_bg_table_0802(
