@@ -7,6 +7,7 @@
 #include "cviii_stage1_atlas_0724.h"
 #include "cviii_room_catalog_0657.h"
 #include "cviii_stage1_source_link_0814.h"
+#include "cviii_source_offscreen_0815.h"
 #include <stdint.h>
 #include <stddef.h>
 enum { CVIII_WORLD_ROOMS_0803=8, CVIII_WORLD_ACTORS_0803=28,
@@ -63,6 +64,17 @@ typedef struct {
     uint32_t entries, exits;
 } CviiiStage1SourceLife0813;
 enum { CVIII_STAGE1_CHAPEL_SOURCES_0813=9 };
+/* JP0815: inert source-only candidate or genuine actor (never a hitbox).
+ * Visual selector/frame are valid ONLY with 'actor_confirmed' and must
+ * still be decoded by the existing original PRG26 sprite renderer. */
+typedef struct {
+    uint16_t source_cpu;
+    uint8_t source_type, linked_slot, actor_confirmed;
+    uint8_t sprite_selector, sprite_frame, sprite_mirror, sprite_attrs;
+    uint8_t point_region, interaction_policy;
+    int32_t screen_x,screen_y;
+    uint32_t actor_generation;
+} CviiiSourceOffscreen0815;
 typedef struct {
     CviiiWorldRoom0803 rooms[CVIII_WORLD_ROOMS_0803];
     CviiiWorldSourceRoom0811 source_rooms[CVIII_WORLD_ROOMS_0803];
@@ -80,6 +92,9 @@ typedef struct {
      * Do not interpret link presence as gameplay collision eligibility. */
     CviiiSourceLink0814 chapel_links[CVIII_STAGE1_CHAPEL_SOURCES_0813];
     uint32_t chapel_link_epochs;
+    CviiiSourceOffscreen0815 chapel_projection[CVIII_STAGE1_CHAPEL_SOURCES_0813];
+    uint32_t chapel_projection_epochs;
+    uint8_t chapel_margin_actor_count;
 } CviiiLevel1World0803;
 
 /* All eight source rooms are resident on success. One known horizontal
@@ -144,6 +159,12 @@ int cviii_world_track_chapel_0813(CviiiLevel1World0803 *world,
  * Never constructs guest actors, sprites, hitboxes, or damage events. */
 int cviii_world_link_chapel_0814(CviiiLevel1World0803 *world,
                    const uint8_t selector[3],const uint8_t ram[2048]);
+/* Read-only prediction: all 9 original source points, associated sprite
+ * descriptors only where a guest actor actually exists. No hitboxes or
+ * wider gameplay collision/pickup rules are enabled by this observer. */
+int cviii_world_probe_chapel_0815(CviiiLevel1World0803 *world,
+   const uint8_t selector[3],int camera_x,int camera_y,
+   int native_left,int wide_width);
 void cviii_world_clear_live_0805(CviiiLevel1World0803 *world);
 unsigned cviii_world_capture_live_0803(CviiiLevel1World0803 *world,
         const uint8_t selector[3],int local_camera_x,int local_camera_y,
