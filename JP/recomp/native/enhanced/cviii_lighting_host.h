@@ -48,6 +48,11 @@ CVIII_LIGHT_EXPORT int cviii_lighting_editor_global_link(int slot,int group);
 CVIII_LIGHT_EXPORT int cviii_lighting_editor_mask_add(int x,int y,int w,int h);
 CVIII_LIGHT_EXPORT int cviii_lighting_editor_mask_property(int slot,int property,int value);
 CVIII_LIGHT_EXPORT int cviii_lighting_editor_grade(int property,int value);
+CVIII_LIGHT_EXPORT int cviii_lighting_editor_checkpoint(void);
+CVIII_LIGHT_EXPORT int cviii_lighting_editor_undo(void);
+CVIII_LIGHT_EXPORT int cviii_lighting_editor_redo(void);
+CVIII_LIGHT_EXPORT int cviii_lighting_editor_can_undo(void);
+CVIII_LIGHT_EXPORT int cviii_lighting_editor_can_redo(void);
 
 
 #ifdef __cplusplus
