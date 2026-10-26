@@ -126,6 +126,13 @@ if (-not (Test-Path -LiteralPath $upstreamLicense) -or -not (Test-Path -LiteralP
 }
 Copy-Item -LiteralPath $upstreamLicense -Destination (Join-Path $licenses 'NESRecomp-LICENSE.txt') -Force
 Copy-Item -LiteralPath $sdlLicense -Destination (Join-Path $licenses 'SDL2-COPYING.txt') -Force
+# The real lighting GUI is the separate MIT-licensed Dear ImGui dependency.
+# Include its license in the PRIVATE owner build alongside SDL2/NESRecomp.
+$imguiLicense=Join-Path $privateOut 'build/_deps/cviii_dear_imgui-src/LICENSE.txt'
+if (-not (Test-Path -LiteralPath $imguiLicense)) {
+ throw "Pinned Dear ImGui source license missing: $imguiLicense"
+}
+Copy-Item -LiteralPath $imguiLicense -Destination (Join-Path $licenses 'DearImGui-MIT-LICENSE.txt') -Force
 $manifest=[ordered]@{
  schema='CVIII-windows-alpha-candidate/v2'
  version='0.2.0-alpha.1'
