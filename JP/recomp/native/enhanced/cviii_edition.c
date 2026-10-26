@@ -699,6 +699,11 @@ static int cviii_lighting_placement(int native_x,int native_y,int *wx,int *wy)
     if(x<0 || x>65535 || y<0 || y>479)return 0;
     *wx=x;*wy=y;return 1;
 }
+int cviii_lighting_editor_world_point(int native_x,int native_y,
+                                       int *wx,int *wy)
+{
+    return cviii_lighting_placement(native_x,native_y,wx,wy);
+}
 int cviii_lighting_editor_builtin_count(void)
 {
     return cviii_light_builtin_count();
