@@ -53,6 +53,43 @@ int cviii_world_preload_templates_0804(CviiiLevel1World0803 *w,
     return 1;
 }
 
+/* Original B7F7 loader writes five fields per record and $054E+X=1.
+ * A complete postcondition is required before this resource is marked
+ * observed. This code never writes RAM, emits OAM or runs actor AI.
+ */
+int cviii_world_detect_loader_0805(CviiiLevel1World0803 *w,
+    const uint8_t key[3],const uint8_t ram[2048]){
+    if(!w || !w->ready || !w->templates_ready || !ram)return -1;
+    int room=cviii_world_index_0803(w,key);
+    if(room<0)return -1;
+    unsigned g=ram[0x7a0u];
+    if(g>=CVIII_WORLD_GROUPS_0804)return -1;
+    CviiiWorldObjectGroup0804 *group=&w->groups[g];
+    for(unsigned i=0;i<group->record_count;i++){
+        unsigned x=i+1u;
+        const CviiiWorldObjectTemplate0804 *t=
+            &w->templates[group->record_start+i];
+        if(ram[0x48cu+x]!=t->sprite_selector ||
+           ram[0x400u+x]!=t->frame_offset ||
+           ram[0x438u+x]!=t->initial_x ||
+           ram[0x41cu+x]!=t->initial_y ||
+           ram[0x4a8u+x]!=t->mirror ||
+           ram[0x54eu+x]!=1u)
+            return -1;
+    }
+    if(!group->active || group->room_index!=(uint8_t)room){
+        group->active=1;
+        group->room_index=(uint8_t)room;
+        group->activations++;
+    }
+    (void)cviii_world_visit_0803(w,key);
+    return (int)g;
+}
+void cviii_world_clear_live_0805(CviiiLevel1World0803 *w){
+    if(!w)return;
+    memset(w->actors,0,sizeof w->actors);
+}
+
 int cviii_world_index_0803(const CviiiLevel1World0803 *w,
                            const uint8_t selector[3]){
     if(!w || !w->ready || !selector)return -1;

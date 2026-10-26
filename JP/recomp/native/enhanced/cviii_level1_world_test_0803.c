@@ -106,7 +106,38 @@ int main(void){
     if(!check(!cviii_world_preload_templates_0804(world,block,sizeof block) &&
               memcmp(world,&unchanged,sizeof unchanged)==0,
               "missing FF terminator leaves world intact"))return 11;
+    /* Original CPU loader postcondition: the five-field records must
+     * actually be installed into game RAM before a resource is active. */
+    ram[0x7a0]=4;
+    for(unsigned i=0;i<world->groups[4].record_count;i++){
+        const CviiiWorldObjectTemplate0804 *row=&world->templates[
+            world->groups[4].record_start+i];
+        unsigned slot=i+1u;
+        ram[0x48cu+slot]=row->sprite_selector;
+        ram[0x400u+slot]=row->frame_offset;
+        ram[0x438u+slot]=row->initial_x;
+        ram[0x41cu+slot]=row->initial_y;
+        ram[0x4a8u+slot]=row->mirror;
+        ram[0x54eu+slot]=1u;
+    }
+    if(!check(cviii_world_detect_loader_0805(world,second,ram)==4 &&
+              world->groups[4].active &&
+              world->groups[4].room_index==1 &&
+              world->groups[4].activations==1,
+              "original CPU postcondition observed"))return 12;
+    if(!check(cviii_world_detect_loader_0805(world,second,ram)==4 &&
+              world->groups[4].activations==1,
+              "successive matching frames do not duplicate actors"))return 13;
+    ram[0x54f]=0;
+    if(!check(cviii_world_detect_loader_0805(world,second,ram)==-1 &&
+              world->groups[4].activations==1,
+              "partial original loader rejected"))return 14;
+    cviii_world_clear_live_0805(world);
+    if(!check(!world->actors[0].active &&
+              world->groups[4].active && world->templates_ready &&
+              world->rooms[1].placed,
+              "savestate clears shadows but retains world/resources"))return 15;
     free(atlas);free(world);
-    puts("PASS JP0803/0804 world graph, authoritative actors and original object templates");
+    puts("PASS JP0803/0804/0805 persistent world, source templates and original loader activation");
     return 0;
 }

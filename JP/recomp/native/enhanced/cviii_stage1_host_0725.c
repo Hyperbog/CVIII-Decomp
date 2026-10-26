@@ -62,6 +62,7 @@ void cviii_stage1_host_reset_0751(CviiiStage1Host0725 *h)
         h->has_verified_scene=0;
         h->has_ppu_scroll_x=0;
         h->scroll_fallback_frames=0;
+        cviii_world_clear_live_0805(&h->world);
     }
 }
 /* The original 1-01 exit to 1-02:0 is source-proven in JP0719. Both
@@ -246,6 +247,9 @@ const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
                         link->right,CVIII_WORLD_RIGHT_0803);
             }
             (void)cviii_world_visit_0803(&h->world,selector);
+            /* Observe the original source loader and original actors.
+             * No Enhanced-side spawn/update writes into guest RAM. */
+            (void)cviii_world_detect_loader_0805(&h->world,selector,ram);
             (void)cviii_world_capture_live_0803(&h->world,selector,
                          camera_x,camera_y,ram);
             center=viewport_center_0790(selector,camera_x);

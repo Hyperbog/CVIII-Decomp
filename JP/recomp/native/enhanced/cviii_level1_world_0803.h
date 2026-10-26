@@ -34,6 +34,8 @@ typedef struct {
 } CviiiWorldObjectTemplate0804;
 typedef struct {
     uint8_t source_group,record_start,record_count,header[4];
+    uint8_t active,room_index; /* last independently observed loader event */
+    uint32_t activations; /* event count per distinct room */
 } CviiiWorldObjectGroup0804;
 typedef struct {
     CviiiWorldRoom0803 rooms[CVIII_WORLD_ROOMS_0803];
@@ -70,6 +72,11 @@ int cviii_world_visit_0803(CviiiLevel1World0803 *world,
  * physical source window first; this exact bounded parser fails atomically. */
 int cviii_world_preload_templates_0804(CviiiLevel1World0803 *world,
                 const uint8_t *raw0e_source,size_t source_len);
+/* Require the original CPU loader's complete RAM postcondition,
+ * never spawn a template merely because it was preloaded. */
+int cviii_world_detect_loader_0805(CviiiLevel1World0803 *world,
+            const uint8_t selector[3],const uint8_t ram[2048]);
+void cviii_world_clear_live_0805(CviiiLevel1World0803 *world);
 unsigned cviii_world_capture_live_0803(CviiiLevel1World0803 *world,
         const uint8_t selector[3],int local_camera_x,int local_camera_y,
         const uint8_t ram[2048]);
