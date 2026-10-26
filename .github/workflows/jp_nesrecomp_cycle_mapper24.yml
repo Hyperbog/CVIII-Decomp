@@ -32,6 +32,8 @@ on:
       - "JP/decomp/tools/jp_slot_shell_test_0625.py"
       - "JP/recomp/tools/jp_menu_roundtrip_shell_test_0644.py"
       - "JP/recomp/tools/patch_cyc_audio_return_0626.py"
+      - "JP/recomp/tools/patch_cyc_lighting_editor.py"
+      - "JP/recomp/native/enhanced/cviii_lighting.c"
       - "JP/decomp/tools/jp_audio_return_pinned_gate_0626.py"
       - "JP/decomp/tools/jp_audio_menu_pinned_gate_0621.py"
       - "JP/recomp/tools/patch_cyc_chr_fetch_0600.py"
@@ -114,6 +116,7 @@ jobs:
         run: |
           python3 JP/recomp/tools/patch_cyc_savestates_0591.py --smoke
           python3 JP/recomp/tools/patch_cyc_audio_menu_0620.py --smoke
+          python3 JP/recomp/tools/patch_cyc_lighting_editor.py --smoke
           python3 JP/decomp/tools/jp_audio_menu_pinned_gate_0621.py --smoke
           python3 JP/decomp/tools/jp_audio_menu_pinned_gate_0621.py \
             --source _external_nesrecomp/runner/cyc/cyc_sdl.c
@@ -134,9 +137,16 @@ jobs:
         run: |
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
             -I _external_nesrecomp/runner/cyc \
-            JP/recomp/native/enhanced/cviii_edition.c JP/recomp/native/enhanced/cviii_chr_index_0598.c JP/recomp/native/enhanced/cviii_chr_audit_0599.c JP/recomp/native/enhanced/cviii_chr_fetch_0600.c JP/recomp/native/enhanced/cviii_frame_evidence_0601.c JP/recomp/native/enhanced/cviii_nt_trace_0606.c JP/recomp/native/enhanced/cviii_sprite_layers_0608.c JP/recomp/native/enhanced/cviii_object_oam_trace_0609.c JP/recomp/native/enhanced/cviii_audio_bus_0610.c JP/recomp/native/enhanced/cviii_sound_requests_0612.c JP/recomp/native/enhanced/cviii_sound_decisions_0646.c JP/recomp/native/enhanced/cviii_dmc_dma_trace_0650.c JP/recomp/native/enhanced/cviii_audio_session_0614.c JP/recomp/native/enhanced/cviii_audio_levels_0618.c JP/recomp/native/enhanced/cviii_virtual_audio_0647.c JP/recomp/native/enhanced/cviii_audio_ui_0619.c JP/recomp/native/enhanced/cviii_menu_registry_0620.c JP/recomp/native/enhanced/cviii_audio_menu_state_0622.c JP/recomp/native/enhanced/cviii_start_menu_0623.c JP/recomp/native/enhanced/cviii_start_ui_0623.c JP/recomp/native/enhanced/cviii_slot_picker_0625.c JP/recomp/native/enhanced/cviii_menu_stack_0626.c JP/recomp/native/enhanced/test_cviii_edition.c \
-            -o "${{ runner.temp }}/test_cviii_edition"
+            JP/recomp/native/enhanced/cviii_edition.c JP/recomp/native/enhanced/cviii_lighting.c JP/recomp/native/enhanced/cviii_chr_index_0598.c JP/recomp/native/enhanced/cviii_chr_audit_0599.c JP/recomp/native/enhanced/cviii_chr_fetch_0600.c JP/recomp/native/enhanced/cviii_frame_evidence_0601.c JP/recomp/native/enhanced/cviii_nt_trace_0606.c JP/recomp/native/enhanced/cviii_sprite_layers_0608.c JP/recomp/native/enhanced/cviii_object_oam_trace_0609.c JP/recomp/native/enhanced/cviii_audio_bus_0610.c JP/recomp/native/enhanced/cviii_sound_requests_0612.c JP/recomp/native/enhanced/cviii_sound_decisions_0646.c JP/recomp/native/enhanced/cviii_dmc_dma_trace_0650.c JP/recomp/native/enhanced/cviii_audio_session_0614.c JP/recomp/native/enhanced/cviii_audio_levels_0618.c JP/recomp/native/enhanced/cviii_virtual_audio_0647.c JP/recomp/native/enhanced/cviii_audio_ui_0619.c JP/recomp/native/enhanced/cviii_menu_registry_0620.c JP/recomp/native/enhanced/cviii_audio_menu_state_0622.c JP/recomp/native/enhanced/cviii_start_menu_0623.c JP/recomp/native/enhanced/cviii_start_ui_0623.c JP/recomp/native/enhanced/cviii_slot_picker_0625.c JP/recomp/native/enhanced/cviii_menu_stack_0626.c JP/recomp/native/enhanced/test_cviii_edition.c \
+            -o "${{ runner.temp }}/test_cviii_edition" -lm
           "${{ runner.temp }}/test_cviii_edition"
+      - name: Verify live Enhanced lighting editor and scrolling (ROM-free)
+        run: |
+          cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
+            JP/recomp/native/enhanced/cviii_lighting.c \
+            JP/recomp/native/enhanced/cviii_lighting_test.c -lm \
+            -o "${{ runner.temp }}/test_cviii_lighting"
+          "${{ runner.temp }}/test_cviii_lighting"
       - name: Verify JP0618 enhanced PCM master level and 1-percent settings (ROM-free)
         run: |
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
