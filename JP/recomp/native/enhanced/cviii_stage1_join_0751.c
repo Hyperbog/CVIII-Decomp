@@ -57,6 +57,30 @@ void cviii_stage1_join_restore_0782(CviiiStage1Join0751 *j,
         j->joined=1;
     }
 }
+int cviii_stage1_join_neighbor_0790(const CviiiStage1Join0751 *j,
+          const uint8_t key[3],int camera,int width,int side,
+          uint8_t neighbor[3],int *neighbor_camera)
+{
+    if(!j || !key || !neighbor || !neighbor_camera ||
+       width<256 || camera<0 || camera>width-256 ||
+       (side!=-1 && side!=1)) return 0;
+    for(unsigned i=0;i<j->link_count;i++){
+        const CviiiRoomLink0782 *link=&j->links[i];
+        if(memcmp(link->key,key,3))continue;
+        if(side==-1 && link->has_left && link->left_width>=256) {
+            memcpy(neighbor,link->left,3);
+            *neighbor_camera=camera+link->left_width;
+            return 1;
+        }
+        if(side==1 && link->has_right && link->right_width>=256) {
+            memcpy(neighbor,link->right,3);
+            *neighbor_camera=camera-width;
+            return 1;
+        }
+        return 0;
+    }
+    return 0;
+}
 void cviii_stage1_join_gap_0751(CviiiStage1Join0751 *j) {
     if(j && j->gap<CVIII_JOIN_GAP_MAX+1u)j->gap++;
 }

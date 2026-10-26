@@ -291,6 +291,34 @@ Neither feature changes original CPU, PPU, OAM, save-state, or VRC6
 behavior. ROM-free framebuffer and room-graph tests cover both fixes.
 Original-ROM owner visual confirmation is still required.
 
+## JP0790 — Remove camera jumps and multi-room seam overlap
+
+Owner Japanese Windows screenshots (BLK 1-02) showed a premature camera
+jump toward the next room, overlapping old/new scenery, and a second
+snap when the new room became active. JP0770's presentation-only helper
+forced native X170/X0 during a transient join and restored X85 later.
+The game's actual original 256-pixel framebuffer did not jump: the
+**Enhanced presenter** moved the entire NES picture around it.
+
+Enhanced now holds the native game picture at widescreen X85 across
+room changes, except for genuine first-level starting geometry X0..84
+where it smoothly eases to X85. **No special join-time X170 position**
+exists. The predecoded read-only original Stage 1 atlas draws currently
+known previous and next rooms in the left/right side margins in their
+true world coordinates, including **before** the source selector changes.
+Each source room is clipped to its original physical width; impossible
+overlaps and tile repetition are not used. The full NES HUD stays
+fixed at X85 for its entire 48-scanline extent, while Original mode
+always receives the raw native framebuffer.
+
+The NES game's own authoritative room transfer can still change its
+256-pixel source picture at a fixed position, but no *additional*
+presentation camera jump is introduced. Synthetic C11 tests exercise
+both room boundary coordinates, pretransition next-room side imagery,
+stable X85 during scene changes, persistence after resetting transient
+join, and refusal to draw unknown neighboring rooms. Actual Japanese
+Windows owner visual acceptance still required.
+
 ## JP0661 native keyboard controls: profiles and recoverable presets
 
 The working native game already supports persistent SDL keyboard/gamepad

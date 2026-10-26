@@ -130,6 +130,10 @@ int main(void)
     pixels=cviii_stage1_host_present_0725(&host,original,&w,&h,1);
     if (!require(pixels[32*426+341]!=0xff000000u,
                  "NT1 room origin accepted with matching live tiles"))return 1;
+
+    /* Transition crossing: old room at physical camera 512, then narrow
+     * successor at x0. Native gameplay remains wide X85 on BOTH sides;
+     * original game pixels never shift to X170 during the door transfer. */
     /* Live presenter seam: old source room's last 256px were actually
      * observed, then new source room's NT1 data is accepted at local X0. */
     cviii_stage1_host_reset_0751(&host);
@@ -139,8 +143,13 @@ int main(void)
     seed_visible_room_from_x(first_room,0,512u);
     w=256;h=240;
     pixels=cviii_stage1_host_present_0725(&host,original,&w,&h,1);
-    if (!require(host.join.last_camera==512 && host.join.valid,
-                 "source-verified last-screen camera"))return 1;
+    if (!require(host.join.last_camera==512 && host.join.valid &&
+                 host.last_verified_center==85,
+                 "final first-room camera remains at fixed X85"))return 1;
+    /* Room geometry after first-room x=768 is loaded already: display
+     * authentic NEXT room in the rightmost side before it becomes active. */
+    if (!require(pixels[60*426+400]!=0xff000000u,
+                 "next area visible at right before transition"))return 1;
     const uint8_t narrow_room[3]={0,1,0};
     test_ram[0x35]=1;test_ram[0x36]=0;
     test_ram[0x53]=0;test_ram[0x54]=0;
@@ -148,15 +157,16 @@ int main(void)
     seed_visible_room(narrow_room,1);
     w=256;h=240;
     pixels=cviii_stage1_host_present_0725(&host,original,&w,&h,1);
-    /* Dynamic center is 170 in a forward seam; the old room is
-     * actually rendered to the left, not fabricated by repeating. */
+    /* Room changes cannot force X170 or jump again when the cached join
+     * expires; the previous room remains to the left at the same X85. */
     if (!require(host.join.joined && host.join.direction==1 &&
                  !memcmp(host.join.adjacent,first_room,3),
                  "actual current/previous room joined") ||
         !require(pixels[60*426+40]!=0xff000000u,
                  "original preceding scenery appears in next-room margin") ||
-        !require(pixels[60*426+170]==original[60*256],
-                 "native gameplay pixels preserved at forward seam") ||
+        !require(host.last_verified_center==85 &&
+                 pixels[60*426+85]==original[60*256],
+                 "camera offset unchanged across selector transition") ||
         !require(pixels[40*426+85]==original[40*256] &&
                  pixels[47*426+85]==original[47*256],
                  "HUD cannot slide with player across room seams"))return 1;
@@ -173,12 +183,23 @@ int main(void)
     w=256;h=240;
     pixels=cviii_stage1_host_present_0725(&host,original,&w,&h,1);
     if(!require(host.join.joined && host.join.direction==1 &&
+                host.last_verified_center==85 &&
                 !memcmp(host.join.adjacent,first_room,3),
                 "respawn reconstructs original preceding room") ||
        !require(pixels[60*426+40]!=0xff000000u,
                 "checkpoint left side contains previous preloaded room") ||
        !require(pixels[40*426+85]==original[40*256],
                 "HUD remains fixed after respawn"))return 1;
+
+    /* A new room's active transient join ends, but the true prior room
+     * remains part of the persistent atlas and camera stays at X85. */
+    cviii_stage1_join_soft_reset_0782(&host.join);
+    w=256;h=240;
+    pixels=cviii_stage1_host_present_0725(&host,original,&w,&h,1);
+    if(!require(host.last_verified_center==85 &&
+                pixels[60*426+85]==original[60*256] &&
+                pixels[60*426+40]!=0xff000000u,
+                "no second viewport jump or disappearing prior atlas"))return 1;
     test_ram[0x35]=0;test_ram[0x36]=0;
     scroll_x=0;test_ram[0x65]=0x80;w=256;h=240;
     pixels=cviii_stage1_host_present_0725(&host,original,&w,&h,1);

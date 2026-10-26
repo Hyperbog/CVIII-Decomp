@@ -30,6 +30,13 @@ void cviii_stage1_join_link_0782(CviiiStage1Join0751 *join,
                                 const uint8_t right[3],int right_width);
 void cviii_stage1_join_restore_0782(CviiiStage1Join0751 *join,
                                    const uint8_t key[3],int camera,int width);
+/* JP0790: independently paint known neighboring rooms on BOTH sides of
+ * the current room, not only during a just-observed scene transition.
+ * side=-1 for previous-left, +1 for next-right. The returned camera is
+ * projected into the authentic neighboring room's atlas coordinates. */
+int cviii_stage1_join_neighbor_0790(const CviiiStage1Join0751 *join,
+          const uint8_t key[3],int camera,int width,int side,
+          uint8_t neighbor[3],int *neighbor_camera);
 void cviii_stage1_join_accept_0751(CviiiStage1Join0751 *join,
                                    const uint8_t selector[3],int camera,int width_px);
 int cviii_stage1_join_previous_0751(const CviiiStage1Join0751 *join,

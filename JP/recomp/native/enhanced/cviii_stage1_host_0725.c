@@ -138,21 +138,19 @@ static int camera(const CviiiStage1Host0725 *h,uint8_t sel[3],
     *y=0;
     return 1;
 }
-/* JP0770: never fabricate scenery by repeating ROM edge strips.
- * Slide the original NES picture within the 16:9 viewport when the
- * authenticated world coordinate is within 85px of a room boundary.
- * This makes the stage BEGIN with real pixel zero and exposes only
- * preloaded, physically available room scenery in the side columns. */
-static int viewport_center_0770(int camera_x,int room_width,
-                                 const CviiiStage1Join0751 *join)
+
+/* JP0790: genuine Stage 1 beginning has no scenery to its left.
+ * Outside the first 85 pixels, the native NES view stays at wide X85
+ * across ALL selector changes. Never jump it to X170/X0 at a door and
+ * then snap back when an ephemeral room-join flag expires.
+ * The persistent ROM atlas supplies real left/right adjoining scenes. */
+static int viewport_center_0790(const uint8_t selector[3],int camera_x)
 {
-    if(join && join->joined && join->direction==1) return 170;
-    if(join && join->joined && join->direction==-1) return 0;
-    if(room_width<426) return 85; /* cannot invent unknown adjacent rooms */
-    int left=camera_x-85;
-    if(left<0)left=0;
-    if(left>room_width-426)left=room_width-426;
-    return camera_x-left;
+    if(selector && selector[0]==0u &&
+       selector[1]==0u && selector[2]==0u &&
+       camera_x>=0 && camera_x<CVIII_STAGE1_ORIGIN_0725)
+        return camera_x;
+    return CVIII_STAGE1_ORIGIN_0725;
 }
 const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
     const uint32_t *frame,int *width,int *height,int enhanced)
@@ -189,7 +187,7 @@ const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
         if(room_width>=256 && camera_x>=0 && camera_x<=room_width-256) {
             cviii_stage1_join_accept_0751(&h->join,selector,camera_x,room_width);
             cviii_stage1_join_restore_0782(&h->join,selector,camera_x,room_width);
-            center=viewport_center_0770(camera_x,room_width,&h->join);
+            center=viewport_center_0790(selector,camera_x);
             memcpy(h->last_verified_selector,selector,sizeof selector);
             h->last_verified_camera=camera_x;
             h->last_verified_center=center;
@@ -227,11 +225,22 @@ const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
             (void)cviii_stage1_atlas_paint_0724(&h->atlas,selector,
                 camera_x,camera_y,h->pixels,CVIII_STAGE1_WIDE_0725,240,
                 center,cyc_render_chr,cyc_render_color);
-            uint8_t prior[3];int old_x=0;
-            if(cviii_stage1_join_previous_0751(&h->join,
-                    camera_x,width_px,prior,&old_x))
-                (void)cviii_stage1_atlas_paint_0724(&h->atlas,prior,
-                    old_x,camera_y,h->pixels,CVIII_STAGE1_WIDE_0725,240,
+            /* JP0790: the predecoded Stage 1 atlas is a continuous
+             * world scene, not a timed scene-copy effect. Paint each known
+             * room ONLY in its true neighboring world coordinate. Current
+             * room atlas rejects out-of-bounds tiles, so none overlaps.
+             * This also fills the next room's right margin BEFORE the NES
+             * selector changes; no speculative future-camera snap. */
+            uint8_t neighbor[3];int neighbor_x=0;
+            if(cviii_stage1_join_neighbor_0790(&h->join,selector,
+                    camera_x,width_px,-1,neighbor,&neighbor_x))
+                (void)cviii_stage1_atlas_paint_0724(&h->atlas,neighbor,
+                    neighbor_x,camera_y,h->pixels,CVIII_STAGE1_WIDE_0725,240,
+                    center,cyc_render_chr,cyc_render_color);
+            if(cviii_stage1_join_neighbor_0790(&h->join,selector,
+                    camera_x,width_px,1,neighbor,&neighbor_x))
+                (void)cviii_stage1_atlas_paint_0724(&h->atlas,neighbor,
+                    neighbor_x,camera_y,h->pixels,CVIII_STAGE1_WIDE_0725,240,
                     center,cyc_render_chr,cyc_render_color);
         }
     }

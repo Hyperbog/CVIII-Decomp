@@ -67,6 +67,24 @@ int main(void) {
     cviii_stage1_join_reset_0751(j);
     if(!check(!cviii_stage1_join_hold_0751(j,frame),"state reset clears history"))
        return 8;
+
+    /* JP0790: known next/previous scenes are available without waiting
+     * for a selector switch. The camera never moves a SECOND TIME when
+     * the room join expires, even for a 256px checkpoint room. */
+    cviii_stage1_join_soft_reset_0782(j);
+    cviii_stage1_join_link_0782(j,a,768,b,256);
+    uint8_t known[3];int projected=0;
+    if(!check(cviii_stage1_join_neighbor_0790(j,a,512,768,1,known,&projected) &&
+       !memcmp(known,b,3) && projected==-256,
+       "next room right side projects into first room tail"))return 12;
+    if(!check(cviii_stage1_join_neighbor_0790(j,b,0,256,-1,known,&projected) &&
+       !memcmp(known,a,3) && projected==768,
+       "previous room left side remains at true world offset"))return 13;
+    cviii_stage1_join_soft_reset_0782(j);
+    if(!check(cviii_stage1_join_neighbor_0790(j,b,0,256,-1,known,&projected) &&
+       projected==768,"neighbor survives respawn and scene reload"))return 14;
+    if(!check(!cviii_stage1_join_neighbor_0790(j,c,0,768,-1,known,&projected),
+       "unknown neighbors never fabricate scenery"))return 15;
     free(frame);free(j);
     puts("PASS JP0751 authenticated room seams and bounded margin cache");
     return 0;
