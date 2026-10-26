@@ -9,11 +9,16 @@
 #define CVIII_LIGHT_NAME_CAP 48
 #define CVIII_LIGHT_GROUP_CAP 32
 #define CVIII_SCENE_AMBIENT_MAX 32
+#define CVIII_KIT_MAX 12
+#define CVIII_KIT_PARTS 8
 enum { CVIII_SHAPE_RADIAL=0, CVIII_SHAPE_CONE=1, CVIII_SHAPE_SHAFT=2 };
 typedef struct {
     uint32_t room;
     int level, red, green, blue;
     int used;
+    /* Sky is an independent additive fill, never an RGB multiply filter.
+       strength 0..100, facing -1 top, 0 uniform, +1 bottom. */
+    int sky, sky_red, sky_green, sky_blue, sky_facing;
 } CviiiSceneAmbient;
 
 typedef struct {
@@ -31,8 +36,14 @@ typedef struct {
     int flicker;        /* 0 = subtle auto, 1 = none, 2 = torch */
 } CviiiLight;
 typedef struct {
+    int used, count;
+    char name[CVIII_LIGHT_NAME_CAP];
+    CviiiLight part[CVIII_KIT_PARTS]; /* relative to selected anchor */
+} CviiiLightKit;
+typedef struct {
     CviiiLight light[CVIII_LIGHT_MAX];
     CviiiSceneAmbient scenes[CVIII_SCENE_AMBIENT_MAX];
+    CviiiLightKit kits[CVIII_KIT_MAX];
     CviiiLight clipboard;
     int clipboard_valid;
     int enabled,ambient,edit,selected,dragging;
@@ -58,4 +69,16 @@ int cviii_light_group(CviiiLighting *s,int slot,const char *group);
 int cviii_light_shape(CviiiLighting *s,int slot,int shape);
 int cviii_light_scene_set(CviiiLighting *s,uint32_t room,int level,int red,int green,int blue);
 void cviii_light_scene_get(const CviiiLighting *s,uint32_t room,int *level,int rgb[3]);
+/* Global emitter rigs; IDs 0..builtins-1 are immutable default archetypes.
+ * Captured kit slots are 0..CVIII_KIT_MAX-1; all placements are atomic. */
+int cviii_light_builtin_count(void);
+const char *cviii_light_builtin_name(int id);
+int cviii_light_apply_builtin(CviiiLighting *s,int id,uint32_t room,int x,int y);
+int cviii_light_kit_capture(CviiiLighting *s,int slot,int selected,const char *name);
+int cviii_light_kit_apply(CviiiLighting *s,int slot,uint32_t room,int x,int y);
+int cviii_light_kit_load(CviiiLighting *s,const char *key,const char *value);
+void cviii_light_kit_save(const CviiiLighting *s,FILE *file);
+int cviii_light_sky_set(CviiiLighting *s,uint32_t room,int strength,int red,int green,int blue,int facing);
+void cviii_light_sky_get(const CviiiLighting *s,uint32_t room,int *strength,int rgb[3],int *facing);
+
 #endif
