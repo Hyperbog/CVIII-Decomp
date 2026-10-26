@@ -204,6 +204,16 @@ int cviii_light_extra_load(CviiiLighting *s,const char *key,const char *val){
     if(!s || !key || !val)return 0;
     unsigned slot=0,room=0,source=0,target=0;
     char suffix;int n=0;
+    if(!strncmp(key,"GlobalAnim",10)){
+        int speed=0,strength=0;
+        if(sscanf(key,"GlobalAnim%2u%c",&slot,&suffix)!=1 ||
+           slot>=CVIII_GLOBAL_STYLE_MAX ||
+           sscanf(val,"%d,%d%n",&speed,&strength,&n)!=2 || val[n] ||
+           speed<0 || speed>400 || strength<0 || strength>100)return 0;
+        s->styles[slot].light.anim_speed=speed;
+        s->styles[slot].light.anim_strength=strength;
+        return 1;
+    }
     if(!strncmp(key,"LightLink",9)){
         int link=0;
         if(sscanf(key,"LightLink%3u%c",&slot,&suffix)!=1 || slot>=CVIII_LIGHT_MAX ||
@@ -250,7 +260,7 @@ int cviii_light_extra_load(CviiiLighting *s,const char *key,const char *val){
            radius<12 || radius>160 || energy<5 || energy>160 ||
            red<0 || red>255 || green<0 || green>255 || blue<0 || blue>255 ||
            shape<0 || shape>2 || angle<0 || angle>359 || spread<0 || spread>85 ||
-           width<0 || width>160 || flicker<0 || flicker>2)return 0;
+           width<0 || width>160 || flicker<0 || flicker>4)return 0;
         CviiiGlobalStyle style={0};
         if(!read_hex(style.name,sizeof style.name,encoded) || !style.name[0])return 0;
         style.used=1;
@@ -271,6 +281,9 @@ void cviii_light_extra_save(const CviiiLighting *s,FILE *f){
           i,l->radius,l->energy,l->red,l->green,l->blue,l->shape,
           l->angle,l->spread,l->width,l->flicker);
         write_hex(f,g->name);fputc('\n',f);
+        if(l->anim_speed || l->anim_strength)
+            fprintf(f,"GlobalAnim%02d = %d,%d\n",
+                    i,l->anim_speed,l->anim_strength);
     }
     for(int i=0;i<CVIII_LIGHT_MAX;++i)
         if(s->light[i].used && s->light[i].style_link)
