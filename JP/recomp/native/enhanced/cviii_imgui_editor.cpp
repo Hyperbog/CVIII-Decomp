@@ -98,7 +98,7 @@ extern "C" void cviii_imgui_window_point(SDL_Renderer *r,int ex,int ey,
         SDL_RenderLogicalToWindow(r,(float)ex,(float)ey,wx,wy);
 }
 extern "C" int cviii_imgui_event(const SDL_Event *e,SDL_Window *w,SDL_Renderer *r){
-    if(!e || !cviii_lighting_editor_active() || !init(w,r))return 0;
+    if(!e || cviii_lighting_editor_external_active() || !cviii_lighting_editor_active() || !init(w,r))return 0;
     SDL_Event window_event=*e;
     if(e->type==SDL_MOUSEMOTION){
         cviii_imgui_window_point(r,e->motion.x,e->motion.y,
@@ -153,6 +153,7 @@ extern "C" void cviii_imgui_shutdown(void){
     active_window=nullptr;active_renderer=nullptr;
 }
 extern "C" int cviii_imgui_render(SDL_Window *window,SDL_Renderer *renderer){
+    if(cviii_lighting_editor_external_active())return 0;
     if(!cviii_lighting_editor_active()){
         cviii_imgui_reset();return 0;
     }
