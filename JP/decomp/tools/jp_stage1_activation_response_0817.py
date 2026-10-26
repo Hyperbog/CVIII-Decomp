@@ -42,7 +42,7 @@ def verify(path:Path)->None:
         return b[lo-0x8000:hi-0x8000]
     # Hard original branch instructions are independently checked from
     # the window digests to guard wrong CPU offsets in native code.
-    if source(b0,0x84EA,0x84F3)!=bytes.fromhex("A2 00 BD C2 07 F0 0A 86 69 20"):
+    if source(b0,0x84EA,0x84F4)!=bytes.fromhex("A2 00 BD C2 07 F0 0A 86 69 20"):
         raise ValueError("$84EA nonzero-source JSR control flow changed")
     if source(b1,0xB115,0xB120)!=bytes.fromhex(
         "A5 7E C9 01 F0 1D 20 0E B8 B0 18"):
