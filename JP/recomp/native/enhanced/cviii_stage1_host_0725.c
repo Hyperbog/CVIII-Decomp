@@ -38,6 +38,8 @@ void cviii_stage1_host_reset_0751(CviiiStage1Host0725 *h)
     if(h) {
         cviii_stage1_join_soft_reset_0782(&h->join);
         h->has_verified_scene=0;
+        h->has_ppu_scroll_x=0;
+        h->scroll_fallback_frames=0;
     }
 }
 /* The original 1-01 exit to 1-02:0 is source-proven in JP0719. Both
@@ -139,6 +141,21 @@ static int camera(const CviiiStage1Host0725 *h,uint8_t sel[3],
     return 1;
 }
 
+/* JP0800: the NES picture already scrolls from the real PPU on every
+ * frame. When strict ROM/nametable attestation temporarily rejects the
+ * room, NEVER leave the side scenery at an old frozen world position.
+ * Integrate only small real scanline-X deltas into the last authenticated
+ * ROM atlas camera; 0/511 modulo rollover is a normal 1-pixel change.
+ * Selector changes remain untrusted until the ROM tile probes pass.
+ */
+enum { CVIII_PPU_SCROLL_STEP_0800=16 };
+static int ppu_scroll_delta_0800(int before,int after)
+{
+    int delta=(after&511)-(before&511);
+    if(delta>256)delta-=512;
+    else if(delta<-256)delta+=512;
+    return delta;
+}
 /* JP0790: genuine Stage 1 beginning has no scenery to its left.
  * Outside the first 85 pixels, the native NES view stays at wide X85
  * across ALL selector changes. Never jump it to X170/X0 at a door and
@@ -192,13 +209,49 @@ const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
             h->last_verified_camera=camera_x;
             h->last_verified_center=center;
             h->has_verified_scene=1;
+            h->last_ppu_scroll_x=cyc_render_line_scroll_x(120)&511;
+            h->has_ppu_scroll_x=1;
+            h->scroll_fallback_frames=0;
         } else valid_camera=0;
     }
     if(!valid_camera && horizontal_play && h->has_verified_scene) {
+        /* Keep the authenticated ROOM, but move its atlas camera with the
+         * same scanline PPU X that moves the central NES framebuffer. The
+         * old implementation held last_verified_camera constant, causing
+         * 4:3-only scrolling and motionless left/right side extensions.
+         *
+         * Do not accept a new room selector, 256px NT page jump or an
+         * arbitrary warp by inference. Those still require camera() +
+         * room_loaded() to authenticate their source geometry. */
+        const int ppu_now=cyc_render_line_scroll_x(120)&511;
+        if(h->has_ppu_scroll_x) {
+            const int step=ppu_scroll_delta_0800(
+                h->last_ppu_scroll_x,ppu_now);
+            const int predicted=h->last_verified_camera+step;
+            const int source_width=cviii_stage1_atlas_width_0751(
+                &h->atlas,h->last_verified_selector);
+            if(step>=-CVIII_PPU_SCROLL_STEP_0800 &&
+               step<=CVIII_PPU_SCROLL_STEP_0800 &&
+               source_width>=256 && predicted>=0 &&
+               predicted<=source_width+CVIII_STAGE1_ORIGIN_0725) {
+                h->last_verified_camera=predicted;
+                h->last_verified_center=viewport_center_0790(
+                    h->last_verified_selector,predicted);
+                if(h->scroll_fallback_frames<UINT32_MAX)
+                    h->scroll_fallback_frames++;
+            } else {
+                /* Large PPU jump: resync the physical phase without
+                 * moving unverified world geometry. The next verified
+                 * room re-anchors from the true CPU/PPU camera. */
+                h->scroll_fallback_frames=0;
+            }
+        }
+        h->last_ppu_scroll_x=ppu_now;
+        h->has_ppu_scroll_x=1;
         memcpy(selector,h->last_verified_selector,sizeof selector);
         camera_x=h->last_verified_camera;
         center=h->last_verified_center;
-        valid_camera=1; /* display only the persistent atlas, no new trust */
+        valid_camera=1;
     }
     if(!horizontal_play) {
         /* A death changes live game state, not the preloaded room atlas or

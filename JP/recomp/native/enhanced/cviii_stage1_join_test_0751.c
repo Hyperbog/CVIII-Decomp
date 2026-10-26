@@ -81,6 +81,10 @@ int main(void) {
        !memcmp(known,a,3) && projected==768,
        "previous room left side remains at true world offset"))return 13;
     cviii_stage1_join_soft_reset_0782(j);
+    if(!check(cviii_stage1_join_neighbor_0790(j,a,526,768,1,known,&projected) &&
+       !memcmp(known,b,3) && projected==-242,
+       "current-ROM camera can move beyond viewport end before next room verifies"))
+        return 16;
     if(!check(cviii_stage1_join_neighbor_0790(j,b,0,256,-1,known,&projected) &&
        projected==768,"neighbor survives respawn and scene reload"))return 14;
     if(!check(!cviii_stage1_join_neighbor_0790(j,c,0,768,-1,known,&projected),

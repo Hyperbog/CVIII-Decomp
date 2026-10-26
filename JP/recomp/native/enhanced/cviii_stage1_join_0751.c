@@ -62,7 +62,7 @@ int cviii_stage1_join_neighbor_0790(const CviiiStage1Join0751 *j,
           uint8_t neighbor[3],int *neighbor_camera)
 {
     if(!j || !key || !neighbor || !neighbor_camera ||
-       width<256 || camera<0 || camera>width-256 ||
+       width<256 || camera<0 || camera>width+CVIII_JOIN_SIDE ||
        (side!=-1 && side!=1)) return 0;
     for(unsigned i=0;i<j->link_count;i++){
         const CviiiRoomLink0782 *link=&j->links[i];

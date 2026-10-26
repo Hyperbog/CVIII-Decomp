@@ -319,6 +319,38 @@ stable X85 during scene changes, persistence after resetting transient
 join, and refusal to draw unknown neighboring rooms. Actual Japanese
 Windows owner visual acceptance still required.
 
+## JP0800 — PPU-driven widescreen side-camera continuity
+
+Owner's 9.1-second original-JP Windows MP4 at 30fps proves the error:
+during frames 70..90 and 170..220, the center NES scenery scrolls
+approximately 60 output pixels per 10 frames while *both* widescreen
+margins remain motionless. JP0725's strict room/nametable validation
+can reject a source on a perfectly genuine transient PPU scroll phase;
+its JP0770 fallback then drew the last authenticated ROM atlas at the
+**old, unchanged camera X** every frame. Static atlas data and remembered
+rooms alone never fixed this geometry/time-base split.
+
+JP0800 retains ROM/nametable validation as the ONLY way to trust room
+identity, and on rejected intermediate frames integrates *bounded*
+signed horizontal movement from the original PPU scanline scroll X
+(modulo 512). This makes both visible side columns move with the same
+real camera as the NES source picture, even while ROM room attestation
+is momentarily unavailable. Ordinary 511->0 and 0->511 phase rollover
+are handled; steps greater than 16 original pixels per frame, scene
+selector/page jumps, and out-of-bounds world positions are NOT blindly
+accepted. On revalidation the camera is synchronized to the real
+room-local RAM/PPU position. On death/original mode/missing private ROM,
+only transitory camera tracking is discarded; persistent authenticated
+room connections and preloaded atlas content remain.
+
+A new ROM-free host regression deliberately makes RAM $53 lag the
+physical PPU scanline camera while rendering both side margins. It
+asserts source-accurate pixels for every moving scroll step, rejects
+a 216px phase jump, and then verifies successful source re-anchoring.
+A separate C11 fixture checks neighboring room projection beyond an
+old room's last visible 256px window. Authentic Windows owner visual
+acceptance is still needed.
+
 ## JP0661 native keyboard controls: profiles and recoverable presets
 
 The working native game already supports persistent SDL keyboard/gamepad

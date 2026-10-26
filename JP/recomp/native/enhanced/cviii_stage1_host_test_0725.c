@@ -103,6 +103,61 @@ int main(void)
     for(int y=0;y<240;y++)for(int x=0;x<256;x++)
       if (!require(pixels[y*426+(y<CVIII_STAGE1_HUD_ROWS_0781?85:0)+x]==original[y*256+x],
                    "all 61,440 NES pixels preserved at boundary-aware offset"))return 1;
+    /* JP0800 video regression: authoritative NES PPU moves while RAM
+     * $53/$54 and nametable attestation lag. Old host froze BOTH side
+     * columns while 4:3 NES gameplay moved. Advance by PPU delta, not by
+     * stale last-verified camera. Re-run source-exact atlas for every step. */
+    cviii_stage1_host_reset_0751(&host);
+    test_ram[0x35]=0;test_ram[0x36]=0;
+    test_ram[0x53]=100;test_ram[0x54]=0;
+    seed_visible_room(first_room,0);
+    seed_visible_room_from_x(first_room,1,256u);
+    scroll_x=100;w=256;h=240;
+    pixels=cviii_stage1_host_present_0725(&host,original,&w,&h,1);
+    if(!require(host.has_verified_scene &&
+                host.last_verified_camera==100 &&
+                host.has_ppu_scroll_x,
+                "PPU-scene baseline authenticated"))return 1;
+    for(int x=104;x<=124;x+=4) {
+        /* RAM stays at 100 and the PPU is still scrolling: this is
+         * intentionally rejected by the strict <=2px ROM camera rule. */
+        scroll_x=x;w=256;h=240;
+        pixels=cviii_stage1_host_present_0725(&host,original,&w,&h,1);
+        if(!require(host.last_verified_camera==x &&
+                    host.scroll_fallback_frames==(unsigned)((x-100)/4),
+                    "unverified frames follow real PPU motion, not frozen x100"))
+            return 1;
+        memset(isolated_room,0,sizeof isolated_room);
+        if(!require(cviii_stage1_atlas_paint_0724(&host.atlas,first_room,
+                    x,0,isolated_room,426,240,85,
+                    cyc_render_chr,cyc_render_color)>0 &&
+                    pixels[96*426+400]==isolated_room[96*426+400] &&
+                    pixels[112*426+40]==isolated_room[112*426+40] &&
+                    pixels[40*426+85]==original[40*256],
+                    "both side margins track source atlas at moving PPU x"))
+            return 1;
+    }
+    /* Simulate a physical PPU/nametable phase jump. A jump of 200px
+     * cannot be interpreted as camera velocity in the old room. */
+    scroll_x=340;w=256;h=240;
+    pixels=cviii_stage1_host_present_0725(&host,original,&w,&h,1);
+    if(!require(host.last_verified_camera==124 &&
+                host.scroll_fallback_frames==0,
+                "large NT phase step does not teleport an unverified atlas"))
+        return 1;
+    /* Returning to normal attested conditions resynchronizes camera and
+     * physical scroll phase without a permanent frozen background. */
+    test_ram[0x53]=100;
+    seed_visible_room(first_room,0);
+    scroll_x=100;w=256;h=240;
+    pixels=cviii_stage1_host_present_0725(&host,original,&w,&h,1);
+    if(!require(host.last_verified_camera==100 &&
+                host.scroll_fallback_frames==0,
+                "verified room reanchors PPU tracker"))return 1;
+    /* Existing long unverified-room test begins from the origin. */
+    test_ram[0x53]=0;test_ram[0x54]=0;
+    scroll_x=0;w=256;h=240;
+    (void)cviii_stage1_host_present_0725(&host,original,&w,&h,1);
     /* Unlike the old 30-frame fading side cache, the already-loaded
      * ROM atlas remains visible after an arbitrary long NT mismatch. */
     scroll_x=123;w=256;h=240;
