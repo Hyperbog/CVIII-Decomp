@@ -181,15 +181,39 @@ static int hexval(char c){
     if(c>='A' && c<='F')return c-'A'+10;
     return -1;
 }
+/* Validate UTF-8 before writing the destination; malformed labels never
+ * partially change a previously loaded scene. */
+static int valid_utf8(const unsigned char *p,size_t n){
+    size_t i=0;
+    while(i<n){
+        unsigned c=p[i],extra=0;
+        if(c>=32 && c<127){++i;continue;}
+        if(c>=0xC2 && c<=0xDF)extra=1;
+        else if(c>=0xE0 && c<=0xEF)extra=2;
+        else if(c>=0xF0 && c<=0xF4)extra=3;
+        else return 0;
+        if(i+extra>=n)return 0;
+        for(unsigned j=1;j<=extra;++j)
+            if(p[i+j]<0x80 || p[i+j]>0xBF)return 0;
+        if(c==0xE0 && p[i+1]<0xA0)return 0;
+        if(c==0xED && p[i+1]>0x9F)return 0;
+        if(c==0xF0 && p[i+1]<0x90)return 0;
+        if(c==0xF4 && p[i+1]>0x8F)return 0;
+        i+=extra+1;
+    }
+    return 1;
+}
 static int hex_label(char *dst,size_t cap,const char *v){
     size_t n=strlen(v);
-    if((n&1) || n/2>=cap)return 0;
+    if((n&1) || n/2>=cap || cap>CVIII_LIGHT_NAME_CAP)return 0;
+    unsigned char candidate[CVIII_LIGHT_NAME_CAP];
     for(size_t i=0;i<n;i+=2){
         int hi=hexval(v[i]),lo=hexval(v[i+1]);
-        if(hi<0 || lo<0 || (hi*16+lo)<32 || (hi*16+lo)==127)return 0;
+        if(hi<0 || lo<0)return 0;
+        candidate[i/2]=(unsigned char)(hi*16+lo);
     }
-    for(size_t i=0;i<n;i+=2)
-        dst[i/2]=(char)(hexval(v[i])*16+hexval(v[i+1]));
+    if(!valid_utf8(candidate,n/2))return 0;
+    memcpy(dst,candidate,n/2);
     dst[n/2]=0;
     return 1;
 }
