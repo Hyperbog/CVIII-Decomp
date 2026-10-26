@@ -6,6 +6,7 @@
 #define CVIII_LEVEL1_WORLD_0803_H
 #include "cviii_stage1_atlas_0724.h"
 #include "cviii_room_catalog_0657.h"
+#include "cviii_stage1_source_link_0814.h"
 #include <stdint.h>
 #include <stddef.h>
 enum { CVIII_WORLD_ROOMS_0803=8, CVIII_WORLD_ACTORS_0803=28,
@@ -72,6 +73,10 @@ typedef struct {
     /* Persistent source identity is independent from 28-slot actor shadows. */
     CviiiStage1SourceLife0813 chapel[CVIII_STAGE1_CHAPEL_SOURCES_0813];
     uint32_t chapel_epochs;
+    /* JP0814: instantaneous authenticated-original installation witnesses.
+     * Do not interpret link presence as gameplay collision eligibility. */
+    CviiiSourceLink0814 chapel_links[CVIII_STAGE1_CHAPEL_SOURCES_0813];
+    uint32_t chapel_link_epochs;
 } CviiiLevel1World0803;
 
 /* All eight source rooms are resident on success. One known horizontal
@@ -130,6 +135,12 @@ int cviii_world_detect_loader_0805(CviiiLevel1World0803 *world,
  * Returns number eligible, or -1 for an unsupported/inconsistent state. */
 int cviii_world_track_chapel_0813(CviiiLevel1World0803 *world,
                   const uint8_t selector[3],int camera_y);
+/* Correlate source bytes with exact original $82xx RAM postconditions.
+ * Called ONLY after camera-attested JP0813 source refresh.
+ * Returns unambiguous original-slot associations, or -1 if unsupported.
+ * Never constructs guest actors, sprites, hitboxes, or damage events. */
+int cviii_world_link_chapel_0814(CviiiLevel1World0803 *world,
+                   const uint8_t selector[3],const uint8_t ram[2048]);
 void cviii_world_clear_live_0805(CviiiLevel1World0803 *world);
 unsigned cviii_world_capture_live_0803(CviiiLevel1World0803 *world,
         const uint8_t selector[3],int local_camera_x,int local_camera_y,
