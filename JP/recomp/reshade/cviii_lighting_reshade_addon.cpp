@@ -17,6 +17,7 @@ struct Bridge {
     int (*session)(int)=nullptr;
     int (*select)(int)=nullptr;
     int (*add)(int,int)=nullptr;
+    int (*place_window)(int,int)=nullptr;
     int (*event)(int,int,int)=nullptr;
     int (*prop)(int,int)=nullptr;
     int (*copy)()=nullptr;
@@ -28,6 +29,7 @@ struct Bridge {
     void (*save)()=nullptr;
 } bridge;
 bool external_open=false;
+bool placement_pending=false;
 unsigned long long presented=0,last_editor_draw=0;
 char search[64]={};
 
@@ -44,6 +46,7 @@ bool bind_game(){
     b.session=game_export<decltype(b.session)>(exe,"cviii_lighting_editor_external_session");
     b.select=game_export<decltype(b.select)>(exe,"cviii_lighting_editor_select");
     b.add=game_export<decltype(b.add)>(exe,"cviii_lighting_editor_add");
+    b.place_window=game_export<decltype(b.place_window)>(exe,"cviii_light_place_window");
     b.event=game_export<decltype(b.event)>(exe,"cviii_lighting_editor_input");
     b.prop=game_export<decltype(b.prop)>(exe,"cviii_lighting_editor_property");
     b.copy=game_export<decltype(b.copy)>(exe,"cviii_lighting_editor_copy");
@@ -54,6 +57,7 @@ bool bind_game(){
     b.scene=game_export<decltype(b.scene)>(exe,"cviii_lighting_editor_scene");
     b.save=game_export<decltype(b.save)>(exe,"cviii_light_force_save");
     if(!b.model || !b.room || !b.session || !b.select || !b.add ||
+       !b.place_window ||
        !b.event || !b.prop ||
        !b.copy || !b.paste || !b.duplicate || !b.name || !b.group ||
        !b.scene || !b.save)return false;
@@ -67,6 +71,7 @@ void end_session(){
         if(bridge.save)bridge.save();
     }
     external_open=false;
+    placement_pending=false;
 }
 void on_present(reshade::api::effect_runtime *){
     ++presented;
@@ -97,7 +102,10 @@ void on_overlay(reshade::api::effect_runtime *){
     ImGui::SameLine();
     ImGui::TextDisabled("Scene %08X",room);
     ImGui::InputTextWithHint("##filter","Filter lights and groups...",search,sizeof search);
-    if(ImGui::Button("Add Light at Scene Center"))changed(bridge.add(128,120));
+    if(ImGui::Button(placement_pending?"CLICK ON LEVEL...":"Add Light: Click Level"))
+        placement_pending=true;
+    ImGui::SameLine();
+    if(ImGui::Button("Add at Center"))changed(bridge.add(128,120));
     ImGui::SameLine();
     if(ImGui::Button("Copy"))(void)bridge.copy();
     ImGui::SameLine();
@@ -185,8 +193,16 @@ void on_overlay(reshade::api::effect_runtime *){
     if(ImGui::ColorEdit3("Ambient Color",c,ImGuiColorEditFlags_PickerHueWheel))
         for(int k=0;k<3;++k)
             changed(bridge.scene(k+1,(int)(c[k]*255.f+0.5f)));
-    ImGui::TextDisabled("Real ReShade overlay. Gameplay light pixels remain "
-                        "owned by CVIII's native presenter.");
+    ImGui::TextDisabled("Real ReShade overlay. CVIII owns gameplay light pixels.");
+    if(placement_pending && ImGui::IsMouseClicked(ImGuiMouseButton_Left) &&
+       !ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow)){
+        const ImVec2 pos=ImGui::GetIO().MousePos;
+        if(pos.x>=0 && pos.y>=0 &&
+           bridge.place_window((int)pos.x,(int)pos.y)){
+            bridge.save();
+            placement_pending=false;
+        }
+    }
 }
 } // namespace
 
