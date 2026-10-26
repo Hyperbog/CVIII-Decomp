@@ -65,7 +65,7 @@ int cviii_light_mask_add(CviiiLighting *s,uint32_t room,int x,int y,int w,int h)
        w>65535 || h>479 || x>65535-w || y>479-h)return -1;
     for(int i=0;i<CVIII_OCCLUDER_MAX;++i)if(!s->masks[i].used){
         s->masks[i]=(CviiiOccluder){.room=room,.x=x,.y=y,.w=w,.h=h,
-                                     .opacity=88,.softness=5,.used=1};
+                                     .opacity=78,.softness=10,.used=1};
         return i;
     }
     return -1;
@@ -106,7 +106,7 @@ float cviii_light_shadow(const CviiiLighting *s,uint32_t room,
         int miny=source_y<y?source_y:y,maxy=source_y>y?source_y:y;
         if(m->x>maxx+16 || m->x+m->w<minx-16 ||
            m->y>maxy+16 || m->y+m->h<miny-16)continue;
-        int radius=cap(m->softness,0,16);
+        int radius=cap(m->softness,0,CVIII_OCCLUDER_MAX_SOFTNESS);
         int covered=0;
         /* Stable 3x3 area-source PCF (binomial 1:2:1 x 1:2:1).
          * Spread across both axes, removing single-axis hard seams. */
@@ -243,7 +243,7 @@ int cviii_light_extra_load(CviiiLighting *s,const char *key,const char *val){
            sscanf(val,"%u,%d,%d,%d,%d,%d,%d%n",
                &room,&x,&y,&w,&h,&opacity,&softness,&n)!=7 || val[n] ||
            x<0 || y<0 || w<1 || h<1 || x>65535-w || y>479-h ||
-           opacity<0 || opacity>100 || softness<0 || softness>16)return 0;
+           opacity<0 || opacity>100 || softness<0 || softness>CVIII_OCCLUDER_MAX_SOFTNESS)return 0;
         used=1;
         s->masks[slot]=(CviiiOccluder){.room=room,.x=x,.y=y,.w=w,.h=h,
                                        .opacity=opacity,.softness=softness,.used=used};
