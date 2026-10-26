@@ -239,31 +239,66 @@ static uint32_t mixpixel(uint32_t existing,const CviiiParticleEmitter *e,int opa
     return (existing&0xff000000u)|(r<<16)|(g<<8)|b;
 }
 static void put(uint32_t *pixels,int x,int y,const CviiiParticleEmitter *e,
-                int opacity){
+                int opacity,int layer,const uint8_t *sprite_mask){
     if(x<0 || x>=256 || y<CVIII_LIGHT_HUD || y>=240)return;
+    if(layer==1 && sprite_mask && sprite_mask[y*256+x])return;
     uint32_t *p=&pixels[y*256+x];
     *p=mixpixel(*p,e,opacity);
 }
-void cviii_particle_present(const CviiiLighting *s,uint32_t pixels[CVIII_LIGHT_W*CVIII_LIGHT_H],
-                            uint32_t room,int camera,
-                            const int sx[CVIII_LIGHT_H],const int sy[CVIII_LIGHT_H],
-                            uint64_t frame){
-    if(!s || !pixels || !sx || !sy ||
-       (!s->particles_enabled && !s->edit))return;
-    /* Rebuild reverse scanline mapping from the ACTUAL rendered PPU
-     * scroll: both stage scroll and visible room IDs remain authoritative. */
+void cviii_particle_present_layer(const CviiiLighting *s,
+    uint32_t pixels[CVIII_LIGHT_W*CVIII_LIGHT_H],uint32_t room,int camera,
+    const int sx[CVIII_LIGHT_H],const int sy[CVIII_LIGHT_H],
+    uint64_t frame,int layer,const uint8_t *sprite_mask){
+    if(!s || !pixels || !sx || !sy || layer<0 || layer>1)return;
+    if(!s->particles_enabled && !(s->edit && layer==0))return;
     int screen[480];
     for(int i=0;i<480;++i)screen[i]=-1;
     for(int y=CVIII_LIGHT_HUD;y<240;++y)
         if(sy[y]>=0 && sy[y]<480)screen[sy[y]]=y;
     float seconds=(float)((frame%216000u)/60.0);
-    for(int slot=0;slot<CVIII_PARTICLE_EMITTER_MAX;++slot){
-        const CviiiParticleEmitter *e=&s->particles[slot];
-        if(!e->used || e->room!=room || !valid(e) ||
-           !s->particles_enabled || e->opacity<=0)continue;
+    /* Weather is globally linked, but sampled in fixed WORLD tiles.
+     * The four nearest 128px X-chunks x two vertical pages cover the
+     * camera without regenerating weather at each scroll pixel. */
+    CviiiParticleEmitter weather_tiles[8]={0};
+    int weather_profile=cviii_weather_scene_profile(s,room);
+    if(weather_profile>=0 && s->particles_enabled){
+        const CviiiWeatherProfile *w=&s->weather[weather_profile];
+        int activity=cviii_weather_intensity(w,room,frame);
+        int cameraChunk=camera>=0?camera/128:0;
+        for(int i=0;i<8;++i){
+            int chunk=cameraChunk+(i%4)-1;
+            int page=i/4;
+            int x=chunk*128;
+            if(activity<=0 || x<0 || x>65535-128)continue;
+            int density=w->density/4;
+            if(density<1)density=1;
+            weather_tiles[i]=(CviiiParticleEmitter){
+                .room=room,.used=1,.kind=w->kind,.x=x,.y=page*240,
+                .w=128,.h=239,.density=density,.speed=w->speed,
+                .wind=w->wind,.opacity=w->opacity*activity/100,
+                .size=w->size,.red=w->red,.green=w->green,.blue=w->blue,
+                .layer=w->layer
+            };
+        }
+    }
+    for(int slot=0;slot<CVIII_PARTICLE_EMITTER_MAX+8;++slot){
+        CviiiParticleEmitter world;
+        const CviiiParticleEmitter *src=slot<CVIII_PARTICLE_EMITTER_MAX?
+            &s->particles[slot]:&weather_tiles[slot-CVIII_PARTICLE_EMITTER_MAX];
+        if(!src->used || src->room!=room || !s->particles_enabled ||
+           src->opacity<=0 || !valid(src) || !cviii_particle_world_region(s,src,&world))
+            continue;
+        const CviiiParticleEmitter *e=&world;
+        if(e->layer!=layer && !(layer==0 && e->layer==1 && !sprite_mask))
+            continue;
         const float time=seconds*((float)e->speed/100.f);
         for(int i=0;i<e->density;++i){
-            unsigned id=(unsigned)(slot+1)*0x9e3779b9u ^ (unsigned)i*0x45d9f3bu;
+            unsigned worldTile=slot>=CVIII_PARTICLE_EMITTER_MAX?
+                (unsigned)(world.x/128)*0x1278c5d7u+
+                (unsigned)(world.y/240)*0x53f112a1u+
+                (unsigned)s->weather[weather_profile].seed:0u;
+            unsigned id=((unsigned)(slot<CVIII_PARTICLE_EMITTER_MAX?slot+1:37)
+                 *0x9e3779b9u)^((unsigned)i*0x45d9f3bu)^worldTile;
             float fx=hash01(id+1u),fy=hash01(id+17u),phase=hash01(id+91u);
             float x=(float)e->x+fx*e->w,y=(float)e->y+fy*e->h;
             float wind=((float)e->wind/100.f)*time*7.f;
@@ -313,7 +348,7 @@ void cviii_particle_present(const CviiiLighting *s,uint32_t pixels[CVIII_LIGHT_W
                         if((mix(id^(unsigned)(rx+ry*17))&7u)>=(unsigned)(edge+1))
                             continue;
                         if(((rx+ry+(int)(time*2.f))&3)==0)continue;
-                        put(pixels,shifted+rx-ww/2,row,e,opacity/2);
+                        put(pixels,shifted+rx-ww/2,row,e,opacity/2,layer,sprite_mask);
                     }
                 }
             }else if(e->kind==CVIII_FX_RAIN){
@@ -321,7 +356,7 @@ void cviii_particle_present(const CviiiLighting *s,uint32_t pixels[CVIII_LIGHT_W
                     int worldY=wy+r;
                     if(worldY<0 || worldY>=480 || screen[worldY]<48)continue;
                     int row=screen[worldY];
-                    put(pixels,xx-unwrap(sx[row],camera)-r/2,row,e,opacity);
+                    put(pixels,xx-unwrap(sx[row],camera)-r/2,row,e,opacity,layer,sprite_mask);
                 }
             }else{
                 int side=e->size;
@@ -333,17 +368,19 @@ void cviii_particle_present(const CviiiLighting *s,uint32_t pixels[CVIII_LIGHT_W
                     int row=screen[worldY];
                     int at=xx-unwrap(sx[row],camera);
                     for(int dx=0;dx<side;++dx)
-                        put(pixels,at+dx,row,e,opacity);
+                        put(pixels,at+dx,row,e,opacity,layer,sprite_mask);
                 }
             }
         }
     }
-    if(s->edit){
+    if(s->edit && layer==0){
         /* Sharp 1px world-space region outlines are EDITOR-ONLY.
          * Scanline PPU scroll keeps them attached to stage geometry. */
         for(int slot=0;slot<CVIII_PARTICLE_EMITTER_MAX;++slot){
-            const CviiiParticleEmitter *e=&s->particles[slot];
-            if(!e->used || e->room!=room || !valid(e))continue;
+            CviiiParticleEmitter local;
+            if(!cviii_particle_world_region(s,&s->particles[slot],&local) ||
+               local.room!=room)continue;
+            const CviiiParticleEmitter *e=&local;
             for(int y=CVIII_LIGHT_HUD;y<240;++y){
                 int wy=sy[y];
                 if(wy<e->y || wy>e->y+e->h)continue;
@@ -361,4 +398,11 @@ void cviii_particle_present(const CviiiLighting *s,uint32_t pixels[CVIII_LIGHT_W
             }
         }
     }
+}
+
+/* Legacy test/editor caller renders both layers without sprite depth. */
+void cviii_particle_present(const CviiiLighting *s,
+    uint32_t pixels[CVIII_LIGHT_W*CVIII_LIGHT_H],uint32_t room,int camera,
+    const int sx[CVIII_LIGHT_H],const int sy[CVIII_LIGHT_H],uint64_t frame){
+    cviii_particle_present_layer(s,pixels,room,camera,sx,sy,frame,0,NULL);
 }
