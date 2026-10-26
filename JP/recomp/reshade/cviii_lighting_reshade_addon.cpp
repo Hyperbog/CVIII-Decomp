@@ -18,6 +18,11 @@ struct Bridge {
     int (*select)(int)=nullptr;
     int (*add)(int,int)=nullptr;
     int (*place_window)(int,int)=nullptr;
+    int (*place_kit_window)(int,int,int,int)=nullptr;
+    int (*apply_builtin)(int,int,int)=nullptr;
+    int (*apply_kit)(int,int,int)=nullptr;
+    int (*capture_kit)(int,const char*)=nullptr;
+    int (*sky)(int,int)=nullptr;
     int (*event)(int,int,int)=nullptr;
     int (*prop)(int,int)=nullptr;
     int (*copy)()=nullptr;
@@ -30,6 +35,9 @@ struct Bridge {
 } bridge;
 bool external_open=false;
 bool placement_pending=false;
+int pending_kit_kind=-1,pending_kit_id=-1;
+char kit_name[CVIII_LIGHT_NAME_CAP]="My Lighting Rig";
+int kit_slot=0;
 unsigned long long presented=0,last_editor_draw=0;
 char search[64]={};
 
@@ -47,6 +55,11 @@ bool bind_game(){
     b.select=game_export<decltype(b.select)>(exe,"cviii_lighting_editor_select");
     b.add=game_export<decltype(b.add)>(exe,"cviii_lighting_editor_add");
     b.place_window=game_export<decltype(b.place_window)>(exe,"cviii_light_place_window");
+    b.place_kit_window=game_export<decltype(b.place_kit_window)>(exe,"cviii_light_place_kit_window");
+    b.apply_builtin=game_export<decltype(b.apply_builtin)>(exe,"cviii_lighting_editor_apply_builtin");
+    b.apply_kit=game_export<decltype(b.apply_kit)>(exe,"cviii_lighting_editor_apply_kit");
+    b.capture_kit=game_export<decltype(b.capture_kit)>(exe,"cviii_lighting_editor_capture_kit");
+    b.sky=game_export<decltype(b.sky)>(exe,"cviii_lighting_editor_sky");
     b.event=game_export<decltype(b.event)>(exe,"cviii_lighting_editor_input");
     b.prop=game_export<decltype(b.prop)>(exe,"cviii_lighting_editor_property");
     b.copy=game_export<decltype(b.copy)>(exe,"cviii_lighting_editor_copy");
@@ -57,7 +70,8 @@ bool bind_game(){
     b.scene=game_export<decltype(b.scene)>(exe,"cviii_lighting_editor_scene");
     b.save=game_export<decltype(b.save)>(exe,"cviii_light_force_save");
     if(!b.model || !b.room || !b.session || !b.select || !b.add ||
-       !b.place_window ||
+       !b.place_window || !b.place_kit_window || !b.apply_builtin ||
+       !b.apply_kit || !b.capture_kit || !b.sky ||
        !b.event || !b.prop ||
        !b.copy || !b.paste || !b.duplicate || !b.name || !b.group ||
        !b.scene || !b.save)return false;
@@ -72,6 +86,7 @@ void end_session(){
     }
     external_open=false;
     placement_pending=false;
+    pending_kit_kind=-1;
 }
 void on_present(reshade::api::effect_runtime *){
     ++presented;
@@ -120,6 +135,36 @@ void on_overlay(reshade::api::effect_runtime *){
         }
     }
 
+    if(ImGui::CollapsingHeader("Global Lighting Library",ImGuiTreeNodeFlags_DefaultOpen)){
+        ImGui::TextDisabled("Reusable groups. Place in any room.");
+        for(int i=0;i<cviii_light_builtin_count();++i){
+            ImGui::PushID(i);
+            ImGui::TextUnformatted(cviii_light_builtin_name(i));
+            ImGui::SameLine(190);
+            if(ImGui::SmallButton("Apply here"))changed(bridge.apply_builtin(i,-1,-1));
+            ImGui::SameLine();
+            if(ImGui::SmallButton("Place...")){
+                placement_pending=true;pending_kit_kind=0;pending_kit_id=i;
+            }
+            ImGui::PopID();
+        }
+        ImGui::InputText("Kit Name",kit_name,sizeof kit_name);
+        ImGui::SliderInt("Kit Slot",&kit_slot,0,CVIII_KIT_MAX-1);
+        if(ImGui::Button("Save selected group as global kit"))
+            changed(bridge.capture_kit(kit_slot,kit_name));
+        for(int i=0;i<CVIII_KIT_MAX;++i){
+            if(!s->kits[i].used)continue;
+            ImGui::PushID(500+i);
+            ImGui::Text("%02d. %s (%d lights)",i+1,s->kits[i].name,s->kits[i].count);
+            ImGui::SameLine(210);
+            if(ImGui::SmallButton("Apply"))changed(bridge.apply_kit(i,-1,-1));
+            ImGui::SameLine();
+            if(ImGui::SmallButton("Place")){
+                placement_pending=true;pending_kit_kind=1;pending_kit_id=i;
+            }
+            ImGui::PopID();
+        }
+    }
     ImGui::SeparatorText("Scene Lights");
     if(ImGui::BeginChild("##list",ImVec2(0,175),ImGuiChildFlags_Borders)){
         for(int i=0;i<CVIII_LIGHT_MAX;++i){
@@ -193,14 +238,41 @@ void on_overlay(reshade::api::effect_runtime *){
     if(ImGui::ColorEdit3("Ambient Color",c,ImGuiColorEditFlags_PickerHueWheel))
         for(int k=0;k<3;++k)
             changed(bridge.scene(k+1,(int)(c[k]*255.f+0.5f)));
+    ImGui::SeparatorText("Sky Illumination (additive fill)");
+    int sky_strength=0,skycolor[3]={186,209,255},skyface=-1;
+    for(int i=0;i<CVIII_SCENE_AMBIENT_MAX;++i){
+        const CviiiSceneAmbient &a=s->scenes[i];
+        if(!a.used || a.room!=room)continue;
+        sky_strength=a.sky;
+        if(a.sky){skycolor[0]=a.sky_red;skycolor[1]=a.sky_green;skycolor[2]=a.sky_blue;}
+        skyface=a.sky_facing;
+        break;
+    }
+    if(ImGui::SliderInt("Sky Strength",&sky_strength,0,100,"%d%%"))
+        changed(bridge.sky(0,sky_strength));
+    float color[3]={skycolor[0]/255.f,skycolor[1]/255.f,skycolor[2]/255.f};
+    if(ImGui::ColorEdit3("Sky Light",color,ImGuiColorEditFlags_PickerHueWheel))
+        for(int i=0;i<3;++i)
+            changed(bridge.sky(i+1,(int)(color[i]*255.f+0.5f)));
+    int sky_dir=skyface+1;
+    if(ImGui::Combo("Sky Direction",&sky_dir,
+                    "Upper Sky\0Uniform Fill\0Lower Bounce\0"))
+        changed(bridge.sky(4,sky_dir-1));
+    if(ImGui::Button("Neutralize Ambient Tint")){
+        for(int i=1;i<=3;++i)changed(bridge.scene(i,255));
+    }
+    ImGui::TextDisabled("2D sky fill; not geometry-aware GI.");
     ImGui::TextDisabled("Real ReShade overlay. CVIII owns gameplay light pixels.");
     if(placement_pending && ImGui::IsMouseClicked(ImGuiMouseButton_Left) &&
        !ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow)){
         const ImVec2 pos=ImGui::GetIO().MousePos;
         if(pos.x>=0 && pos.y>=0 &&
-           bridge.place_window((int)pos.x,(int)pos.y)){
+           (pending_kit_kind>=0?
+             bridge.place_kit_window(pending_kit_kind,pending_kit_id,
+                                     (int)pos.x,(int)pos.y):
+             bridge.place_window((int)pos.x,(int)pos.y))){
             bridge.save();
-            placement_pending=false;
+            placement_pending=false;pending_kit_kind=-1;
         }
     }
 }
