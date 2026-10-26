@@ -138,6 +138,10 @@ a Torch or Window light and choose GPU Prototype *outside edit mode*.
 Rooms with no authored occluders have no wall bounce; direct light
 still operates. An over-budget room transparently falls back to Standard.
 
+Radiance Cascades also **disables the former single-face bounce in
+the direct shader**, so the legacy approximation is not double counted.
+The directional probe pass supplies the indirect contribution instead.
+
 ## Build and validation
 
 On Windows, the CMake `JP_CYCLE_HEADLESS=OFF` Enhanced target compiles
@@ -175,12 +179,13 @@ without attempting graphics initialization.
 8. Test genuine ReShade overlay editor ownership independently; ReShade
    is NOT the application's compute device or graphics driver.
 
-## Next milestone: Radiance Cascades (not implemented here)
+## Next milestone: production-grade Radiance Cascades
 
-A higher-quality **2D Radiance Cascades** backend should replace the
-single face-sampled bounce with multi-scale directional radiance probes,
-with quality choices for cascade count, base probe spacing, angular
-resolution and denoising. Prerequisites:
+The experimental third renderer now performs a **real three-stage
+hierarchical-probe pipeline** (ray intervals, far-to-near merging and
+GPU integration) with two to four levels. It is still an early
+prototype and is not a finished physically convergent GI renderer.
+The next production-quality phase should improve these areas:
 
 - Evidence-verified collision/occlusion and emissive geometry from
   the original JP room/nametable and scrolling system.
@@ -192,6 +197,8 @@ resolution and denoising. Prerequisites:
   prototype, and Radiance Cascades, including moving characters.
 - Hard performance caps, Standard fallback, no guest machine writes.
 
-A future Radiance Cascades mode is not added to the mode dropdown
-until it exists and has passed both shader tests and live gameplay QA.
+The experimental Radiance Cascades entry is available in the
+mode dropdown and passes CS5.0 compilation and WARP execution.
+Live Windows gameplay QA and measured GPU frame timing remain gates
+before presenting it as production-ready.
 See [lighting RTGI roadmap](ENHANCED_LIGHTING_RTGI_ROADMAP.md).
