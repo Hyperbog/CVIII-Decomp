@@ -22,6 +22,8 @@ bool draw_mask=false,mask_first=false;
 int mask_x0=0,mask_y0=0;
 int particle_preset=CVIII_FX_DUST,selected_particle=-1,particle_place=-1;
 int particle_name_slot=-1;
+int weather_slot=0,weather_template=0,weather_name_slot=-1;
+char weather_name_text[CVIII_LIGHT_NAME_CAP]={};
 char particle_name_edit[CVIII_LIGHT_NAME_CAP]={};
 char global_style_name[CVIII_LIGHT_NAME_CAP]="Torch Global";
 unsigned alias_target=0,last_raw_room=0;
@@ -722,7 +724,41 @@ extern "C" int cviii_imgui_render(SDL_Window *window,SDL_Renderer *renderer){
                           selected_particle,particle_name_edit))dirty=true;
                 int kind=fx.kind;
                 if(ImGui::Combo("Kind",&kind,kinds,CVIII_FX_COUNT))change(1,kind);
-                int x=fx.x,y=fx.y,w=fx.w,h=fx.h;
+                CviiiParticleEmitter resolved=fx;
+                (void)cviii_particle_world_region(model,&fx,&resolved);
+                int x=resolved.x,y=resolved.y,w=fx.w,h=fx.h;
+                const char *parent=fx.light_link?
+                     model->light[fx.light_link-1].name:"World Coordinates";
+                if(ImGui::BeginCombo("Attach to Light",parent[0]?parent:"Named Light")){
+                    if(ImGui::Selectable("World Coordinates",fx.light_link==0)){
+                        if(cviii_lighting_editor_particle_attach(selected_particle,-1))
+                            dirty=true;
+                    }
+                    for(int light=0;light<CVIII_LIGHT_MAX;++light){
+                        const CviiiLight &l=model->light[light];
+                        if(!l.used || l.room!=room)continue;
+                        char description[100];
+                        std::snprintf(description,sizeof description,"%02d: %s",
+                             light+1,l.name[0]?l.name:"Unnamed Light");
+                        if(ImGui::Selectable(description,fx.light_link==light+1)){
+                            if(cviii_lighting_editor_particle_attach(
+                                   selected_particle,light))dirty=true;
+                        }
+                    }
+                    ImGui::EndCombo();
+                }
+                if(fx.light_link)
+                    ImGui::TextDisabled("Follows selected light's world X/Y and "
+                        "vanishes while that light is muted.");
+                int layer=fx.layer;
+                if(ImGui::Combo("Particle Depth",&layer,
+                               "Foreground / over sprites\0Background / behind sprites\0"))
+                    change(14,layer);
+                int glow=fx.glow;
+                if(ImGui::SliderInt("GPU Particle Glow",&glow,0,100,"%d%%"))
+                    change(15,glow);
+                if(fx.kind!=CVIII_FX_EMBERS && fx.kind!=CVIII_FX_FIREFLIES)
+                    ImGui::TextDisabled("GPU glow currently uses Embers/Fireflies.");
                 if(ImGui::InputInt("World X",&x))change(2,x);
                 if(ImGui::InputInt("World Y",&y))change(3,y);
                 if(ImGui::SliderInt("Area Width",&w,1,512))change(4,w);
@@ -751,6 +787,76 @@ extern "C" int cviii_imgui_render(SDL_Window *window,SDL_Renderer *renderer){
                 }
                 ImGui::TextDisabled("Visible in Standard and both D3D11 modes. "
                                     "Persistent when returning to this room.");
+            }
+            ImGui::SeparatorText("Shared Global Weather Library");
+            ImGui::TextWrapped("Each weather style is global and shared by all "
+                 "linked scenes. The same seed reproduces the same sequence "
+                 "of clear spells, showers, gusts and changing intensity.");
+            const char *presets[]={"Rain Showers","Thunderstorm","Winter Snow",
+                "Drifting Mist","Volcanic Ash","Night Fireflies"};
+            ImGui::Combo("Weather Template",&weather_template,presets,6);
+            ImGui::SliderInt("Global Weather Slot",&weather_slot,
+                             0,CVIII_WEATHER_PROFILE_MAX-1);
+            if(ImGui::Button("Create/Reset Weather Preset")){
+                if(cviii_lighting_editor_weather_template(
+                      weather_slot,weather_template))dirty=true;
+            }
+            int current_weather=cviii_weather_scene_profile(model,room);
+            if(model->weather[weather_slot].used){
+                if(ImGui::Button("Apply to Current Scene"))
+                    if(cviii_lighting_editor_weather_link(weather_slot))dirty=true;
+                ImGui::SameLine();
+                if(ImGui::Button("Remove from Scene"))
+                    if(cviii_lighting_editor_weather_link(-1))dirty=true;
+                ImGui::Text("Current scene: %s",
+                    current_weather>=0?model->weather[current_weather].name:"None");
+                const CviiiWeatherProfile &profile=model->weather[weather_slot];
+                if(weather_name_slot!=weather_slot){
+                    std::snprintf(weather_name_text,sizeof weather_name_text,
+                                  "%s",profile.name);
+                    weather_name_slot=weather_slot;
+                }
+                if(ImGui::InputText("Global Weather Name",weather_name_text,
+                                    sizeof weather_name_text)){
+                    if(cviii_lighting_editor_weather_name(
+                         weather_slot,weather_name_text))dirty=true;
+                }
+                auto change_weather=[&](int property,int value){
+                    if(cviii_lighting_editor_weather_property(
+                         weather_slot,property,value))dirty=true;
+                };
+                int kind=profile.kind,density=profile.density,speed=profile.speed,
+                    wind=profile.wind,opacity=profile.opacity,size=profile.size,
+                    chance=profile.chance,period=profile.period,seed=profile.seed,
+                    depth=profile.layer;
+                const char *types[]={"Dust","Embers","Pixel Fog","Ash",
+                                     "Snow","Rain","Fireflies"};
+                if(ImGui::Combo("Weather Particle",&kind,types,CVIII_FX_COUNT))
+                    change_weather(1,kind);
+                if(ImGui::SliderInt("Weather Particle Density",&density,1,96))
+                    change_weather(2,density);
+                if(ImGui::SliderInt("Weather Speed",&speed,0,300))
+                    change_weather(3,speed);
+                if(ImGui::SliderInt("Weather Wind",&wind,-100,100))
+                    change_weather(4,wind);
+                if(ImGui::SliderInt("Weather Opacity",&opacity,0,100))
+                    change_weather(5,opacity);
+                if(ImGui::SliderInt("Weather Pixel Size",&size,1,4))
+                    change_weather(6,size);
+                if(ImGui::SliderInt("Chance of Active Weather",&chance,0,100,"%d%%"))
+                    change_weather(7,chance);
+                if(ImGui::SliderInt("Weather Front Duration",&period,1,120,"%d sec"))
+                    change_weather(8,period);
+                if(ImGui::InputInt("Weather Seed",&seed))change_weather(9,seed);
+                if(ImGui::Combo("Weather Depth",&depth,
+                    "Foreground\0Behind Sprites\0"))change_weather(10,depth);
+                float color[3]={profile.red/255.f,profile.green/255.f,
+                                profile.blue/255.f};
+                if(ImGui::ColorEdit3("Weather Color",color))
+                    for(int k=0;k<3;++k)
+                        change_weather(11+k,(int)(color[k]*255.f+.5f));
+                if(ImGui::Button("Delete Global Weather Style"))
+                    change_weather(0,0);
             }
             ImGui::EndTabItem();
         }
