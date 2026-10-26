@@ -838,7 +838,7 @@ int cviii_lighting_editor_mask_property(int slot,int property,int value){
     else return 0;
     if(t.x<0 || t.y<0 || t.w<1 || t.h<1 || t.x>65535-t.w ||
        t.y>479-t.h || t.opacity<0 || t.opacity>100 ||
-       t.softness<0 || t.softness>16)return 0;
+       t.softness<0 || t.softness>CVIII_OCCLUDER_MAX_SOFTNESS)return 0;
     *m=t;return 1;
 }
 int cviii_lighting_editor_grade(int property,int value){
