@@ -124,6 +124,11 @@ int cviii_world_preload_horizontal_0816(CviiiLevel1World0803 *w,
     w->horizontal_row_activations=0u;
     w->horizontal_row_deactivations=0u;
     w->horizontal_event_transitions=0u;
+    memset(w->horizontal_children,0,sizeof w->horizontal_children);
+    w->horizontal_child_samples=0u;
+    w->horizontal_child_allocations=0u;
+    w->horizontal_child_removals=0u;
+    w->horizontal_child_room=0xffu;
     return 1;
 }
 int cviii_world_observe_horizontal_0816(CviiiLevel1World0803 *w,
@@ -182,6 +187,45 @@ int cviii_world_observe_scheduler_0817(CviiiLevel1World0803 *w,
     if(w->horizontal_scheduler_samples!=UINT32_MAX)
         w->horizontal_scheduler_samples++;
     return active;
+}
+/* JP0818: original raw0A $8B50 parent-link census. This reads live
+ * original $054E/$0470/$0645 and does not infer provenance from type
+ * alone. Event source row32 and actual guest sprite visibility are
+ * reported separately. A changed parent/source room invalidates
+ * transition continuity; counts indicate sampled slot changes only. */
+int cviii_world_observe_children_0818(CviiiLevel1World0803 *w,
+            const uint8_t key[3],const uint8_t ram[2048])
+{
+    if(!w || !w->ready || !w->horizontal_ready ||
+       !key || !ram || key[0]!=0u)return -1;
+    const int room=cviii_world_index_0803(w,key);
+    if(room<0 || room==2 || !w->horizontal[room].valid)return -1;
+    CviiiHorizontalChild0818 next[13]={0};
+    int live=0;
+    for(unsigned x=1u;x<=12u;x++){
+        next[x]=cviii_horizontal_child_0818(ram,x);
+        live+=next[x].allocated!=0u;
+    }
+    if(w->horizontal_child_samples &&
+       w->horizontal_child_room==(uint8_t)room){
+        for(unsigned x=1u;x<=12u;x++){
+            const CviiiHorizontalChild0818 old=w->horizontal_children[x];
+            const CviiiHorizontalChild0818 cur=next[x];
+            const int same=old.allocated && cur.allocated &&
+                old.parent_source==cur.parent_source;
+            if(cur.allocated && !same &&
+               w->horizontal_child_allocations!=UINT32_MAX)
+                w->horizontal_child_allocations++;
+            if(old.allocated && !same &&
+               w->horizontal_child_removals!=UINT32_MAX)
+                w->horizontal_child_removals++;
+        }
+    }
+    memcpy(w->horizontal_children,next,sizeof next);
+    w->horizontal_child_room=(uint8_t)room;
+    if(w->horizontal_child_samples!=UINT32_MAX)
+        w->horizontal_child_samples++;
+    return live;
 }
 /* JP0813: retain the original Stage 1 chapel's resident source identities
  * while independently observing the original 6502 $8213-$8254 admission
@@ -431,6 +475,11 @@ void cviii_world_clear_live_0805(CviiiLevel1World0803 *w){
     w->horizontal_row_activations=0u;
     w->horizontal_row_deactivations=0u;
     w->horizontal_event_transitions=0u;
+    memset(w->horizontal_children,0,sizeof w->horizontal_children);
+    w->horizontal_child_samples=0u;
+    w->horizontal_child_allocations=0u;
+    w->horizontal_child_removals=0u;
+    w->horizontal_child_room=0xffu;
 }
 
 /* JP0811: independent original PRG0A room hierarchy, stage selector0.
