@@ -60,6 +60,8 @@ CVIII_LIGHT_EXPORT int cviii_lighting_editor_can_redo(void);
  * The active frame falls back to Standard if the GPU backend fails. */
 CVIII_LIGHT_EXPORT int cviii_lighting_editor_renderer(void);
 CVIII_LIGHT_EXPORT int cviii_lighting_editor_set_renderer(int mode);
+CVIII_LIGHT_EXPORT int cviii_lighting_editor_cascade_quality(void);
+CVIII_LIGHT_EXPORT int cviii_lighting_editor_set_cascade_quality(int quality);
 CVIII_LIGHT_EXPORT const char *cviii_lighting_editor_gpu_status(void);
 CVIII_LIGHT_EXPORT int cviii_lighting_editor_gpu_active(void);
 
