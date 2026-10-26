@@ -405,5 +405,106 @@ int main(void){
  for(unsigned j=0;j<256*240;++j)pulseframe[j]=0xff999999u;
  cviii_light_present(&blend,pulseframe,256,240,77,0,sx2,sy2,1);
  assert((mixed&255u)>(pulseframe[116*256+100]&255u));
+ /* Room-scoped pixel FX: exact deterministic pixels, gameplay HUD,
+    offscreen travel and full config return. All tests are ROM-free. */
+ static CviiiLighting particles,fxrestored,typetest;
+ cviii_light_init(&particles);
+ assert(!particles.particles_enabled);
+ assert(cviii_particle_add(&particles,9,CVIII_FX_DUST,540,96)==0);
+ assert(particles.particles_enabled);
+ assert(!strcmp(cviii_particle_kind_name(CVIII_FX_DUST),"Floating Dust"));
+ assert(!strcmp(cviii_particle_kind_name(CVIII_FX_FOG),"Pixel Fog"));
+ assert(cviii_particle_name(&particles,0,"Castle Hall Dust"));
+ assert(cviii_particle_property(&particles,0,6,64));
+ assert(cviii_particle_property(&particles,0,7,125));
+ assert(cviii_particle_property(&particles,0,8,-21));
+ assert(!cviii_particle_property(&particles,0,6,97));
+ assert(!cviii_particle_property(&particles,0,5,500));
+ assert(!cviii_particle_name(&particles,0,""));
+ assert(cviii_particle_add(&particles,9,99,540,96)<0);
+ assert(cviii_particle_add(&particles,9,CVIII_FX_DUST,65535,96)<0);
+ static uint32_t fx0[256*240],fx1[256*240],fx2[256*240],fx3[256*240];
+ for(int y=0;y<240;++y){sx[y]=500;sy[y]=y;}
+ for(unsigned i=0;i<256u*240u;++i)fx0[i]=fx1[i]=fx2[i]=fx3[i]=0xff808080u;
+ cviii_particle_present(&particles,fx0,9,500,sx,sy,100);
+ cviii_particle_present(&particles,fx1,9,500,sx,sy,100);
+ assert(memcmp(fx0,fx1,sizeof fx0)==0);
+ int altered=0;
+ for(int y=96;y<192;++y)
+  for(int x=40;x<137;++x)
+   altered+=fx0[y*256+x]!=0xff808080u;
+ assert(altered>=12 && altered<=64*16);
+ /* No particle may overwrite the NES HUD, even if emitter region
+    extends behind rows <48. */
+ for(int y=0;y<48;++y)
+  for(int x=0;x<256;++x)assert(fx0[y*256+x]==0xff808080u);
+ cviii_particle_present(&particles,fx2,10,500,sx,sy,100);
+ assert(fx2[120*256+80]==0xff808080u);
+ assert(memcmp(fx2,fx3,sizeof fx2)==0); /* another room sees no FX */
+ for(int y=0;y<240;++y)sx[y]=8;
+ cviii_particle_present(&particles,fx3,9,520,sx,sy,100);
+ for(int y=96;y<192;++y)
+  for(int x=20;x<112;++x)
+   assert(fx3[y*256+x]==fx0[y*256+(x+20)]);
+ for(unsigned i=0;i<256u*240u;++i)fx3[i]=0xff808080u;
+ for(int y=0;y<240;++y)sx[y]=488; /* camera=1000, cloud offscreen */
+ cviii_particle_present(&particles,fx3,9,1000,sx,sy,100);
+ for(unsigned i=0;i<256u*240u;++i)assert(fx3[i]==0xff808080u);
+ for(int y=0;y<240;++y)sx[y]=500;
+ for(unsigned i=0;i<256u*240u;++i)fx3[i]=0xff808080u;
+ cviii_particle_present(&particles,fx3,9,500,sx,sy,100);
+ assert(memcmp(fx0,fx3,sizeof fx0)==0);
+ /* Time motion changes dust while repeated frames stay deterministic. */
+ for(unsigned i=0;i<256u*240u;++i)fx3[i]=0xff808080u;
+ cviii_particle_present(&particles,fx3,9,500,sx,sy,750);
+ assert(memcmp(fx0,fx3,sizeof fx0)!=0);
+ FILE *fxprofile=tmpfile();assert(fxprofile);
+ cviii_particle_save(&particles,fxprofile);rewind(fxprofile);
+ cviii_light_init(&fxrestored);
+ while(fgets(buf,sizeof buf,fxprofile)){
+   char *eq=strchr(buf,'=');if(!eq)continue;
+   char *k=buf,*v=eq+1;
+   while(eq>k && eq[-1]==' ')--eq;
+   *eq=0;while(*v==' ')++v;
+   size_t n=strlen(v);
+   while(n && (v[n-1]=='\r' || v[n-1]=='\n'))v[--n]=0;
+   assert(cviii_particle_load(&fxrestored,k,v));
+ }
+ fclose(fxprofile);
+ assert(fxrestored.particles_enabled);
+ assert(fxrestored.particles[0].room==9);
+ assert(fxrestored.particles[0].wind==-21);
+ assert(!strcmp(fxrestored.particles[0].name,"Castle Hall Dust"));
+ for(unsigned i=0;i<256u*240u;++i)fx3[i]=0xff808080u;
+ cviii_particle_present(&fxrestored,fx3,9,500,sx,sy,100);
+ assert(memcmp(fx0,fx3,sizeof fx0)==0);
+ assert(!cviii_particle_load(&fxrestored,"Particle00","1,9,0,-1,40,40,16,16,80,0,80,2,5,6,7"));
+ assert(!cviii_particle_load(&fxrestored,"ParticleName00","ZZ"));
+ assert(!cviii_particle_load(&fxrestored,"Particles","false"));
+ fxrestored.particles_enabled=0;
+ for(unsigned i=0;i<256u*240u;++i)fx3[i]=0xff808080u;
+ cviii_particle_present(&fxrestored,fx3,9,500,sx,sy,100);
+ assert(memcmp(fx2,fx3,sizeof fx2)==0);
+ /* Render every preset; all use real, quantized NES-grid pixels. */
+ cviii_light_init(&typetest);
+ for(int kind=0;kind<CVIII_FX_COUNT;++kind){
+   int index=cviii_particle_add(&typetest,13,kind,50,80);
+   assert(index==kind);
+   assert(typetest.particles[kind].density>=1);
+ }
+ for(unsigned i=0;i<256u*240u;++i)fx3[i]=0xff808080u;
+ cviii_particle_present(&typetest,fx3,13,0,sx2,sy2,240);
+ altered=0;
+ for(int y=48;y<240;++y)
+  for(int x=0;x<256;++x)altered+=fx3[y*256+x]!=0xff808080u;
+ assert(altered>=30);
+ assert(fx3[15*256+55]==0xff808080u);
+ cviii_light_history_reset();
+ cviii_light_history_push(&typetest);
+ assert(cviii_particle_property(&typetest,0,0,0));
+ assert(!typetest.particles[0].used);
+ assert(cviii_light_history_undo(&typetest));
+ assert(typetest.particles[0].used);
+ cviii_light_history_reset();
  return 0;
 }
