@@ -169,6 +169,23 @@ int main(void) {
     assert(e->option(e->ctx,"--edition","enhanced"));
     assert(cviii_lighting_editor_input(1,-1,-1));
     assert(cviii_lighting_editor_active());
+    assert(cviii_lighting_editor_model()->selected==-1);
+    assert(!cviii_lighting_editor_select(0)); /* no lights before placing */
+    assert(cviii_lighting_editor_add(95,108));
+    int chosen=cviii_lighting_editor_model()->selected;
+    assert(chosen>=0 && cviii_lighting_editor_model()->light[chosen].x==95);
+    assert(cviii_lighting_editor_select(chosen));
+    int handle_x=-1,handle_y=-1;
+    assert(cviii_lighting_editor_point(chosen,&handle_x,&handle_y));
+    assert(handle_x==95 && handle_y==108);
+    assert(cviii_lighting_editor_property(2,120));
+    assert(cviii_lighting_editor_property(3,103));
+    assert(cviii_lighting_editor_property(4,211));
+    assert(cviii_lighting_editor_property(5,124));
+    assert(cviii_lighting_editor_property(6,34));
+    assert(cviii_lighting_editor_model()->light[chosen].radius==120);
+    assert(cviii_lighting_editor_model()->light[chosen].red==211);
+    assert(!cviii_lighting_editor_property(19,50));
     assert(!cviii_lighting_editor_input(2,72,20)); /* original HUD */
     assert(cviii_lighting_editor_input(2,72,90));
     assert(cviii_lighting_editor_input(4,-1,-1));
