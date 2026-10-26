@@ -14,7 +14,7 @@ enum {
 enum {
     CVIII_INTERACTION_NOT_ACTOR_0815=0,     /* source row $0D */
     CVIII_INTERACTION_ALLOCATION_UNVERIFIED_0815=1,   /* no current original slot proof; not a despawn */
-    CVIII_INTERACTION_MAY_ROUTE_B162_0815=2,  /* $80 may take $B162, depending on prior $7E gate */
+    CVIII_INTERACTION_TYPE80_B258_0816=2,  /* eligible $80 bypasses B162 at B20B; no interaction modeled */
     CVIII_INTERACTION_UNSUPPORTED_0815=3
 };
 typedef struct {
@@ -85,17 +85,19 @@ static inline CviiiSourceVisual0815 cviii_source_visual_0815(
     out.pieces=(uint8_t)count;
     return out;
 }
-/* Proof-bound decision table, not damage/collision resolution.
- * For $80, original raw0B:$B21D-$B224 may branch to $B162
- * before the ordinary $B339 radius comparison, unless $7E&$F0\n * already bypasses via $B258. $B162 effects are
- * NOT reconstructed. $0D is an event SOURCE, not a guest actor. */
+/* JP0816 correction from actual raw0B $B1F8-$B20D:
+ * If flags/frame permit reaching $B20B, type $80 branches to $B258
+ * before $B217/$B162. Thus it is WRONG to route type $80 into $B634
+ * or attribute a generic hitbox/damage/pickup to $B162. Other original
+ * game callbacks may still operate; this policy grants no interaction.
+ * Original $0D is an EVENT SOURCE, not a direct actor. */
 static inline unsigned cviii_source_interaction_0815(
     uint8_t source_type,int original_actor_confirmed)
 {
     if(source_type==0x0du)return CVIII_INTERACTION_NOT_ACTOR_0815;
     if(source_type==0x80u)
         return original_actor_confirmed ?
-            CVIII_INTERACTION_MAY_ROUTE_B162_0815 :
+            CVIII_INTERACTION_TYPE80_B258_0816 :
             CVIII_INTERACTION_ALLOCATION_UNVERIFIED_0815;
     return CVIII_INTERACTION_UNSUPPORTED_0815;
 }
