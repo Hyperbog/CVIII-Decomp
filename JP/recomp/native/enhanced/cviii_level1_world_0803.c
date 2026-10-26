@@ -425,6 +425,12 @@ void cviii_world_clear_live_0805(CviiiLevel1World0803 *w){
      * while transient camera/phase observation is reset on savestate. */
     memset(&w->horizontal_last,0,sizeof w->horizontal_last);
     w->horizontal_observations=0u;
+    memset(w->horizontal_live,0,sizeof w->horizontal_live);
+    memset(w->horizontal_predicted,0,sizeof w->horizontal_predicted);
+    w->horizontal_scheduler_samples=0u;
+    w->horizontal_row_activations=0u;
+    w->horizontal_row_deactivations=0u;
+    w->horizontal_event_transitions=0u;
 }
 
 /* JP0811: independent original PRG0A room hierarchy, stage selector0.
