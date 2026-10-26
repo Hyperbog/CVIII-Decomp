@@ -39,6 +39,7 @@ on:
       - "JP/recomp/native/enhanced/cviii_light_scene_fx.c"
       - "JP/recomp/native/enhanced/cviii_light_history.c"
       - "JP/recomp/native/enhanced/cviii_pixel_particles.c"
+      - "JP/recomp/native/enhanced/cviii_pixel_weather.c"
       - "JP/decomp/tools/jp_audio_return_pinned_gate_0626.py"
       - "JP/decomp/tools/jp_audio_menu_pinned_gate_0621.py"
       - "JP/recomp/tools/patch_cyc_chr_fetch_0600.py"
@@ -156,6 +157,7 @@ jobs:
             JP/recomp/native/enhanced/cviii_light_scene_fx.c \
             JP/recomp/native/enhanced/cviii_light_history.c \
             JP/recomp/native/enhanced/cviii_pixel_particles.c \
+            JP/recomp/native/enhanced/cviii_pixel_weather.c \
             JP/recomp/native/enhanced/cviii_lighting_test.c -lm \
             -o "${{ runner.temp }}/test_cviii_lighting"
           "${{ runner.temp }}/test_cviii_lighting"
