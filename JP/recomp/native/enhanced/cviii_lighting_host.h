@@ -5,4 +5,5 @@
  * No changes to guest CPU, PPU, mapper, controller state or save states. */
 int cviii_lighting_editor_active(void);
 int cviii_lighting_editor_input(int event,int native_x,int native_y);
+int cviii_lighting_editor_status(char *text,unsigned capacity);
 #endif
