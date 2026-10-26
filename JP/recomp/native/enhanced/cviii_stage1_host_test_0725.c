@@ -24,6 +24,15 @@ static void seed_visible_room(const uint8_t key[3],unsigned page) {
             live_nt[page*1024u+(y+4u)*32u+x]=tile;
     }
 }
+/* Create the actual synthetic PPU nametable view for a later camera page. */
+static void seed_visible_room_from_x(const uint8_t key[3],unsigned page,
+                                     unsigned world_x) {
+    for(unsigned y=0;y<24u;y++)for(unsigned x=0;x<32u;x++) {
+        uint8_t tile=0,pal=0;
+        if (cviii_stage1_atlas_get_0724(&host.atlas,key,world_x/8u+x,y,&tile,&pal))
+            live_nt[page*1024u+(y+4u)*32u+x]=tile;
+    }
+}
 const uint8_t *cyc_cpu_ram(void) {return test_ram;}
 uint8_t cyc_render_line_mask(int line) {(void)line;return 0x1e;}
 uint16_t cyc_render_line_bg_table(int line) {(void)line;return 0x1000;}
@@ -112,6 +121,31 @@ int main(void)
     pixels=cviii_stage1_host_present_0725(&host,original,&w,&h,1);
     if (!require(pixels[32*426+341]!=0xff000000u,
                  "NT1 room origin accepted with matching live tiles"))return 1;
+    /* Live presenter seam: old source room's last 256px were actually
+     * observed, then new source room's NT1 data is accepted at local X0. */
+    cviii_stage1_host_reset_0751(&host);
+    test_ram[0x35]=0;test_ram[0x36]=0;
+    test_ram[0x53]=0;test_ram[0x54]=2;
+    scroll_x=0;
+    seed_visible_room_from_x(first_room,0,512u);
+    w=256;h=240;
+    pixels=cviii_stage1_host_present_0725(&host,original,&w,&h,1);
+    if (!require(host.join.last_camera==512 && host.join.valid,
+                 "source-verified last-screen camera"))return 1;
+    const uint8_t narrow_room[3]={0,1,0};
+    test_ram[0x35]=1;test_ram[0x36]=0;
+    test_ram[0x53]=0;test_ram[0x54]=0;
+    scroll_x=256;
+    seed_visible_room(narrow_room,1);
+    w=256;h=240;
+    pixels=cviii_stage1_host_present_0725(&host,original,&w,&h,1);
+    if (!require(host.join.joined && host.join.direction==1 &&
+                 !memcmp(host.join.adjacent,first_room,3),
+                 "actual current/previous room joined") ||
+        !require(pixels[60*426+40]!=0xff000000u,
+                 "original preceding scenery appears in next-room margin") ||
+        !require(pixels[60*426+85]==original[60*256],
+                 "NES center unchanged by the seam"))return 1;
     test_ram[0x35]=0;test_ram[0x36]=0;
     scroll_x=0;test_ram[0x65]=0x80;w=256;h=240;
     pixels=cviii_stage1_host_present_0725(&host,original,&w,&h,1);
