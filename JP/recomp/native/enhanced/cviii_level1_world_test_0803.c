@@ -315,6 +315,12 @@ int main(void){
     /* JP0814 original-ROM installation signatures, fabricated RAM only.
      * The observation MUST NOT create or prolong a game actor. */
     ram[0x53u]=0x80u;ram[0x54u]=0x01u; /* original CPU camera $0180 */
+    /* The guest already allocated actor 13; tagging cannot create it. */
+    world->actors[13].active=1u;
+    world->actors[13].room=2u;
+    world->actors[13].slot=13u;
+    world->actors[13].original_type=0x80u;
+    world->actors[13].generation=7u;
     ram[0x054eu+13u]=0x80u;
     ram[0x0438u+13u]=chapel->payload[3];
     ram[0x05d8u+13u]=chapel->payload[4];
@@ -323,7 +329,9 @@ int main(void){
     if(!check(cviii_world_link_chapel_0814(world,vertical,ram)==1 &&
               world->chapel_links[0].kind==CVIII_LINK_DIRECT_0814 &&
               world->chapel_links[0].slot==13u &&
-              world->chapel_link_epochs==1u,
+              world->chapel_link_epochs==1u &&
+              world->actors[13].source_cpu_0814==0xab1fu &&
+              world->actors[13].source_generation_0814==7u,
               "type80 direct original installer exact match"))return 26;
     /* Two records claiming one original slot are both ambiguous. */
     memcpy(chapel->payload+7u,chapel->payload,7u);
@@ -350,6 +358,12 @@ int main(void){
               world->chapel_links[0].kind==CVIII_LINK_DIRECT_0814,
               "source-event and direct actor paths stay separate"))
         return 28;
+    /* Destroyed or recycled game actors cannot inherit stale provenance. */
+    ram[0x0400u+13u]=0u;
+    (void)cviii_world_capture_live_0803(world,vertical,0,0,ram);
+    if(!check(!world->actors[13].source_cpu_0814 &&
+              !world->actors[13].source_generation_0814,
+              "actor deactivation invalidates source tag"))return 30;
     uint32_t previous_links=world->chapel_link_epochs;
     if(!check(cviii_world_link_chapel_0814(world,second,ram)==-1 &&
               world->chapel_link_epochs==previous_links,
