@@ -47,6 +47,7 @@ CVIII_LIGHT_EXPORT int cviii_lighting_editor_global_capture(int slot,const char 
 CVIII_LIGHT_EXPORT int cviii_lighting_editor_global_link(int slot,int group);
 CVIII_LIGHT_EXPORT int cviii_lighting_editor_global_property(int slot,int property,int value);
 CVIII_LIGHT_EXPORT int cviii_lighting_editor_mask_add(int x,int y,int w,int h);
+CVIII_LIGHT_EXPORT int cviii_lighting_editor_world_point(int native_x,int native_y,int *world_x,int *world_y);
 CVIII_LIGHT_EXPORT int cviii_lighting_editor_mask_property(int slot,int property,int value);
 CVIII_LIGHT_EXPORT int cviii_lighting_editor_grade(int property,int value);
 CVIII_LIGHT_EXPORT int cviii_lighting_editor_kit_manage(int action,int source,int destination,const char *name);
