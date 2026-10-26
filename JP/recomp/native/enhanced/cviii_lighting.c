@@ -65,10 +65,24 @@ int cviii_light_event(CviiiLighting *s,int event,int x,int y,uint32_t room,
     }else return 0;
     return 1;
 }
+/* Reinhard-like highlight shoulder: linear darkening, smooth bounded
+ * brightening. NES palette highlights keep their original color variation
+ * instead of being crushed to solid white by overlapping point lights. */
+static unsigned channel(unsigned input,float gain){
+    float base=(float)input;
+    float value;
+    if(gain<=1.f)value=base*gain;
+    else{
+        float headroom=255.f-base;
+        float raise=base*(gain-1.f);
+        value=base+(headroom>0.f?headroom*raise/(headroom+raise):0.f);
+    }
+    return (unsigned)clip((int)(value+0.5f),0,255);
+}
 static uint32_t apply(uint32_t p,float r,float g,float b){
-    unsigned rr=(unsigned)clip((int)((float)((p>>16)&255)*r+0.5f),0,255);
-    unsigned gg=(unsigned)clip((int)((float)((p>>8)&255)*g+0.5f),0,255);
-    unsigned bb=(unsigned)clip((int)((float)(p&255)*b+0.5f),0,255);
+    unsigned rr=channel((p>>16)&255u,r);
+    unsigned gg=channel((p>>8)&255u,g);
+    unsigned bb=channel(p&255u,b);
     return (p&0xff000000u)|(rr<<16)|(gg<<8)|bb;
 }
 static void dot(uint32_t *p,int x,int y,unsigned color){
