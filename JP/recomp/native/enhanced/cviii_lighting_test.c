@@ -387,5 +387,23 @@ int main(void){
  assert(restoredkit.kits[0].used);
  assert(restoredkit.kits[0].part[0].anim_speed==175);
  assert(restoredkit.kits[0].part[0].anim_strength==65);
+ /* Overlapping colored emitters mix smoothly without white clipping.
+    Their combined channels stay distinguishable under highlight shoulder. */
+ CviiiLighting blend;cviii_light_init(&blend);blend.enabled=1;
+ blend.light[0]=(CviiiLight){.used=1,.room=77,.x=100,.y=116,
+   .radius=69,.energy=95,.red=255,.green=50,.blue=25,.flicker=1};
+ blend.light[1]=(CviiiLight){.used=1,.room=77,.x=100,.y=116,
+   .radius=69,.energy=95,.red=36,.green=70,.blue=255,.flicker=1};
+ for(unsigned j=0;j<256*240;++j)pulseframe[j]=0xff999999u;
+ cviii_light_present(&blend,pulseframe,256,240,77,0,sx2,sy2,1);
+ unsigned int mixed=pulseframe[116*256+100];
+ assert((mixed&0xff000000u)==0xff000000u);
+ assert(((mixed>>16)&255u)>((mixed>>8)&255u));
+ assert((mixed&255u)>((mixed>>8)&255u));
+ assert(((mixed>>16)&255u)<255u && (mixed&255u)<255u);
+ blend.light[1].muted=1;
+ for(unsigned j=0;j<256*240;++j)pulseframe[j]=0xff999999u;
+ cviii_light_present(&blend,pulseframe,256,240,77,0,sx2,sy2,1);
+ assert((mixed&255u)>(pulseframe[116*256+100]&255u));
  return 0;
 }
