@@ -37,7 +37,7 @@ static void seed_visible_room_from_x(const uint8_t key[3],unsigned page,
 const uint8_t *cyc_cpu_ram(void) {return test_ram;}
 uint8_t cyc_render_line_mask(int line) {(void)line;return 0x1e;}
 uint16_t cyc_render_line_bg_table(int line) {(void)line;return (uint16_t)bg_table;}
-int cyc_render_line_sprite16(int line) {(void)line;return 0;}
+bool cyc_render_line_sprite16(int line) {(void)line;return false;}
 uint16_t cyc_render_line_sprite_table(int line) {(void)line;return 0x1000u;}
 int cyc_render_line_scroll_x(int line) {(void)line;return scroll_x;}
 int cyc_render_line_scroll_y(int line) {return line;}
