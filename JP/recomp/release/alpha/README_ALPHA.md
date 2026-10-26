@@ -52,13 +52,20 @@ ROM files or privately compiled executables are part of the public artifact.
 
 ### Live lighting workbench
 
-Home (default) opens a ReShade-inspired dark dock over the right side
-of the game, pausing NES gameplay. ADD then click the exposed level to
-place a light. Click a light in SCENE LIGHTS to select it, drag RADIUS /
-POWER / RED / GREEN / BLUE sliders to edit immediately, or use the
-large on-level handles for drag placement. Scroll the list to access
-additional lights. CLOSE or Home resumes gameplay. The lighting dock
-does not use ReShade or an additional runtime DLL.
+Home (default) opens the **real Dear ImGui Lighting Studio** over
+the game, pausing NES gameplay. The studio uses desktop-resolution
+windows, freely movable panels, real tooltips, sliders and numeric
+editing. Select an existing light from the scrollable Scene Lights list.
+Click **Add Light**, then click the exposed scene to place another.
+Adjust Radius, Intensity, Ambient, and the full RGB hue-wheel color
+picker, or use the Warm Candle, Cold Blue and White presets. Drag
+on-level light handles to reposition. Click **Resume Game** or Home
+to return to play; Ctrl+Home remaps the editor toggle.
+
+This is **not a ReShade injection or an OpenGL conversion**. It uses
+official Dear ImGui SDL2 + SDL_Renderer backends, compatible with SDL's
+active Direct3D/OpenGL/software renderer, linked into the private game
+during compilation; no additional runtime GUI DLL is required.
 
 ## JP0661 native keyboard controls: profiles and recoverable presets
 
