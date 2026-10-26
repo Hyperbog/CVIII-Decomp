@@ -684,6 +684,13 @@ set_property(TARGET jp_collision_route_test_0816 PROPERTY C_STANDARD 11)
 add_executable(jp_collision_b634_test_0816
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_collision_b634_test_0816.c")
 set_property(TARGET jp_collision_b634_test_0816 PROPERTY C_STANDARD 11)
+# JP0817 original six-event scheduler witnesses and bounded B115/B18A.
+add_executable(jp_horizontal_activation_test_0817
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_horizontal_activation_test_0817.c")
+set_property(TARGET jp_horizontal_activation_test_0817 PROPERTY C_STANDARD 11)
+add_executable(jp_collision_response_test_0817
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_collision_response_test_0817.c")
+set_property(TARGET jp_collision_response_test_0817 PROPERTY C_STANDARD 11)
 # These four executables are ROM-free; build them in the owner-native tree
 # and run from CTest instead of silently only compiling test targets.
 include(CTest)
@@ -695,6 +702,8 @@ if(BUILD_TESTING)
   add_test(NAME JP0816_HorizontalSources COMMAND jp_horizontal_sources_test_0816)
   add_test(NAME JP0816_CollisionRoute COMMAND jp_collision_route_test_0816)
   add_test(NAME JP0816_B634ContactGate COMMAND jp_collision_b634_test_0816)
+  add_test(NAME JP0817_SourceMovement COMMAND jp_horizontal_activation_test_0817)
+  add_test(NAME JP0817_CollisionResponse COMMAND jp_collision_response_test_0817)
 endif()
 
 add_executable(jp_world_sprites_test_0807
