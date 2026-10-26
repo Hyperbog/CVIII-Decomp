@@ -573,7 +573,7 @@ int cviii_lighting_editor_add(int x,int y)
     int wx=camera+delta+x;
     int wy=cyc_render_line_scroll_y(y);
     if(wx<0 || wx>65535 || wy<0 || wy>479)return 0;
-    v->light[slot]=(CviiiLight){cviii_lighting_room(),wx,wy,56,85,255,167,74,1};
+    v->light[slot]=(CviiiLight){.room=cviii_lighting_room(),.x=wx,.y=wy,.radius=56,.energy=85,.red=255,.green=167,.blue=74,.used=1};
     v->selected=slot;
     v->enabled=1;
     v->dragging=0;
