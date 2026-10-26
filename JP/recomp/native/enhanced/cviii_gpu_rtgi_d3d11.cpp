@@ -19,6 +19,11 @@
 #pragma comment(lib,"d3d11.lib")
 #pragma comment(lib,"d3dcompiler.lib")
 
+extern "C" int cviii_rc_apply(ID3D11Device*,ID3D11DeviceContext*,
+    ID3D11ShaderResourceView*,ID3D11ShaderResourceView*,
+    ID3D11UnorderedAccessView*,unsigned,unsigned);
+extern "C" const char *cviii_rc_status(void);
+extern "C" void cviii_rc_reset(void);
 namespace {
 constexpr int LW=128,LH=96,MAX_L=12,MAX_W=12;
 struct GpuLight {
@@ -45,6 +50,7 @@ static ID3D11ShaderResourceView *lightView=nullptr,*wallView=nullptr,*scanView=n
 static ID3D11UnorderedAccessView *lightmapView=nullptr;
 static bool attempted=false;
 static const char *state="D3D11 GPU: not initialized";
+static bool active_cascades=false;
 template<class T> void release(T *&p){if(p){p->Release();p=nullptr;}}
 void close_gpu(){
     if(context){
@@ -154,7 +160,9 @@ unsigned channel(unsigned input,float gain){
     return (unsigned)clampf(std::floor(value+0.5f),0.f,255.f);
 }
 int run(const CviiiLighting *s,uint32_t *pixels,uint32_t room,int camera,
-        const int sx[240],const int sy[240],uint64_t frame){
+        const int sx[240],const int sy[240],uint64_t frame,int cascade_levels){
+    active_cascades=false;
+    if(cascade_levels!=0 && (cascade_levels<2 || cascade_levels>4))return 0;
     if(!s || !pixels || !sx || !sy || !initialize())return 0;
     GpuLight lights[MAX_L]{};
     GpuWall walls[MAX_W]{};
@@ -286,6 +294,14 @@ int run(const CviiiLighting *s,uint32_t *pixels,uint32_t room,int camera,
     ID3D11ShaderResourceView *nullView[3]={nullptr,nullptr,nullptr};
     context->CSSetUnorderedAccessViews(0,1,&nullUav,nullptr);
     context->CSSetShaderResources(0,3,nullView);
+    if(cascade_levels){
+        if(!cviii_rc_apply(device,context,wallView,scanView,lightmapView,
+                           (unsigned)nwall,(unsigned)cascade_levels)){
+            state="Radiance Cascades unavailable: Standard fallback";
+            return 0;
+        }
+        active_cascades=true;
+    }
     context->CopyResource(staging,lightmapBuf);
     D3D11_MAPPED_SUBRESOURCE read{};
     if(FAILED(context->Map(staging,0,D3D11_MAP_READ,0,&read))){
@@ -336,17 +352,23 @@ int run(const CviiiLighting *s,uint32_t *pixels,uint32_t room,int camera,
                 (pack(red)<<16)|(pack(green)<<8)|pack(blue);
         }
     }
-    state="GPU D3D11 active: direct visibility + sampled 1 bounce";
+    state=active_cascades?
+        "GPU D3D11 active: hierarchical Radiance Cascades":
+        "GPU D3D11 active: direct visibility + sampled 1 bounce";
     return 1;
 }
 } // namespace
 
 extern "C" int cviii_gpu_rtgi_present(const CviiiLighting *settings,uint32_t *pixels,
                             uint32_t room,int camera,const int sx[CVIII_LIGHT_H],
-                            const int sy[CVIII_LIGHT_H],uint64_t frame){
-    return run(settings,pixels,room,camera,sx,sy,frame);
+                            const int sy[CVIII_LIGHT_H],uint64_t frame,
+                            int cascade_levels){
+    return run(settings,pixels,room,camera,sx,sy,frame,cascade_levels);
 }
-extern "C" const char *cviii_gpu_rtgi_status(void){return state;}
+extern "C" const char *cviii_gpu_rtgi_status(void){
+    return active_cascades?cviii_rc_status():state;
+}
 extern "C" void cviii_gpu_rtgi_reset(void){
     /* No temporal light accumulation: room changes/load cannot smear. */
+    active_cascades=false;cviii_rc_reset();
 }
