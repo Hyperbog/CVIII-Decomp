@@ -50,6 +50,37 @@ are presentation settings and do not enter the original NES save state.
 - Vertical world coordinates currently retain the PPU 0..479 wrap domain.
   Full vertically extended levels need additional unwrapping and QA.
 
+## ReShade-style lighting workbench (interactive SDL dock)
+
+Press **Home** (or your remapped key) during Enhanced gameplay. A dark,
+semi-opaque lighting workbench opens on the right side of the game. It is
+rendered by SDL2, not by the NES PPU, and does not use a new DLL.
+
+- **SCENE LIGHTS**: six visible rows, scroll the list with the mouse wheel.
+  Click a row to select that light even when its on-screen center is obscured
+  by the dock. The selected row is highlighted. Only the current candidate
+  stage/room's lights are listed.
+- **ADD / PLACE**: click ADD, then click in the exposed gameplay area to
+  insert a new light at that coordinate. The PLACE highlight indicates
+  the pending action. **DELETE** removes the selected light.
+- **ENABLE**: clickable square toggles the lighting effect without deleting
+  the authored lights.
+- **AMB / RADIUS / POWER / RED / GREEN / BLUE**: click or drag the colored
+  slider bars. Values update in the paused scene immediately, with no
+  frame advance or emulated-game state change.
+- **CLOSE**: dismiss the panel and resume gameplay (equivalent to Home).
+- **Direct manipulation**: high-contrast square handles and selection
+  crosshairs are rendered over visible light centers. Click/drag in the
+  gameplay area within 20 world pixels of a center; use the list if a
+  handle lies underneath the panel. Previous tiny handles were 10-pixel
+  hit targets and difficult to locate.
+
+The dock is drawn in 256×240 *logical* SDL render coordinates so it scales
+with the game and uses the same window-to-game pointer mapping as the
+engine. It occupies the right part of the picture only while authoring.
+It is **ReShade-inspired**, not an integration of ReShade or Dear ImGui;
+it does not alter graphics drivers or shaders.
+
 ## Windows owner visual acceptance — Stage 1
 
 This is a reproducible manual test, **not a claim of completed gameplay QA**.
@@ -60,11 +91,11 @@ This is a reproducible manual test, **not a claim of completed gameplay QA**.
    An existing previously built AlphaCandidate EXE does **not** automatically
    update; use the documented forced Rebuild flow.
 2. Launch Enhanced, enter Stage 1, and press Home. The game should stop moving
-   and the LIGHT EDITOR help toast should appear. Click near an existing
+   and the translucent LIGHTING WORKBENCH should open on the right. Click near an existing
    torch/candle in the playable area, below the top 48 HUD scanlines.
 3. While still paused, change radius with the wheel and intensity with
-   Shift+wheel. Ctrl+wheel changes ambient. Select with right-click,
-   cycle color with C. The numeric status toast should display the selected
+   Shift+wheel, or drag the RADIUS and POWER sliders. Select a
+   light from the SCENE LIGHTS list and adjust RED, GREEN and BLUE sliders. The numeric status toast should display the selected
    light's R (radius), POWER, RGB and AMB values. Check for smooth illumination
    without white clipped outlines or obvious color banding.
 4. Press Home to resume; walk until the light is completely outside the viewport
