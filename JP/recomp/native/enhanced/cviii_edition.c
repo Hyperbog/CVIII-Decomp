@@ -776,6 +776,25 @@ int cviii_lighting_editor_global_link(int slot,int group){
         cviii_light_style_link_group(&cviii.lighting,selected,slot):
         cviii_light_style_link(&cviii.lighting,selected,slot);
 }
+int cviii_lighting_editor_global_property(int slot,int property,int value)
+{
+    if(!cviii_lighting_editor_active() || slot<0 || slot>=CVIII_GLOBAL_STYLE_MAX ||
+       !cviii.lighting.styles[slot].used)return 0;
+    cviii_light_history_push(&cviii.lighting);
+    CviiiLight *p=&cviii.lighting.styles[slot].light;
+    if(property==2)p->radius=value<12?12:value>160?160:value;
+    else if(property==3)p->energy=value<5?5:value>160?160:value;
+    else if(property==4)p->red=(uint8_t)(value<0?0:value>255?255:value);
+    else if(property==5)p->green=(uint8_t)(value<0?0:value>255?255:value);
+    else if(property==6)p->blue=(uint8_t)(value<0?0:value>255?255:value);
+    else if(property==7)p->shape=value<0?0:value>2?2:value;
+    else if(property==8)p->angle=value<0?0:value>359?359:value;
+    else if(property==9)p->spread=value<5?5:value>85?85:value;
+    else if(property==10)p->width=value<4?4:value>160?160:value;
+    else if(property==12)p->flicker=value<0?0:value>2?2:value;
+    else return 0;
+    return 1;
+}
 int cviii_lighting_editor_mask_add(int x,int y,int w,int h){
     if(cviii_lighting_editor_active())cviii_light_history_push(&cviii.lighting);
     if(!cviii_lighting_editor_active())return -1;
