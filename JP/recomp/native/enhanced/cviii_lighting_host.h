@@ -35,6 +35,11 @@ CVIII_LIGHT_EXPORT int cviii_lighting_editor_group(const char *group);
 CVIII_LIGHT_EXPORT int cviii_lighting_editor_scene(int property,int value);
 CVIII_LIGHT_EXPORT int cviii_lighting_editor_external_session(int open);
 CVIII_LIGHT_EXPORT int cviii_lighting_editor_external_active(void);
+CVIII_LIGHT_EXPORT int cviii_lighting_editor_apply_builtin(int id,int x,int y);
+CVIII_LIGHT_EXPORT int cviii_lighting_editor_apply_kit(int slot,int x,int y);
+CVIII_LIGHT_EXPORT int cviii_lighting_editor_capture_kit(int slot,const char *name);
+CVIII_LIGHT_EXPORT int cviii_lighting_editor_sky(int property,int value);
+
 
 #ifdef __cplusplus
 }
