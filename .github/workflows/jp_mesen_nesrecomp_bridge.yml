@@ -1,0 +1,68 @@
+# JP: reproducible public-toolchain bootstrap on GitHub-hosted Linux.
+# No proprietary game images, savestates or traces are uploaded.
+# Intended to bridge agent-container DNS isolation without weakening
+# original ROM provenance or shipping copyrighted assets.
+name: JP Mesen NESRecomp Toolchain Bridge
+on:
+  push:
+    branches:
+      - jp0813-level1-source-world-lifetime
+    paths:
+      - .github/workflows/jp_mesen_nesrecomp_bridge.yml
+  pull_request:
+    branches:
+      - decompilation
+    paths:
+      - .github/workflows/jp_mesen_nesrecomp_bridge.yml
+permissions:
+  contents: read
+jobs:
+  public-tools:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    steps:
+      - name: Verify direct public Git clone access
+        shell: bash
+        run: |
+          set -euo pipefail
+          git ls-remote https://github.com/nesdev-org/MesenCE.git HEAD
+          git clone --depth 1 https://github.com/atonamy/mesen-agent.git /tmp/mesen-agent-source
+          git clone --depth 1 https://github.com/mstan/nesrecomp.git /tmp/nesrecomp-source
+          echo "mesen-agent commit: $(git -C /tmp/mesen-agent-source rev-parse HEAD)"
+          echo "NESRecomp commit: $(git -C /tmp/nesrecomp-source rev-parse HEAD)"
+      - name: Acquire SHA-verified Linux Mesen agent binary and core
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p bundle/mesen bundle/nesrecomp
+          curl -fsSL --retry 3 --retry-delay 2 \
+            https://github.com/atonamy/mesen-agent/releases/download/v0.1.0/mesen-agent-linux-x64.tar.gz \
+            -o /tmp/mesen-agent-linux-x64.tar.gz
+          echo "bff3c1d31a4b5ae5322b075330eccb3e78e96050d7a4e593c02804d8f1de7ae2  /tmp/mesen-agent-linux-x64.tar.gz" | sha256sum -c -
+          tar -xzf /tmp/mesen-agent-linux-x64.tar.gz -C bundle/mesen
+          echo "Release archive contents:"
+          find bundle/mesen -maxdepth 3 -type f -printf '%P\n'
+      - name: Compile NESRecomp native C11 CLI from public upstream
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmake -S /tmp/nesrecomp-source/recompiler -B /tmp/nesrecomp-build -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build /tmp/nesrecomp-build --parallel 4
+          echo "NESRecomp executable candidates:"
+          find /tmp/nesrecomp-build -maxdepth 5 -type f -executable -printf '%p\n'
+          exe="$(find /tmp/nesrecomp-build -maxdepth 5 -type f -executable -name 'NESRecomp' -print -quit)"
+          if [ -z "$exe" ]; then
+            echo "No compiled NESRecomp executable found" >&2
+            exit 1
+          fi
+          cp "$exe" bundle/nesrecomp/NESRecomp
+          chmod +x bundle/nesrecomp/NESRecomp
+          file bundle/nesrecomp/NESRecomp
+          sha256sum bundle/nesrecomp/NESRecomp
+      - name: Upload original-ROM-free Linux toolchain
+        uses: actions/upload-artifact@v4
+        with:
+          name: JP-public-mesen-agent-nesrecomp-linux-x64
+          path: bundle/
+          if-no-files-found: error
+          retention-days: 2
