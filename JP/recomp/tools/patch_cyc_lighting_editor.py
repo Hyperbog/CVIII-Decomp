@@ -48,6 +48,14 @@ int cviii_light_place_kit_window(int kind,int id,int window_x,int window_y){
 #if defined(_WIN32)
 __declspec(dllexport)
 #endif
+int cviii_light_particle_window(int kind,int window_x,int window_y){
+    int native_x=-1,native_y=-1;
+    zapper_window_point(window_x,window_y,&native_x,&native_y,NULL,NULL);
+    return cviii_lighting_editor_particle_add(kind,native_x,native_y);
+}
+#if defined(_WIN32)
+__declspec(dllexport)
+#endif
 int cviii_light_mask_window_rect(int ax,int ay,int bx,int by){
     int x0=-1,y0=-1,x1=-1,y1=-1;
     int wx0=0,wy0=0,wx1=0,wy1=0;
@@ -292,6 +300,7 @@ def smoke() -> None:
     assert "cviii_light_place_window(int window_x,int window_y)" in product
     assert "cviii_light_place_kit_window(int kind,int id,int window_x,int window_y)" in product
     assert "cviii_light_mask_window_rect(int ax,int ay,int bx,int by)" in product
+    assert "cviii_light_particle_window(int kind,int window_x,int window_y)" in product
     assert "cviii_light_sdl_status();" in product
     assert "if(code!=4)" in product
     for invalid in (product,fixture.replace(KEY_ANCHOR,"/* changed */")):
