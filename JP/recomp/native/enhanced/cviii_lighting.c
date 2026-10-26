@@ -93,6 +93,7 @@ void cviii_light_present(CviiiLighting *s,uint32_t *p,int w,int h,uint32_t room,
                          int camera,const int sx[CVIII_LIGHT_H],const int sy[CVIII_LIGHT_H],uint64_t frame){
     if(!s || !p || !sx || !sy || w!=256 || h!=240)return;
     float modulation[CVIII_LIGHT_MAX],cc[CVIII_LIGHT_MAX],ss[CVIII_LIGHT_MAX],cone_slope[CVIII_LIGHT_MAX];
+    CviiiLight effective[CVIII_LIGHT_MAX];
     int active[CVIII_LIGHT_MAX],active_count=0;
     const float radians=0.017453292519943295f;
     /* Gentle multi-band variation, not frame-by-frame white noise.
@@ -100,9 +101,14 @@ void cviii_light_present(CviiiLighting *s,uint32_t *p,int w,int h,uint32_t room,
      * can show ~10 Hz oscillation in the cited combustion literature.
      * The amplitudes here are deliberate aesthetic choices, NOT fitted
      * experimental measurements. Each light has an independent phase. */
+    int has_occluders=0;
+    for(int i=0;i<CVIII_OCCLUDER_MAX;++i)
+        if(s->masks[i].used && s->masks[i].room==room)has_occluders=1;
     for(int i=0;i<CVIII_LIGHT_MAX;++i){
-        const CviiiLight *l=&s->light[i];
-        if(!l->used || l->muted || l->room!=room)continue;
+        const CviiiLight *src=&s->light[i];
+        if(!src->used || src->muted || src->room!=room)continue;
+        cviii_light_effective(s,src,&effective[i]);
+        const CviiiLight *l=&effective[i];
         active[active_count++]=i;
         float t=(float)((double)(frame%216000u)/60.0);
         float phase=(float)i*1.6180339f;
@@ -124,6 +130,13 @@ void cviii_light_present(CviiiLighting *s,uint32_t *p,int w,int h,uint32_t room,
         float ab=(float)ambient_pct*amb_rgb[2]/25500.f;
         int sky_strength=0,sky_color[3]={186,209,255},sky_dir=-1;
         cviii_light_sky_get(s,room,&sky_strength,sky_color,&sky_dir);
+        int ev=0,temp=0,sat=100;
+        cviii_light_grade_get(s,room,&ev,&temp,&sat);
+        const float exposure=exp2f((float)ev/100.f);
+        const float warmth=(float)temp/100.f;
+        const float wr=exposure*(1.f-0.18f*warmth);
+        const float wg=exposure;
+        const float wb=exposure*(1.f+0.18f*warmth);
         for(int y=CVIII_LIGHT_HUD;y<h;++y){
             /* Separate additive sky fill instead of subtractive RGB tint. */
             float vertical=(float)(y-CVIII_LIGHT_HUD)/(float)(CVIII_LIGHT_H-CVIII_LIGHT_HUD-1);
@@ -139,7 +152,7 @@ void cviii_light_present(CviiiLighting *s,uint32_t *p,int w,int h,uint32_t room,
                 int world=origin+x;
                 for(int n=0;n<active_count;++n){
                     int i=active[n];
-                    const CviiiLight *l=&s->light[i];
+                    const CviiiLight *l=&effective[i];
                     float dx=(float)(world-l->x),dy=(float)(yy-l->y);
                     float rad=(float)l->radius,t;
                     if(l->shape==CVIII_SHAPE_RADIAL){
@@ -160,15 +173,48 @@ void cviii_light_present(CviiiLighting *s,uint32_t *p,int w,int h,uint32_t room,
                         t=(1.f-across/half_width)*(1.f-along/rad);
                     }
                     float power=modulation[i]*(float)l->energy*0.014f*t*t*(3.f-2.f*t);
+                    if(has_occluders)
+                        power*=cviii_light_shadow(s,room,l->x,l->y,world,yy);
                     r+=power*(float)l->red/255.f;
                     g+=power*(float)l->green/255.f;
                     b+=power*(float)l->blue/255.f;
                 }
-                p[y*w+x]=apply(p[y*w+x],r,g,b);
+                uint32_t pixel=apply(p[y*w+x],r,g,b);
+                if(ev || temp || sat!=100){
+                    float red=(float)((pixel>>16)&255u)*wr;
+                    float green=(float)((pixel>>8)&255u)*wg;
+                    float blue=(float)(pixel&255u)*wb;
+                    float luma=0.2126f*red+0.7152f*green+0.0722f*blue;
+                    float chroma=(float)sat/100.f;
+                    red=luma+(red-luma)*chroma;
+                    green=luma+(green-luma)*chroma;
+                    blue=luma+(blue-luma)*chroma;
+                    pixel=(pixel&0xff000000u)|
+                        ((uint32_t)clip((int)(red+0.5f),0,255)<<16)|
+                        ((uint32_t)clip((int)(green+0.5f),0,255)<<8)|
+                         (uint32_t)clip((int)(blue+0.5f),0,255);
+                }
+                p[y*w+x]=pixel;
             }
         }
     }
     if(!s->edit)return;
+    /* Author-defined occluder rectangles are visible only in edit mode. */
+    for(int j=0;j<CVIII_OCCLUDER_MAX;++j){
+        const CviiiOccluder *m=&s->masks[j];
+        if(!m->used || m->room!=room)continue;
+        for(int y=CVIII_LIGHT_HUD;y<h;++y){
+            int wy=sy[y],dy=wy-m->y;
+            if(dy<0 || dy>m->h)continue;
+            int ox=unwrap(sx[y],camera,512);
+            if(dy==0 || dy==m->h){
+                for(int dx=0;dx<=m->w;++dx)dot(p,m->x+dx-ox,y,0xff89dfff);
+            }else{
+                dot(p,m->x-ox,y,0xff89dfffu);
+                dot(p,m->x+m->w-ox,y,0xff89dfffu);
+            }
+        }
+    }
     for(int i=0;i<CVIII_LIGHT_MAX;++i){
         const CviiiLight *l=&s->light[i];
         if(!l->used || l->room!=room)continue;
@@ -269,6 +315,12 @@ int cviii_light_load(CviiiLighting *s,const char *key,const char *value){
         if(sscanf(value,"%d %c",&n,&extra)!=1 || n<35 || n>100)return 0;
         s->ambient=n;return 1;
     }
+    if(!strncmp(key,"GlobalStyle",11) ||
+       !strncmp(key,"LightLink",9) ||
+       !strncmp(key,"SceneAlias",10) ||
+       !strncmp(key,"SceneGrade",10) ||
+       !strncmp(key,"Occluder",8))
+        return cviii_light_extra_load(s,key,value);
     if(!strncmp(key,"RoomSky",7)){
         unsigned slot,room;int strength,r,g,b,dir,n=0;char tail;
         if(sscanf(key,"RoomSky%2u%c",&slot,&tail)!=1 ||
@@ -326,4 +378,5 @@ void cviii_light_save(const CviiiLighting *s,FILE *out){
         }
     }
     cviii_light_kit_save(s,out);
+    cviii_light_extra_save(s,out);
 }
