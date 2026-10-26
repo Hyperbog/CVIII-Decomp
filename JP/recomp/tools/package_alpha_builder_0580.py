@@ -8,6 +8,7 @@ NAMES=("Build-Alpha.ps1","Launch-Alpha.ps1","README_ALPHA.md",
        "Play-CVIII.bat",
        "Debug-Stage-Companion.bat","Capture-QA-0602.ps1",
        "Build-And-Play.ps1","Build-And-Play.bat","Resolve-Python.ps1",
+       "Build-Lighting-Preview.ps1","Preview-Lighting.bat",
        "Control-Profiles.py","Controls.ps1","Controls.bat")
 def make(out:Path)->dict:
     out=out.resolve()
@@ -35,6 +36,10 @@ def main():
             with zipfile.ZipFile(report["path"]) as kit:
                 assert "Build-And-Play.bat" in kit.namelist()
                 assert "Build-And-Play.ps1" in kit.namelist()
+                assert "Build-Lighting-Preview.ps1" in kit.namelist()
+                assert "Preview-Lighting.bat" in kit.namelist()
+                assert b"feature/enhanced-lighting-foundation" in kit.read("Build-Lighting-Preview.ps1")
+                assert b"-ProjectRoot $repo" in kit.read("Build-Lighting-Preview.ps1")
                 assert "Capture-QA-0602.ps1" in kit.namelist()
                 assert "Resolve-Python.ps1" in kit.namelist()
                 assert "Control-Profiles.py" in kit.namelist()
