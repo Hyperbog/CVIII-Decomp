@@ -20,7 +20,7 @@ typedef struct {
 void cviii_light_init(CviiiLighting *s);
 void cviii_light_present(CviiiLighting *s,uint32_t *pixels,int width,int height,
                          uint32_t room,int camera_x,const int scroll_x[CVIII_LIGHT_H],
-                         const int scroll_y[CVIII_LIGHT_H]);
+                         const int scroll_y[CVIII_LIGHT_H],uint64_t frame);
 /* event: 1 toggle, 2 left down, 3 drag, 4 up, 5 delete,
  * 6/7 radius +/-, 8/9 intensity +/-, 10 color,
  * 11/12 ambient +/-, 13 select (right click) */
