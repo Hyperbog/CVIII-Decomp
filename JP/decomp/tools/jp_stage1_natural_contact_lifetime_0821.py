@@ -161,9 +161,9 @@ def witness(mesen:Path,rom:Path,horizon:int,sample:int)->dict:
             tail=memory(ev,0x630)
             flags=memory(ev,0x400)
             if 1<=actor<=12:
-                t=owner[0x054eu-0x540u+actor]
-                mark=flags[0x0470u-0x400u+actor]
-                src=tail[0x0645u-0x630u+actor]
+                t=owner[0x054e-0x540+actor]
+                mark=flags[0x0470-0x400+actor]
+                src=tail[0x0645-0x630+actor]
                 linked=t==0x3d and (mark&4)!=0 and src<6
                 contact.update({"actor_slot":actor,"actor_type":t,
                     "source_index":src if linked else None,
