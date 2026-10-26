@@ -20,6 +20,9 @@ int kit_capture_slot=0;
 int global_style_slot=0,selected_mask=0;
 bool draw_mask=false,mask_first=false;
 int mask_x0=0,mask_y0=0;
+int particle_preset=CVIII_FX_DUST,selected_particle=-1,particle_place=-1;
+int particle_name_slot=-1;
+char particle_name_edit[CVIII_LIGHT_NAME_CAP]={};
 char global_style_name[CVIII_LIGHT_NAME_CAP]="Torch Global";
 unsigned alias_target=0,last_raw_room=0;
 char search_text[64]={};
@@ -161,6 +164,13 @@ extern "C" int cviii_imgui_scene_click(int event,int x,int y){
         }
         return 1;
     }
+    if(particle_place>=0){
+        int at=cviii_lighting_editor_particle_add(particle_place,x,y);
+        if(at>=0){
+            selected_particle=at;particle_place=-1;dirty=true;return 2;
+        }
+        return 1;
+    }
     if(!place_pending && pending_kit_type<0)return 0;
     int ok=pending_kit_type==0?
         cviii_lighting_editor_apply_builtin(pending_kit_id,x,y):
@@ -176,6 +186,7 @@ extern "C" void cviii_imgui_reset(void){
     place_pending=false;
     pending_kit_type=-1;pending_kit_id=-1;
     draw_mask=false;mask_first=false;
+    particle_place=-1;particle_name_slot=-1;
     panel_min=ImVec2(0,0);panel_max=ImVec2(0,0);
 }
 extern "C" void cviii_imgui_shutdown(void){
@@ -643,6 +654,104 @@ extern "C" int cviii_imgui_render(SDL_Window *window,SDL_Renderer *renderer){
             ImGui::BulletText("Emitters are attached to candidate room IDs.");
             ImGui::BulletText("Geometry-based cast shadows are not yet available.");
             ImGui::BulletText("Lights beyond the screen are culled by their footprint.");
+            ImGui::EndTabItem();
+        }
+        if(ImGui::BeginTabItem("Particles")){
+            current_tab=8;
+            bool fx_enabled=model->particles_enabled!=0;
+            if(ImGui::Checkbox("Enable Pixel FX",&fx_enabled))
+                if(cviii_lighting_editor_particle_enabled(fx_enabled?1:0))
+                    dirty=true;
+            ImGui::TextWrapped("NES-pixel environmental effects. No blurred "
+                "sprites or smooth polygons: fog is stippled and other "
+                "particles use crisp native 1–4px blocks. Every region "
+                "is tied to the current scene and world coordinates.");
+            static const char *kinds[]={
+                "Floating Dust","Rising Embers","Pixel Fog","Falling Ash",
+                "Snow","Rain","Fireflies"
+            };
+            ImGui::Combo("Effect Preset",&particle_preset,kinds,CVIII_FX_COUNT);
+            if(ImGui::Button("Create at View Center")){
+                int slot=cviii_lighting_editor_particle_add(particle_preset,128,120);
+                if(slot>=0){selected_particle=slot;dirty=true;}
+            }
+            ImGui::SameLine();
+            if(ImGui::Button("Place on Level")){
+                particle_place=particle_preset;
+                place_pending=false;pending_kit_type=-1;draw_mask=false;
+            }
+            if(particle_place>=0){
+                ImGui::TextColored(ImVec4(.9f,.75f,.3f,1.f),
+                    "Click exposed game scene to place pixel FX region");
+                if(ImGui::SmallButton("Cancel FX Placement"))particle_place=-1;
+            }
+            ImGui::SeparatorText("Scene Particle Regions");
+            if(ImGui::BeginChild("##ParticleRegions",ImVec2(0,130),
+                                 ImGuiChildFlags_Borders)){
+                for(int i=0;i<CVIII_PARTICLE_EMITTER_MAX;++i){
+                    const CviiiParticleEmitter &fx=model->particles[i];
+                    if(!fx.used || fx.room!=room)continue;
+                    ImGui::PushID(i);
+                    char display[112];
+                    std::snprintf(display,sizeof display,"%02d  %s  [%s]",
+                        i+1,fx.name[0]?fx.name:"Untitled",
+                        cviii_particle_kind_name(fx.kind));
+                    if(ImGui::Selectable(display,selected_particle==i))
+                        selected_particle=i;
+                    ImGui::PopID();
+                }
+            }
+            ImGui::EndChild();
+            if(selected_particle>=0 && selected_particle<CVIII_PARTICLE_EMITTER_MAX &&
+               model->particles[selected_particle].used &&
+               model->particles[selected_particle].room==room){
+                const CviiiParticleEmitter &fx=model->particles[selected_particle];
+                auto change=[&](int property,int value){
+                    if(cviii_lighting_editor_particle_property(
+                        selected_particle,property,value))dirty=true;
+                };
+                ImGui::SeparatorText("Emitter / Pixel Parameters");
+                if(particle_name_slot!=selected_particle){
+                    std::snprintf(particle_name_edit,sizeof particle_name_edit,
+                                  "%s",fx.name);
+                    particle_name_slot=selected_particle;
+                }
+                if(ImGui::InputText("Region Name",particle_name_edit,
+                                    sizeof particle_name_edit))
+                    if(cviii_lighting_editor_particle_name(
+                          selected_particle,particle_name_edit))dirty=true;
+                int kind=fx.kind;
+                if(ImGui::Combo("Kind",&kind,kinds,CVIII_FX_COUNT))change(1,kind);
+                int x=fx.x,y=fx.y,w=fx.w,h=fx.h;
+                if(ImGui::InputInt("World X",&x))change(2,x);
+                if(ImGui::InputInt("World Y",&y))change(3,y);
+                if(ImGui::SliderInt("Area Width",&w,1,512))change(4,w);
+                if(ImGui::SliderInt("Area Height",&h,1,192))change(5,h);
+                int density=fx.density,speed=fx.speed,wind=fx.wind;
+                int alpha=fx.opacity,size=fx.size;
+                if(ImGui::SliderInt("Particle Count",&density,1,
+                                    CVIII_PARTICLE_INSTANCE_MAX))change(6,density);
+                if(ImGui::SliderInt("Speed",&speed,0,300,"%d%%"))change(7,speed);
+                if(ImGui::SliderInt("Wind",&wind,-100,100))change(8,wind);
+                if(ImGui::SliderInt("Opacity",&alpha,0,100,"%d%%"))change(9,alpha);
+                if(ImGui::SliderInt("Native Pixel Size",&size,1,4))change(10,size);
+                float col[3]={fx.red/255.f,fx.green/255.f,fx.blue/255.f};
+                if(ImGui::ColorEdit3("Particle Color",col,
+                       ImGuiColorEditFlags_PickerHueWheel)){
+                    for(int k=0;k<3;++k)
+                        change(11+k,(int)(col[k]*255.f+0.5f));
+                }
+                if(ImGui::Button("Duplicate Region")){
+                    int copy=cviii_lighting_editor_particle_clone(selected_particle);
+                    if(copy>=0){selected_particle=copy;dirty=true;}
+                }
+                ImGui::SameLine();
+                if(ImGui::Button("Delete Region")){
+                    change(0,0);selected_particle=-1;particle_name_slot=-1;
+                }
+                ImGui::TextDisabled("Visible in Standard and both D3D11 modes. "
+                                    "Persistent when returning to this room.");
+            }
             ImGui::EndTabItem();
         }
         if(ImGui::BeginTabItem("Masks")){
