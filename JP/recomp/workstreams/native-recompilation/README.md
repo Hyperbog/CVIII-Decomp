@@ -29,6 +29,68 @@ Gamepad mappings, player 2, audio, save states and original
 game execution are unaffected. This is not an in-game
 rebind UI. [Full product implementation evidence](0661_NATIVE_KEYBOARD_PROFILE_MANAGER.md).
 
+## Private original-JP static recompilation (compiled PRG C)
+
+The pinned NESRecomp static 6502-to-C compiler can generate native code
+directly from the authenticated original Japanese ROM. This is **recompilation**:
+known ROM instructions become native C translation units, with interpreter
+fallback only for code not yet discovered. It is separate from the already
+owner-tested Windows Enhanced Edition and from the semantic VPP ledger.
+
+Use `JP/recomp/tools/build_compiled_original_jp.py` with
+`--rom /private/original-jp.nes`,
+`--nesrecomp-root /private/pinned-nesrecomp`,
+`--private-build /outside-git/private-build`.
+Optionally supply a private `--input /private/controller.input --frames 2100
+--verify` to discover game-reachable PRG branches and compare native C
+execution to the same NES machine's interpreter. No Mesen recording is required.
+
+**Verified internal Linux build:** from the pinned
+`2b4fcdb98c9e702be3fb365cfc645003c50b5fc1` recompiler, source
+discovery compiled **11,925 original Japanese instructions across 25 physical
+PRG bank C files**, using 6,417 actual ROM instruction-entry seeds collected
+on the existing 2,100-frame controller route. On that route the final binary
+spent **62,536,652 of 62,536,669 CPU cycles in compiled native execution**
+(only 10 interpreted ROM cycles), and the full **2,100 machine-state
+frame hashes matched** an independent interpreter-only execution of the
+**same pinned machine model**. This establishes compiled/interpreted
+implementation parity on that route, **not full original NES hardware parity
+or complete game coverage**. Owner gameplay QA remains as recorded separately.
+
+Generated source contains original-ROM-derived material and is PRIVATE,
+never tracked in Git or uploaded to public CI. The checked-in CMake option
+`CVIII_JP_COMPILED_C_DIR` enables compiled bank files in place of the
+four-boot-instruction shim; production builds without that option are unchanged.
+
+## Windows Enhanced compiled-PRG acceptance (owner-private)
+
+The **existing** Windows product already compiles original Japanese 6502 PRG
+instructions with pinned NESRecomp. Do not replace its proven SDL2, PPU, VRC6,
+input, save-state or Enhanced host components with the newer ROM-at-launch
+experimental runtime. The ROM-free verifier is copied into every private
+AlphaCandidate as `Verify-Compiled.py`:
+
+```powershell
+python .\Verify-Compiled.py `
+  --exe .\jp_akumajou_densetsu.exe `
+  --rom "C:\private\Akumajou Densetsu (Japan).nes" `
+  --input "C:\private\existing-route.input" `
+  --out "$env:USERPROFILE\CVIII-Alpha\compiled-acceptance" `
+  --frames 2100 --edition enhanced --min-compiled-prg-percent 90
+```
+
+The script authenticates the Japanese ROM, runs compiled and interpreter-only
+execution on the **same private product EXE**, checks all frame machine hashes,
+and reports compiled PRG cycles, native RAM-view cycles and interpreted ROM/RAM
+fallback separately. It rejects divergence, malformed counts, low compiled PRG
+coverage and output directories inside Git checkouts. Existing controller input
+is sufficient; neither Mesen recordings nor a fresh manual playthrough are needed.
+
+**Scope:** Same-machine compiled/interpreted agreement on one input route does
+not certify original-console timing, all stages, Windows GUI, music, saves,
+complete native coverage or strict semantic PRG-byte credit. The experimental
+AOT runtime's earlier 2,100-frame result is not this Windows product result.
+
 ## Relevant production code and validation
 
 - [Native original-ROM cycle build](../../native/nesrecomp_cycle/CMakeLists.txt) — linked external pinned NESRecomp C11 machine and authenticated private ROM.

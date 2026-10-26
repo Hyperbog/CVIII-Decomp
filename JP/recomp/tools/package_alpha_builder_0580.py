@@ -4,7 +4,7 @@ from __future__ import annotations
 import argparse,hashlib,json,tempfile,zipfile
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[3]
-NAMES=("Build-Alpha.ps1","Launch-Alpha.ps1","README_ALPHA.md",
+NAMES=("Build-Alpha.ps1","Launch-Alpha.ps1","Verify-Compiled.ps1","README_ALPHA.md",
        "Play-CVIII.bat",
        "Debug-Stage-Companion.bat","Capture-QA-0602.ps1",
        "Build-And-Play.ps1","Build-And-Play.bat","Resolve-Python.ps1",
@@ -37,6 +37,7 @@ def main():
                 assert "Build-And-Play.ps1" in kit.namelist()
                 assert "Capture-QA-0602.ps1" in kit.namelist()
                 assert "Resolve-Python.ps1" in kit.namelist()
+                assert "Verify-Compiled.ps1" in kit.namelist()
                 assert "Control-Profiles.py" in kit.namelist()
                 assert "Controls.ps1" in kit.namelist()
                 assert "Controls.bat" in kit.namelist()

@@ -4,6 +4,7 @@ param(
  [Parameter(Mandatory=$true)][string]$Rom,
  [string]$OutDir=(Join-Path $env:USERPROFILE 'CVIII-Alpha'),
  [string]$ProjectRoot='',
+ [string]$CycleSeedFile='',
  [switch]$PlayAfterBuild
 )
 Set-StrictMode -Version Latest
@@ -19,6 +20,25 @@ function Invoke-Checked {
  & $Program @CommandArguments
  if ($LASTEXITCODE -ne 0) {
   throw "$Program failed (exit $LASTEXITCODE); args: $($CommandArguments -join ' ')"
+ }
+}
+# The private AlphaCandidate consumes files from three distinct directories.
+# Keep the manifest in one function: packager and ROM-free Windows CI
+# inspect the SAME source list before any commercial-ROM C11 compile.
+function Get-CviiiAlphaCompanionSources {
+ param([Parameter(Mandatory=$true)][string]$RepoPath)
+ $bundles=@(
+  @{ Directory='JP/recomp/release/alpha'; Names=@('Play-CVIII.bat','Debug-Stage-Companion.bat','Capture-QA-0602.ps1','Build-And-Play.ps1','Build-And-Play.bat','Resolve-Python.ps1','Control-Profiles.py','Controls.ps1','Controls.bat') }
+  @{ Directory='JP/decomp/tools'; Names=@('jp_password_stage_0593.py','jp_password_debug_menu_0593.py','jp_qa_matrix_0602.py','jp_mapper_audit_0602.py','jp_mesen_sound_requests_0615.py','mesen_jp_sound_requests_0615.lua','jp_sound_priority_paths_0616.py','jp_mesen_gate_report_0616.py','mesen_jp_sound_gates_0616.lua','jp_sound_decision_reference_0617.py','mesen_jp_sound_decisions_0617.lua','jp_audio_ui_chr_0619.py') }
+  @{ Directory='JP/recomp/tools'; Names=@('jp_asset_pack_0597.py','jp_asset_runtime_0598.py','jp_chr_fetch_report_0600.py','jp_frame_evidence_report_0601.py','jp_nt_trace_report_0606.py','jp_object_oam_report_0609.py','jp_audio_bus_report_0610.py','jp_audio_session_verify_0614.py') }
+ )
+ foreach ($bundle in $bundles) {
+  foreach ($name in $bundle.Names) {
+   [pscustomobject]@{
+    Name=$name
+    Source=(Join-Path $RepoPath ($bundle.Directory+'/'+$name))
+   }
+  }
  }
 }
 foreach ($command in @('git','cmake')) {
@@ -42,6 +62,16 @@ if ($ProjectRoot) {
   Invoke-Checked -Program 'git' -CommandArguments @('-C',$repoPath,'pull','--ff-only','origin','decompilation')
  }
 }
+# Fail before compiling if the kit would be impossible to stage.
+$companionSources=@(Get-CviiiAlphaCompanionSources -RepoPath $repoPath)
+if ($companionSources.Count -ne 29) {
+ throw 'Private AlphaCandidate companion source manifest is incomplete.'
+}
+foreach ($item in $companionSources) {
+ if (-not (Test-Path -LiteralPath $item.Source -PathType Leaf)) {
+  throw ('Private AlphaCandidate source missing before build: '+$item.Source)
+ }
+}
 # Resolve AFTER refreshing Git; an older kit can use the current resolver.
 $pythonResolver=Join-Path $repoPath 'JP/recomp/release/alpha/Resolve-Python.ps1'
 if (-not (Test-Path -LiteralPath $pythonResolver)) {
@@ -56,7 +86,13 @@ if (-not (Test-Path -LiteralPath $buildScript)) {
 }
 $privateOut=Join-Path $outPath '_private_original_rom_build'
 Write-Host 'Compiling the original Japanese game to native C11 with SDL2...'
-Invoke-Checked -Program $pyCmd.Executable -CommandArguments (@($pyCmd.Prefix) + @($buildScript,'--rom',$romPath,'--out',$privateOut,'--windowed','--build-only'))
+$nativeArgs=@($buildScript,'--rom',$romPath,'--out',$privateOut,'--windowed','--build-only')
+if ($CycleSeedFile) {
+ $seedPath=(Resolve-Path -LiteralPath $CycleSeedFile -ErrorAction Stop).Path
+ $nativeArgs+=@('--seed-file',$seedPath)
+ Write-Host 'Compiling additional original-JP PRG instruction entries from owner-private bank-qualified seeds.'
+}
+Invoke-Checked -Program $pyCmd.Executable -CommandArguments (@($pyCmd.Prefix) + $nativeArgs)
 $reportPath=Join-Path $privateOut 'jp0575_build_report.json'
 if (-not (Test-Path -LiteralPath $reportPath)) {throw 'No compiler build report was produced.'}
 $report=Get-Content -LiteralPath $reportPath -Raw | ConvertFrom-Json
@@ -77,6 +113,25 @@ $stage=Join-Path $outPath 'AlphaCandidate'
 [IO.Directory]::CreateDirectory($stage) | Out-Null
 Copy-Item -LiteralPath $program -Destination (Join-Path $stage 'jp_akumajou_densetsu.exe') -Force
 Copy-Item -LiteralPath $sdl -Destination $stage -Force
+# Only package the optional acceptance command when both files exist in
+# the synchronized source checkout. The baseline decompilation branch does
+# not yet contain the draft feature; it must remain independently buildable.
+$coverageTool=Join-Path $repoPath 'JP/recomp/tools/verify_compiled_product.py'
+$coverageLauncher=Join-Path $repoPath 'JP/recomp/release/alpha/Verify-Compiled.ps1'
+$hasVerifier=Test-Path -LiteralPath $coverageTool -PathType Leaf
+$hasLauncher=Test-Path -LiteralPath $coverageLauncher -PathType Leaf
+if ($hasVerifier -and $hasLauncher) {
+ Copy-Item -LiteralPath $coverageTool -Destination (Join-Path $stage 'Verify-Compiled.py') -Force
+ Copy-Item -LiteralPath $coverageLauncher -Destination (Join-Path $stage 'Verify-Compiled.ps1') -Force
+ $roundtripTool=Join-Path $repoPath 'JP/recomp/tools/verify_enhanced_save_roundtrip.py'
+ if (Test-Path -LiteralPath $roundtripTool -PathType Leaf) {
+  Copy-Item -LiteralPath $roundtripTool -Destination (Join-Path $stage 'Verify-SaveRoundtrip.py') -Force
+ }
+} elseif ($hasVerifier -or $hasLauncher) {
+ throw 'Incomplete compiled-product verifier source; refusing partial private package.'
+} else {
+ Write-Host 'Optional compiled PRG acceptance unavailable in this source revision; gameplay build unchanged.'
+}
 # JP0597: generate/cache an authenticated, local ROM-derived CHR asset
 # archive once per private candidate. Neither public CI nor Git sees it.
 $assetBuilder=Join-Path $repoPath 'JP/recomp/tools/jp_asset_pack_0597.py'
@@ -101,15 +156,9 @@ Copy-Item -LiteralPath $launch -Destination $stage -Force
 $notes=Join-Path $repoPath 'JP/recomp/release/alpha/README_ALPHA.md'
 if (-not (Test-Path -LiteralPath $notes)) { throw 'Current repo README missing' }
 Copy-Item -LiteralPath $notes -Destination $stage -Force
-foreach ($name in @('Play-CVIII.bat','Debug-Stage-Companion.bat','Capture-QA-0602.ps1','Build-And-Play.ps1','Build-And-Play.bat','Resolve-Python.ps1','Control-Profiles.py','Controls.ps1','Controls.bat')) {
- $src=Join-Path $repoPath ('JP/decomp/tools/'+$name)
- if (-not (Test-Path -LiteralPath $src)) {throw "Missing alpha launcher: $src"}
- Copy-Item -LiteralPath $src -Destination $stage -Force
-}
-foreach ($name in @('jp_password_stage_0593.py','jp_password_debug_menu_0593.py','jp_asset_pack_0597.py','jp_asset_runtime_0598.py','jp_chr_fetch_report_0600.py','jp_frame_evidence_report_0601.py','jp_qa_matrix_0602.py','jp_mapper_audit_0602.py','jp_nt_trace_report_0606.py','jp_object_oam_report_0609.py','jp_audio_bus_report_0610.py','jp_audio_session_verify_0614.py','jp_mesen_sound_requests_0615.py','mesen_jp_sound_requests_0615.lua','jp_sound_priority_paths_0616.py','jp_mesen_gate_report_0616.py','mesen_jp_sound_gates_0616.lua','jp_sound_decision_reference_0617.py','mesen_jp_sound_decisions_0617.lua','jp_audio_ui_chr_0619.py')) {
- $src=Join-Path $repoPath ('JP/decomp/tools/'+$name)
- if (-not (Test-Path -LiteralPath $src)) {throw "Missing debug password helper: $src"}
- Copy-Item -LiteralPath $src -Destination $stage -Force
+# The source manifest was validated before native compilation.
+foreach ($item in $companionSources) {
+ Copy-Item -LiteralPath $item.Source -Destination (Join-Path $stage $item.Name) -Force
 }
 $engine=Join-Path $privateOut '_external/nesrecomp'
 $licenses=Join-Path $stage 'licenses'

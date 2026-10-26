@@ -6,6 +6,7 @@
 #include "cyc_host_extras.h"
 #include "cyc_core.h"
 #include "cyc_render.h"
+#include "cviii_stage1_host_0725.h"
 #include "cviii_chr_index_0598.h"
 #include "cviii_chr_audit_0599.h"
 #include "cviii_chr_fetch_0600.h"
@@ -42,7 +43,8 @@
 typedef struct {
     int enhanced;
     int sprite_unlimited;
-    int stable_sprites; /* optional host-only temporal presentation; off by default */
+    int stable_sprites; /* Enhanced default ON; opt-out for original OAM flicker */
+    CviiiStage1Host0725 stage1_world; /* ROM-only pregame Stage 1 side scene */
     CviiiSpriteLayers sprite_layers;
     CviiiObjectOamTrace object_trace; /* read-only JP PRG26 object/OAM correlation */
     CviiiAudioBus audio_bus; /* opt-in nonmutating 2A03/VRC6 sound writes */
@@ -66,7 +68,11 @@ typedef struct {
     uint32_t presentation[CVIII_W * CVIII_H];
 } CviiiEdition;
 
-static CviiiEdition cviii = { .volume = CVIII_AUDIO_LEVELS_DEFAULT };
+/* The native Enhanced executable presents stable logical OAM sprites by
+ * default, even without a shell launcher. Original hardware presentation
+ * remains unmodified (present_game() explicitly checks enhanced). */
+static CviiiEdition cviii = { .stable_sprites = 1,
+    .volume = CVIII_AUDIO_LEVELS_DEFAULT, .stage1_world = { .enabled = 1 } };
 static int cviii_start_ready;
 
 /* JP0620: optional built-in paused runtime menu rows for recomp-ui builds.
@@ -194,6 +200,8 @@ static void load_setting(void *context, const char *key, const char *value)
         (void)parse_boolean(value, &cviii.sprite_unlimited);
     else if (!strcmp(key, "StableSprites"))
         (void)parse_boolean(value, &cviii.stable_sprites);
+    else if (!strcmp(key, "Stage1World"))
+        (void)parse_boolean(value, &cviii.stage1_world.enabled);
     else (void)cviii_audio_levels_load(&cviii.volume,key,value);
 }
 
@@ -203,17 +211,38 @@ static void save_settings(void *context, FILE *file)
     fprintf(file, "Edition = %s\nUnlimitedSprites = %d\nStableSprites = %d\n",
             cviii.enhanced ? "Enhanced" : "Original",
             cviii.sprite_unlimited, cviii.stable_sprites);
+    fprintf(file, "Stage1World = %d\n", cviii.stage1_world.enabled);
     cviii_audio_levels_save(&cviii.volume,file);
 }
 
 static bool option(void *context, const char *name, const char *value)
 {
     (void)context;
+#ifdef CVIII_0732_NO_PRIVATE_OBSERVERS
+    /* An interpreter-only retail backend lacks the developer overlays in
+     * the privately patched generated-game build. Reject instrumentation
+     * rather than silently creating empty or misleading audit files. */
+    if (!strcmp(name,"--chr-fetch-audit") ||
+        !strcmp(name,"--nt-fetch-audit") ||
+        !strcmp(name,"--audio-reg-trace") ||
+        !strcmp(name,"--sound-request-trace") ||
+        !strcmp(name,"--sound-decision-trace") ||
+        !strcmp(name,"--dmc-dma-trace")) {
+        fprintf(stderr,"CVIII JP0732: developer observer not available in ROM-independent runtime\\n");
+        return false;
+    }
+#endif
     if (!strcmp(name, "--edition")) return value && set_edition(value);
     if (!strcmp(name, "--unlimited-sprites"))
         return value && parse_boolean(value, &cviii.sprite_unlimited);
     if (!strcmp(name, "--stable-sprites"))
         return value && parse_boolean(value, &cviii.stable_sprites);
+    if (!strcmp(name, "--stage1-world"))
+        return value && parse_boolean(value, &cviii.stage1_world.enabled);
+    if (!strcmp(name, "--stage1-world-rom"))
+        return cviii_stage1_host_rom_0725(&cviii.stage1_world,value);
+    if (!strcmp(name, "--stage1-resource-cache"))
+        return cviii_stage1_host_cache_0729(&cviii.stage1_world,value);
     /* Developer overrides only; final interface will use HUD-art sliders.
      * Music/SFX levels persist but do not yet affect the unsplit PCM bus. */
     if (!strcmp(name,"--audio-ui-preview"))
@@ -341,6 +370,7 @@ static void power_on(void *context)
      * Do not recapture in frame_begin: that clears the saved history.
      */
     cviii_layers_reset(&settings->sprite_layers);
+    cviii_stage1_host_reset_0751(&settings->stage1_world);
     cviii_audio_menu_state_close(&settings->audio_ui); /* reset cannot leave a stale modal */
     cviii_start_close(&settings->start_menu);
     cviii_slot_cancel(&settings->slot_menu);
@@ -369,6 +399,7 @@ static void state_loaded(void *context)
 {
     CviiiEdition *settings = (CviiiEdition *)context;
     cviii_layers_reset(&settings->sprite_layers);
+    cviii_stage1_host_reset_0751(&settings->stage1_world);
     cviii_audio_menu_state_close(&settings->audio_ui); /* loaded gameplay never owns a stale modal */
     cviii_start_close(&settings->start_menu);
     cviii_slot_cancel(&settings->slot_menu);
@@ -480,6 +511,8 @@ static const uint32_t *present_game(void *context, int *width, int *height)
     return settings->presentation;
 }
 
+/* JP0761 host-only live keyboard binding page; Original stays reference-only. */
+int cviii_controls_available_0761(void) { return cviii.enhanced; }
 /* JP0623 game-owned Start/Pause state and stable action identities. */
 int cviii_pause_active(void)
 {
@@ -570,6 +603,10 @@ int cviii_audio_menu_move(int direction)
 static const uint32_t *present(void *context,int *width,int *height)
 {
     CviiiEdition *settings=(CviiiEdition *)context;
+    /* JP0728: the game supplies its original-art CHR index to the runtime
+     * content loader. If no sidecar was loaded, a selected retail ROM
+     * creates one automatically during the first Enhanced present. */
+    settings->stage1_world.runtime_assets=&settings->assets;
     const uint32_t *frame=present_game(context,width,height);
     if (settings->enhanced && !settings->audio_ui.open &&
         settings->start_menu.open && settings->assets.pixels && *width==CVIII_W && *height==CVIII_H) {
@@ -578,23 +615,23 @@ static const uint32_t *present(void *context,int *width,int *height)
         if(cviii_pause_slot_active() &&
            cviii_start_slot_ui_draw(settings->presentation,CVIII_W,CVIII_H,
                                     &settings->assets,&settings->slot_menu))
-            return settings->presentation;
+            return cviii_stage1_host_present_0725(&settings->stage1_world,settings->presentation,width,height,settings->enhanced);
         if(cviii_start_ui_draw(settings->presentation,CVIII_W,CVIII_H,
                                &settings->assets,&settings->start_menu))
-            return settings->presentation;
+            return cviii_stage1_host_present_0725(&settings->stage1_world,settings->presentation,width,height,settings->enhanced);
     }
     if (!settings->enhanced ||
         (!settings->audio_ui_preview && !settings->audio_ui.open) ||
         !settings->assets.pixels || *width!=CVIII_W || *height!=CVIII_H)
-        return frame;
+        return cviii_stage1_host_present_0725(&settings->stage1_world,frame,width,height,settings->enhanced);
     if (frame!=settings->presentation)
         memcpy(settings->presentation,frame,sizeof settings->presentation);
     if (!cviii_audio_ui_render_mode(settings->presentation,CVIII_W,CVIII_H,
                                     &settings->assets,&settings->volume,
                                     settings->audio_ui.open ? settings->audio_ui.selected : 0u,
                                     settings->audio_ui.open!=0))
-        return frame;
-    return settings->presentation;
+        return cviii_stage1_host_present_0725(&settings->stage1_world,frame,width,height,settings->enhanced);
+    return cviii_stage1_host_present_0725(&settings->stage1_world,settings->presentation,width,height,settings->enhanced);
 }
 static void audio_mix(void *context,int16_t *samples,size_t count)
 {
@@ -608,7 +645,10 @@ static const CycHostOption cviii_options[] = {
     {"--unlimited-sprites", true,
      "Enhanced experimental 64-OAM sprite compositor (0/1, default 0)"},
     {"--stable-sprites", true,
-     "EXPERIMENTAL logical sprite-object layer order with 1-frame history (0/1, default 0)"},
+     "Enhanced stable sprite-object presentation with 1-frame history (0/1, default 1)"},
+    {"--stage1-world", true, "Enhanced preloaded original-ROM Stage 1 widescreen (0/1)"},
+    {"--stage1-world-rom", true, "Owner-private Japanese cartridge path override"},
+    {"--stage1-resource-cache", true, "Optional private validated Stage 1/CHR cache file"},
     {"--sprite-object-trace", true,
      "Developer owner-local per-frame 28 object fields and 64 hardware OAM entries"},
     {"--audio-ui-preview", true, "Developer only: draw noninteractive authentic health-bar UI"},

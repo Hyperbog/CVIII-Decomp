@@ -10,6 +10,8 @@
 6. **Prioritize the highest-value next action.** When blocked, make one concrete, useful code deliverable if possible, state the exact impediment and necessary next decision, and stop. No busywork, no routine micro-commits, no repetitive status theater, and no requests for new user playthroughs when existing inputs suffice.
 7. **Brief completion reporting.** Report what actually changed, the end-to-end result, what remains broken, and the next causal fix. Separate user-performed tests from internal/CI tests. Do not promise work that has not run.
 
+**CVIII-specific recompilation priority:** The owner-tested Windows Enhanced Edition is a functioning product baseline, separate from the semantic VPP/PRG research. Advance recompilation by compiling authenticated original 6502 PRG instructions and integrating their compiled native C with bank-qualified dispatch and NES-compatible CPU/memory/hardware semantics. Report the actual share of CPU execution that runs compiled code versus interpreted fallback. Compiled-versus-interpreted execution on the same machine is a useful correctness gate; comparisons with a particular Mesen recording are optional diagnostics, **not release blockers or a substitute for compiled execution**. The emulator is not the product. No original cartridge media or ROM-equivalent generated C in public Git.
+
 **Non-negotiable principle:** **Fix the real problem. Prove the fix. Move the project forward. Stop the test rabbit hole.** The user must explicitly authorize an extended exploratory investigation beyond the limits above; such authorization never permits weakening mandatory safety, authenticity, or regression checks.
 
 ---

@@ -59,6 +59,13 @@ uint32_t cyc_render_color(int palette) { return (uint32_t)palette; }
 uint8_t cyc_render_line_mask(int y) { (void)y; return 0x14; }
 bool cyc_render_line_sprite16(int y) { (void)y; return false; }
 uint16_t cyc_render_line_sprite_table(int y) { (void)y; return 0; }
+/* JP0725 mock-only UI geometry and scanline queries. */
+static int wide_video_mode;
+void cyc_video_set_mode(int mode) { wide_video_mode=mode; }
+int cyc_render_line_scroll_x(int y) { (void)y; return 0; }
+int cyc_render_line_scroll_y(int y) { return y; }
+uint8_t cyc_render_nametable(uint16_t a) { (void)a; return 0; }
+uint16_t cyc_render_line_bg_table(int y) { (void)y; return 0x1000; }
 void cyc_render_capture_background(bool enabled) { capture_enabled=enabled; }
 bool cyc_render_background(uint32_t *out) {
     bg_reads++;
@@ -76,9 +83,19 @@ void cyc_render_sprites(uint32_t *out,int w,int h,int x,const uint8_t *bg,
 int main(void) {
     const CycHostExtras *e=cyc_host_extras();
     assert(e && e->options && e->option && e->present);
+    /* JP0752: Enhanced temporal-stable sprite presentation is ON in the
+     * new C11 default. Exercise legacy opt-out explicitly below, rather
+     * than implicitly assuming the old unwanted flicker setting. */
+    FILE *defaults=tmpfile();assert(defaults);
+    e->save_settings(e->ctx,defaults);rewind(defaults);
+    char default_text[256]={0};
+    assert(fread(default_text,1,sizeof(default_text)-1,defaults)>0);
+    fclose(defaults);
+    assert(strstr(default_text,"StableSprites = 1"));
+    assert(e->option(e->ctx,"--stable-sprites","0"));
     /* JP0646: all diagnostic CLI options must be advertised to the host,
      * rather than silently unreachable despite an implemented callback. */
-    assert(e->option_count == 19);
+    assert(e->option_count == 22);
     const char *const required[]={
         "--sound-request-trace","--sound-decision-trace",
         "--dmc-dma-trace","--audio-session-id","--audio-epoch-trace"
@@ -91,6 +108,12 @@ int main(void) {
     }
     assert(!e->option(e->ctx,"--sound-decision-trace",NULL));
     assert(!e->option(e->ctx,"--dmc-dma-trace",NULL));
+    assert(!e->option(e->ctx,"--stage1-world-rom",NULL));
+    assert(e->option(e->ctx,"--stage1-world","0"));
+    assert(!e->option(e->ctx,"--stage1-world","bogus"));
+    assert(e->option(e->ctx,"--stage1-world","1"));
+    assert(!e->option(e->ctx,"--stage1-resource-cache",NULL));
+    assert(e->option(e->ctx,"--stage1-resource-cache","jp0729-test-private-cache.dat"));
     assert(!cviii_audio_menu_active());
     assert(!cviii_audio_menu_toggle()); /* no authenticated original CHR */
     assert(!cviii_audio_menu_active());
