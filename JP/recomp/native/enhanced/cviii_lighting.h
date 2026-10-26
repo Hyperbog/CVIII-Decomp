@@ -2,6 +2,9 @@
 #define CVIII_LIGHTING_H
 #include <stdint.h>
 #include <stdio.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 #define CVIII_LIGHT_MAX 128
 #define CVIII_LIGHT_W 256
 #define CVIII_LIGHT_H 240
@@ -136,5 +139,7 @@ int cviii_light_history_undo(CviiiLighting *s);
 int cviii_light_history_redo(CviiiLighting *s);
 int cviii_light_history_can_undo(void);
 int cviii_light_history_can_redo(void);
-
+#ifdef __cplusplus
+}
+#endif
 #endif
