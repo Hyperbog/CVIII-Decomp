@@ -54,7 +54,8 @@ typedef struct {
  * only on independently attested chapel camera samples. */
 typedef struct {
     uint16_t source_cpu, axis_world;
-    uint8_t raw_type, local_x, eligible, local_axis;
+    uint8_t raw_type, local_x, eligible, local_axis, world_placed;
+    int32_t world_x, world_y; /* only when source-verified room is placed */
     uint32_t entries, exits;
 } CviiiStage1SourceLife0813;
 enum { CVIII_STAGE1_CHAPEL_SOURCES_0813=9 };
