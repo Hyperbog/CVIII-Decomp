@@ -204,7 +204,9 @@ static void load_setting(void *context, const char *key, const char *value)
     else if (!strcmp(key,"LightingEditorKey"))
         (void)cviii_lighting_editor_set_key(value);
     else if (!strncmp(key,"Light",5) || !strncmp(key,"RoomAmbient",11) ||
-             !strncmp(key,"RoomSky",7))
+             !strncmp(key,"RoomSky",7) || !strncmp(key,"GlobalStyle",11) ||
+             !strncmp(key,"Occluder",8) || !strncmp(key,"SceneGrade",10) ||
+             !strncmp(key,"SceneAlias",10))
         (void)cviii_light_load(&cviii.lighting,key,value);
     else (void)cviii_audio_levels_load(&cviii.volume,key,value);
 }
@@ -505,12 +507,16 @@ static const uint32_t *present_game(void *context, int *width, int *height)
 
 /* Present-frame, read-only camera. These original RAM selector meanings need
  * real-route QA before any stage geometry is considered certified. */
-static uint32_t cviii_lighting_room(void)
+static uint32_t cviii_lighting_raw_room(void)
 {
     const uint8_t *ram=cyc_cpu_ram();
     if(!ram)return UINT32_MAX;
     return ((uint32_t)ram[0x34u]<<24)|((uint32_t)ram[0x35u]<<16)|
            ((uint32_t)ram[0x36u]<<8)|(uint32_t)ram[0x07a0u];
+}
+static uint32_t cviii_lighting_room(void)
+{
+    return cviii_light_scene_resolve(&cviii.lighting,cviii_lighting_raw_room());
 }
 static int cviii_lighting_camera(void)
 {
@@ -727,6 +733,68 @@ int cviii_lighting_editor_sky(int property,int value)
     else return 0;
     return cviii_light_sky_set(&cviii.lighting,room,level,
                                rgb[0],rgb[1],rgb[2],face);
+}
+
+/* Manual scene aliases bridge transient gameplay selectors safely.
+ * Existing room IDs are unmodified until the user explicitly maps one. */
+unsigned cviii_lighting_editor_raw_room(void){return cviii_lighting_raw_room();}
+int cviii_lighting_editor_alias(unsigned stable){
+    return cviii_lighting_editor_active() &&
+        cviii_light_scene_alias(&cviii.lighting,cviii_lighting_raw_room(),stable);
+}
+int cviii_lighting_editor_global_capture(int slot,const char *name){
+    if(!cviii_lighting_editor_active())return 0;
+    int selected=cviii.lighting.selected;
+    if(selected<0 || selected>=CVIII_LIGHT_MAX ||
+       !cviii.lighting.light[selected].used ||
+       cviii.lighting.light[selected].room!=cviii_lighting_room())return 0;
+    return cviii_light_style_capture(&cviii.lighting,slot,selected,name);
+}
+int cviii_lighting_editor_global_link(int slot,int group){
+    if(!cviii_lighting_editor_active())return 0;
+    int selected=cviii.lighting.selected;
+    if(selected<0 || selected>=CVIII_LIGHT_MAX ||
+       !cviii.lighting.light[selected].used ||
+       cviii.lighting.light[selected].room!=cviii_lighting_room())return 0;
+    return group?
+        cviii_light_style_link_group(&cviii.lighting,selected,slot):
+        cviii_light_style_link(&cviii.lighting,selected,slot);
+}
+int cviii_lighting_editor_mask_add(int x,int y,int w,int h){
+    if(!cviii_lighting_editor_active())return -1;
+    return cviii_light_mask_add(&cviii.lighting,cviii_lighting_room(),x,y,w,h);
+}
+int cviii_lighting_editor_mask_property(int slot,int property,int value){
+    if(!cviii_lighting_editor_active() || slot<0 || slot>=CVIII_OCCLUDER_MAX)
+        return 0;
+    CviiiOccluder *m=&cviii.lighting.masks[slot];
+    if(!m->used || m->room!=cviii_lighting_room())return 0;
+    if(property==0){
+        return cviii_light_mask_remove(&cviii.lighting,slot);
+    }
+    CviiiOccluder t=*m;
+    if(property==1)t.x=value;
+    else if(property==2)t.y=value;
+    else if(property==3)t.w=value;
+    else if(property==4)t.h=value;
+    else if(property==5)t.opacity=value;
+    else if(property==6)t.softness=value;
+    else return 0;
+    if(t.x<0 || t.y<0 || t.w<1 || t.h<1 || t.x>65535-t.w ||
+       t.y>479-t.h || t.opacity<0 || t.opacity>100 ||
+       t.softness<0 || t.softness>16)return 0;
+    *m=t;return 1;
+}
+int cviii_lighting_editor_grade(int property,int value){
+    if(!cviii_lighting_editor_active())return 0;
+    int ev=0,temp=0,sat=100;
+    unsigned room=cviii_lighting_room();
+    cviii_light_grade_get(&cviii.lighting,room,&ev,&temp,&sat);
+    if(property==0)ev=value;
+    else if(property==1)temp=value;
+    else if(property==2)sat=value;
+    else return 0;
+    return cviii_light_grade_set(&cviii.lighting,room,ev,temp,sat);
 }
 
 int cviii_lighting_editor_point(int slot,int *x,int *y)
