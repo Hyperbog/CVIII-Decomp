@@ -281,8 +281,17 @@ void on_overlay(reshade::api::effect_runtime *){
                 changed(bridge.prop(4+k,(int)(rgb[k]*255.f+0.5f)));
         }
         int flicker=l.flicker;
-        if(ImGui::Combo("Flicker",&flicker,"Subtle\0Steady\0Torch\0"))
+        if(ImGui::Combo("Flame Animation",&flicker,
+                        "Candle\0Steady\0Torch\0Pulse\0Ember\0"))
             changed(bridge.prop(12,flicker));
+        if(flicker!=1){
+            int speed=l.anim_speed,depth=l.anim_strength;
+            if(ImGui::SliderInt("Flame Speed",&speed,0,400))
+                changed(bridge.prop(15,speed));
+            if(ImGui::SliderInt("Flame Strength",&depth,0,100))
+                changed(bridge.prop(16,depth));
+            ImGui::TextDisabled("0 = legacy automatic animation setting");
+        }
         bool muted=l.muted!=0;
         if(ImGui::Checkbox("Mute emitter",&muted))
             changed(bridge.prop(11,muted?1:0));
@@ -327,6 +336,17 @@ void on_overlay(reshade::api::effect_runtime *){
                 for(int k=0;k<3;++k)
                     changed(bridge.global_property(global_style_slot,4+k,
                       (int)(color[k]*255.f+0.5f)));
+            int motion=style.light.flicker;
+            if(ImGui::Combo("Shared Animation",&motion,
+                           "Candle\0Steady\0Torch\0Pulse\0Ember\0"))
+                changed(bridge.global_property(global_style_slot,12,motion));
+            if(motion!=1){
+                int rate=style.light.anim_speed,depth=style.light.anim_strength;
+                if(ImGui::SliderInt("Shared Flame Speed",&rate,0,400))
+                    changed(bridge.global_property(global_style_slot,15,rate));
+                if(ImGui::SliderInt("Shared Flame Strength",&depth,0,100))
+                    changed(bridge.global_property(global_style_slot,16,depth));
+            }
         }
         for(int i=0;i<CVIII_GLOBAL_STYLE_MAX;++i)if(s->styles[i].used){
             ImGui::PushID(i+800);
