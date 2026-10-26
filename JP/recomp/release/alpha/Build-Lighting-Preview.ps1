@@ -43,14 +43,14 @@ if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
  throw 'Git for Windows is required.'
 }
 if (-not (Test-Path -LiteralPath $repo)) {
- Invoke-Git @('clone','--branch',$branch,'--single-branch',$uri,$repo)
+ Invoke-Git -Arguments @('clone','--branch',$branch,'--single-branch',$uri,$repo)
 } else {
  # This is a feature-only checkout; never switch or reset another branch.
  $current=(& git -C $repo branch --show-current)
  if ($LASTEXITCODE -ne 0 -or $current.Trim() -ne $branch) {
   throw 'The preview source folder contains a different branch. Refusing to overwrite it.'
  }
- Invoke-Git @('-C',$repo,'pull','--ff-only','origin',$branch)
+ Invoke-Git -Arguments @('-C',$repo,'pull','--ff-only','origin',$branch)
 }
 $commit=(& git -C $repo rev-parse HEAD).Trim()
 if ($LASTEXITCODE -ne 0) { throw 'Could not identify the preview source commit.' }
