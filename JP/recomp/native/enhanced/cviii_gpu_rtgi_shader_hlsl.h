@@ -127,7 +127,7 @@ void main(uint3 id:SV_DispatchThreadID){
             color+=l.col.rgb*power*blocked(l.pos.xy,pixel,-1);
         }
     }
-    color+=bounce(pixel);
+    if(pad==0u)color+=bounce(pixel); // RC computes its own indirect term
     outLight[id.y*128+id.x]=float4(min(color,16),1);
 }
 )CVIIIRTX";
