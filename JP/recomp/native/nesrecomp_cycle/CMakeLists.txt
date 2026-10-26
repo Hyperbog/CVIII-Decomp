@@ -98,6 +98,34 @@ endif()
 # ../../common/* includes remain correct, and the upstream file is untouched.
 # On headless builds the original CLI --save-state/--load-state is unchanged.
 option(JP_SAVE_STATE_SLOTS "Ten window quick-save slots, Ctrl+0..9, F8/F9" ON)
+# True desktop GUI for the optional Enhanced lighting editor. Dear ImGui
+# is an independently MIT-licensed build-only dependency, never vendored or
+# attached to the NESRecomp C11 emulator sources. The SDL2 renderer backend
+# works with SDL's Direct3D/OpenGL/software selection without forcing GL.
+if(NOT JP_CYCLE_HEADLESS AND JP_EDITION_HOST_EXTRAS AND JP_SAVE_STATE_SLOTS)
+ enable_language(CXX)
+ include(FetchContent)
+ FetchContent_Declare(cviii_dear_imgui
+  GIT_REPOSITORY https://github.com/ocornut/imgui.git
+  GIT_TAG v1.93.0
+  GIT_SHALLOW TRUE
+ )
+ FetchContent_MakeAvailable(cviii_dear_imgui)
+ target_sources(jp_akumajou_densetsu PRIVATE
+  "${cviii_dear_imgui_SOURCE_DIR}/imgui.cpp"
+  "${cviii_dear_imgui_SOURCE_DIR}/imgui_draw.cpp"
+  "${cviii_dear_imgui_SOURCE_DIR}/imgui_tables.cpp"
+  "${cviii_dear_imgui_SOURCE_DIR}/imgui_widgets.cpp"
+  "${cviii_dear_imgui_SOURCE_DIR}/backends/imgui_impl_sdl2.cpp"
+  "${cviii_dear_imgui_SOURCE_DIR}/backends/imgui_impl_sdlrenderer2.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_imgui_editor.cpp")
+ target_include_directories(jp_akumajou_densetsu PRIVATE
+  "${cviii_dear_imgui_SOURCE_DIR}"
+  "${cviii_dear_imgui_SOURCE_DIR}/backends")
+ target_compile_features(jp_akumajou_densetsu PRIVATE cxx_std_17)
+ # Copyright and license are included in the local private Alpha package.
+ message(STATUS "CVIII: pinned Dear ImGui v1.93.0 / SDL2_Renderer GUI")
+endif()
 if(NOT JP_CYCLE_HEADLESS AND JP_SAVE_STATE_SLOTS)
  set(JP_UPSTREAM_SDL "${NESRECOMP_EXTERNAL_ROOT}/runner/cyc/cyc_sdl.c")
  set(JP_SLOTS_OVERLAY "${NESRECOMP_EXTERNAL_ROOT}/runner/cyc/cviii_cyc_sdl_slots.c")
