@@ -123,5 +123,12 @@ uint32_t cviii_light_scene_resolve(const CviiiLighting *s,uint32_t source);
 int cviii_light_scene_alias(CviiiLighting *s,uint32_t source,uint32_t target);
 int cviii_light_extra_load(CviiiLighting *s,const char *key,const char *value);
 void cviii_light_extra_save(const CviiiLighting *s,FILE *file);
+/* Fixed-depth host authoring history, independent of emulated save slots. */
+void cviii_light_history_reset(void);
+void cviii_light_history_push(const CviiiLighting *s);
+int cviii_light_history_undo(CviiiLighting *s);
+int cviii_light_history_redo(CviiiLighting *s);
+int cviii_light_history_can_undo(void);
+int cviii_light_history_can_redo(void);
 
 #endif
