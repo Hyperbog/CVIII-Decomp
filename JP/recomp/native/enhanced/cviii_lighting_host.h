@@ -50,6 +50,12 @@ CVIII_LIGHT_EXPORT int cviii_lighting_editor_mask_add(int x,int y,int w,int h);
 CVIII_LIGHT_EXPORT int cviii_lighting_editor_world_point(int native_x,int native_y,int *world_x,int *world_y);
 CVIII_LIGHT_EXPORT int cviii_lighting_editor_mask_property(int slot,int property,int value);
 CVIII_LIGHT_EXPORT int cviii_lighting_editor_grade(int property,int value);
+/* Pixel FX editor: region-local fog/dust/embers/rain/ash/snow/fireflies. */
+CVIII_LIGHT_EXPORT int cviii_lighting_editor_particle_enabled(int enabled);
+CVIII_LIGHT_EXPORT int cviii_lighting_editor_particle_add(int kind,int native_x,int native_y);
+CVIII_LIGHT_EXPORT int cviii_lighting_editor_particle_property(int slot,int property,int value);
+CVIII_LIGHT_EXPORT int cviii_lighting_editor_particle_name(int slot,const char *name);
+CVIII_LIGHT_EXPORT int cviii_lighting_editor_particle_clone(int slot);
 CVIII_LIGHT_EXPORT int cviii_lighting_editor_kit_manage(int action,int source,int destination,const char *name);
 CVIII_LIGHT_EXPORT int cviii_lighting_editor_checkpoint(void);
 CVIII_LIGHT_EXPORT int cviii_lighting_editor_undo(void);
