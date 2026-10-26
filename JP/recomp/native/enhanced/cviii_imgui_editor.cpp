@@ -380,8 +380,18 @@ extern "C" int cviii_imgui_render(SDL_Window *window,SDL_Renderer *renderer){
                 }
                 int flicker=light.flicker;
                 if(ImGui::Combo("Flame animation",&flicker,
-                                  "Subtle\0Steady\0Torch flicker\0"))
+                    "Candle flicker\0Steady\0Torch turbulence\0Soft pulse\0Ember dips\0"))
                     maybe_change(12,flicker);
+                if(flicker!=1){
+                    int speed=light.anim_speed,depth=light.anim_strength;
+                    if(ImGui::SliderInt("Flame Speed",&speed,0,400,
+                                       speed?"%d%%":"Auto"))
+                        maybe_change(15,speed);
+                    if(ImGui::SliderInt("Flame Strength",&depth,0,100,
+                                       depth?"%d%%":"Auto"))
+                        maybe_change(16,depth);
+                    ImGui::TextDisabled("Auto preserves earlier profiles; animation is frame driven.");
+                }
                 if(ImGui::Button("Warm candle")){
                     maybe_change(4,255);maybe_change(5,167);maybe_change(6,74);
                 }
@@ -531,6 +541,20 @@ extern "C" int cviii_imgui_render(SDL_Window *window,SDL_Renderer *renderer){
                 if(ImGui::SliderInt("Global Shaft Width",&width,4,160))
                     if(cviii_lighting_editor_global_property(
                        global_style_slot,10,width))dirty=true;
+                int motion=gs.light.flicker;
+                if(ImGui::Combo("Shared Animation",&motion,
+                    "Candle\0Steady\0Torch\0Pulse\0Ember\0"))
+                    if(cviii_lighting_editor_global_property(
+                       global_style_slot,12,motion))dirty=true;
+                if(motion!=1){
+                    int speed=gs.light.anim_speed,depth=gs.light.anim_strength;
+                    if(ImGui::SliderInt("Shared Flame Speed",&speed,0,400))
+                        if(cviii_lighting_editor_global_property(
+                           global_style_slot,15,speed))dirty=true;
+                    if(ImGui::SliderInt("Shared Flame Strength",&depth,0,100))
+                        if(cviii_lighting_editor_global_property(
+                           global_style_slot,16,depth))dirty=true;
+                }
             }else ImGui::TextDisabled("Choose a slot and capture a light first.");
             ImGui::SeparatorText("Saved Global Styles");
             for(int i=0;i<CVIII_GLOBAL_STYLE_MAX;++i){
