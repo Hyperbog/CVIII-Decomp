@@ -209,5 +209,92 @@ int main(void){
  fclose(skyconfig);
  cviii_light_sky_get(&skyrt,64,&skypct,skycolor,&facing);
  assert(skypct==45 && skycolor[2]==255 && facing==-1);
+
+ /* Light style links keep world placement local, while all group members
+    read the same GLOBAL brightness/color settings in every room. */
+ CviiiLighting fx;cviii_light_init(&fx);fx.enabled=1;
+ int newlight=cviii_light_apply_builtin(&fx,1,7,130,108);
+ assert(newlight==0);
+ assert(cviii_light_style_capture(&fx,0,0,"Global Torch Style"));
+ assert(cviii_light_style_link_group(&fx,0,0));
+ assert(fx.light[0].style_link==1 && fx.light[1].style_link==1);
+ CviiiLight effective;
+ cviii_light_effective(&fx,&fx.light[1],&effective);
+ assert(effective.energy==120 && effective.x==136);
+ fx.styles[0].light.energy=155;
+ cviii_light_effective(&fx,&fx.light[1],&effective);
+ assert(effective.energy==155 && effective.x==136);
+ assert(!strcmp(effective.name,"Torch Spill"));
+ assert(cviii_light_style_link(&fx,1,-1));
+ cviii_light_effective(&fx,&fx.light[1],&effective);
+ assert(effective.energy==38);
+ assert(cviii_light_style_link(&fx,1,0));
+ assert(!cviii_light_style_link(&fx,1,15)); /* nonexistent global slot */
+ /* Authorable rectangle casts shadow only through the intersected segment,
+    with deterministic 5-sample soft penumbra and no cross-room bleed. */
+ int mask=cviii_light_mask_add(&fx,7,170,100,8,18);
+ assert(mask==0);
+ float shadow=cviii_light_shadow(&fx,7,130,108,210,108);
+ assert(shadow<0.5f && shadow>=0.f);
+ assert(cviii_light_shadow(&fx,8,130,108,210,108)==1.f);
+ assert(cviii_light_shadow(&fx,7,130,108,145,150)==1.f);
+ assert(!cviii_light_mask_remove(&fx,-1));
+ /* Scene exposure / cool white balance / saturation are independent of
+    ambient color multipliers and do not touch top HUD rows. */
+ assert(cviii_light_grade_set(&fx,7,55,30,125));
+ int ev=0,temp=0,saturation=0;
+ cviii_light_grade_get(&fx,7,&ev,&temp,&saturation);
+ assert(ev==55 && temp==30 && saturation==125);
+ cviii_light_grade_get(&fx,8,&ev,&temp,&saturation);
+ assert(ev==0 && temp==0 && saturation==100);
+ assert(!cviii_light_grade_set(&fx,7,300,0,100));
+ unsigned int gradeframe[256*240];
+ for(unsigned k=0;k<256*240;++k)gradeframe[k]=0xff808080u;
+ for(int y=0;y<240;++y){sx[y]=0;sy[y]=y;}
+ cviii_light_present(&fx,gradeframe,256,240,7,0,sx,sy,0);
+ assert(gradeframe[8*256+145]==0xff808080u);
+ assert(gradeframe[120*256+5]!=0xff646464u);
+ /* Explicit alias maps volatile source keys to a stable saved scene ID.
+    Other keys retain their original meaning; no implicit room merging. */
+ assert(cviii_light_scene_resolve(&fx,0x12345678u)==0x12345678u);
+ assert(cviii_light_scene_alias(&fx,0x12345678u,7));
+ assert(cviii_light_scene_resolve(&fx,0x12345678u)==7);
+ assert(cviii_light_scene_resolve(&fx,0x12345679u)==0x12345679u);
+ assert(cviii_light_scene_alias(&fx,0x12345678u,15));
+ assert(cviii_light_scene_resolve(&fx,0x12345678u)==15);
+ assert(cviii_light_scene_alias(&fx,0x12345678u,7));
+ /* Host-only undo/redo restores scene authoring but leaves edit state live. */
+ cviii_light_history_reset();
+ fx.edit=1;
+ int oldenergy=fx.styles[0].light.energy;
+ cviii_light_history_push(&fx);
+ fx.styles[0].light.energy=76;
+ assert(cviii_light_history_can_undo());
+ assert(cviii_light_history_undo(&fx));
+ assert(fx.styles[0].light.energy==oldenergy && fx.edit==1);
+ assert(cviii_light_history_can_redo());
+ assert(cviii_light_history_redo(&fx));
+ assert(fx.styles[0].light.energy==76);
+ cviii_light_history_reset();
+ /* Version-compatible persisted styles, links, mask, grade and alias. */
+ FILE *more=tmpfile();assert(more);
+ cviii_light_save(&fx,more);rewind(more);
+ CviiiLighting loadedfx;cviii_light_init(&loadedfx);
+ while(fgets(buf,sizeof buf,more)){
+     char *eq=strchr(buf,'=');if(!eq)continue;
+     char *key=buf,*val=eq+1;
+     while(eq>key && eq[-1]==' ')--eq;
+     *eq=0;while(*val==' ')++val;
+     size_t n=strlen(val);
+     while(n && (val[n-1]=='\n' || val[n-1]=='\r'))val[--n]=0;
+     assert(cviii_light_load(&loadedfx,key,val));
+ }
+ fclose(more);
+ assert(loadedfx.styles[0].used && loadedfx.styles[0].light.energy==76);
+ assert(loadedfx.light[0].style_link==1);
+ assert(loadedfx.masks[0].used && loadedfx.masks[0].w==8);
+ assert(cviii_light_scene_resolve(&loadedfx,0x12345678u)==7);
+ cviii_light_grade_get(&loadedfx,7,&ev,&temp,&saturation);
+ assert(ev==55 && temp==30 && saturation==125);
  return 0;
 }
