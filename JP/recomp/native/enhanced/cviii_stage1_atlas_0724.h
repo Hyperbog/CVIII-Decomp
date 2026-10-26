@@ -24,6 +24,15 @@ int cviii_stage1_atlas_get_0724(const CviiiStage1Atlas0724 *atlas,
     uint8_t *tile,uint8_t *palette);
 int cviii_stage1_atlas_width_0751(const CviiiStage1Atlas0724 *atlas,
                                  const uint8_t selector[3]);
+/* JP0760: project the original outermost 16-pixel strip into each
+ * out-of-bounds 16:9 side margin, WITHOUT altering native gameplay pixels.
+ * Source-key and per-pixel ROM tile/CHR lookup are identical to the atlas
+ * compositor. Call BEFORE painting current/previous real room geometry. */
+uint32_t cviii_stage1_atlas_extend_edges_0760(
+    const CviiiStage1Atlas0724 *atlas,const uint8_t selector[3],
+    int camera_x,int camera_y,uint32_t *dst,
+    int width,int height,int center_x,
+    uint8_t (*read_chr)(uint16_t),uint32_t (*read_color)(int));
 /* Paint only the side margins using currently authentic NES CHR/palette
  * mapper views; center native pixels are NEVER modified by this function.
  * camera_x/y are caller-supplied room-local pixel offsets; never guessed.

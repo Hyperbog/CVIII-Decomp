@@ -202,6 +202,18 @@ For example, run
 This is a working external keybinding interface, not an in-game F4
 rebind panel. A new keybinding is tested only after the game restarts.
 
+## JP0760 — Fill the Stage 1 original-ROM widescreen edges
+
+A horizontal camera within an authenticated Stage 1 room now draws
+the authentic outermost 16-pixel CHR/tile strip repeatedly into
+out-of-range side-column geometry **before** actual room tiles and
+source-verified previous-room atlas imagery overwrite it. This prevents
+the leftover black bars caused solely by atlas bounds near room edges.
+The original native 256x240 image, actors, PPU, timing and collisions
+are never modified. Only Stage 1 mapped horizontal screens are covered;
+other stages without authenticated atlases remain unsupported. A
+synthetic ROM-free test verifies both outer margins and center isolation.
+
 ## JP0661 native keyboard controls: profiles and recoverable presets
 
 The working native game already supports persistent SDL keyboard/gamepad

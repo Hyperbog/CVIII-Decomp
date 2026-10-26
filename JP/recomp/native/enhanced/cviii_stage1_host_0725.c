@@ -152,6 +152,12 @@ const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
         const int room_width=cviii_stage1_atlas_width_0751(&h->atlas,selector);
         if (room_width>=256 && camera_x>=0 && camera_x<=room_width-256) {
             cviii_stage1_join_accept_0751(&h->join,selector,camera_x,room_width);
+            /* First populate real-room out-of-bounds margins with a
+             * repeated authentic CHR edge strip. Real room and previous
+             * room atlases below always take precedence. */
+            (void)cviii_stage1_atlas_extend_edges_0760(&h->atlas,selector,
+                camera_x,camera_y,h->pixels,CVIII_STAGE1_WIDE_0725,240,
+                CVIII_STAGE1_ORIGIN_0725,cyc_render_chr,cyc_render_color);
             /* The actual current-room atlas fills side columns first. */
             (void)cviii_stage1_atlas_paint_0724(&h->atlas,selector,
                 camera_x,camera_y,h->pixels,CVIII_STAGE1_WIDE_0725,240,
