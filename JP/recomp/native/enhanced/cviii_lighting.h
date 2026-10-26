@@ -145,6 +145,14 @@ int cviii_weather_scene_profile(const CviiiLighting *s,uint32_t room);
 int cviii_weather_load(CviiiLighting *s,const char *key,const char *value);
 void cviii_weather_save(const CviiiLighting *s,FILE *file);
 int cviii_weather_intensity(const CviiiWeatherProfile *p,uint32_t room,uint64_t frame);
+typedef struct {
+    float x,y,radius,power;
+    uint8_t red,green,blue;
+} CviiiParticleGlow;
+int cviii_particle_glow_samples(const CviiiLighting *s,uint32_t room,
+    int camera,const int scroll_x[CVIII_LIGHT_H],
+    const int scroll_y[CVIII_LIGHT_H],uint64_t frame,
+    CviiiParticleGlow out[4]);
 int cviii_particle_name(CviiiLighting *s,int slot,const char *name);
 int cviii_particle_load(CviiiLighting *s,const char *key,const char *value);
 void cviii_particle_save(const CviiiLighting *s,FILE *file);
