@@ -223,7 +223,7 @@ def generate(text: str) -> str:
 
 def smoke() -> None:
     fixture="\n".join(("/* "+PREV+" */","static bool cviii_stage_open;",
-                       KEY_ANCHOR,START,FINAL))
+                       KEY_ANCHOR,START,FINAL,"    if (s_ui_shot_id >= 0) {"))
     product=generate(fixture)
     assert product.count(MARKER)==1
     assert "SDL_SCANCODE_HOME" in product
