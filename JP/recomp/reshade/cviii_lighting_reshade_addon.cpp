@@ -35,6 +35,9 @@ struct Bridge {
     int (*undo)()=nullptr;
     int (*redo)()=nullptr;
     int (*kit_manage)(int,int,int,const char*)=nullptr;
+    int (*renderer)()=nullptr;
+    int (*renderer_set)(int)=nullptr;
+    const char *(*gpu_status)()=nullptr;
     int (*builtin_count)()=nullptr;
     const char *(*builtin_name)(int)=nullptr;
     int (*event)(int,int,int)=nullptr;
@@ -90,6 +93,9 @@ bool bind_game(){
     b.undo=game_export<decltype(b.undo)>(exe,"cviii_lighting_editor_undo");
     b.redo=game_export<decltype(b.redo)>(exe,"cviii_lighting_editor_redo");
     b.kit_manage=game_export<decltype(b.kit_manage)>(exe,"cviii_lighting_editor_kit_manage");
+    b.renderer=game_export<decltype(b.renderer)>(exe,"cviii_lighting_editor_renderer");
+    b.renderer_set=game_export<decltype(b.renderer_set)>(exe,"cviii_lighting_editor_set_renderer");
+    b.gpu_status=game_export<decltype(b.gpu_status)>(exe,"cviii_lighting_editor_gpu_status");
     b.builtin_count=game_export<decltype(b.builtin_count)>(exe,"cviii_lighting_editor_builtin_count");
     b.builtin_name=game_export<decltype(b.builtin_name)>(exe,"cviii_lighting_editor_builtin_name");
     b.event=game_export<decltype(b.event)>(exe,"cviii_lighting_editor_input");
@@ -108,6 +114,7 @@ bool bind_game(){
        !b.global_property || !b.mask_add || !b.mask_window_rect ||
        !b.mask_property || !b.grade ||
        !b.undo || !b.redo || !b.kit_manage ||
+       !b.renderer || !b.renderer_set || !b.gpu_status ||
        !b.builtin_count || !b.builtin_name ||
        !b.event || !b.prop ||
        !b.copy || !b.paste || !b.duplicate || !b.name || !b.group ||
@@ -159,6 +166,18 @@ void on_overlay(reshade::api::effect_runtime *){
     if(ImGui::SmallButton("Redo"))changed(bridge.redo());
     ImGui::SameLine();
     ImGui::TextDisabled("Undo/Redo affect lighting only");
+    if(ImGui::CollapsingHeader("GPU Lighting Prototype")){
+        int mode=bridge.renderer();
+        if(ImGui::Combo("Lighting Mode",&mode,
+            "Standard CPU (fallback)\0D3D11 GPU Prototype (1 bounce)\0"))
+            changed(bridge.renderer_set(mode));
+        ImGui::TextWrapped("D3D11 GPU prototype ray traces manual scene masks "
+           "with sampled single-bounce colored reflections. Full NES image "
+           "resolution is preserved; lightmap is 128x96. Unsupported GPUs "
+           "and excess emitters always fall back to Standard.");
+        ImGui::TextDisabled("Backend: %s",bridge.gpu_status());
+        ImGui::TextDisabled("Standard preview while editor is open; GPU after close.");
+    }
     ImGui::InputTextWithHint("##filter","Filter lights and groups...",search,sizeof search);
     if(ImGui::Button(placement_pending?"CLICK ON LEVEL...":"Add Light: Click Level")){
         placement_pending=true;pending_kit_kind=-1;pending_kit_id=-1;
