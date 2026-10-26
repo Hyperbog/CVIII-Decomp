@@ -160,6 +160,25 @@ int main(void)
         !require(pixels[40*426+85]==original[40*256] &&
                  pixels[47*426+85]==original[47*256],
                  "HUD cannot slide with player across room seams"))return 1;
+    /* Death/game-over and checkpoint respawn in BLK 1-02:0. Neither
+     * preloaded room nor its authenticated predecessor may disappear. */
+    test_ram[0x18]=6;
+    w=256;h=240;
+    (void)cviii_stage1_host_present_0725(&host,original,&w,&h,1);
+    test_ram[0x18]=4;
+    test_ram[0x35]=1;test_ram[0x36]=0;
+    test_ram[0x53]=0;test_ram[0x54]=0;
+    scroll_x=256;
+    seed_visible_room(narrow_room,1);
+    w=256;h=240;
+    pixels=cviii_stage1_host_present_0725(&host,original,&w,&h,1);
+    if(!require(host.join.joined && host.join.direction==1 &&
+                !memcmp(host.join.adjacent,first_room,3),
+                "respawn reconstructs original preceding room") ||
+       !require(pixels[60*426+40]!=0xff000000u,
+                "checkpoint left side contains previous preloaded room") ||
+       !require(pixels[40*426+85]==original[40*256],
+                "HUD remains fixed after respawn"))return 1;
     test_ram[0x35]=0;test_ram[0x36]=0;
     scroll_x=0;test_ram[0x65]=0x80;w=256;h=240;
     pixels=cviii_stage1_host_present_0725(&host,original,&w,&h,1);

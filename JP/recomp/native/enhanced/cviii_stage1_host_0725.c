@@ -36,14 +36,26 @@ static int load(CviiiStage1Host0725 *h)
 void cviii_stage1_host_reset_0751(CviiiStage1Host0725 *h)
 {
     if(h) {
-        cviii_stage1_join_reset_0751(&h->join);
+        cviii_stage1_join_soft_reset_0782(&h->join);
         h->has_verified_scene=0;
     }
+}
+/* The original 1-01 exit to 1-02:0 is source-proven in JP0719. Both
+ * complete rooms are loaded from the authenticated Japanese cartridge.
+ * Make the connection available before any checkpoint spawn. */
+static void cviii_stage1_seed_links_0782(CviiiStage1Host0725 *h)
+{
+    static const uint8_t first[3]={0,0,0}, next[3]={0,1,0};
+    if(cviii_stage1_atlas_width_0751(&h->atlas,first)==768 &&
+       cviii_stage1_atlas_width_0751(&h->atlas,next)==256)
+        cviii_stage1_join_link_0782(&h->join,first,768,next,256);
 }
 int cviii_stage1_host_rom_0725(CviiiStage1Host0725 *h,const char *path)
 {
     if (!h || !path || !*path || strlen(path)>=sizeof h->rom_path) return 0;
     memcpy(h->rom_path,path,strlen(path)+1u);
+    /* Only selecting a different ROM invalidates learnt world geometry. */
+    cviii_stage1_join_reset_0751(&h->join);
     cviii_stage1_host_reset_0751(h);
     h->attempted=0;
     h->atlas.loaded=0;
@@ -160,6 +172,7 @@ const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
         cyc_video_set_mode(NES_VIDEO_16_9);
         h->video_wide=1;
     }
+    cviii_stage1_seed_links_0782(h);
 
     /* Source attestation identifies camera/page, not the lifespan of the
      * already loaded map. Keep the LAST authenticated scene across arbitrarily
@@ -175,6 +188,7 @@ const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
         int room_width=cviii_stage1_atlas_width_0751(&h->atlas,selector);
         if(room_width>=256 && camera_x>=0 && camera_x<=room_width-256) {
             cviii_stage1_join_accept_0751(&h->join,selector,camera_x,room_width);
+            cviii_stage1_join_restore_0782(&h->join,selector,camera_x,room_width);
             center=viewport_center_0770(camera_x,room_width,&h->join);
             memcpy(h->last_verified_selector,selector,sizeof selector);
             h->last_verified_camera=camera_x;
@@ -188,7 +202,13 @@ const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
         center=h->last_verified_center;
         valid_camera=1; /* display only the persistent atlas, no new trust */
     }
-    if(!horizontal_play) cviii_stage1_host_reset_0751(h);
+    if(!horizontal_play) {
+        /* A death changes live game state, not the preloaded room atlas or
+         * authenticated map of adjacent rooms. Keep graph and last scene;
+         * the next valid checkpoint camera can recover its predecessor. */
+        cviii_stage1_join_soft_reset_0782(&h->join);
+        valid_camera=0;
+    }
     for(int row=0;row<240;row++) {
         uint32_t *dst=h->pixels+(size_t)row*CVIII_STAGE1_WIDE_0725;
         for(int x=0;x<CVIII_STAGE1_WIDE_0725;x++)

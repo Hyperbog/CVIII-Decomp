@@ -3,6 +3,60 @@
 void cviii_stage1_join_reset_0751(CviiiStage1Join0751 *j) {
     if(j)memset(j,0,sizeof *j);
 }
+
+/* JP0782: source-verified horizontal room connections stay in memory
+ * across death, checkpoint respawn and arbitrary-length transitions. */
+static CviiiRoomLink0782 *find_link(CviiiStage1Join0751 *j,
+                                    const uint8_t key[3],int create) {
+    if(!j || !key)return NULL;
+    for(unsigned i=0;i<j->link_count;i++)
+        if(!memcmp(j->links[i].key,key,3))return &j->links[i];
+    if(!create || j->link_count>=CVIII_STAGE1_LINK_SLOTS_0782)return NULL;
+    CviiiRoomLink0782 *link=&j->links[j->link_count++];
+    memset(link,0,sizeof *link);
+    memcpy(link->key,key,3);
+    return link;
+}
+void cviii_stage1_join_soft_reset_0782(CviiiStage1Join0751 *j) {
+    if(!j)return;
+    j->valid=0;
+    j->joined=0;
+    j->gap=0;
+    j->has_side=0;
+    j->hold_age=0;
+}
+void cviii_stage1_join_link_0782(CviiiStage1Join0751 *j,
+    const uint8_t left[3],int lw,const uint8_t right[3],int rw) {
+    if(!j || !left || !right || !memcmp(left,right,3) ||
+       lw<256 || rw<256)return;
+    CviiiRoomLink0782 *l=find_link(j,left,1);
+    CviiiRoomLink0782 *r=find_link(j,right,1);
+    if(!l || !r)return;
+    memcpy(l->right,right,3);
+    l->right_width=rw;
+    l->has_right=1;
+    memcpy(r->left,left,3);
+    r->left_width=lw;
+    r->has_left=1;
+}
+void cviii_stage1_join_restore_0782(CviiiStage1Join0751 *j,
+    const uint8_t key[3],int camera,int width) {
+    if(!j || !key || j->joined || width<256 ||
+       camera<0 || camera>width-256)return;
+    CviiiRoomLink0782 *link=find_link(j,key,0);
+    if(!link)return;
+    if(camera<CVIII_JOIN_SIDE && link->has_left) {
+        memcpy(j->adjacent,link->left,3);
+        j->prior_width=link->left_width;
+        j->direction=1;
+        j->joined=1;
+    } else if(camera>=width-256-CVIII_JOIN_SIDE && link->has_right) {
+        memcpy(j->adjacent,link->right,3);
+        j->prior_width=link->right_width;
+        j->direction=-1;
+        j->joined=1;
+    }
+}
 void cviii_stage1_join_gap_0751(CviiiStage1Join0751 *j) {
     if(j && j->gap<CVIII_JOIN_GAP_MAX+1u)j->gap++;
 }
@@ -29,6 +83,10 @@ void cviii_stage1_join_accept_0751(CviiiStage1Join0751 *j,
         if(j->joined) {
             memcpy(j->adjacent,j->last,3);
             j->prior_width=j->last_width;
+            if(j->direction==1)
+                cviii_stage1_join_link_0782(j,j->last,j->last_width,key,width);
+            else
+                cviii_stage1_join_link_0782(j,key,width,j->last,j->last_width);
         }
     }
     if(j->joined && ((j->direction==1 && camera>=CVIII_JOIN_SIDE) ||

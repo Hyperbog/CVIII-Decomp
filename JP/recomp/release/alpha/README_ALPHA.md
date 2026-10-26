@@ -270,6 +270,27 @@ unknown scenery before the actual beginning of the cartridge level,
 nor does it create nonexistent offscreen enemies. On-screen Windows
 visual validation is still required.
 
+## JP0781/JP0782 — Fixed NES HUD and persistent checkpoint scenery
+
+JP0781 anchors the complete original NES status area (scanlines 0..47) at
+wide X85. The room atlas compositor also protects the fixed lower HUD
+rectangle against camera-relative paints on scanlines 32..47. NES gameplay
+pixels below scanline 48 still follow real room boundaries.
+
+JP0782 maintains a persistent graph of source-verified neighboring
+Stage 1 rooms separately from ephemeral camera state. The authentic
+first room (BLK 1-01, 768px) and following checkpoint room
+(BLK 1-02:0, 256px) are linked at initial atlas load based on the
+owner's original native replay. Death, game over, and room reload do
+not delete those links; other observed source-valid horizontal
+crossings are remembered too. At a checkpoint spawn the renderer can
+reconstruct the real previous room directly from the preloaded atlas,
+without forcing the player to traverse its doorway again. Unknown
+connections remain unknown and are never replaced with cloned tiles.
+Neither feature changes original CPU, PPU, OAM, save-state, or VRC6
+behavior. ROM-free framebuffer and room-graph tests cover both fixes.
+Original-ROM owner visual confirmation is still required.
+
 ## JP0661 native keyboard controls: profiles and recoverable presets
 
 The working native game already supports persistent SDL keyboard/gamepad

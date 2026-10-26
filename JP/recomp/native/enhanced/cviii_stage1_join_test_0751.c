@@ -35,6 +35,20 @@ int main(void) {
     if(!check(cviii_stage1_join_previous_0751(j,0,256,old,&offset) &&
        !memcmp(old,a,3) && offset==768,
        "persistent preloaded room survives any transition duration"))return 5;
+    /* A checkpoint may spawn in the next room without re-crossing the
+     * transition. The decoded first-room atlas must remain visible. */
+    cviii_stage1_join_soft_reset_0782(j);
+    cviii_stage1_join_link_0782(j,a,768,b,256);
+    cviii_stage1_join_accept_0751(j,b,0,256);
+    cviii_stage1_join_restore_0782(j,b,0,256);
+    if(!check(cviii_stage1_join_previous_0751(j,0,256,old,&offset) &&
+       !memcmp(old,a,3) && offset==768,
+       "checkpoint restored the real preceding room"))return 9;
+    cviii_stage1_join_soft_reset_0782(j);
+    cviii_stage1_join_accept_0751(j,c,100,768);
+    cviii_stage1_join_restore_0782(j,c,100,768);
+    if(!check(!cviii_stage1_join_previous_0751(j,100,768,old,&offset),
+       "unknown connection must never be fabricated"))return 10;
     for(int y=0;y<CVIII_JOIN_H;y++)for(int x=0;x<CVIII_JOIN_W;x++)
         frame[y*CVIII_JOIN_W+x]=x<85 ? 0xff101010u:
            (x>=341 ? 0xff202020u:0xffabcdefu);
