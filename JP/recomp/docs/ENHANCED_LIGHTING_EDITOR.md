@@ -362,6 +362,28 @@ and [**Production RTGI roadmap**](ENHANCED_LIGHTING_RTGI_ROADMAP.md)
 for implementation, limits, room/scroll QA and future multibounce
 and GPU-resident compositing work.
 
+## Native-Pixel Atmosphere and Particle FX
+
+The Lighting Studio now includes a **Particles** tab with seven
+room-scoped, world-anchored atmospheric effects: **Floating Dust,
+Rising Embers, Pixel Fog, Falling Ash, Snow, Rain, and Fireflies**.
+Create a persistent emitter at view center or click a world location;
+adjust density, region size, wind, motion speed, opacity, color and
+native pixel size. Duplicate, rename or delete authored regions.
+The genuine ReShade editor has matching Pixel FX controls.
+
+All particles use deterministic, original-resolution pixel rendering
+with palette-like quantized color blending. **Pixel Fog** is stippled,
+not blurred or volumetric. The effect pass runs after either Standard
+or D3D11 lighting, keeps the HUD intact, and remains available even
+when the lighting feature itself is disabled. Emitter regions survive
+game reset, death, savestate loading, room scrolling and return
+through the existing scene identity/config.ini path.
+
+See [**Pixel FX guide and acceptance checklist**](ENHANCED_PIXEL_PARTICLES.md)
+for supported controls, saved keys, performance budgets and current
+sprite-occlusion limitations.
+
 ## Windows owner visual acceptance — Stage 1
 
 This is a reproducible manual test, **not a claim of completed gameplay QA**.
