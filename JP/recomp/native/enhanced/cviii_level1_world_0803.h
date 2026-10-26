@@ -70,6 +70,7 @@ enum { CVIII_STAGE1_CHAPEL_SOURCES_0813=9 };
 typedef struct {
     uint16_t source_cpu;
     uint8_t source_type, linked_slot, actor_confirmed;
+    uint8_t guest_installed, guest_slot; /* original $054E slot, not OAM */
     uint8_t sprite_selector, sprite_frame, sprite_mirror, sprite_attrs;
     uint8_t point_region, interaction_policy;
     uint8_t visual_valid, sprite_pieces;
