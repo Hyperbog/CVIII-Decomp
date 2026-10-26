@@ -170,7 +170,7 @@ def smoke():
         try:pack(broken)
         except ValueError:pass
         else:raise AssertionError('unsafe source-data mutation admitted: '+mutate)
-    print('PASS JP0659 ROM-free original room schema, exact 175-byte invented source roundtrip and 7 rejection gates')
+    print('PASS JP0659 ROM-free original room schema, exact 175-byte invented source roundtrip and 9 rejection gates')
 
 def main():
     p=argparse.ArgumentParser(description=__doc__)
