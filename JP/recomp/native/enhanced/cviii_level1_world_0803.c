@@ -118,6 +118,12 @@ int cviii_world_preload_horizontal_0816(CviiiLevel1World0803 *w,
     w->horizontal_ready=1u;
     memset(&w->horizontal_last,0,sizeof w->horizontal_last);
     w->horizontal_observations=0u;
+    memset(w->horizontal_live,0,sizeof w->horizontal_live);
+    memset(w->horizontal_predicted,0,sizeof w->horizontal_predicted);
+    w->horizontal_scheduler_samples=0u;
+    w->horizontal_row_activations=0u;
+    w->horizontal_row_deactivations=0u;
+    w->horizontal_event_transitions=0u;
     return 1;
 }
 int cviii_world_observe_horizontal_0816(CviiiLevel1World0803 *w,
@@ -136,6 +142,46 @@ int cviii_world_observe_horizontal_0816(CviiiLevel1World0803 *w,
     if(w->horizontal_observations!=UINT32_MAX)
         w->horizontal_observations++;
     return next.valid ? 1:0;
+}
+/* JP0817: source-slot census for the ORIGINAL CPU frame. An event row
+ * becoming nonzero means $84EA is eligible to dispatch its handler:
+ * it is NOT proof of an actor creation. $83D1 movement is recorded as
+ * a prospective next-code-step result and never applied to guest RAM.
+ * No assumptions about handler-specific calls to $8CDD are promoted. */
+int cviii_world_observe_scheduler_0817(CviiiLevel1World0803 *w,
+            const uint8_t key[3],const uint8_t ram[2048])
+{
+    if(!w || !w->ready || !w->horizontal_ready ||
+       !key || !ram || key[0]!=0u)return -1;
+    const int room=cviii_world_index_0803(w,key);
+    if(room<0 || room==2 || !w->horizontal[room].valid)return -1;
+    CviiiHorizontalLive0817 next[CVIII_SOURCE_SLOTS_0817];
+    CviiiHorizontalMotion0817 predicted[CVIII_SOURCE_SLOTS_0817];
+    int active=0;
+    for(unsigned x=0;x<CVIII_SOURCE_SLOTS_0817;x++){
+        next[x]=cviii_horizontal_live_0817(ram,x);
+        predicted[x]=cviii_horizontal_motion_0817(ram,x);
+        if(next[x].will_dispatch)active++;
+    }
+    if(w->horizontal_scheduler_samples){
+        for(unsigned x=0;x<CVIII_SOURCE_SLOTS_0817;x++){
+            const CviiiHorizontalLive0817 old=w->horizontal_live[x];
+            if(!old.row && next[x].row &&
+               w->horizontal_row_activations!=UINT32_MAX)
+               w->horizontal_row_activations++;
+            if(old.row && !next[x].row &&
+               w->horizontal_row_deactivations!=UINT32_MAX)
+               w->horizontal_row_deactivations++;
+            if(old.event_byte!=next[x].event_byte &&
+               w->horizontal_event_transitions!=UINT32_MAX)
+               w->horizontal_event_transitions++;
+        }
+    }
+    memcpy(w->horizontal_live,next,sizeof next);
+    memcpy(w->horizontal_predicted,predicted,sizeof predicted);
+    if(w->horizontal_scheduler_samples!=UINT32_MAX)
+        w->horizontal_scheduler_samples++;
+    return active;
 }
 /* JP0813: retain the original Stage 1 chapel's resident source identities
  * while independently observing the original 6502 $8213-$8254 admission
