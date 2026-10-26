@@ -139,9 +139,9 @@ controls are intended to appear within **ReShade itself**. It must
 be compiled and installed separately, and is **not yet owner-tested**
 or included with the standard private Alpha. Its first iteration
 supports named lights, groups, clipboard, shape and scene controls;
-new ReShade-side lights are created at the visible scene center
-and then moved using exact X/Y. Direct scene-click placement in the
-ReShade add-on is still pending. ReShade Home may conflict with the
+new ReShade-side lights support Add Light: Click Level via the
+native SDL2 coordinate mapping, with Add at Center and numeric X/Y
+as alternatives. Genuine overlay click placement is not owner-verified. ReShade Home may conflict with the
 native Home editor shortcut: set `LightingEditorKey = End` for
 ReShade testing.
 
