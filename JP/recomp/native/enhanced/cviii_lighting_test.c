@@ -126,5 +126,88 @@ int main(void){
  assert(ambient_percent==43 && ambient_color[1]==173);
  assert(!cviii_light_load(&loaded,"LightName00","FF"));
  assert(!cviii_light_load(&loaded,"LightStyle00","7,0,0,0,0,0"));
+ /* Global library archetypes are multi-emitter, deterministic, world-relative. */
+ assert(cviii_light_builtin_count()>=7);
+ assert(!strcmp(cviii_light_builtin_name(0),"Candle"));
+ CviiiLighting kits;cviii_light_init(&kits);kits.edit=1;
+ int start=cviii_light_apply_builtin(&kits,1,42,400,112);
+ assert(start==0 && kits.light[0].used && kits.light[1].used);
+ assert(kits.light[0].room==42 && kits.light[1].y==104);
+ assert(!strcmp(kits.light[0].group,"Torch"));
+ assert(kits.light[0].flicker==2);
+ /* Group capture includes both emitters, maintaining relative positions. */
+ assert(cviii_light_kit_capture(&kits,0,0,"Custom Torch Pair"));
+ assert(kits.kits[0].count==2 && kits.kits[0].used);
+ assert(kits.kits[0].part[0].x==0 && kits.kits[0].part[1].y==-8);
+ int pasted=cviii_light_kit_apply(&kits,0,100,700,220);
+ assert(pasted==2 && kits.light[3].room==100);
+ assert(kits.light[2].x==700 && kits.light[3].y==212);
+ assert(!strcmp(kits.light[3].name,"Torch Spill"));
+ assert(cviii_light_apply_builtin(&kits,3,42,500,110)==4);
+ assert(kits.light[4].shape==CVIII_SHAPE_SHAFT);
+ assert(kits.light[5].shape==CVIII_SHAPE_RADIAL);
+ /* Fail atomically if a multi-part rig overlaps a world boundary. */
+ int old=0;for(int k=0;k<CVIII_LIGHT_MAX;++k)old+=kits.light[k].used;
+ assert(cviii_light_apply_builtin(&kits,1,42,0,2)<0);
+ int now=0;for(int k=0;k<CVIII_LIGHT_MAX;++k)now+=kits.light[k].used;
+ assert(now==old);
+ /* Named global custom rigs survive an ordinary config.ini save/load. */
+ FILE *kitconfig=tmpfile();assert(kitconfig);
+ cviii_light_save(&kits,kitconfig);rewind(kitconfig);
+ CviiiLighting reloaded;cviii_light_init(&reloaded);
+ while(fgets(buf,sizeof buf,kitconfig)){
+   char *eq=strchr(buf,'=');
+   if(!eq)continue;
+   char *k=buf,*v=eq+1;
+   while(eq>k && eq[-1]==' ')--eq;
+   *eq=0;while(*v==' ')++v;
+   size_t n=strlen(v);
+   while(n && (v[n-1]=='\r' || v[n-1]=='\n'))v[--n]=0;
+   assert(cviii_light_load(&reloaded,k,v));
+ }
+ fclose(kitconfig);
+ assert(reloaded.kits[0].used && reloaded.kits[0].count==2);
+ assert(!strcmp(reloaded.kits[0].name,"Custom Torch Pair"));
+ assert(!strcmp(reloaded.kits[0].part[1].name,"Torch Spill"));
+ int replay=cviii_light_kit_apply(&reloaded,0,222,800,145);
+ assert(replay>=0 && reloaded.light[replay+1].y==137);
+ assert(!cviii_light_kit_load(&reloaded,"LightKit00","2,XYZ"));
+ /* Sky fill is additive, separate from the legacy colored ambient filter.
+  * Gradient is brighter at the upper scene edge than the lower edge. */
+ CviiiLighting sky;cviii_light_init(&sky);sky.enabled=1;
+ assert(cviii_light_sky_set(&sky,64,45,147,190,255,-1));
+ int skypct=0,skycolor[3]={0},facing=2;
+ cviii_light_sky_get(&sky,64,&skypct,skycolor,&facing);
+ assert(skypct==45 && skycolor[0]==147 && facing==-1);
+ unsigned int skyframe[256*240];
+ for(unsigned k=0;k<256*240;++k)skyframe[k]=0xff808080u;
+ for(int y=0;y<240;++y){sx[y]=0;sy[y]=y;}
+ cviii_light_present(&sky,skyframe,256,240,64,0,sx,sy,0);
+ assert(skyframe[60*256+125]!=0xff646464u);
+ assert((skyframe[60*256+125]&255u)>(skyframe[225*256+125]&255u));
+ assert(skyframe[20*256+125]==0xff808080u);
+ unsigned int other[256*240];
+ for(unsigned k=0;k<256*240;++k)other[k]=0xff808080u;
+ cviii_light_present(&sky,other,256,240,65,0,sx,sy,0);
+ assert(other[60*256+125]==0xff646464u);
+ assert(cviii_light_scene_set(&sky,64,68,255,255,255));
+ cviii_light_sky_get(&sky,64,&skypct,skycolor,&facing);
+ assert(skypct==45 && facing==-1); /* ambient edit never clears sky */
+ FILE *skyconfig=tmpfile();assert(skyconfig);
+ cviii_light_save(&sky,skyconfig);rewind(skyconfig);
+ CviiiLighting skyrt;cviii_light_init(&skyrt);
+ while(fgets(buf,sizeof buf,skyconfig)){
+   char *eq=strchr(buf,'=');
+   if(!eq)continue;
+   char *k=buf,*v=eq+1;
+   while(eq>k && eq[-1]==' ')--eq;
+   *eq=0;while(*v==' ')++v;
+   size_t n=strlen(v);
+   while(n && (v[n-1]=='\r' || v[n-1]=='\n'))v[--n]=0;
+   assert(cviii_light_load(&skyrt,k,v));
+ }
+ fclose(skyconfig);
+ cviii_light_sky_get(&skyrt,64,&skypct,skycolor,&facing);
+ assert(skypct==45 && skycolor[2]==255 && facing==-1);
  return 0;
 }
