@@ -55,6 +55,7 @@ int main(void){
  assert(highlight>200 && highlight<255);
  assert((bright[90*256+32]&0xff000000u)==0xff000000u);
  /* Ambience is bounded, and corrupt profile entries fail closed. */
+ assert(cviii_light_event(&l,1,-1,-1,9,500,sx,sy)); /* reopen editor */
  assert(cviii_light_event(&l,11,-1,-1,9,500,sx,sy));
  assert(l.ambient==81);
  assert(!cviii_light_load(&restored,"Light00","1,9,532,100,0,85,255,167,74"));
