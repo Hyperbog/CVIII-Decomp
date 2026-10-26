@@ -240,6 +240,17 @@ int main(void) {
     p=e->present(e->ctx,&w,&h);
     assert(p!=native && p[90*256+72]!=native[90*256+72]);
     assert(p[20*256+72]==native[20*256+72]);
+    /* In headless/portable hosts even a saved Radiance Cascades mode
+     * must produce exactly the Standard enhanced pixels, never a blank
+     * lightmap, and preserve Original graphics/HUD. */
+    const uint32_t standard_pixel=p[90*256+72];
+    assert(cviii_lighting_editor_set_renderer(2));
+    assert(cviii_lighting_editor_set_cascade_quality(4));
+    p=e->present(e->ctx,&w,&h);
+    assert(p[90*256+72]==standard_pixel);
+    assert(p[20*256+72]==native[20*256+72]);
+    assert(!cviii_lighting_editor_gpu_active());
+    assert(cviii_lighting_editor_set_renderer(0));
     e->load_setting(e->ctx,"Lighting","0");
     assert(e->present(e->ctx,&w,&h)==native);
     puts("PASS CVIII Original fallback / Enhanced compositor / persisted settings");
