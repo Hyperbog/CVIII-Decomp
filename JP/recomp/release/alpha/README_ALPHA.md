@@ -50,6 +50,16 @@ test executable: the stable launcher uses the normal private Alpha directory.
 The preview script builds and invokes its dedicated candidate directly. No
 ROM files or privately compiled executables are part of the public artifact.
 
+### Live lighting workbench
+
+Home (default) opens a ReShade-inspired dark dock over the right side
+of the game, pausing NES gameplay. ADD then click the exposed level to
+place a light. Click a light in SCENE LIGHTS to select it, drag RADIUS /
+POWER / RED / GREEN / BLUE sliders to edit immediately, or use the
+large on-level handles for drag placement. Scroll the list to access
+additional lights. CLOSE or Home resumes gameplay. The lighting dock
+does not use ReShade or an additional runtime DLL.
+
 ## JP0661 native keyboard controls: profiles and recoverable presets
 
 The working native game already supports persistent SDL keyboard/gamepad
