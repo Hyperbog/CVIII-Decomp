@@ -220,6 +220,8 @@ static void load_setting(void *context, const char *key, const char *value)
     }
     else if (!strcmp(key,"Particles") || !strncmp(key,"Particle",8))
         (void)cviii_particle_load(&cviii.lighting,key,value);
+    else if (!strncmp(key,"Weather",7))
+        (void)cviii_weather_load(&cviii.lighting,key,value);
     else if (!strncmp(key,"Light",5) || !strncmp(key,"RoomAmbient",11) ||
              !strncmp(key,"RoomSky",7) || !strncmp(key,"GlobalStyle",11) ||
              !strncmp(key,"Occluder",8) || !strncmp(key,"SceneGrade",10) ||
@@ -237,6 +239,7 @@ static void save_settings(void *context, FILE *file)
     cviii_audio_levels_save(&cviii.volume,file);
     cviii_light_save(&cviii.lighting,file);
     cviii_particle_save(&cviii.lighting,file);
+    cviii_weather_save(&cviii.lighting,file);
     fprintf(file,"LightingEditorKey = %s\n",cviii.lighting_editor_key);
     fprintf(file,"LightingRenderer = %s\n",
             cviii.lighting_renderer==2?"RadianceCascades":
@@ -877,6 +880,41 @@ int cviii_lighting_editor_particle_name(int slot,const char *name)
     cviii_light_history_push(&cviii.lighting);
     return cviii_particle_name(&cviii.lighting,slot,name);
 }
+int cviii_lighting_editor_particle_attach(int slot,int light_slot)
+{
+    if(!cviii_lighting_editor_active() ||
+       slot<0 || slot>=CVIII_PARTICLE_EMITTER_MAX ||
+       !cviii.lighting.particles[slot].used ||
+       cviii.lighting.particles[slot].room!=cviii_lighting_room())return 0;
+    cviii_light_history_push(&cviii.lighting);
+    return cviii_particle_attach(&cviii.lighting,slot,light_slot);
+}
+int cviii_lighting_editor_weather_template(int slot,int preset)
+{
+    if(!cviii_lighting_editor_active())return 0;
+    cviii_light_history_push(&cviii.lighting);
+    return cviii_weather_template(&cviii.lighting,slot,preset);
+}
+int cviii_lighting_editor_weather_link(int slot)
+{
+    if(!cviii_lighting_editor_active())return 0;
+    cviii_light_history_push(&cviii.lighting);
+    int ok=cviii_weather_link(&cviii.lighting,cviii_lighting_room(),slot);
+    if(ok && slot>=0)cviii.lighting.particles_enabled=1;
+    return ok;
+}
+int cviii_lighting_editor_weather_property(int slot,int property,int value)
+{
+    if(!cviii_lighting_editor_active())return 0;
+    cviii_light_history_push(&cviii.lighting);
+    return cviii_weather_property(&cviii.lighting,slot,property,value);
+}
+int cviii_lighting_editor_weather_name(int slot,const char *name)
+{
+    if(!cviii_lighting_editor_active())return 0;
+    cviii_light_history_push(&cviii.lighting);
+    return cviii_weather_name(&cviii.lighting,slot,name);
+}
 int cviii_lighting_editor_particle_clone(int slot)
 {
     if(!cviii_lighting_editor_active() ||
@@ -884,12 +922,16 @@ int cviii_lighting_editor_particle_clone(int slot)
        !cviii.lighting.particles[slot].used ||
        cviii.lighting.particles[slot].room!=cviii_lighting_room())return -1;
     CviiiParticleEmitter e=cviii.lighting.particles[slot];
-    int nx=e.x+12,ny=e.y+8;
+    CviiiParticleEmitter world;
+    if(!cviii_particle_world_region(&cviii.lighting,&e,&world))return -1;
+    int nx=world.x+12,ny=world.y+8;
     if(nx+e.w>65535 || ny+e.h>479)return -1;
     cviii_light_history_push(&cviii.lighting);
     for(int i=0;i<CVIII_PARTICLE_EMITTER_MAX;++i)
         if(!cviii.lighting.particles[i].used){
-            e.x=nx;e.y=ny;cviii.lighting.particles[i]=e;return i;
+            e.x=nx;e.y=ny;
+            if(e.light_link){e.link_dx+=12;e.link_dy+=8;}
+            cviii.lighting.particles[i]=e;return i;
         }
     return -1;
 }
