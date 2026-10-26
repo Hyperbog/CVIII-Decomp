@@ -183,20 +183,24 @@ int cviii_world_link_chapel_0814(CviiiLevel1World0803 *w,
         if(!admission.admitted)continue;
         found[i]=cviii_source_link_0814(record,admission.local_axis,ram);
     }
-    /* If two original source records claim the same original slot,
-     * neither is safe to associate. Reject both, not first-wins. */
+    /* Check duplicates against the immutable candidate set. A three-way
+     * collision must invalidate ALL three sources, not just the first two. */
+    CviiiSourceLink0814 unique[CVIII_STAGE1_CHAPEL_SOURCES_0813];
+    memcpy(unique,found,sizeof unique);
     for(unsigned i=0;i<CVIII_STAGE1_CHAPEL_SOURCES_0813;i++){
-        for(unsigned j=i+1;j<CVIII_STAGE1_CHAPEL_SOURCES_0813;j++){
-            if(found[i].kind!=CVIII_LINK_NONE_0814 &&
-               found[i].kind!=CVIII_LINK_AMBIGUOUS_0814 &&
-               found[i].kind==found[j].kind &&
+        if(found[i].kind==CVIII_LINK_NONE_0814 ||
+           found[i].kind==CVIII_LINK_AMBIGUOUS_0814)continue;
+        for(unsigned j=0;j<CVIII_STAGE1_CHAPEL_SOURCES_0813;j++){
+            if(i==j)continue;
+            if(found[i].kind==found[j].kind &&
                found[i].slot==found[j].slot){
-                found[i].kind=CVIII_LINK_AMBIGUOUS_0814;
-                found[j].kind=CVIII_LINK_AMBIGUOUS_0814;
-                found[i].slot=0;found[j].slot=0;
+                unique[i].kind=CVIII_LINK_AMBIGUOUS_0814;
+                unique[i].slot=0;
+                break;
             }
         }
     }
+    memcpy(found,unique,sizeof found);
     for(unsigned i=0;i<CVIII_STAGE1_CHAPEL_SOURCES_0813;i++)
         if(found[i].kind==CVIII_LINK_EVENT_0814 ||
            found[i].kind==CVIII_LINK_DIRECT_0814)matches++;
