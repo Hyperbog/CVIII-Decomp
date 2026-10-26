@@ -163,12 +163,28 @@ int main(void) {
     assert(strstr(text,"MusicVolume = 28"));
     assert(strstr(text,"SoundEffectsVolume = 64"));
     assert(strstr(text,"LightingEditorKey = Insert"));
+    assert(strstr(text,"LightingRenderer = Standard"));
+    /* GPU mode is a saved *preference* only; Original and headless must
+       never invoke GPU or alter original PPU parity. */
+    assert(cviii_lighting_editor_renderer()==0);
+    assert(!cviii_lighting_editor_set_renderer(1)); /* Original mode */
+    e->load_setting(e->ctx,"LightingRenderer","GPUPrototype");
+    assert(cviii_lighting_editor_renderer()==1);
+    assert(e->present(e->ctx,&w,&h)==native);
+    e->load_setting(e->ctx,"LightingRenderer","invalid");
+    assert(cviii_lighting_editor_renderer()==0);
     /* Light editor must not affect original mode and must leave HUD intact. */
     assert(!cviii_lighting_editor_active());
     assert(!cviii_lighting_editor_input(1,-1,-1)); /* Original selected */
     assert(e->option(e->ctx,"--edition","enhanced"));
     assert(cviii_lighting_editor_input(1,-1,-1));
     assert(cviii_lighting_editor_active());
+    assert(cviii_lighting_editor_set_renderer(1));
+    assert(cviii_lighting_editor_renderer()==1);
+    assert(!cviii_lighting_editor_gpu_active()); /* no fake success flag */
+    assert(cviii_lighting_editor_gpu_status()!=NULL);
+    assert(cviii_lighting_editor_set_renderer(0));
+    assert(cviii_lighting_editor_renderer()==0);
     assert(cviii_lighting_editor_model()->selected==-1);
     assert(!cviii_lighting_editor_select(0)); /* no lights before placing */
     assert(cviii_lighting_editor_add(95,108));
