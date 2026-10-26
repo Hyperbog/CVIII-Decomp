@@ -709,6 +709,10 @@ set_property(TARGET jp_horizontal_lineage_test_0819 PROPERTY C_STANDARD 11)
 add_executable(jp_b727_contact_test_0820
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_b727_contact_test_0820.c")
 set_property(TARGET jp_b727_contact_test_0820 PROPERTY C_STANDARD 11)
+# JP0821 owner-ROM original B6CE/B5DF/B486 effects: pure prefix model.
+add_executable(jp_contact_effects_test_0821
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_contact_effects_test_0821.c")
+set_property(TARGET jp_contact_effects_test_0821 PROPERTY C_STANDARD 11)
 # JP0821: source-faithful response prefixes and live slot23 visual witness.
 add_executable(jp_contact_effects_test_0821
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_contact_effects_test_0821.c")
@@ -731,6 +735,7 @@ if(BUILD_TESTING)
   add_test(NAME JP0819_B3ecAndPartners COMMAND jp_interaction_preflight_test_0819)
   add_test(NAME JP0819_SourceParentLifetime COMMAND jp_horizontal_lineage_test_0819)
   add_test(NAME JP0820_B727ContactPrefix COMMAND jp_b727_contact_test_0820)
+  add_test(NAME JP0821_OriginalContactEffects COMMAND jp_contact_effects_test_0821)
   add_test(NAME JP0821_ContactEffectPrefixes COMMAND jp_contact_effects_test_0821)
 endif()
 
