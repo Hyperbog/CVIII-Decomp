@@ -506,5 +506,111 @@ int main(void){
  assert(cviii_light_history_undo(&typetest));
  assert(typetest.particles[0].used);
  cviii_light_history_reset();
+ /* Share one seeded weather profile across two independent scene IDs.
+    Weather sequences are repeatable, vary across time, and are
+    free of NES guest RNG/savestate mutations. */
+ static CviiiLighting climate,climate_reload;
+ cviii_light_init(&climate);
+ assert(cviii_weather_template(&climate,0,1)); /* Thunderstorm */
+ assert(cviii_weather_link(&climate,9,0));
+ assert(cviii_weather_link(&climate,10,0));
+ assert(cviii_weather_scene_profile(&climate,9)==0);
+ assert(cviii_weather_scene_profile(&climate,10)==0);
+ assert(cviii_weather_scene_profile(&climate,11)==-1);
+ assert(cviii_weather_name(&climate,0,"Random Storm"));
+ assert(cviii_weather_property(&climate,0,7,100)); /* Always active, variable strength */
+ assert(cviii_weather_property(&climate,0,8,1)); /* 1-second periods */
+ assert(!cviii_weather_property(&climate,0,8,0));
+ assert(!cviii_weather_property(&climate,0,9,65536));
+ int intensity=cviii_weather_intensity(&climate.weather[0],9,30);
+ assert(intensity>0 && intensity<=100);
+ assert(cviii_weather_intensity(&climate.weather[0],9,30)==intensity);
+ int varied=0;
+ for(int i=0;i<30;++i)
+   varied|=cviii_weather_intensity(&climate.weather[0],9,(uint64_t)i*59)!=intensity;
+ assert(varied);
+ assert(cviii_weather_property(&climate,0,7,0));
+ assert(cviii_weather_intensity(&climate.weather[0],9,30)==0);
+ assert(cviii_weather_property(&climate,0,7,100));
+ climate.particles_enabled=1;
+ for(unsigned i=0;i<256u*240u;++i)fx0[i]=0xff808080u;
+ for(int y=0;y<240;++y){sx[y]=500;sy[y]=y;}
+ cviii_particle_present(&climate,fx0,9,500,sx,sy,30);
+ int weather_drawn=0;
+ for(int y=48;y<240;++y)
+  for(int x=0;x<256;++x)weather_drawn+=fx0[y*256+x]!=0xff808080u;
+ assert(weather_drawn>0);
+ for(unsigned i=0;i<256u*240u;++i)fx1[i]=0xff808080u;
+ cviii_particle_present(&climate,fx1,11,500,sx,sy,30);
+ for(unsigned i=0;i<256u*240u;++i)assert(fx1[i]==0xff808080u);
+ /* Front-to-back compositor: a known all-sprite mask blocks all
+    background particles, but not the corresponding foreground layer. */
+ assert(cviii_weather_property(&climate,0,10,1));
+ static uint8_t full_sprite_mask[256*240];
+ memset(full_sprite_mask,1,sizeof full_sprite_mask);
+ for(unsigned i=0;i<256u*240u;++i)fx1[i]=0xff808080u;
+ cviii_particle_present_layer(&climate,fx1,9,500,sx,sy,30,1,full_sprite_mask);
+ for(unsigned i=0;i<256u*240u;++i)assert(fx1[i]==0xff808080u);
+ memset(full_sprite_mask,0,sizeof full_sprite_mask);
+ cviii_particle_present_layer(&climate,fx1,9,500,sx,sy,30,1,full_sprite_mask);
+ int background_pixels=0;
+ for(int y=48;y<240;++y)
+  for(int x=0;x<256;++x)background_pixels+=fx1[y*256+x]!=0xff808080u;
+ assert(background_pixels>0);
+ /* Attach to a real named light. World offset follows edits; muted
+    and deleted lights do not spawn orphan sparks or GPU emitters. */
+ int ember=cviii_particle_add(&climate,9,CVIII_FX_EMBERS,545,99);
+ assert(ember>=0);
+ climate.light[0]=(CviiiLight){.used=1,.room=9,.x=540,.y=100,
+    .radius=48,.energy=95,.red=255,.green=150,.blue=60};
+ assert(cviii_light_rename(&climate,0,"Hall Torch"));
+ assert(cviii_particle_attach(&climate,ember,0));
+ CviiiParticleEmitter actual;
+ assert(cviii_particle_world_region(&climate,&climate.particles[ember],&actual));
+ assert(actual.x==545 && actual.y==99);
+ climate.light[0].x=560;
+ assert(cviii_particle_world_region(&climate,&climate.particles[ember],&actual));
+ assert(actual.x==565 && actual.y==99);
+ assert(cviii_particle_property(&climate,ember,15,90)); /* Glow on GPU */
+ CviiiParticleGlow spark[4]={{0}};
+ assert(cviii_particle_glow_samples(&climate,9,500,sx,sy,100,spark)>0);
+ climate.light[0].muted=1;
+ assert(!cviii_particle_world_region(&climate,&climate.particles[ember],&actual));
+ assert(cviii_particle_glow_samples(&climate,9,500,sx,sy,100,spark)==0);
+ climate.light[0].muted=0;
+ assert(cviii_particle_attach(&climate,ember,-1));
+ assert(!climate.particles[ember].light_link);
+ assert(climate.particles[ember].x==565);
+ assert(cviii_particle_attach(&climate,ember,0));
+ /* Save/load stable weather group and light-attached particles together. */
+ FILE *weatherfile=tmpfile();assert(weatherfile);
+ cviii_light_save(&climate,weatherfile);
+ cviii_particle_save(&climate,weatherfile);
+ cviii_weather_save(&climate,weatherfile);
+ rewind(weatherfile);
+ cviii_light_init(&climate_reload);
+ while(fgets(buf,sizeof buf,weatherfile)){
+   char *eq=strchr(buf,'=');if(!eq)continue;
+   char *key=buf,*val=eq+1;
+   while(eq>key && eq[-1]==' ')--eq;
+   *eq=0;while(*val==' ')++val;
+   size_t size=strlen(val);
+   while(size && (val[size-1]=='\r' || val[size-1]=='\n'))val[--size]=0;
+   if(!strncmp(key,"Weather",7))assert(cviii_weather_load(&climate_reload,key,val));
+   else if(!strncmp(key,"Particle",8))assert(cviii_particle_load(&climate_reload,key,val));
+   else assert(cviii_light_load(&climate_reload,key,val));
+ }
+ fclose(weatherfile);
+ assert(climate_reload.weather[0].used);
+ assert(!strcmp(climate_reload.weather[0].name,"Random Storm"));
+ assert(cviii_weather_scene_profile(&climate_reload,9)==0);
+ assert(cviii_weather_scene_profile(&climate_reload,10)==0);
+ assert(climate_reload.particles[ember].light_link==1);
+ assert(climate_reload.particles[ember].glow==90);
+ assert(climate_reload.light[0].x==560);
+ assert(!cviii_weather_load(&climate_reload,"WeatherRoom00","9,17"));
+ assert(!cviii_weather_load(&climate_reload,"Weather00","1,9,32"));
+ assert(cviii_weather_link(&climate_reload,9,-1));
+ assert(cviii_weather_scene_profile(&climate_reload,9)==-1);
  return 0;
 }
