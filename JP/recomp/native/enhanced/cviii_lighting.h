@@ -40,7 +40,9 @@ typedef struct {
     int spread;         /* half-angle for cone, 5..85 degrees */
     int width;          /* shaft full width, 4..160 game pixels */
     int muted;          /* 1 = excluded from rendering */
-    int flicker;        /* 0 = subtle auto, 1 = none, 2 = torch */
+    int flicker;        /* 0 subtle flame, 1 steady, 2 torch, 3 pulse, 4 ember */
+    int anim_speed;     /* 0 legacy default, otherwise 1..400 percent */
+    int anim_strength;  /* 0 legacy default, otherwise 1..100 percent */
     int style_link;     /* 0 local, 1..16 global photometric style */
 } CviiiLight;
 typedef struct {
