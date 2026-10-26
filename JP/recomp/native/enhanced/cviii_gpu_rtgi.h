@@ -11,7 +11,8 @@ extern "C" {
 int cviii_gpu_rtgi_present(const CviiiLighting *settings,uint32_t *rgba,
                           uint32_t room,int camera,
                           const int scroll_x[CVIII_LIGHT_H],
-                          const int scroll_y[CVIII_LIGHT_H],uint64_t frame);
+                          const int scroll_y[CVIII_LIGHT_H],uint64_t frame,
+                          int cascade_levels); /* 0=legacy, 2..4=RC */
 const char *cviii_gpu_rtgi_status(void);
 void cviii_gpu_rtgi_reset(void);
 #ifdef __cplusplus
