@@ -87,14 +87,20 @@ int main(void)
                  "scene start uses genuine first-world pixel, not repeated strip") ||
         !require(pixels[200*426+255]==original[200*256+255],
                  "last native pixel at stage origin") ||
-        !require(pixels[0*426+85]==original[0],
-                 "HUD remains centered independently") ||
+        !require(pixels[0*426+85]==original[0] &&
+                 pixels[32*426+85]==original[32*256] &&
+                 pixels[40*426+85]==original[40*256] &&
+                 pixels[47*426+85]==original[47*256] &&
+                 pixels[47*426+340]==original[47*256+255],
+                 "all NES HUD scanlines 0..47 anchored at screen X85") ||
+        !require(pixels[48*426+0]==original[48*256],
+                 "game-world scanline 48 uses real stage-start camera") ||
         !require(pixels[32*426+341]!=0xff000000u,
                  "preloaded margin before visit") ||
         !require(pixels[0]==0xff000000u,"no world over HUD"))
        return 1;
     for(int y=0;y<240;y++)for(int x=0;x<256;x++)
-      if (!require(pixels[y*426+(y<32?85:0)+x]==original[y*256+x],
+      if (!require(pixels[y*426+(y<CVIII_STAGE1_HUD_ROWS_0781?85:0)+x]==original[y*256+x],
                    "all 61,440 NES pixels preserved at boundary-aware offset"))return 1;
     /* Unlike the old 30-frame fading side cache, the already-loaded
      * ROM atlas remains visible after an arbitrary long NT mismatch. */
@@ -150,7 +156,10 @@ int main(void)
         !require(pixels[60*426+40]!=0xff000000u,
                  "original preceding scenery appears in next-room margin") ||
         !require(pixels[60*426+170]==original[60*256],
-                 "native gameplay pixels preserved at forward seam"))return 1;
+                 "native gameplay pixels preserved at forward seam") ||
+        !require(pixels[40*426+85]==original[40*256] &&
+                 pixels[47*426+85]==original[47*256],
+                 "HUD cannot slide with player across room seams"))return 1;
     test_ram[0x35]=0;test_ram[0x36]=0;
     scroll_x=0;test_ram[0x65]=0x80;w=256;h=240;
     pixels=cviii_stage1_host_present_0725(&host,original,&w,&h,1);

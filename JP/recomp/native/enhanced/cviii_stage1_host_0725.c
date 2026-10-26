@@ -193,10 +193,11 @@ const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
         uint32_t *dst=h->pixels+(size_t)row*CVIII_STAGE1_WIDE_0725;
         for(int x=0;x<CVIII_STAGE1_WIDE_0725;x++)
             dst[x]=UINT32_C(0xFF000000);
-        /* NES HUD remains centered in widescreen. Gameplay pixels are
-         * bit-identical but are shifted at known finite world boundaries
-         * so no invented scenery or repeating strips appear on the left. */
-        int native_x=row<32 ? CVIII_STAGE1_ORIGIN_0725 : center;
+        /* The entire 48-scanline NES status region is anchored to the
+         * viewport, independent of the boundary-clamped world camera.
+         * HUD and gameplay pixels are bit-identical to the original. */
+        int native_x=row<CVIII_STAGE1_HUD_ROWS_0781 ?
+            CVIII_STAGE1_ORIGIN_0725 : center;
         memcpy(dst+native_x,frame+(size_t)row*256u,
                256u*sizeof(uint32_t));
     }

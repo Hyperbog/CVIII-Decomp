@@ -84,7 +84,11 @@ uint32_t cviii_stage1_atlas_paint_0724(const CviiiStage1Atlas0724 *a,
     const CviiiStage1Room0724 *r=&a->rooms[room];
     uint32_t painted=0;
     for(int y=32;y<height;y++)for(int x=0;x<width;x++){
-        if(x>=center_x&&x<center_x+256)continue;
+        /* The sprite/status HUD extends through the first 48 scanlines.
+         * Preserve the stationary HUD rectangle even when game-world X=0
+         * places native gameplay at the left edge of a wide frame. */
+        int protected_x=y<48 ? 85 : center_x;
+        if(x>=protected_x&&x<protected_x+256)continue;
         int wx=camera_x+x-center_x,wy=camera_y+y-32;
         if(wx<0||wy<0||wx>=r->width_tiles*8||wy>=r->height_tiles*8)continue;
         unsigned at=a->offsets[room]+(unsigned)(wy/8)*r->width_tiles+(unsigned)(wx/8);

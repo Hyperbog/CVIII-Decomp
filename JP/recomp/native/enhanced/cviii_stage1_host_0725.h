@@ -7,7 +7,10 @@
 /* Game-owned read-only Enhanced presentation, no guest CPU/PPU mutations.
  * ROM identity is verified by JP_ORIGINAL_JP_ROM at CMake configuration.
  */
-enum { CVIII_STAGE1_WIDE_0725=426, CVIII_STAGE1_ORIGIN_0725=85 };
+/* Original NES HUD occupies scanlines 0..47. It is a fixed screen layer
+ * independent of the game world's boundary-clamped camera offset. */
+enum { CVIII_STAGE1_WIDE_0725=426, CVIII_STAGE1_ORIGIN_0725=85,
+       CVIII_STAGE1_HUD_ROWS_0781=48 };
 typedef struct {
     CviiiStage1Atlas0724 atlas;
     CviiiChrIndex *runtime_assets; /* optional JP0728 preloaded original CHR index */

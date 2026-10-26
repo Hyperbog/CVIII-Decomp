@@ -31,6 +31,17 @@ int main(void){
  uint32_t count=cviii_stage1_atlas_paint_0724(a,key,85,0,p,426,240,85,pixel,color);
  assert(count==170u*192u && p[32*426+0] != 0xff123456 &&
         p[32*426+85]==0xff123456 && p[32*426+85+255]==0xff123456);
+    /* JP0781: world view at X=0 must not overpaint the fixed NES HUD's
+     * lower PLAYER/ENEMY/heart rows 32..47. Actual room pixels outside
+     * the HUD may still be painted using the world camera. */
+    for(int y=0;y<426*240;y++)p[y]=0xff123456u;
+    count=cviii_stage1_atlas_paint_0724(a,key,0,0,p,426,240,0,pixel,color);
+    assert(count>0u &&
+           p[40*426+85]==0xff123456u &&
+           p[47*426+340]==0xff123456u &&
+           p[48*426+85]==0xff123456u &&
+           p[48*426+341]!=0xff123456u &&
+           p[40*426+400]!=0xff123456u);
  rom[0x2014c]=200;
  assert(cviii_stage1_atlas_load_0724(a,rom,393232)==-1);
  assert(cviii_stage1_atlas_get_0724(a,key,3,3,&tile,&pal)&&tile==15&&pal==3);
