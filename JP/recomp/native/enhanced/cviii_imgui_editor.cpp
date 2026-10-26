@@ -402,6 +402,27 @@ extern "C" int cviii_imgui_render(SDL_Window *window,SDL_Renderer *renderer){
                 if(cviii_lighting_editor_capture_kit(kit_capture_slot,kit_capture_name))
                     dirty=true;
             }
+            if(model->kits[kit_capture_slot].used){
+                if(ImGui::Button("Rename Saved Kit")){
+                    if(cviii_lighting_editor_kit_manage(
+                         1,kit_capture_slot,-1,kit_capture_name))dirty=true;
+                }
+                ImGui::SameLine();
+                if(ImGui::Button("Duplicate to Empty Slot")){
+                    int empty=-1;
+                    for(int i=0;i<CVIII_KIT_MAX;++i)
+                        if(!model->kits[i].used){empty=i;break;}
+                    if(empty>=0 && cviii_lighting_editor_kit_manage(
+                          2,kit_capture_slot,empty,nullptr)){
+                        kit_capture_slot=empty;dirty=true;
+                    }
+                }
+                ImGui::SameLine();
+                if(ImGui::Button("Delete Saved Kit")){
+                    if(cviii_lighting_editor_kit_manage(
+                         3,kit_capture_slot,-1,nullptr))dirty=true;
+                }
+            }
             ImGui::TextDisabled("Captures the selected light and up to %d "
                                 "members of the same named group.",
                                 CVIII_KIT_PARTS);
