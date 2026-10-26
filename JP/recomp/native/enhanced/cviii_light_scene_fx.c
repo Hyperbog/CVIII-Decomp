@@ -61,7 +61,7 @@ void cviii_light_effective(const CviiiLighting *s,const CviiiLight *l,CviiiLight
 }
 int cviii_light_mask_add(CviiiLighting *s,uint32_t room,int x,int y,int w,int h){
     if(!s || x<0 || y<0 || w<1 || h<1 ||
-       x>65535-w || y>479-h)return -1;
+       w>65535 || h>479 || x>65535-w || y>479-h)return -1;
     for(int i=0;i<CVIII_OCCLUDER_MAX;++i)if(!s->masks[i].used){
         s->masks[i]=(CviiiOccluder){.room=room,.x=x,.y=y,.w=w,.h=h,
                                      .opacity=88,.softness=5,.used=1};
@@ -99,6 +99,12 @@ float cviii_light_shadow(const CviiiLighting *s,uint32_t room,
         if(!m->used || m->room!=room || m->opacity<=0)continue;
         if(source_x>=m->x && source_x<=m->x+m->w &&
            source_y>=m->y && source_y<=m->y+m->h)continue;
+        /* Reject geometry outside the complete light->pixel segment AABB
+           before tracing five penumbra samples. */
+        int minx=source_x<x?source_x:x,maxx=source_x>x?source_x:x;
+        int miny=source_y<y?source_y:y,maxy=source_y>y?source_y:y;
+        if(m->x>maxx+16 || m->x+m->w<minx-16 ||
+           m->y>maxy+16 || m->y+m->h<miny-16)continue;
         int radius=cap(m->softness,0,16);
         int covered=0;
         /* Five deterministic jitter-free rays produce a soft penumbra. */
