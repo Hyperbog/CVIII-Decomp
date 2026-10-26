@@ -94,8 +94,8 @@ static inline CviiiHorizontalSelection0816 cviii_horizontal_select_0816(
     CviiiHorizontalSelection0816 result={0};
     if(!source || !source->valid || room>=8u || room==2u ||
        camera_16>65535u || direction_62>255u)return result;
-    const unsigned phase=((((camera_16+2u)&65535u)>>6u)&255u)+
-        (direction_62 ? 5u:0u);
+    const unsigned phase=(((((camera_16+2u)&65535u)>>6u)&255u)+
+        (direction_62 ? 5u:0u))&255u;
     if(phase>=48u || phase>=source->count)return result;
     const CviiiHorizontalPair0816 *p=&source->pairs[phase];
     result.valid=1u;result.room=(uint8_t)room;
