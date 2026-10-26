@@ -86,6 +86,8 @@ static int load(CviiiStage1Host0725 *h)
                  cviii_world_attach_source_rooms_0811(&h->world,
                                                       &room_catalog) &&
                  cviii_world_preload_source_payload_0812(&h->world,
+                                                  room_bank,sizeof room_bank) &&
+                 cviii_world_preload_horizontal_0816(&h->world,
                                                   room_bank,sizeof room_bank);
         }
         if(!room_ok)
@@ -347,6 +349,12 @@ const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
             (void)cviii_world_detect_loader_0805(&h->world,selector,ram);
             (void)cviii_world_capture_live_0803(&h->world,selector,
                          camera_x,camera_y,ram);
+            /* JP0816: original CPU $53/$54/$62/$07F6 selects the
+             * installed room-cell source (NOT an inferred enemy).
+             * Genuine guest actor allocation remains unchanged. */
+            if(!chapel)
+                (void)cviii_world_observe_horizontal_0816(
+                    &h->world,selector,ram);
             /* JP0813: follow the genuine vertical chapel camera with
              * resident source identities. CPU actor state stays authoritative;
              * no offscreen AI/guest-RAM writes or fabricated sprites. */
