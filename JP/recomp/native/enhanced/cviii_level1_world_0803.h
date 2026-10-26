@@ -12,6 +12,7 @@
 #include "cviii_horizontal_activation_0817.h"
 #include "cviii_horizontal_child_0818.h"
 #include "cviii_horizontal_lineage_0819.h"
+#include "cviii_contact_effects_0821.h"
 #include <stdint.h>
 #include <stddef.h>
 enum { CVIII_WORLD_ROOMS_0803=8, CVIII_WORLD_ACTORS_0803=28,
@@ -132,6 +133,12 @@ typedef struct {
      * Room changes and reset make provenance unknown, never dead. */
     uint16_t horizontal_unresolved_lineage_mask;
     uint32_t horizontal_source_reuse_warnings;
+    /* JP0821: frame-level original $B5DF special slot23 signature.
+     * Entry counts mean observed signatures, NOT proven B5DF calls.
+     * The original OAM and guest CPU remain authoritative. */
+    CviiiEffect23Witness0821 effect23;
+    uint32_t effect23_observations, effect23_entries;
+    uint8_t effect23_room;
 } CviiiLevel1World0803;
 
 /* All eight source rooms are resident on success. One known horizontal
