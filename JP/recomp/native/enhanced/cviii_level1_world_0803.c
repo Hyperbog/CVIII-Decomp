@@ -136,6 +136,10 @@ int cviii_world_preload_horizontal_0816(CviiiLevel1World0803 *w,
     w->parent_released_while_child_allocated=0u;
     w->horizontal_unresolved_lineage_mask=0u;
     w->horizontal_source_reuse_warnings=0u;
+    memset(&w->effect23,0,sizeof w->effect23);
+    w->effect23_observations=0u;
+    w->effect23_entries=0u;
+    w->effect23_room=0xffu;
     return 1;
 }
 int cviii_world_observe_horizontal_0816(CviiiLevel1World0803 *w,
@@ -545,6 +549,10 @@ void cviii_world_clear_live_0805(CviiiLevel1World0803 *w){
     w->parent_released_while_child_allocated=0u;
     w->horizontal_unresolved_lineage_mask=0u;
     w->horizontal_source_reuse_warnings=0u;
+    memset(&w->effect23,0,sizeof w->effect23);
+    w->effect23_observations=0u;
+    w->effect23_entries=0u;
+    w->effect23_room=0xffu;
 }
 
 /* JP0811: independent original PRG0A room hierarchy, stage selector0.
@@ -821,6 +829,19 @@ unsigned cviii_world_capture_live_0803(CviiiLevel1World0803 *w,
         actor->y=w->rooms[idx].y+cy+actor->raw_y;
         count++;
     }
+    /* JP0821: $B5DF can install slot23 sprites WITHOUT setting
+     * $054E+23. The original PRG26 margin renderer already draws
+     * live frame-based slots. Track only the authentic RAM signature,
+     * never trigger effect creation from native widescreen geometry. */
+    const CviiiEffect23Witness0821 fx=cviii_effect23_witness_0821(ram);
+    if(fx.matched && (!w->effect23.matched ||
+                       w->effect23_room!=(uint8_t)idx) &&
+       w->effect23_entries!=UINT32_MAX)
+        w->effect23_entries++;
+    w->effect23=fx;
+    w->effect23_room=(uint8_t)idx;
+    if(w->effect23_observations!=UINT32_MAX)
+        w->effect23_observations++;
     w->actor_frame++;
     return count;
 }
