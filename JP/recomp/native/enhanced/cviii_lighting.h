@@ -20,6 +20,8 @@ extern "C" {
 #define CVIII_SCENE_ALIAS_MAX 32
 #define CVIII_PARTICLE_EMITTER_MAX 32
 #define CVIII_PARTICLE_INSTANCE_MAX 96
+#define CVIII_WEATHER_PROFILE_MAX 8
+#define CVIII_WEATHER_SCENE_MAX 32
 enum { CVIII_SHAPE_RADIAL=0, CVIII_SHAPE_CONE=1, CVIII_SHAPE_SHAFT=2 };
 typedef struct {
     uint32_t room;
@@ -87,7 +89,23 @@ typedef struct {
     int size;    /* 1..4 native pixels; fog is stippled */
     uint8_t red,green,blue;
     char name[CVIII_LIGHT_NAME_CAP];
+    int light_link; /* 0 none; 1..128 refers to a placed light in this room */
+    int link_dx,link_dy; /* local signed offset from linked torch/candle */
+    int layer; /* 0 in front of sprites, 1 behind sprites */
+    int glow;  /* 0..100: opt-in ember/firefly GPU direct illumination */
 } CviiiParticleEmitter;
+typedef struct {
+    int used,kind,density,speed,wind,opacity,size;
+    int chance;    /* 0..100 weather activity chance per epoch */
+    int period;    /* 1..120 seconds between deterministic weather shifts */
+    int seed;      /* 0..65535 reproducible regional weather seed */
+    int layer;     /* 0 foreground, 1 behind reconstructed sprites */
+    uint8_t red,green,blue;
+    char name[CVIII_LIGHT_NAME_CAP];
+} CviiiWeatherProfile;
+typedef struct {
+    int used;uint32_t room;int profile; /* 0..7 shared live profile */
+} CviiiWeatherScene;
 typedef struct {
     CviiiLight light[CVIII_LIGHT_MAX];
     CviiiSceneAmbient scenes[CVIII_SCENE_AMBIENT_MAX];
@@ -96,6 +114,8 @@ typedef struct {
     CviiiOccluder masks[CVIII_OCCLUDER_MAX];
     CviiiSceneAlias aliases[CVIII_SCENE_ALIAS_MAX];
     CviiiParticleEmitter particles[CVIII_PARTICLE_EMITTER_MAX];
+    CviiiWeatherProfile weather[CVIII_WEATHER_PROFILE_MAX];
+    CviiiWeatherScene weather_scenes[CVIII_WEATHER_SCENE_MAX];
     int particles_enabled; /* independently toggled from lighting */
     CviiiLight clipboard;
     int clipboard_valid;
@@ -114,9 +134,25 @@ int cviii_light_event(CviiiLighting *s,int event,int x,int y,
 /* Entirely host-side world-space pixel FX; no GPU or ROM required. */
 int cviii_particle_add(CviiiLighting *s,uint32_t room,int kind,int x,int y);
 int cviii_particle_property(CviiiLighting *s,int slot,int property,int value);
+int cviii_particle_attach(CviiiLighting *s,int slot,int light_slot);
+int cviii_particle_world_region(const CviiiLighting *s,
+    const CviiiParticleEmitter *e,CviiiParticleEmitter *world);
+int cviii_weather_template(CviiiLighting *s,int profile,int type);
+int cviii_weather_link(CviiiLighting *s,uint32_t room,int profile);
+int cviii_weather_property(CviiiLighting *s,int profile,int property,int value);
+int cviii_weather_name(CviiiLighting *s,int profile,const char *name);
+int cviii_weather_scene_profile(const CviiiLighting *s,uint32_t room);
+int cviii_weather_load(CviiiLighting *s,const char *key,const char *value);
+void cviii_weather_save(const CviiiLighting *s,FILE *file);
+int cviii_weather_intensity(const CviiiWeatherProfile *p,uint32_t room,uint64_t frame);
 int cviii_particle_name(CviiiLighting *s,int slot,const char *name);
 int cviii_particle_load(CviiiLighting *s,const char *key,const char *value);
 void cviii_particle_save(const CviiiLighting *s,FILE *file);
+void cviii_particle_present_layer(const CviiiLighting *s,
+   uint32_t pixels[CVIII_LIGHT_W*CVIII_LIGHT_H],
+   uint32_t room,int camera,const int scroll_x[CVIII_LIGHT_H],
+   const int scroll_y[CVIII_LIGHT_H],uint64_t frame,
+   int layer,const uint8_t *foreground_mask);
 void cviii_particle_present(const CviiiLighting *s,uint32_t pixels[CVIII_LIGHT_W*CVIII_LIGHT_H],
                             uint32_t room,int camera,
                             const int scroll_x[CVIII_LIGHT_H],
