@@ -776,6 +776,16 @@ int cviii_lighting_editor_global_link(int slot,int group){
         cviii_light_style_link_group(&cviii.lighting,selected,slot):
         cviii_light_style_link(&cviii.lighting,selected,slot);
 }
+int cviii_lighting_editor_kit_manage(int action,int source,
+                                       int destination,const char *name)
+{
+    if(!cviii_lighting_editor_active())return 0;
+    cviii_light_history_push(&cviii.lighting);
+    if(action==1)return cviii_light_kit_rename(&cviii.lighting,source,name);
+    if(action==2)return cviii_light_kit_clone(&cviii.lighting,source,destination);
+    if(action==3)return cviii_light_kit_delete(&cviii.lighting,source);
+    return 0;
+}
 int cviii_lighting_editor_global_property(int slot,int property,int value)
 {
     if(!cviii_lighting_editor_active() || slot<0 || slot>=CVIII_GLOBAL_STYLE_MAX ||
