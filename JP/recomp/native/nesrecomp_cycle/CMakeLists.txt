@@ -670,6 +670,10 @@ set_property(TARGET jp_stage1_source_window_test_0813 PROPERTY C_STANDARD 11)
 add_executable(jp_stage1_source_link_test_0814
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_stage1_source_link_test_0814.c")
 set_property(TARGET jp_stage1_source_link_test_0814 PROPERTY C_STANDARD 11)
+# JP0815 authentic source-presence / offscreen interaction dry-run.
+add_executable(jp_source_offscreen_test_0815
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_source_offscreen_test_0815.c")
+set_property(TARGET jp_source_offscreen_test_0815 PROPERTY C_STANDARD 11)
 
 add_executable(jp_world_sprites_test_0807
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_stage1_rom_0724.c"
