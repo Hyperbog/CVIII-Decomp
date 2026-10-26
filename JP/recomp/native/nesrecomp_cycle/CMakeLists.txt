@@ -674,6 +674,13 @@ set_property(TARGET jp_stage1_source_link_test_0814 PROPERTY C_STANDARD 11)
 add_executable(jp_source_offscreen_test_0815
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_source_offscreen_test_0815.c")
 set_property(TARGET jp_source_offscreen_test_0815 PROPERTY C_STANDARD 11)
+# JP0816 horizontal original six-slot source census and B1F8/B162 stop PCs.
+add_executable(jp_horizontal_sources_test_0816
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_horizontal_sources_test_0816.c")
+set_property(TARGET jp_horizontal_sources_test_0816 PROPERTY C_STANDARD 11)
+add_executable(jp_collision_route_test_0816
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_collision_route_test_0816.c")
+set_property(TARGET jp_collision_route_test_0816 PROPERTY C_STANDARD 11)
 # These four executables are ROM-free; build them in the owner-native tree
 # and run from CTest instead of silently only compiling test targets.
 include(CTest)
@@ -682,6 +689,8 @@ if(BUILD_TESTING)
   add_test(NAME JP0813_OriginalSourceAxis COMMAND jp_stage1_source_window_test_0813)
   add_test(NAME JP0814_SourceAllocatorLink COMMAND jp_stage1_source_link_test_0814)
   add_test(NAME JP0815_OffscreenProbe COMMAND jp_source_offscreen_test_0815)
+  add_test(NAME JP0816_HorizontalSources COMMAND jp_horizontal_sources_test_0816)
+  add_test(NAME JP0816_CollisionRoute COMMAND jp_collision_route_test_0816)
 endif()
 
 add_executable(jp_world_sprites_test_0807
