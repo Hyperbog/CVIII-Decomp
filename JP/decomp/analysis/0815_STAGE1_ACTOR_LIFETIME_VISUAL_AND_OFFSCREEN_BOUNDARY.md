@@ -22,6 +22,13 @@ in JP0520 also shows why JP0814's original installation signature
 forever after animation/script processing begins.
 Neither the actor's exact originating `$AB1F` record nor the
 frame of its original despawn is proved by those stored reports.
+**Important allocation/visibility split:** this naturally observed
+type-`$80` actor has original `$0470,X=$81`, whose high bit makes
+the existing JP0803 visual-sprite shadow mark it non-rendered even while
+original `$054E,X=$80` proves the scheduler slot is allocated.
+JP0815 now separately reports an original *guest installation witness*
+from JP0814's exact CPU RAM fields. Hidden actors are never drawn,
+yet the genuine installed slot must not be mislabeled a despawn.
 JP0814 retains an initial unique source tag only while the same
 original actor slot and its generation remain active.
 
@@ -46,7 +53,9 @@ absent bank, escaped pointers or more than 27 compressed pieces.
 The resident-world `chapel_projection` registry holds descriptor
 CPU address/piece count only for a **confirmed still-active original
 actor** with a unique JP0814 source address and generation.
-Unspawned sources receive no visual descriptor and never draw ghosts.
+Source records without a verified *visible* live actor receive no
+visual descriptor and never draw ghosts. Original allocated-but-hidden
+slots remain separate from this visual condition.
 
 ## Offscreen source simulation: precise scope and guard
 
@@ -71,7 +80,9 @@ Original raw0B `$B217` first checks `$7E & $F0` and can bypass via
 `$B258`; only on the alternative path does type `$80 >= $69`
 branch to **`$B162`** rather than the ordinary `$B339`
 radius measurement. Its downstream special collision/interaction
-effects have **not** been reconstructed. A false hit/damage/pickup
+effects have **not** been reconstructed. Neither source-only candidates nor
+installed-but-hidden slots grant any offscreen interaction; a false
+hit/damage/pickup
 implementation here would be incorrect.
 
 **Geographic bound:** all nine original chapel record X coordinates
