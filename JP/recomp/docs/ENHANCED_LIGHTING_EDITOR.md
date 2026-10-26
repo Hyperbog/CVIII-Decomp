@@ -5,7 +5,7 @@ Owner gameplay / interactive Windows acceptance is not yet certified.
 
 ## Player controls
 
-Press **F7** during Enhanced gameplay to enter or leave the paused editor.
+Press **Home** during Enhanced gameplay to enter or leave the paused editor.
 Changes are reflected in the presented picture immediately.
 
 | Input | Function |
@@ -17,7 +17,18 @@ Changes are reflected in the presented picture immediately.
 | Ctrl+wheel / [ and ] | Adjust ambient darkness |
 | C | Cycle warm, cool, red, green, neutral |
 | Delete or Backspace | Delete selected light |
-| F7 or Escape | Close editor |
+| Home or Escape | Close editor |
+| Ctrl+Home | Change the editor shortcut (press the new key; Escape cancels) |
+
+**Keybinding:** Home opens or closes the editor by default. To remap it
+without leaving the game, press Ctrl+Home, then the replacement key.
+The new key takes effect immediately and is saved to [Game] as
+`LightingEditorKey = Home` (or the chosen SDL scancode name) in
+`config.ini`. You can also edit that value with the game closed.
+Escape cancels capture; F4/F6/F8/F9/F10/F11/F12 and other reserved
+system keys cannot be assigned. Avoid choosing a key currently used
+for NES controls. The Ctrl+Home remapping gesture remains available
+even if the editor key itself changes.
 
 Maximum 24 lights per saved profile. Default warm color RGB (255,167,74),
 radius 56, intensity 85 and ambient 78%. The native host stores Lighting,
@@ -48,7 +59,7 @@ This is a reproducible manual test, **not a claim of completed gameplay QA**.
    using your own authenticated Japanese ROM (the ZIP is not a game binary).
    An existing previously built AlphaCandidate EXE does **not** automatically
    update; use the documented forced Rebuild flow.
-2. Launch Enhanced, enter Stage 1, and press F7. The game should stop moving
+2. Launch Enhanced, enter Stage 1, and press Home. The game should stop moving
    and the LIGHT EDITOR help toast should appear. Click near an existing
    torch/candle in the playable area, below the top 48 HUD scanlines.
 3. While still paused, change radius with the wheel and intensity with
@@ -56,7 +67,7 @@ This is a reproducible manual test, **not a claim of completed gameplay QA**.
    cycle color with C. The numeric status toast should display the selected
    light's R (radius), POWER, RGB and AMB values. Check for smooth illumination
    without white clipped outlines or obvious color banding.
-4. Press F7 to resume; walk until the light is completely outside the viewport
+4. Press Home to resume; walk until the light is completely outside the viewport
    (and beyond its radius), then walk back. It should disappear, return, and
    continue illuminating its original level location. When the center is just
    offscreen but the radius overlaps the image, some edge illumination is
@@ -66,8 +77,8 @@ This is a reproducible manual test, **not a claim of completed gameplay QA**.
    the candidate ROM stage/room key requires correction; do not merge.
 6. Exit and restart without resetting config.ini; placed lights, RGB, radius,
    intensity and ambient should survive. F4, F6, F8/F9 and F10 should
-   retain their native behavior before and after F7.
-7. With F7 closed, press F12 to capture a picture without editor markers.
+   retain their native behavior before and after Home.
+7. With Home closed, press F12 to capture a picture without editor markers.
    Capture a matched Original reference and Enhanced lighting image at
    the same stage/frame if possible. The original reference must be unchanged.
 
