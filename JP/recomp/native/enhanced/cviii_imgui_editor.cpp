@@ -17,6 +17,9 @@ bool ready=false, place_pending=false, dirty=false;
 int pending_kit_type=-1,pending_kit_id=-1; /* 0 builtin, 1 saved custom */
 char kit_capture_name[CVIII_LIGHT_NAME_CAP]="My Lighting Rig";
 int kit_capture_slot=0;
+int global_style_slot=0,selected_mask=0;
+char global_style_name[CVIII_LIGHT_NAME_CAP]="Torch Global";
+unsigned alias_target=0,last_raw_room=0;
 char search_text[64]={};
 int current_tab=0;
 SDL_Window *active_window=nullptr;
@@ -200,6 +203,19 @@ extern "C" int cviii_imgui_render(SDL_Window *window,SDL_Renderer *renderer){
     ImGui::SameLine();
     ImGui::TextDisabled("  HOME: TOGGLE  /  CTRL+HOME: REBIND");
     ImGui::Separator();
+    if(ImGui::Button("Undo (Ctrl+Z)",ImVec2(133,25))){
+        if(cviii_lighting_editor_undo())dirty=true;
+    }
+    ImGui::SameLine();
+    if(ImGui::Button("Redo (Ctrl+Y)",ImVec2(133,25))){
+        if(cviii_lighting_editor_redo())dirty=true;
+    }
+    if(ImGui::GetIO().KeyCtrl && !ImGui::GetIO().WantTextInput){
+        if(ImGui::IsKeyPressed(ImGuiKey_Z,false) &&
+           cviii_lighting_editor_undo())dirty=true;
+        if(ImGui::IsKeyPressed(ImGuiKey_Y,false) &&
+           cviii_lighting_editor_redo())dirty=true;
+    }
     /* Familiar ReShade workflow: Home to pick effects; scene and settings
        tabs for common controls; search and categorized effect list. This
        native Dear ImGui pane is not ReShade's injected overlay itself. */
@@ -413,6 +429,77 @@ extern "C" int cviii_imgui_render(SDL_Window *window,SDL_Renderer *renderer){
             }
             ImGui::EndTabItem();
         }
+        if(ImGui::BeginTabItem("Global Styles")){
+            current_tab=6;
+            ImGui::TextWrapped("Capture one authored light as a GLOBAL STYLE. "
+                "Link a single light or its whole named group to it. "
+                "Changing the style then updates every linked instance "
+                "in every room while preserving individual positions.");
+            ImGui::InputText("Global Style Name",global_style_name,
+                              sizeof global_style_name);
+            ImGui::SliderInt("Style Slot",&global_style_slot,0,
+                              CVIII_GLOBAL_STYLE_MAX-1);
+            if(ImGui::Button("Capture Selected As Global Style")){
+                if(cviii_lighting_editor_global_capture(global_style_slot,
+                      global_style_name))dirty=true;
+            }
+            if(ImGui::Button("Link Selected")){
+                if(cviii_lighting_editor_global_link(global_style_slot,0))
+                    dirty=true;
+            }
+            ImGui::SameLine();
+            if(ImGui::Button("Link Current Group")){
+                if(cviii_lighting_editor_global_link(global_style_slot,1))
+                    dirty=true;
+            }
+            ImGui::SameLine();
+            if(ImGui::Button("Unlink Selected")){
+                if(cviii_lighting_editor_global_link(-1,0))dirty=true;
+            }
+            ImGui::SeparatorText("Shared Appearance");
+            const CviiiGlobalStyle &gs=model->styles[global_style_slot];
+            if(gs.used){
+                ImGui::Text("Editing: %s",gs.name);
+                int radius=gs.light.radius,energy=gs.light.energy;
+                if(ImGui::SliderInt("Global Range",&radius,12,160))
+                    if(cviii_lighting_editor_global_property(
+                       global_style_slot,2,radius))dirty=true;
+                if(ImGui::SliderInt("Global Strength",&energy,5,160))
+                    if(cviii_lighting_editor_global_property(
+                       global_style_slot,3,energy))dirty=true;
+                float rgb[3]={gs.light.red/255.f,gs.light.green/255.f,
+                              gs.light.blue/255.f};
+                if(ImGui::ColorEdit3("Global Color",rgb,
+                     ImGuiColorEditFlags_PickerHueWheel|ImGuiColorEditFlags_DisplayRGB)){
+                    for(int i=0;i<3;++i)
+                        if(cviii_lighting_editor_global_property(
+                          global_style_slot,4+i,(int)(rgb[i]*255.f+0.5f)))
+                            dirty=true;
+                }
+                int shape=gs.light.shape;
+                if(ImGui::Combo("Global Shape",&shape,
+                                "Radial\0Cone\0Shaft\0"))
+                    if(cviii_lighting_editor_global_property(
+                       global_style_slot,7,shape))dirty=true;
+                int angle=gs.light.angle;
+                if(ImGui::SliderInt("Global Angle",&angle,0,359))
+                    if(cviii_lighting_editor_global_property(
+                       global_style_slot,8,angle))dirty=true;
+                int width=gs.light.width?gs.light.width:32;
+                if(ImGui::SliderInt("Global Shaft Width",&width,4,160))
+                    if(cviii_lighting_editor_global_property(
+                       global_style_slot,10,width))dirty=true;
+            }else ImGui::TextDisabled("Choose a slot and capture a light first.");
+            ImGui::SeparatorText("Saved Global Styles");
+            for(int i=0;i<CVIII_GLOBAL_STYLE_MAX;++i){
+                if(!model->styles[i].used)continue;
+                ImGui::PushID(i);
+                if(ImGui::Selectable(model->styles[i].name,i==global_style_slot))
+                    global_style_slot=i;
+                ImGui::PopID();
+            }
+            ImGui::EndTabItem();
+        }
         if(ImGui::BeginTabItem("Scene")){
             current_tab=1;
             ImGui::Text("Scene: %08X",room);
@@ -471,11 +558,78 @@ extern "C" int cviii_imgui_render(SDL_Window *window,SDL_Renderer *renderer){
             ImGui::TextWrapped("Sky fill adds softly lit color without "
                 "subtracting palette channels. It is art-directed 2D "
                 "hemispherical fill, not true bounce-light GI.");
+            ImGui::SeparatorText("Scene Grading");
+            int ev=0,temp=0,sat=100;
+            cviii_light_grade_get(model,room,&ev,&temp,&sat);
+            if(ImGui::SliderInt("Exposure (EV x100)",&ev,-200,200,"%+d"))
+                if(cviii_lighting_editor_grade(0,ev))dirty=true;
+            if(ImGui::SliderInt("White Balance / Temperature",&temp,-100,100))
+                if(cviii_lighting_editor_grade(1,temp))dirty=true;
+            if(ImGui::SliderInt("Saturation",&sat,0,200,"%d%%"))
+                if(cviii_lighting_editor_grade(2,sat))dirty=true;
+            if(ImGui::Button("Neutral Grade (reset)")){
+                if(cviii_lighting_editor_grade(0,0))dirty=true;
+                if(cviii_lighting_editor_grade(1,0))dirty=true;
+                if(cviii_lighting_editor_grade(2,100))dirty=true;
+            }
             ImGui::SeparatorText("Authoring Notes");
             ImGui::BulletText("Lighting only changes final presentation pixels.");
             ImGui::BulletText("Emitters are attached to candidate room IDs.");
             ImGui::BulletText("Geometry-based cast shadows are not yet available.");
             ImGui::BulletText("Lights beyond the screen are culled by their footprint.");
+            ImGui::EndTabItem();
+        }
+        if(ImGui::BeginTabItem("Masks")){
+            current_tab=7;
+            ImGui::TextWrapped("Manually author occluder rectangles over walls. "
+                "Only these masks cast soft shadows from local emitters. "
+                "Sky and ambient remain unobstructed; no tile collision "
+                "geometry is inferred.");
+            const int chosen=model->selected;
+            if(chosen>=0 && chosen<CVIII_LIGHT_MAX &&
+               model->light[chosen].used && model->light[chosen].room==room){
+                if(ImGui::Button("Add Mask Near Selected Light")){
+                    int x=model->light[chosen].x+18;
+                    int y=model->light[chosen].y-15;
+                    if(y<CVIII_LIGHT_HUD)y=CVIII_LIGHT_HUD;
+                    int index=cviii_lighting_editor_mask_add(x,y,10,30);
+                    if(index>=0){selected_mask=index;dirty=true;}
+                }
+            }else ImGui::TextDisabled("Select a scene light before adding a mask.");
+            ImGui::SeparatorText("Room Occluders");
+            for(int i=0;i<CVIII_OCCLUDER_MAX;++i){
+                if(!model->masks[i].used || model->masks[i].room!=room)continue;
+                ImGui::PushID(i);
+                char name[48];
+                std::snprintf(name,sizeof name,"Mask %02d",i+1);
+                if(ImGui::Selectable(name,i==selected_mask))selected_mask=i;
+                ImGui::PopID();
+            }
+            if(selected_mask>=0 && selected_mask<CVIII_OCCLUDER_MAX &&
+               model->masks[selected_mask].used &&
+               model->masks[selected_mask].room==room){
+                const CviiiOccluder &mask=model->masks[selected_mask];
+                ImGui::SeparatorText("Selected Mask");
+                int x=mask.x,y=mask.y,w=mask.w,h=mask.h,
+                    opacity=mask.opacity,soft=mask.softness;
+                if(ImGui::InputInt("World X##mask",&x))
+                    if(cviii_lighting_editor_mask_property(selected_mask,1,x))dirty=true;
+                if(ImGui::InputInt("World Y##mask",&y))
+                    if(cviii_lighting_editor_mask_property(selected_mask,2,y))dirty=true;
+                if(ImGui::SliderInt("Width##mask",&w,1,160))
+                    if(cviii_lighting_editor_mask_property(selected_mask,3,w))dirty=true;
+                if(ImGui::SliderInt("Height##mask",&h,1,160))
+                    if(cviii_lighting_editor_mask_property(selected_mask,4,h))dirty=true;
+                if(ImGui::SliderInt("Shadow Opacity",&opacity,0,100,"%d%%"))
+                    if(cviii_lighting_editor_mask_property(selected_mask,5,opacity))dirty=true;
+                if(ImGui::SliderInt("Soft Penumbra",&soft,0,16,"%d px"))
+                    if(cviii_lighting_editor_mask_property(selected_mask,6,soft))dirty=true;
+                if(ImGui::Button("Delete Mask")){
+                    if(cviii_lighting_editor_mask_property(selected_mask,0,0))
+                        dirty=true;
+                }
+            }
+            ImGui::TextDisabled("Mask outlines are visible only while editing.");
             ImGui::EndTabItem();
         }
         if(ImGui::BeginTabItem("Settings")){
@@ -488,6 +642,24 @@ extern "C" int cviii_imgui_render(SDL_Window *window,SDL_Renderer *renderer){
                 maybe_change(1,global);
             ImGui::TextWrapped("The default ambient is used in rooms that "
                                "do not have an explicit scene setting.");
+            ImGui::SeparatorText("Persistent Scene Identity");
+            unsigned raw=cviii_lighting_editor_raw_room();
+            if(raw!=last_raw_room){
+                last_raw_room=raw;
+                alias_target=room;
+            }
+            ImGui::Text("Raw selector: %08X   Resolved scene: %08X",raw,room);
+            ImGui::TextWrapped("Lights stay in config.ini across deaths, "
+                "reloads and stage exits. If the original game changes "
+                "its room selector when you RETURN to this scene, link "
+                "the new selector to its saved scene ID below.");
+            ImGui::InputScalar("Saved Scene ID",ImGuiDataType_U32,&alias_target,
+                              nullptr,nullptr,"%08X",
+                              ImGuiInputTextFlags_CharsHexadecimal);
+            if(ImGui::Button("Map This Raw Selector to Saved Scene")){
+                if(cviii_lighting_editor_alias(alias_target))dirty=true;
+            }
+            ImGui::TextDisabled("Manual mapping; avoids silently merging unrelated rooms.");
             ImGui::SeparatorText("Editor Preferences");
             ImGui::Text("Toggle: %s",cviii_lighting_editor_key());
             ImGui::TextDisabled("Press Ctrl+Home to rebind the editor key.");
