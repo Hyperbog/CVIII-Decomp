@@ -85,11 +85,20 @@ int main(void)
     for(int y=0;y<240;y++)for(int x=0;x<256;x++)
       if (!require(pixels[y*426+85+x]==original[y*256+x],
                    "all 61,440 native gameplay pixels unchanged"))return 1;
-    /* Stale selector/scroll state must not produce scenery. */
+    /* A temporary PPU/room-camera mismatch retains prior original-ROM
+     * scenery for only 30 frames, and then fails closed. */
     scroll_x=123;w=256;h=240;
     pixels=cviii_stage1_host_present_0725(&host,original,&w,&h,1);
+    if (!require(pixels[32*426+341]!=0xff000000u,
+                 "source-backed margin held across transition"))return 1;
+    for(unsigned attempt=1;attempt<CVIII_JOIN_HOLD_MAX;attempt++) {
+        w=256;h=240;
+        pixels=cviii_stage1_host_present_0725(&host,original,&w,&h,1);
+    }
+    w=256;h=240;
+    pixels=cviii_stage1_host_present_0725(&host,original,&w,&h,1);
     if (!require(pixels[32*426+341]==0xff000000u,
-                 "camera disagreement rejected"))return 1;
+                 "expired camera disagreement must not show stale room"))return 1;
     /* BLK 1-02 starts at physical nametable 1 even when room-local X=0.
      * A selector alone cannot accept previous-room tile data. */
     test_ram[0x35]=1;test_ram[0x36]=3;
