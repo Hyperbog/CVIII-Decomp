@@ -418,6 +418,12 @@ jobs:
           $build = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win'
           ctest --test-dir $build -C Release -R '^JP0820_' --output-on-failure
           if ($LASTEXITCODE -ne 0) { throw 'JP0820 B727 original contact-state regression failed' }
+      - name: Verify JP0821 original effect routines and live effect23 (ROM-free)
+        shell: pwsh
+        run: |
+          $build = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win'
+          ctest --test-dir $build -C Release -R '^JP0821_' --output-on-failure
+          if ($LASTEXITCODE -ne 0) { throw 'JP0821 original contact effect test failed' }
       - name: Verify original PRG26 active actors in widescreen columns (ROM-free)
         shell: pwsh
         run: |
