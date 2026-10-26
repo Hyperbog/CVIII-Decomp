@@ -191,7 +191,8 @@ def atomic_replace(path: Path, raw: bytes) -> None:
         temp.unlink(missing_ok=True)
 
 
-def execute(root: Path, action: str, name: str = '') -> str:
+def execute(root: Path, action: str, name: str = '',
+            remap: tuple[str, str] = ('', '')) -> str:
     if root.is_symlink() or not root.is_dir():
         fail('Private native-game folder must exist and must not be a symlink')
     config = root / 'config.ini'
@@ -212,14 +213,32 @@ def execute(root: Path, action: str, name: str = '') -> str:
         doc = (json.dumps({'schema': SCHEMA, 'bindings': source}, sort_keys=True, indent=2)+'\n').encode('utf-8')
         exclusive_write(profile_file(profiles, name), doc)
         return f'Saved custom profile {name}; game settings unchanged'
-    if action == 'apply':
-        if name in PRESETS:
-            values = PRESETS[name]
+    if action in ('apply', 'remap'):
+        if action == 'apply':
+            if name in PRESETS:
+                values = PRESETS[name]
+            else:
+                values = read_profile(profile_file(profiles, name))
+            description = name
         else:
-            values = read_profile(profile_file(profiles, name))
+            button, scancode = remap
+            if button not in KEYS:
+                fail('Unknown NES Player 1 button; choose a,b,select,start,up,down,left,right')
+            if scancode not in VALID_SCANCODES or scancode in BLOCKED:
+                fail('Unsupported or reserved keyboard scancode: ' + repr(scancode))
+            values = active_profile(original).copy()
+            old_key = values[button]
+            # Swap the other button if this key is already in use. Never
+            # create an ambiguous double-binding or drop an existing key.
+            other = next((k for k in KEYS if k != button and values[k] == scancode), None)
+            if other is not None:
+                values[other] = old_key
+            values[button] = scancode
+            values = validate(values)
+            description = f'{button} to {scancode}' + (' (swap)' if other else '')
         patched = rewrite(original, values)
         if patched == original:
-            return f'Profile {name} already active; no files written'
+            return f'Binding/profile {description} already active; no files written'
         # Back up before replacing settings; never overwrite an earlier backup.
         backups = root / 'control-backups'
         if backups.is_symlink():
@@ -238,8 +257,8 @@ def execute(root: Path, action: str, name: str = '') -> str:
         else:
             fail('Could not allocate a unique settings backup; config unchanged')
         atomic_replace(config, patched)
-        return f'Applied {name}; prior settings backed up as {backup.name}'
-    fail('Expected list, show, save or apply action')
+        return f'Applied {description}; prior settings backed up as {backup.name}'
+    fail('Expected list, show, save, apply or remap action')
 
 
 def main() -> int:
@@ -250,10 +269,13 @@ def main() -> int:
     group.add_argument('--show', action='store_true')
     group.add_argument('--save', metavar='NAME')
     group.add_argument('--apply', metavar='NAME')
+    group.add_argument('--remap', nargs=2, metavar=('BUTTON', 'SCANCODE'))
     a = p.parse_args()
-    action = next(x for x in ('list', 'show', 'save', 'apply') if getattr(a, x))
+    action = next(x for x in ('list', 'show', 'save', 'apply', 'remap') if getattr(a, x))
     try:
-        print(execute(a.root, action, '' if action in ('list', 'show') else getattr(a, action)))
+        print(execute(a.root, action,
+                      getattr(a, action) if action in ('save', 'apply') else '',
+                      tuple(a.remap) if action == 'remap' else ('', '')))
         return 0
     except (ValueError, OSError) as e:
         print(f'Control profiles: {e}', file=sys.stderr)

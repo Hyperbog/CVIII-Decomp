@@ -2,8 +2,10 @@
 # Acts only on the local NESRecomp config.ini; no guest memory/ROM changes.
 [CmdletBinding()]
 param(
- [ValidateSet('Menu','List','Show','Apply','Save')][string]$Action='Menu',
+ [ValidateSet('Menu','List','Show','Apply','Save','Remap')][string]$Action='Menu',
  [string]$Profile='',
+ [string]$Button='',
+ [string]$Key='',
  [string]$GameDir=''
 )
 Set-StrictMode -Version Latest
@@ -51,6 +53,13 @@ switch ($Action) {
   Invoke-ControlProfile -ControlArguments @('--apply',$Profile)
   return
  }
+ 'Remap' {
+  if (-not $Button -or -not $Key) {
+   throw 'Specify -Button (a,b,select,start,up,down,left,right) and -Key.'
+  }
+  Invoke-ControlProfile -ControlArguments @('--remap',$Button.ToLowerInvariant(),$Key)
+  return
+ }
 }
 Write-Host 'CVIII native keyboard controls — close the running game before changing config.ini.'
 while ($true) {
@@ -61,8 +70,9 @@ while ($true) {
  Write-Host '2) WASD keyboard layout (WASD / J / K)'
  Write-Host '3) Save the currently active keyboard bindings as a named profile'
  Write-Host '4) Apply a previously saved named profile'
- Write-Host '5) Exit without changes'
- $selection=(Read-Host 'Choose 1–5').Trim()
+ Write-Host '5) Remap a single button (swaps any conflicting existing key)'
+ Write-Host '6) Exit without changes'
+ $selection=(Read-Host 'Choose 1–6').Trim()
  switch ($selection) {
   '1' { Invoke-ControlProfile -ControlArguments @('--apply','default') }
   '2' { Invoke-ControlProfile -ControlArguments @('--apply','wasd') }
@@ -74,7 +84,12 @@ while ($true) {
    $selected=(Read-Host 'Saved profile name').Trim()
    Invoke-ControlProfile -ControlArguments @('--apply',$selected)
   }
-  '5' { return }
-  default { Write-Host 'Invalid choice; enter 1, 2, 3, 4 or 5.' }
+  '5' {
+   $b=(Read-Host 'Button: a, b, select, start, up, down, left or right').Trim().ToLowerInvariant()
+   $k=(Read-Host 'Keyboard scancode (e.g. C, Space, W, Left Shift)').Trim()
+   Invoke-ControlProfile -ControlArguments @('--remap',$b,$k)
+  }
+  '6' { return }
+  default { Write-Host 'Invalid choice; enter 1, 2, 3, 4, 5 or 6.' }
  }
 }

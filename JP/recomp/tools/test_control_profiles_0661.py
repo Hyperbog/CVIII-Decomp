@@ -58,6 +58,34 @@ class ControlProfilesTest(unittest.TestCase):
         self.assertEqual(len(backups), 1)
         self.assertEqual(backups[0].read_bytes(), HEADER)
 
+    def test_remap_arbitrary_key_preserves_unrelated_settings(self):
+        out = profiles.execute(self.root, 'remap', remap=('a', 'C'))
+        self.assertIn('Applied a to C', out)
+        remapped = profiles.active_profile(self.original())
+        self.assertEqual(remapped['a'], 'C')
+        self.assertEqual(remapped['b'], 'X')
+        self.assertIn(b'MasterVolume = 70', self.original())
+        self.assertIn(b'save_state = F8', self.original())
+        self.assertEqual(self.cli('--remap', 'up', 'Space').returncode, 0)
+        self.assertEqual(profiles.active_profile(self.original())['up'], 'Space')
+        self.assertEqual(len(list((self.root/'control-backups').glob('*.bak'))), 2)
+
+    def test_remap_conflicting_key_swaps_instead_of_duplicate(self):
+        profiles.execute(self.root, 'remap', remap=('a', 'X'))
+        active = profiles.active_profile(self.original())
+        self.assertEqual(active['a'], 'X')
+        self.assertEqual(active['b'], 'Z')
+        self.assertEqual(len(set(active.values())), 8)
+
+    def test_remap_invalid_or_reserved_refuses_changes(self):
+        for button, key in [('a', 'F4'), ('jump', 'C'), ('a', 'bad-key'),
+                            ('start', 'Escape'), ('left', 'F9')]:
+            before = self.original()
+            with self.assertRaises(ValueError):
+                profiles.execute(self.root, 'remap', remap=(button, key))
+            self.assertEqual(self.original(), before)
+        self.assertFalse((self.root/'control-backups').exists())
+
     def test_default_restores_player1_after_wasd(self):
         # Windows clock granularity can return the SAME nanoseconds twice.
         with mock.patch.object(profiles.time, 'time_ns', return_value=12345):

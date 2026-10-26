@@ -184,6 +184,24 @@ ghosts under unusual CHR/actor transitions; no owner Windows A/B video
 has yet established a complete sprite-flicker fix. This change never
 creates actors outside the original gameplay viewport.
 
+## JP0753 — Explicit individual keyboard remapping
+
+`Controls.bat` and `Controls.ps1` now support per-button Player 1
+remapping in addition to the original presets. With the game closed,
+choose **5) Remap a single button** from the Controls menu, select
+`a`, `b`, `select`, `start`, `up`, `down`, `left` or
+`right`, and provide an SDL keyboard scancode such as `C`,
+`Space` or `Left Shift`. If another button already uses the
+new key, the bindings are **swapped**, preventing ambiguous duplicate
+inputs. All changes back up the previous `config.ini`, preserve
+audio/display and save-state shortcut settings, and can be saved
+as a named profile. Reserved GUI/save/menu keys cannot be assigned.
+
+For example, run
+`Controls.ps1 -Action Remap -Button a -Key C -GameDir <private AlphaCandidate>`.
+This is a working external keybinding interface, not an in-game F4
+rebind panel. A new keybinding is tested only after the game restarts.
+
 ## JP0661 native keyboard controls: profiles and recoverable presets
 
 The working native game already supports persistent SDL keyboard/gamepad
