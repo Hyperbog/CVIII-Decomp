@@ -145,6 +145,68 @@ as alternatives. Genuine overlay click placement is not owner-verified. ReShade 
 native Home editor shortcut: set `LightingEditorKey = End` for
 ReShade testing.
 
+## Global Lighting Library and Sky Fill
+
+The **Library** tab in the embedded Dear ImGui studio now contains seven
+reusable, named lighting archetypes. They are **not** tied to the
+screen, and each invocation allocates fresh emitters in the current
+candidate room:
+
+| Template | Emitters | Suggested use |
+| --- | --- | --- |
+| Candle | 1 small warm radial source | Candlesticks, sconces |
+| Torch | 2 (flame core + wider spill) | Castle wall torches |
+| Lantern | 2 (glass glow + bounce) | Enclosed hand lamps |
+| Window | 2 (cool shaft + diffuse bounce) | Dungeon windows |
+| Moonlight | 2 (blue shaft + cool bounce) | Night exteriors |
+| Sunbeam | 2 (warm cone + diffuse bounce) | Daytime shafts |
+| Magic | 2 (colored core + halo) | Spells, altars |
+
+**Apply Here** inserts the rig at camera center. **Place...** enables
+one-click placement at an exposed scene position. Each placed rig is
+an ordinary group of independently editable lights; colors, shapes
+and intensities can be customized after placement. Placement fails
+atomically if there are insufficient free slots or the rig extends
+outside the supported 0..65535 horizontal / 0..479 vertical world
+coordinate domain.
+
+To create a reusable **custom global group**, select a light in a
+named group, choose one of 12 library slots, supply a kit name, and
+click **Save Selected Group as Global Kit**. The entire set (up to
+eight emitters) is captured relative to the selected light's world
+position. Reapplying the kit to another scene restores individual
+names, colors, geometry, flicker modes, and relative spacing, but
+assigns the new scene room ID. This is *not* an active link: editing
+one placed instance doesn't silently change every other room.
+
+**Persistence:** custom kits are stored in `config.ini` as
+`LightKitXX` and `LightKitPartXX_N`. They complement, rather
+than replace, the old `LightXX` entries. The existing maximum
+of 128 actual placed emitters remains global across saved scenes.
+
+### Ambient versus sky illumination
+
+The **Scene** tab separates the previous ambient multiplier from a
+new **Sky Brightness** source. Old colored ambient continues to
+work for compatibility, but **Neutral white ambient** removes the
+subtractive color-filter behavior. The new sky fill adds a soft
+scene-wide illumination shoulder with adjustable RGB color and
+strength, plus three projected directions: upper sky, uniform fill,
+or lower bounce. **Daylight**, **Moonlight**, and **No Sky**
+give quick starting points. Each scene's sky is saved to a
+`RoomSkyXX` record, independent from its `RoomAmbientXX`
+entry, including a user-selected sky color when strength is zero.
+
+This is a **stylized 2D sky/hemisphere approximation**. It is
+not global illumination, real light bouncing, depth-buffer-based
+skylight occlusion, or geometry-resolved cast shadows. For those
+effects, the native renderer must first expose reliable scene
+geometry and occluder masks.
+
+The experimental real ReShade panel has equivalent global-rig
+and sky controls. It builds as a separate add-on and still needs
+an end-to-end injected Windows UI/placement acceptance test.
+
 ## Windows owner visual acceptance — Stage 1
 
 This is a reproducible manual test, **not a claim of completed gameplay QA**.
