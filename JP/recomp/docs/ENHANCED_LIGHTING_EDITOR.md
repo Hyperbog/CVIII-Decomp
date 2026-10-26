@@ -30,9 +30,9 @@ system keys cannot be assigned. Avoid choosing a key currently used
 for NES controls. The Ctrl+Home remapping gesture remains available
 even if the editor key itself changes.
 
-Maximum 24 lights per saved profile. Default warm color RGB (255,167,74),
+Maximum 128 lights per saved profile. Default warm color RGB (255,167,74),
 radius 56, intensity 85 and ambient 78%. The native host stores Lighting,
-LightAmbient and Light00..23 in the existing [Game] config.ini. These
+LightAmbient and Light00..127 in the existing [Game] config.ini. These
 are presentation settings and do not enter the original NES save state.
 
 ## Rendering and scrolling design
@@ -129,7 +129,7 @@ list layout. This is the existing embedded UI, not an add-on DLL.
   adds `LightStyle00`, hex-encoded `LightName00` /
   `LightGroup00` (UTF-8) and `RoomAmbient00`. Old configs remain
   readable. Invalid labels are rejected rather than partially loaded.
-  A maximum of 24 lights and 32 ambient overrides are supported.
+  A maximum of 128 lights and 32 ambient overrides are supported.
 
 **Actual ReShade overlay:** An independent optional add-on project is
 now under [`JP/recomp/reshade/`](../reshade/README.md).
