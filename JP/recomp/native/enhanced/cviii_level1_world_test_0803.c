@@ -449,7 +449,84 @@ int main(void){
               world->chapel_link_epochs==previous_links,
               "wrong room must not change source identities"))
         return 29;
+    /* JP0816: all seven horizontal source spans are resident with
+     * authentic ROM-local roots. The selected pointers/rows below are
+     * artificial; commercial ROM bytes are NEVER embedded in C tests. */
+    {
+        static const uint16_t roots[8]={
+            0x93ccu,0x93e8u,0u,0x93f4u,
+            0x9410u,0x9424u,0x9440u,0x945cu
+        };
+        static const uint8_t sizes[8]={28u,12u,0u,28u,20u,28u,28u,28u};
+        for(unsigned i=0;i<8;i++)if(i!=2u){
+            CviiiWorldSourceRoom0811 *src=&world->source_rooms[i];
+            src->root=roots[i];
+            src->end_exclusive=(uint16_t)(roots[i]+sizes[i]);
+            src->width=4u;
+            src->record_count=(uint16_t)(sizes[i]/4u);
+            src->payload_len=sizes[i];
+            memset(src->payload,0,sizeof src->payload);
+        }
+        world->source_rooms[0].payload[10]=0xd1u;
+        world->source_rooms[0].payload[11]=1u;
+        memset(bank0a,0,sizeof bank0a);
+        bank0a[0x9f6eu-0x8000u]=0x20u;
+        bank0a[0x9f6fu-0x8000u]=0xa1u;
+        bank0a[0xa06eu+0xa2u-0x8000u]=0x20u;
+        bank0a[0xa06fu+0xa2u-0x8000u]=0xa2u;
+        bank0a[0xa56bu+2u-0x8000u]=0x20u;
+        bank0a[0xa56cu+2u-0x8000u]=0xa3u;
+        bank0a[0xa220u-0x8000u]=0x32u;
+        bank0a[0xa320u-0x8000u]=0x80u;
+        if(!check(cviii_world_preload_horizontal_0816(
+                       world,bank0a,sizeof bank0a) &&
+                   world->horizontal_ready &&
+                   world->horizontal[0].count==14u &&
+                   world->horizontal[1].count==6u &&
+                   world->horizontal[7].count==14u &&
+                   !world->horizontal[2].valid,
+                  "seven horizontal source-pair payloads resident"))
+             return 37;
+        ram[0x53u]=0x3eu;ram[0x54u]=0x01u;
+        ram[0x62u]=0;ram[0x7f6u]=1u;
+        if(!check(cviii_world_observe_horizontal_0816(
+                       world,first,ram)==1 &&
+                   world->horizontal_last.valid &&
+                   world->horizontal_last.phase==5u &&
+                   world->horizontal_last.slot==5u &&
+                   world->horizontal_last.source_id==0xd1u &&
+                   world->horizontal_last.aux_id==1u &&
+                   world->horizontal_last.event_row==0x32u &&
+                   world->horizontal_last.aux_type==0x80u,
+                  "original $07F6 nonzero opening source resolution"))
+             return 38;
+        ram[0x7f6u]=0u;
+        if(!check(cviii_world_observe_horizontal_0816(
+                       world,first,ram)==1 &&
+                   world->horizontal_last.event_row==0u,
+                  "original $07F6 zero forbids unconditional spawn"))
+             return 39;
+        ram[0x62u]=1u;
+        if(!check(cviii_world_observe_horizontal_0816(
+                       world,first,ram)==1 &&
+                   world->horizontal_last.phase==10u &&
+                   world->horizontal_last.slot==4u,
+                  "original direction62 advances source phase five"))
+             return 40;
+        uint32_t observed=world->horizontal_observations;
+        if(!check(cviii_world_observe_horizontal_0816(
+                       world,vertical,ram)==-1 &&
+                   observed==world->horizontal_observations,
+                  "vertical chapel may not reuse horizontal source pair"))
+             return 41;
+    }
     cviii_world_clear_live_0805(world);
+    if(!check(world->horizontal_ready &&
+              world->horizontal[0].count==14u &&
+              !world->horizontal_observations &&
+              !world->horizontal_last.valid,
+              "transient original source phase reset preserves source directory"))
+         return 42;
     if(!check(!world->actors[0].active &&
               world->groups[4].active && world->templates_ready &&
               world->rooms[1].placed,
