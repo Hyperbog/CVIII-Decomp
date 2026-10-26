@@ -18,6 +18,8 @@ int pending_kit_type=-1,pending_kit_id=-1; /* 0 builtin, 1 saved custom */
 char kit_capture_name[CVIII_LIGHT_NAME_CAP]="My Lighting Rig";
 int kit_capture_slot=0;
 int global_style_slot=0,selected_mask=0;
+bool draw_mask=false,mask_first=false;
+int mask_x0=0,mask_y0=0;
 char global_style_name[CVIII_LIGHT_NAME_CAP]="Torch Global";
 unsigned alias_target=0,last_raw_room=0;
 char search_text[64]={};
@@ -140,8 +142,26 @@ extern "C" int cviii_imgui_event(const SDL_Event *e,SDL_Window *w,SDL_Renderer *
     }
 }
 extern "C" int cviii_imgui_scene_click(int event,int x,int y){
-    if(!cviii_lighting_editor_active() || event!=2 ||
-       (!place_pending && pending_kit_type<0))return 0;
+    if(!cviii_lighting_editor_active() || event!=2)return 0;
+    if(draw_mask){
+        int wx=0,wy=0;
+        if(!cviii_lighting_editor_world_point(x,y,&wx,&wy))return 1;
+        if(!mask_first){
+            mask_x0=wx;mask_y0=wy;mask_first=true;
+            return 1;
+        }
+        int left=wx<mask_x0?wx:mask_x0;
+        int top=wy<mask_y0?wy:mask_y0;
+        int width=(wx>mask_x0?wx-mask_x0:mask_x0-wx)+1;
+        int height=(wy>mask_y0?wy-mask_y0:mask_y0-wy)+1;
+        int m=cviii_lighting_editor_mask_add(left,top,width,height);
+        if(m>=0){
+            selected_mask=m;draw_mask=false;mask_first=false;dirty=true;
+            return 2;
+        }
+        return 1;
+    }
+    if(!place_pending && pending_kit_type<0)return 0;
     int ok=pending_kit_type==0?
         cviii_lighting_editor_apply_builtin(pending_kit_id,x,y):
         pending_kit_type==1?
@@ -155,6 +175,7 @@ extern "C" int cviii_imgui_scene_click(int event,int x,int y){
 extern "C" void cviii_imgui_reset(void){
     place_pending=false;
     pending_kit_type=-1;pending_kit_id=-1;
+    draw_mask=false;mask_first=false;
     panel_min=ImVec2(0,0);panel_max=ImVec2(0,0);
 }
 extern "C" void cviii_imgui_shutdown(void){
@@ -617,6 +638,18 @@ extern "C" int cviii_imgui_render(SDL_Window *window,SDL_Renderer *renderer){
                     if(index>=0){selected_mask=index;dirty=true;}
                 }
             }else ImGui::TextDisabled("Select a scene light before adding a mask.");
+            if(ImGui::Button(draw_mask?"DRAW MASK: CLICK 2 CORNERS":"Draw Rectangle on Level")){
+                draw_mask=true;mask_first=false;
+                place_pending=false;pending_kit_type=-1;pending_kit_id=-1;
+            }
+            if(draw_mask){
+                ImGui::TextColored(ImVec4(.9f,.78f,.32f,1.f),
+                    mask_first?"Click opposite rectangle corner":"Click first rectangle corner");
+                ImGui::SameLine();
+                if(ImGui::SmallButton("Cancel Draw")){
+                    draw_mask=false;mask_first=false;
+                }
+            }
             ImGui::SeparatorText("Room Occluders");
             for(int i=0;i<CVIII_OCCLUDER_MAX;++i){
                 if(!model->masks[i].used || model->masks[i].room!=room)continue;
