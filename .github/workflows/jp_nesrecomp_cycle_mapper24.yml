@@ -262,6 +262,9 @@ jobs:
         run: |
           python3 JP/recomp/tools/jp_menu_roundtrip_shell_test_0644.py --smoke
           python3 JP/recomp/tools/jp_menu_roundtrip_shell_test_0644.py
+      - name: Verify JP0761 in-game F7 keyboard binding and direct modal switches (ROM-free)
+        run: |
+          python3 JP/recomp/tools/patch_cyc_live_menus_0761.py --smoke
       - name: Verify JP0626 Audio child return preserves Pause focus (ROM-free)
         run: |
           cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \

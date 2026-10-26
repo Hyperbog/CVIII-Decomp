@@ -200,7 +200,19 @@ if(NOT JP_CYCLE_HEADLESS AND JP_SAVE_STATE_SLOTS)
   if(NOT JP_AUDIO_RETURN_PATCH_RESULT EQUAL 0)
    message(FATAL_ERROR "Nested Audio return SDL patch failed: ${JP_AUDIO_RETURN_PATCH_ERROR}")
   endif()
-  set(JP_FINAL_SDL_OVERLAY "${JP_AUDIO_RETURN_OVERLAY}")
+  # JP0761 final eighth-layer direct F4/F6/F7/F10 menu switches and
+  # Player1 live key rebinding, all inside the pinned native SDL host.
+  set(JP_LIVE_MENUS_OVERLAY "${NESRECOMP_EXTERNAL_ROOT}/runner/cyc/cviii_cyc_sdl_live_menus.c")
+  execute_process(
+   COMMAND "${Python3_EXECUTABLE}"
+    "${CMAKE_CURRENT_LIST_DIR}/../../tools/patch_cyc_live_menus_0761.py"
+    --source "${JP_AUDIO_RETURN_OVERLAY}" --out "${JP_LIVE_MENUS_OVERLAY}"
+   RESULT_VARIABLE JP_LIVE_MENU_PATCH_RESULT
+   ERROR_VARIABLE JP_LIVE_MENU_PATCH_ERROR)
+  if(NOT JP_LIVE_MENU_PATCH_RESULT EQUAL 0)
+   message(FATAL_ERROR "F7 remap and direct menu-switch SDL patch failed: ${JP_LIVE_MENU_PATCH_ERROR}")
+  endif()
+  set(JP_FINAL_SDL_OVERLAY "${JP_LIVE_MENUS_OVERLAY}")
  endif()
  get_target_property(JP_GAME_SOURCES jp_akumajou_densetsu SOURCES)
  set(JP_PATCHED_SOURCES "")

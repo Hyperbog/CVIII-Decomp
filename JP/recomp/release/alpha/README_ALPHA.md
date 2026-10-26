@@ -214,6 +214,30 @@ are never modified. Only Stage 1 mapped horizontal screens are covered;
 other stages without authenticated atlases remain unsupported. A
 synthetic ROM-free test verifies both outer margins and center isolation.
 
+## JP0761 — In-game F7 key remapping and direct Enhanced menu switching
+
+Press **F7** within the running Enhanced window to open the paused,
+in-game **Player 1 keyboard controls** page. Up/Down picks one of the
+eight NES buttons, Enter starts listening for the next key, Escape
+cancels capture or closes the menu, and the controller D-pad/A/B can
+also navigate. F1..F12, Escape, Backspace and host-defined shortcuts
+cannot be rebound. Selecting a keyboard key already assigned to
+another NES action **swaps** the two inputs rather than duplicating one.
+The pinned native host's CycBindings is updated immediately and its
+existing `config.ini` save routine persists the change. Player 1
+source remains untouched (controller users do not lose their gamepad).
+No ROM/PRG or original NMI/PPU state is touched. Gamepad bindings
+remain managed by the existing host controller input backend.
+
+F4, F6, F7 and F10 **switch directly** between Pause, Audio, Controls
+and stage debug pages. F4 invoked while Audio is open closes the audio
+child and resumes the existing Pause parent (or opens Pause if the
+Audio modal was entered directly); F6 inside Pause opens Audio without
+temporarily resuming emulated gameplay. All menu routing occurs in a
+new, separately generated eighth SDL owner-private overlay and uses
+the original host pause/input release barrier. Original edition is
+excluded from F7 Enhanced-only options.
+
 ## JP0661 native keyboard controls: profiles and recoverable presets
 
 The working native game already supports persistent SDL keyboard/gamepad

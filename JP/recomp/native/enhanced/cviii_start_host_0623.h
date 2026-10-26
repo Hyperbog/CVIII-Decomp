@@ -2,6 +2,7 @@
  * The platform executes returned actions via existing safe save/load/quit. */
 #ifndef CVIII_START_HOST_0623_H
 #define CVIII_START_HOST_0623_H
+int cviii_controls_available_0761(void); /* Enhanced-only F7 settings */
 int cviii_pause_active(void);
 int cviii_pause_toggle(void);
 void cviii_pause_close(void);

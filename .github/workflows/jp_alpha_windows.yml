@@ -249,6 +249,11 @@ jobs:
             [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path -LiteralPath $file).Path,[ref]$tokens,[ref]$parseErrors) | Out-Null
             if ($parseErrors.Count -gt 0) { throw ("PowerShell syntax check failed: " + $file + ": " + ($parseErrors | Out-String)) }
           }
+      - name: Validate in-game F7 keyboard bindings and direct F4 F6 F10 menu routing (ROM-free)
+        shell: pwsh
+        run: |
+          python JP/recomp/tools/patch_cyc_live_menus_0761.py --smoke
+          if ($LASTEXITCODE -ne 0) { throw 'JP0761 F7 live menu overlay regression' }
       - name: Verify Enhanced sprite preferences survive Windows launcher restarts (ROM-free)
         shell: pwsh
         run: |

@@ -511,6 +511,8 @@ static const uint32_t *present_game(void *context, int *width, int *height)
     return settings->presentation;
 }
 
+/* JP0761 host-only live keyboard binding page; Original stays reference-only. */
+int cviii_controls_available_0761(void) { return cviii.enhanced; }
 /* JP0623 game-owned Start/Pause state and stable action identities. */
 int cviii_pause_active(void)
 {
