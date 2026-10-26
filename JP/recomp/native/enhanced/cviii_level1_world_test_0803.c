@@ -97,6 +97,9 @@ int main(void){
      * The typed hierarchy remains source metadata, not fake enemies. */
     CviiiRoomCatalog0657 catalog={0};
     catalog.leaf_count=135;
+    /* All unrelated catalog stage keys must be distinct; zeroed
+     * trailing leaves are not duplicate source key 00/00/00. */
+    for(unsigned i=8u;i<135u;i++)catalog.leaves[i].stage=0xffu;
     for(unsigned i=0;i<8u;i++){
         CviiiRoomLeaf0657 *leaf=&catalog.leaves[i];
         leaf->stage=world->rooms[i].selector[0];
