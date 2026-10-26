@@ -122,8 +122,9 @@ void on_overlay(reshade::api::effect_runtime *){
     ImGui::SameLine();
     ImGui::TextDisabled("Scene %08X",room);
     ImGui::InputTextWithHint("##filter","Filter lights and groups...",search,sizeof search);
-    if(ImGui::Button(placement_pending?"CLICK ON LEVEL...":"Add Light: Click Level"))
-        placement_pending=true;
+    if(ImGui::Button(placement_pending?"CLICK ON LEVEL...":"Add Light: Click Level")){
+        placement_pending=true;pending_kit_kind=-1;pending_kit_id=-1;
+    }
     ImGui::SameLine();
     if(ImGui::Button("Add at Center"))changed(bridge.add(128,120));
     ImGui::SameLine();
@@ -168,6 +169,12 @@ void on_overlay(reshade::api::effect_runtime *){
                 placement_pending=true;pending_kit_kind=1;pending_kit_id=i;
             }
             ImGui::PopID();
+        }
+    }
+    if(placement_pending){
+        ImGui::TextDisabled("Click the exposed scene to place the selected rig.");
+        if(ImGui::SmallButton("Cancel placement")){
+            placement_pending=false;pending_kit_kind=-1;pending_kit_id=-1;
         }
     }
     ImGui::SeparatorText("Scene Lights");
