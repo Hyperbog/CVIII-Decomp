@@ -22,6 +22,8 @@ int cviii_stage1_atlas_load_0724(CviiiStage1Atlas0724 *atlas,
 int cviii_stage1_atlas_get_0724(const CviiiStage1Atlas0724 *atlas,
     const uint8_t selector[3],unsigned x,unsigned y,
     uint8_t *tile,uint8_t *palette);
+int cviii_stage1_atlas_width_0751(const CviiiStage1Atlas0724 *atlas,
+                                 const uint8_t selector[3]);
 /* Paint only the side margins using currently authentic NES CHR/palette
  * mapper views; center native pixels are NEVER modified by this function.
  * camera_x/y are caller-supplied room-local pixel offsets; never guessed.

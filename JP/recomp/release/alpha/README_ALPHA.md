@@ -149,6 +149,25 @@ flicker is A/B-tested and any unacceptable widescreen regressions are
 handled. Keep prior working `CVIII-Alpha` as rollback. ROM and generated
 PRG C/binaries are never added to Git.
 
+## JP0751 — Previous-room widescreen transition continuity
+
+Stage 1 Enhanced now displays authentic original-ROM scenery from the
+**previous** room in the wide side margin after a source-verified adjacent
+horizontal room transition. For incomplete PPU nametable/room transitions,
+the side margins are retained for at most 30 frames instead of instantly
+disappearing, then fail closed if the new room cannot be verified.
+Both previous/new room positions must be observed near their actual
+horizontal source bounds; arbitrary warps do not create a fake seam.
+
+This changes presentation only. The center 256x240 NES picture and
+all CPU, PPU, OAM, collision, movement, VRC6 audio and save-state data
+are unchanged. History is cleared on power/reset, saved-state load,
+Original mode, title/death and vertical stages. Public synthetic C11
+CI tests cover physical room-edge joins, stale-scene rejection, bounded
+holds and preservation of the center/HUD. Authentic owner Windows
+visual QA is still required; widescreen-side actors/torches/enemies
+remain a separate original-game spawn-data problem, not an atlas fix.
+
 ## JP0661 native keyboard controls: profiles and recoverable presets
 
 The working native game already supports persistent SDL keyboard/gamepad

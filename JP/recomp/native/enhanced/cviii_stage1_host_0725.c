@@ -33,10 +33,15 @@ static int load(CviiiStage1Host0725 *h)
     return 0;
 }
 
+void cviii_stage1_host_reset_0751(CviiiStage1Host0725 *h)
+{
+    if(h)cviii_stage1_join_reset_0751(&h->join);
+}
 int cviii_stage1_host_rom_0725(CviiiStage1Host0725 *h,const char *path)
 {
     if (!h || !path || !*path || strlen(path)>=sizeof h->rom_path) return 0;
     memcpy(h->rom_path,path,strlen(path)+1u);
+    cviii_stage1_host_reset_0751(h);
     h->attempted=0;
     h->atlas.loaded=0;
     return 1;
@@ -50,7 +55,10 @@ int cviii_stage1_host_cache_0729(CviiiStage1Host0725 *h,const char *path)
 }
 void cviii_stage1_host_mode_0725(CviiiStage1Host0725 *h,int enabled)
 {
-    if (h) h->enabled=!!enabled;
+    if (h) {
+        if (!enabled)cviii_stage1_host_reset_0751(h);
+        h->enabled=!!enabled;
+    }
 }
 /* JP0726: authenticate the visible PPU nametable against the private
  * original-ROM atlas before extending the sides. This rejects old selector
@@ -122,6 +130,7 @@ const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
         return frame;
     int active=enhanced && h->enabled && load(h);
     if (!active) {
+        cviii_stage1_host_reset_0751(h);
         if (h->video_wide) {
             cyc_video_set_mode(NES_VIDEO_STOCK);
             h->video_wide=0;
@@ -140,9 +149,34 @@ const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
     }
     uint8_t selector[3]; int camera_x,camera_y;
     if (camera(h,selector,&camera_x,&camera_y)) {
-        (void)cviii_stage1_atlas_paint_0724(&h->atlas,selector,
-            camera_x,camera_y,h->pixels,CVIII_STAGE1_WIDE_0725,240,
-            CVIII_STAGE1_ORIGIN_0725,cyc_render_chr,cyc_render_color);
+        const int room_width=cviii_stage1_atlas_width_0751(&h->atlas,selector);
+        if (room_width>=256 && camera_x>=0 && camera_x<=room_width-256) {
+            cviii_stage1_join_accept_0751(&h->join,selector,camera_x,room_width);
+            /* The actual current-room atlas fills side columns first. */
+            (void)cviii_stage1_atlas_paint_0724(&h->atlas,selector,
+                camera_x,camera_y,h->pixels,CVIII_STAGE1_WIDE_0725,240,
+                CVIII_STAGE1_ORIGIN_0725,cyc_render_chr,cyc_render_color);
+            /* Source-verified previous room adjoins the new room where
+             * current room geometry is out-of-bounds. The original center
+             * and all original sprite/collision hardware remain untouched. */
+            uint8_t prior[3]; int prior_camera;
+            if (cviii_stage1_join_previous_0751(&h->join,camera_x,room_width,
+                                                 prior,&prior_camera))
+                (void)cviii_stage1_atlas_paint_0724(&h->atlas,prior,
+                    prior_camera,camera_y,h->pixels,CVIII_STAGE1_WIDE_0725,240,
+                    CVIII_STAGE1_ORIGIN_0725,cyc_render_chr,cyc_render_color);
+            cviii_stage1_join_cache_0751(&h->join,h->pixels);
+        } else cviii_stage1_join_gap_0751(&h->join);
+    } else {
+        const uint8_t *ram=cyc_cpu_ram();
+        /* Hold only across short, horizontal Stage1 gameplay transitions.
+         * Never hold over title, game-over, vertical rooms or state reset. */
+        int eligible=ram && ram[0x18u]==4u && ram[0x34u]==0u &&
+            !(ram[0x65u]&0x80u) && (cyc_render_line_mask(120)&0x08u);
+        if (eligible) {
+            cviii_stage1_join_gap_0751(&h->join);
+            (void)cviii_stage1_join_hold_0751(&h->join,h->pixels);
+        } else cviii_stage1_host_reset_0751(h);
     }
     *width=CVIII_STAGE1_WIDE_0725;
     return h->pixels;
