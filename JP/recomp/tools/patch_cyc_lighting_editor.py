@@ -21,6 +21,28 @@ SHELL=r'''
  * Event routing is presentation only; no emulated buttons are changed. */
 #include "cviii_lighting_host.h"
 static void zapper_window_point(int,int,int*,int*,int*,int*);
+static bool cviii_light_rebinding;
+static SDL_Scancode cviii_light_bind_pending=SDL_SCANCODE_UNKNOWN;
+static SDL_Scancode cviii_light_key(void)
+{
+    SDL_Scancode sc=SDL_GetScancodeFromName(cviii_lighting_editor_key());
+    return sc==SDL_SCANCODE_UNKNOWN?SDL_SCANCODE_HOME:sc;
+}
+static bool cviii_light_reserved(SDL_Scancode sc)
+{
+    switch(sc){
+    case SDL_SCANCODE_UNKNOWN: case SDL_SCANCODE_ESCAPE:
+    case SDL_SCANCODE_F4: case SDL_SCANCODE_F6:
+    case SDL_SCANCODE_F8: case SDL_SCANCODE_F9:
+    case SDL_SCANCODE_F10: case SDL_SCANCODE_F11:
+    case SDL_SCANCODE_F12: case SDL_SCANCODE_RETURN:
+    case SDL_SCANCODE_LCTRL: case SDL_SCANCODE_RCTRL:
+    case SDL_SCANCODE_LSHIFT: case SDL_SCANCODE_RSHIFT:
+    case SDL_SCANCODE_LALT: case SDL_SCANCODE_RALT:
+        return true;
+    default: return false;
+    }
+}
 static void cviii_light_sdl_status(void)
 {
     char details[128];
@@ -29,8 +51,51 @@ static void cviii_light_sdl_status(void)
 }
 static bool cviii_light_sdl_event(const SDL_Event *ev, bool other_open)
 {
+    /* Remapping holds the machine pause until the captured key is released. */
+    if(cviii_light_rebinding){
+        if(ev->type==SDL_KEYDOWN){
+            if(ev->key.repeat || cviii_light_bind_pending!=SDL_SCANCODE_UNKNOWN)
+                return true;
+            SDL_Scancode sc=ev->key.keysym.scancode;
+            if(sc==SDL_SCANCODE_ESCAPE){
+                cviii_light_rebinding=false;
+                note("LIGHT KEY","Remap cancelled");
+                return true;
+            }
+            if(cviii_light_reserved(sc)){
+                note("LIGHT KEY","Reserved key; choose another");
+                return true;
+            }
+            const char *name=SDL_GetScancodeName(sc);
+            if(!name || !cviii_lighting_editor_set_key(name)){
+                note("LIGHT KEY","Unsupported key; try another");
+                return true;
+            }
+            save_settings();
+            cviii_light_bind_pending=sc;
+            note("LIGHT KEY",name);
+            return true;
+        }
+        if(ev->type==SDL_KEYUP){
+            if(ev->key.keysym.scancode==cviii_light_bind_pending){
+                cviii_light_rebinding=false;
+                cviii_light_bind_pending=SDL_SCANCODE_UNKNOWN;
+            }
+            return true;
+        }
+        return false;
+    }
+    if(ev->type==SDL_KEYDOWN && !ev->key.repeat &&
+       ev->key.keysym.scancode==SDL_SCANCODE_HOME &&
+       (SDL_GetModState()&KMOD_CTRL) &&
+       (!other_open || cviii_lighting_editor_active())){
+        cviii_light_rebinding=true;
+        note("LIGHT KEY","Press new key (Escape cancels)");
+        return true;
+    }
     if(ev->type==SDL_KEYDOWN &&
-       ev->key.keysym.scancode==SDL_SCANCODE_F7){
+       ev->key.keysym.scancode==cviii_light_key() &&
+       !(SDL_GetModState()&(KMOD_CTRL|KMOD_ALT))){
         if(!ev->key.repeat && (cviii_lighting_editor_active() || !other_open)){
 #ifdef NESRECOMP_NET
             if(nes_netplay_active()){
@@ -135,12 +200,13 @@ def generate(text: str) -> str:
     text=once(text,KEY_ANCHOR,
         '''            if(cviii_light_sdl_event(&ev,open)){
                 open=menu_open() || cviii_stage_open || cviii_audio_menu_active() ||
-                     cviii_pause_active() || cviii_lighting_editor_active();
+                     cviii_pause_active() || cviii_lighting_editor_active() ||
+                     cviii_light_rebinding;
                 continue;
             }
 '''+KEY_ANCHOR)
-    text=once(text,START,START[:-1]+" || cviii_lighting_editor_active();")
-    text=once(text,FINAL,FINAL[:-1]+" || cviii_lighting_editor_active();")
+    text=once(text,START,START[:-1]+" || cviii_lighting_editor_active() || cviii_light_rebinding;")
+    text=once(text,FINAL,FINAL[:-1]+" || cviii_lighting_editor_active() || cviii_light_rebinding;")
     return text
 
 def smoke() -> None:
@@ -148,9 +214,12 @@ def smoke() -> None:
                        KEY_ANCHOR,START,FINAL))
     product=generate(fixture)
     assert product.count(MARKER)==1
-    assert "SDL_SCANCODE_F7" in product
+    assert "SDL_SCANCODE_HOME" in product
+    assert "SDL_GetScancodeFromName(cviii_lighting_editor_key())" in product
+    assert "cviii_light_rebinding" in product
+    assert "cviii_lighting_editor_set_key(name)" in product
     assert "SDL_RenderWindowToLogical" not in SHELL # uses engine mapping
-    assert product.count("|| cviii_lighting_editor_active();")==3
+    assert product.count("|| cviii_light_rebinding;")==3
     assert "SDL_MOUSEMOTION" in product and "SDL_MOUSEWHEEL" in product
     assert "cviii_light_sdl_status();" in product
     assert "if(code!=4)" in product
@@ -158,7 +227,7 @@ def smoke() -> None:
         try: generate(invalid)
         except ValueError: continue
         raise AssertionError("An already-patched/drifted SDL anchor was accepted")
-    print("PASS JP0662 pinned SDL F7/mouse/keyboard lighting editor smoke")
+    print("PASS JP0662 pinned SDL Home/mappable/mouse lighting editor smoke")
 
 def main() -> None:
     a=argparse.ArgumentParser(description=__doc__)
