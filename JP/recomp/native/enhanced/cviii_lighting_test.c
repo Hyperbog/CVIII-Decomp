@@ -96,6 +96,10 @@ int main(void){
  cviii_light_scene_get(&l,10,&ambient_percent,ambient_color);
  assert(ambient_percent==81 && ambient_color[0]==255);
  assert(!cviii_light_scene_set(&l,9,140,220,173,90));
+ assert(CVIII_LIGHT_MAX>=128);
+ l.light[100]=(CviiiLight){.room=9,.x=950,.y=170,.radius=30,
+                            .energy=60,.red=230,.green=230,.blue=180,.used=1};
+ assert(cviii_light_rename(&l,100,"Far room beacon"));
  FILE *profile=tmpfile();assert(profile);
  cviii_light_save(&l,profile);rewind(profile);
  CviiiLighting loaded;cviii_light_init(&loaded);
@@ -116,6 +120,8 @@ int main(void){
  assert(loaded.light[0].used && loaded.light[0].shape==CVIII_SHAPE_SHAFT);
  assert(!strcmp(loaded.light[0].name,"Torch - West stair"));
  assert(!strcmp(loaded.light[0].group,"Stage 1 torches"));
+ assert(loaded.light[100].used && loaded.light[100].x==950);
+ assert(!strcmp(loaded.light[100].name,"Far room beacon"));
  cviii_light_scene_get(&loaded,9,&ambient_percent,ambient_color);
  assert(ambient_percent==43 && ambient_color[1]==173);
  assert(!cviii_light_load(&loaded,"LightName00","FF"));
