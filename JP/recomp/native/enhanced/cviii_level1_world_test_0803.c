@@ -278,6 +278,37 @@ int main(void){
     if(!check(cviii_world_detect_loader_0805(world,second,ram)==-1 &&
               world->groups[4].activations==1,
               "partial original loader rejected"))return 14;
+    /* JP0813: invented seven-byte chapel source data, no game content. */
+    CviiiWorldSourceRoom0811 *chapel=&world->source_rooms[2];
+    memset(chapel,0,sizeof *chapel);
+    chapel->root=0xab1fu;chapel->end_exclusive=0xab5fu;
+    chapel->record_count=CVIII_STAGE1_CHAPEL_SOURCES_0813;
+    chapel->width=7u;chapel->payload_len=64u;
+    for(unsigned i=0;i<CVIII_STAGE1_CHAPEL_SOURCES_0813;i++){
+        chapel->payload[7u*i]=0x03u;
+        chapel->payload[7u*i+1u]=0xf0u;
+        chapel->payload[7u*i+2u]=0x80u;
+        chapel->payload[7u*i+3u]=(uint8_t)(0x20u+i);
+    }
+    chapel->payload[0]=0x01u;chapel->payload[1]=0x80u;
+    chapel->payload[63]=0xffu;
+    world->source_payload_ready=1u;
+    if(!check(cviii_world_track_chapel_0813(world,vertical,0x180)==1 &&
+              world->chapel[0].axis_world==0x0180u &&
+              world->chapel[0].local_axis==0x37u &&
+              world->chapel[0].entries==1u && world->chapel_epochs==1u,
+              "original world-axis admission") ||
+       !check(cviii_world_track_chapel_0813(world,vertical,0x200)==0 &&
+              world->chapel[0].exits==1u && !world->chapel[0].eligible &&
+              world->chapel[0].axis_world==0x0180u,
+              "source persists after leaving original admission window") ||
+       !check(cviii_world_track_chapel_0813(world,vertical,0x180)==1 &&
+              world->chapel[0].entries==2u && world->chapel_epochs==3u,
+              "re-enter original window without spawning game actors") ||
+       !check(cviii_world_track_chapel_0813(world,second,0x180)==-1 &&
+              world->chapel[0].entries==2u,
+              "wrong selector rejected without mutation"))
+        return 25;
     cviii_world_clear_live_0805(world);
     if(!check(!world->actors[0].active &&
               world->groups[4].active && world->templates_ready &&
