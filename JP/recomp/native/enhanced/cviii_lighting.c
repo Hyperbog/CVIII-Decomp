@@ -75,8 +75,24 @@ static void dot(uint32_t *p,int x,int y,unsigned color){
     if(x>=0 && x<256 && y>=CVIII_LIGHT_HUD && y<240)p[y*256+x]=color;
 }
 void cviii_light_present(CviiiLighting *s,uint32_t *p,int w,int h,uint32_t room,
-                         int camera,const int sx[CVIII_LIGHT_H],const int sy[CVIII_LIGHT_H]){
+                         int camera,const int sx[CVIII_LIGHT_H],const int sy[CVIII_LIGHT_H],uint64_t frame){
     if(!s || !p || !sx || !sy || w!=256 || h!=240)return;
+    float modulation[CVIII_LIGHT_MAX];
+    /* Gentle multi-band variation, not frame-by-frame white noise.
+     * Isolated candles are relatively stable; larger diffusion flames
+     * can show ~10 Hz oscillation in the cited combustion literature.
+     * The amplitudes here are deliberate aesthetic choices, NOT fitted
+     * experimental measurements. Each light has an independent phase. */
+    for(int i=0;i<CVIII_LIGHT_MAX;++i){
+        const CviiiLight *l=&s->light[i];
+        float t=(float)((double)(frame%216000u)/60.0);
+        float phase=(float)i*1.6180339f;
+        float warm=(l->red>l->blue && l->red>=l->green)?1.f:0.f;
+        float slow=0.018f*sinf(6.2831853f*0.73f*t+phase)
+                  +0.012f*sinf(6.2831853f*1.71f*t+phase*2.3f);
+        float fast=l->energy>=100?0.009f*sinf(6.2831853f*10.2f*t+phase):0.f;
+        modulation[i]=1.f+warm*(slow+fast);
+    }
     if(s->enabled){
         float ambient=(float)s->ambient/100.0f;
         for(int y=CVIII_LIGHT_HUD;y<h;++y){
@@ -91,7 +107,7 @@ void cviii_light_present(CviiiLighting *s,uint32_t *p,int w,int h,uint32_t room,
                     float dist2=dx*dx+dy*dy,rad=(float)l->radius;
                     if(dist2>=rad*rad)continue;
                     float t=1.f-sqrtf(dist2)/rad;
-                    float power=(float)l->energy*0.014f*t*t*(3.f-2.f*t);
+                    float power=modulation[i]*(float)l->energy*0.014f*t*t*(3.f-2.f*t);
                     r+=power*(float)l->red/255.f;
                     g+=power*(float)l->green/255.f;
                     b+=power*(float)l->blue/255.f;
