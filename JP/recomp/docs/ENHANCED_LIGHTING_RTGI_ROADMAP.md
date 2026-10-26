@@ -74,12 +74,16 @@ coordinates and clip naturally when scrolled away.
   source frame, and automatically falls back to Standard. It compiles only
   in private Windows GUI builds. This is NOT automatic collision geometry
   or the future Radiance Cascades transport solver.
-- **Enhanced / Radiance Cascades (future opt-in):** a higher-quality GPU
-  renderer with hierarchical directional radiance probes, verified room
-  geometry, proper GPU-resident compositing and a Standard fallback.
-  This mode is not offered in the UI until genuinely implemented.
+- **Enhanced / Radiance Cascades (experimental implementation):** a
+  third opt-in D3D11 renderer with two to four levels of directional
+  radiance probes, near/far spatial-angular resolution tradeoffs,
+  separate ray intervals, visibility-aware bilinear merges and
+  integration into the direct HDR lightmap. It currently uses
+  manual wall masks, prelit face emission and prototype CPU readback;
+  it does **not** claim automatic game tile occlusion or a converged
+  multibounce GI solver.
 
-### RTGI prototype: technically viable in 2D, not free
+### Production RTGI upgrades after the working experimental cascades
 
 1. **Scene geometry export.** Build a room-scoped occluder/emissive mask from
    verified room/nametable/world tile and stage metadata. Do not assume
@@ -90,13 +94,17 @@ coordinates and clip naturally when scrolled away.
 3. **Visibility / signed distance field.** Use jump flooding (JFA) or
    an offline/baked static distance field plus a small dynamic update
    for moving objects.
-4. **Direct and indirect illumination.** Prototype a low-resolution
-   ray-march for direct visibility and a *single indirect bounce* first.
-   Compare against small offline CPU reference images.
-5. **Higher-quality mode.** Investigate Radiance Cascades 2D, which
-   accumulates directional radiance in hierarchical probes, rather than
-   firing independent rays from every 256×192 pixel per light every
-   frame. This is a sensible route to real-time multi-source GI.
+4. **Direct and indirect illumination.** The completed prototype
+   already uses a separately traced D3D11 128×96 direct pass and
+   prelit wall-face radiance for GI. Improve light transport by
+   evaluating multiple wall faces and introducing iterative bounces,
+   with comparable offline CPU reference renders.
+5. **Radiance Cascades refinement.** The third mode now has a real
+   two-to-four-level angular probe hierarchy. Add physical emissive
+   materials, accurate world-space tracing through verified original
+   background geometry, robust probe interpolation across
+   scanline/vertical scrolling and optional temporal stability.
+   Remove present-day hand-authored mask and staging readback limits.
 6. **Temporal stability:** stable seeded sampling or deterministic
    cascades, optional denoising, lighting history reset when room identity
    or scrolling viewport changes, and no light smearing after death/load.
