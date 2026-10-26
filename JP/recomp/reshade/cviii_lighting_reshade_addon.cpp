@@ -33,6 +33,7 @@ struct Bridge {
     int (*grade)(int,int)=nullptr;
     int (*undo)()=nullptr;
     int (*redo)()=nullptr;
+    int (*kit_manage)(int,int,int,const char*)=nullptr;
     int (*builtin_count)()=nullptr;
     const char *(*builtin_name)(int)=nullptr;
     int (*event)(int,int,int)=nullptr;
@@ -84,6 +85,7 @@ bool bind_game(){
     b.grade=game_export<decltype(b.grade)>(exe,"cviii_lighting_editor_grade");
     b.undo=game_export<decltype(b.undo)>(exe,"cviii_lighting_editor_undo");
     b.redo=game_export<decltype(b.redo)>(exe,"cviii_lighting_editor_redo");
+    b.kit_manage=game_export<decltype(b.kit_manage)>(exe,"cviii_lighting_editor_kit_manage");
     b.builtin_count=game_export<decltype(b.builtin_count)>(exe,"cviii_lighting_editor_builtin_count");
     b.builtin_name=game_export<decltype(b.builtin_name)>(exe,"cviii_lighting_editor_builtin_name");
     b.event=game_export<decltype(b.event)>(exe,"cviii_lighting_editor_input");
@@ -100,7 +102,7 @@ bool bind_game(){
        !b.apply_kit || !b.capture_kit || !b.sky ||
        !b.raw_room || !b.alias || !b.global_capture || !b.global_link ||
        !b.global_property || !b.mask_add || !b.mask_property || !b.grade ||
-       !b.undo || !b.redo ||
+       !b.undo || !b.redo || !b.kit_manage ||
        !b.builtin_count || !b.builtin_name ||
        !b.event || !b.prop ||
        !b.copy || !b.paste || !b.duplicate || !b.name || !b.group ||
@@ -188,6 +190,21 @@ void on_overlay(reshade::api::effect_runtime *){
         ImGui::SliderInt("Kit Slot",&kit_slot,0,CVIII_KIT_MAX-1);
         if(ImGui::Button("Save selected group as global kit"))
             changed(bridge.capture_kit(kit_slot,kit_name));
+        if(s->kits[kit_slot].used){
+            if(ImGui::SmallButton("Rename Saved Kit"))
+                changed(bridge.kit_manage(1,kit_slot,-1,kit_name));
+            ImGui::SameLine();
+            if(ImGui::SmallButton("Clone to Empty Slot")){
+                for(int i=0;i<CVIII_KIT_MAX;++i)
+                    if(!s->kits[i].used){
+                        changed(bridge.kit_manage(2,kit_slot,i,nullptr));
+                        kit_slot=i;break;
+                    }
+            }
+            ImGui::SameLine();
+            if(ImGui::SmallButton("Delete Saved Kit"))
+                changed(bridge.kit_manage(3,kit_slot,-1,nullptr));
+        }
         for(int i=0;i<CVIII_KIT_MAX;++i){
             if(!s->kits[i].used)continue;
             ImGui::PushID(500+i);
