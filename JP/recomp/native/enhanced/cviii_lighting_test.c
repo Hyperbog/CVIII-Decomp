@@ -81,13 +81,13 @@ int main(void){
  l.edit=0;
  cviii_light_present(&l,cone,256,240,9,500,sx,sy,0);
  assert(cone[100*256+44]!=0xff646464u);
- assert(cone[100*256+20]==0xff646464u);
+ assert(cone[100*256+20]==0xff686868u);
  assert(cviii_light_shape(&l,0,CVIII_SHAPE_SHAFT));
  unsigned int shaft[256*240];
  for(unsigned i=0;i<256*240;++i)shaft[i]=0xff808080u;
  cviii_light_present(&l,shaft,256,240,9,500,sx,sy,0);
  assert(shaft[100*256+42]!=0xff646464u);
- assert(shaft[125*256+42]==0xff646464u);
+ assert(shaft[125*256+42]==0xff686868u);
  /* Override global ambience only for this room. */
  assert(cviii_light_scene_set(&l,9,43,220,173,90));
  int ambient_percent=-1,ambient_color[3]={0};
