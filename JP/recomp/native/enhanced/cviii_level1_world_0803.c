@@ -205,6 +205,22 @@ int cviii_world_link_chapel_0814(CviiiLevel1World0803 *w,
         if(found[i].kind==CVIII_LINK_EVENT_0814 ||
            found[i].kind==CVIII_LINK_DIRECT_0814)matches++;
     memcpy(w->chapel_links,found,sizeof found);
+    /* A verified direct installation may label an ALREADY live original
+     * world actor of the same room/slot/type. It does not activate an
+     * unspawned actor or change the rendering/collision implementation.
+     * The generation tag is invalidated by the existing slot-reuse logic. */
+    for(unsigned i=0;i<CVIII_STAGE1_CHAPEL_SOURCES_0813;i++){
+        if(found[i].kind!=CVIII_LINK_DIRECT_0814)continue;
+        const unsigned x=found[i].slot;
+        CviiiWorldActor0803 *actor=&w->actors[x];
+        const uint8_t *record=w->source_rooms[2].payload+7u*i;
+        if(actor->active && actor->room==2u &&
+           actor->slot==x && actor->original_type==record[2]){
+            actor->source_cpu_0814=(uint16_t)(
+                w->source_rooms[2].root+7u*i);
+            actor->source_generation_0814=actor->generation;
+        }
+    }
     if(w->chapel_link_epochs!=UINT32_MAX)w->chapel_link_epochs++;
     return matches;
 }
@@ -441,6 +457,8 @@ unsigned cviii_world_capture_live_0803(CviiiLevel1World0803 *w,
         uint8_t frame=ram[0x400u+i],flags=ram[0x470u+i];
         if(!frame || (flags&0x80u)){
             actor->active=0;
+            actor->source_cpu_0814=0;
+            actor->source_generation_0814=0;
             continue;
         }
         const uint8_t selector=ram[0x48cu+i];
@@ -469,7 +487,11 @@ unsigned cviii_world_capture_live_0803(CviiiLevel1World0803 *w,
                candidate+256-predicted<=32)
                 world_x+=256;
         }
-        if(!same_identity)actor->generation++;
+        if(!same_identity) {
+            actor->generation++;
+            actor->source_cpu_0814=0;
+            actor->source_generation_0814=0;
+        }
         actor->original_type=type;
         actor->active=1;
         actor->room=(uint8_t)idx;
