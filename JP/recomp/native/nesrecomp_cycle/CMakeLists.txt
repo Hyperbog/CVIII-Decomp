@@ -54,6 +54,7 @@ if(JP_EDITION_HOST_EXTRAS)
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_light_kits.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_light_scene_fx.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_light_history.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_pixel_particles.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_chr_index_0598.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_chr_audit_0599.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_chr_fetch_0600.c"
@@ -305,6 +306,7 @@ add_executable(jp_lighting_test
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_light_kits.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_light_scene_fx.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_light_history.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_pixel_particles.c"
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_lighting_test.c")
 set_property(TARGET jp_lighting_test PROPERTY C_STANDARD 11)
 if(NOT WIN32)
