@@ -350,9 +350,16 @@ const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
             /* JP0813: follow the genuine vertical chapel camera with
              * resident source identities. CPU actor state stays authoritative;
              * no offscreen AI/guest-RAM writes or fabricated sprites. */
-            if(chapel)
+            if(chapel) {
+                /* JP0814: same source, but allocator signatures use
+                 * the original CPU $54:$53, not the PPU camera phase.
+                 * Zero guest writes: the game keeps authority over
+                 * actor creation, collision, scripts and despawn. */
                 (void)cviii_world_track_chapel_0813(
                     &h->world,selector,camera_y);
+                (void)cviii_world_link_chapel_0814(
+                    &h->world,selector,ram);
+            }
             center=chapel?CVIII_STAGE1_ORIGIN_0725:
                 viewport_center_0790(selector,camera_x);
             memcpy(h->last_verified_selector,selector,sizeof selector);
