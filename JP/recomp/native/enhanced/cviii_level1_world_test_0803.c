@@ -317,6 +317,8 @@ int main(void){
     ram[0x53u]=0x80u;ram[0x54u]=0x01u; /* original CPU camera $0180 */
     /* The guest already allocated actor 13; tagging cannot create it. */
     world->actors[13].active=1u;
+    world->actors[13].frame=1u;
+    ram[0x0400u+13u]=1u;
     world->actors[13].room=2u;
     world->actors[13].slot=13u;
     world->actors[13].original_type=0x80u;
