@@ -128,8 +128,14 @@ int cviii_particle_attach(CviiiLighting *s,int slot,int light_slot){
        light_slot>=CVIII_LIGHT_MAX)return 0;
     CviiiParticleEmitter *e=&s->particles[slot],world;
     if(!cviii_particle_world_region(s,e,&world)){
-        if(e->light_link)return 0;
-        world=*e;
+        world=*e; /* recoverable even after linked light was deleted */
+        if(e->light_link){
+            const CviiiLight *old=&s->light[e->light_link-1];
+            if(old->used && old->room==e->room){
+                world.x=old->x+e->link_dx;
+                world.y=old->y+e->link_dy;
+            }
+        }
     }
     if(light_slot>=0){
         const CviiiLight *l=&s->light[light_slot];
