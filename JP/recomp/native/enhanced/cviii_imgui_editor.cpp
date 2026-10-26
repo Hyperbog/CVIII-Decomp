@@ -700,7 +700,7 @@ extern "C" int cviii_imgui_render(SDL_Window *window,SDL_Renderer *renderer){
                     if(cviii_lighting_editor_mask_property(selected_mask,4,h))dirty=true;
                 if(ImGui::SliderInt("Shadow Opacity",&opacity,0,100,"%d%%"))
                     if(cviii_lighting_editor_mask_property(selected_mask,5,opacity))dirty=true;
-                if(ImGui::SliderInt("Soft Penumbra",&soft,0,16,"%d px"))
+                if(ImGui::SliderInt("Soft Penumbra",&soft,0,CVIII_OCCLUDER_MAX_SOFTNESS,"%d px"))
                     if(cviii_lighting_editor_mask_property(selected_mask,6,soft))dirty=true;
                 if(ImGui::Button("Delete Mask")){
                     if(cviii_lighting_editor_mask_property(selected_mask,0,0))
