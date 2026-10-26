@@ -352,9 +352,14 @@ const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
             /* JP0816: original CPU $53/$54/$62/$07F6 selects the
              * installed room-cell source (NOT an inferred enemy).
              * Genuine guest actor allocation remains unchanged. */
-            if(!chapel)
+            if(!chapel) {
                 (void)cviii_world_observe_horizontal_0816(
                     &h->world,selector,ram);
+                /* JP0817: original $84EA six-source-slot CPU evidence,
+                 * not a claim of original FF06 successful allocation. */
+                (void)cviii_world_observe_scheduler_0817(
+                    &h->world,selector,ram);
+            }
             /* JP0813: follow the genuine vertical chapel camera with
              * resident source identities. CPU actor state stays authoritative;
              * no offscreen AI/guest-RAM writes or fabricated sprites. */
