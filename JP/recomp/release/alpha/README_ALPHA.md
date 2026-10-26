@@ -16,6 +16,38 @@ including experimental unlimited sprites, are **off by default**.
 Historical Stage A-01/sprite investigation notes below are not current
 reports of a current graphics defect; see [Enhanced status](../../docs/ENHANCED_CURRENT_STATUS.md).
 
+## Draft lighting editor — isolated Windows preview
+
+The feature-branch lighting editor is **experimental** and has not yet passed
+interactive Stage 1/room-scroll gameplay acceptance. Do not overwrite your
+stable `%USERPROFILE%\\CVIII-Alpha` installation to try it.
+
+For a private test:
+
+1. Download/extract the feature branch's ROM-free Windows Alpha Builder Kit
+   artifact (not the normal decompilation-branch kit).
+2. Double-click **Preview-Lighting.bat**. It accepts the last authenticated
+   Japanese ROM location or prompts you to choose a ROM.
+3. The script checks out only the
+   `feature/enhanced-lighting-foundation` branch into
+   `%USERPROFILE%\\CVIII-Lighting-Preview\\_cviisource` and compiles into
+   `%USERPROFILE%\\CVIII-Lighting-Preview\\AlphaCandidate`.
+   The normal Alpha installation remains unchanged.
+4. The preview launches Enhanced automatically. In gameplay, press F7 to
+   pause and open the lighting editor. Left-click places a light; drag moves;
+   right-click selects; wheel changes radius; Shift+wheel power; Ctrl+wheel
+   ambient; C changes color; Delete removes. Edit status shows numeric
+   radius, power, RGB and ambient values. F7 resumes the game.
+5. Record Stage 1 scroll-out/scroll-back, nametable crossing, room changes,
+   F4/F6/F10 menu return and restart/persistence behavior. Further details
+   are in
+   [ENHANCED_LIGHTING_EDITOR.md](../../docs/ENHANCED_LIGHTING_EDITOR.md).
+
+Do **not** launch `Play-CVIII.bat` from the preview candidate to select the
+test executable: the stable launcher uses the normal private Alpha directory.
+The preview script builds and invokes its dedicated candidate directly. No
+ROM files or privately compiled executables are part of the public artifact.
+
 ## JP0661 native keyboard controls: profiles and recoverable presets
 
 The working native game already supports persistent SDL keyboard/gamepad
