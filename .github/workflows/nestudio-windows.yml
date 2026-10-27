@@ -37,6 +37,15 @@ jobs:
         run: |
           python JP/recomp/tools/patch_cyc_lighting_editor.py --smoke
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Compile actual Win64 C11 SDL bridge ABI (no ROM)
+        shell: cmd
+        run: |
+          for /f "usebackq delims=" %%i in (`"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -property installationPath`) do set "VS_ROOT=%%i"
+          if not defined VS_ROOT exit /b 1
+          call "%VS_ROOT%\Common7\Tools\VsDevCmd.bat" -arch=amd64
+          if errorlevel 1 exit /b 1
+          cl /nologo /TC /W3 /c /Fo:"%RUNNER_TEMP%\nestudio_bridge.obj" JP\recomp\nestudio\BridgeCompileSmoke.c
+          if errorlevel 1 exit /b 1
       - name: Compile and publish real NEStudio.exe WPF desktop
         shell: pwsh
         run: |
