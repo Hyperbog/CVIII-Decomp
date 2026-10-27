@@ -37,6 +37,19 @@ typedef char nest_layout_4[(offsetof(NestStudioMapping,sprites)==10368)?1:-1];
 static HANDLE nest_mapping_handle;
 static NestStudioMapping *nest_shared;
 static int nest_checked;
+/* Reserved v1 header slots 1 and 2 belong to the editor's transient
+ * keyboard capture. Nothing touches emulated NES controller or CPU RAM. */
+static unsigned nest_keyboard_bits(void)
+{
+    if(!nest_shared || !nest_shared->magic)return 0;
+    if(!InterlockedCompareExchange(&nest_shared->reserved[2],0,0))return 0;
+    return (unsigned)InterlockedCompareExchange(&nest_shared->reserved[1],0,0)&127u;
+}
+static int nest_keyboard_owned(void)
+{
+    return nest_shared && nest_shared->magic==NEST_MAGIC &&
+        InterlockedCompareExchange(&nest_shared->reserved[2],0,0)!=0;
+}
 static void nest_init(void){
     if(nest_checked)return;
     nest_checked=1;
