@@ -16,7 +16,12 @@ The script checks the authentic owner-supplied JP ROM, checks out **feature/nest
 %USERPROFILE%\NEStudio-Preview\NEStudio\NEStudio.exe
 ```
 
-Its initial `EnhancedProject.nestudio` points to the privately compiled game in `NEStudio-Preview\AlphaCandidate`, without embedding ROM assets in the project.
+Its initial `EnhancedProject.nestudio` points to the privately generated
+`NEStudio-Preview\AlphaCandidate\Launch-NEStudio-Game.bat`.
+The wrapper supplies the required Japanese ROM path, inherits NEStudio's
+session token and starts the freshly built bridge-enabled native game.
+The private `NEStudio-RomPath.txt` contains only the local ROM pathname,
+not ROM data.
 
 You can also build the editor independently without a ROM or running game:
 
@@ -24,9 +29,25 @@ You can also build the editor independently without a ROM or running game:
 ./JP/recomp/nestudio/Build-NEStudio.ps1 -Launch
 ```
 
-Pass `-GameFolder "C:\path\to\AlphaCandidate"` to generate a starter project referencing a compatible freshly built native Enhanced game. **An old game build without the new NEStudio session bridge will embed the viewport but cannot provide live scene edits**; the recommended private builder rebuilds both halves.
+Pass `-GameFolder "C:\path\to\AlphaCandidate"` to generate a starter
+project referencing a compatible private native game plus its dedicated
+`Launch-NEStudio-Game.bat`. **An old game build without the new NEStudio session bridge will embed the viewport but cannot provide live scene edits**; the recommended private builder rebuilds both halves.
 
 Prerequisites: Windows x64, .NET **8 SDK** to build, and a private original-Japanese-ROM-authenticated native Enhanced build with SDL2.dll. The WPF published build targets the .NET 8 desktop runtime (not included in the editor-only GitHub artifact). No proprietary assets ship in the repository or CI artifact.
+
+## Fixing a separate game window and "Bridge connecting"
+
+The generic Alpha `Play-CVIII.bat` and `Build-And-Play.bat` launchers can
+reuse an old `%USERPROFILE%\CVIII-Alpha\AlphaCandidate` executable
+which has no NEStudio session bridge. This produces a separate game window
+and leaves the editor at **Bridge connecting**. Selecting the bare native
+EXE can also omit the mandatory positional Japanese ROM argument.
+
+Use the private preview build and choose
+`%USERPROFILE%\NEStudio-Preview\AlphaCandidate\Launch-NEStudio-Game.bat`
+in **Set Game / Launcher**. The preview builder verifies that its fresh
+native EXE contains the session bridge symbol before linking the project.
+Do not use old alpha builds for live editor acceptance.
 
 ## Using an existing game .bat or .cmd launcher
 
