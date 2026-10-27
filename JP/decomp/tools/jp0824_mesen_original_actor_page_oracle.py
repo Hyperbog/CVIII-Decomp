@@ -14,6 +14,7 @@ import argparse
 import hashlib
 import json
 import subprocess
+import tempfile
 from pathlib import Path
 ROM="958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28"
 AGENT="95bcda9d4ff6428937183093386d993649c2d740273871ced78217d3d8f234d0"
@@ -63,6 +64,34 @@ def verify(mesen:Path,rom:Path,home:Path,state:Path):
             if got["actor_type"]!=0 or got["frame"]!=0:
                 raise AssertionError(f"Original Mesen did not remove mid-page actor: {got}")
         print(f"PASS JP0824 original CPU page1 X={x:02X}: {'allocated' if alive else 'deallocated'}")
+    # The SAME genuine actor enters the ORIGINAL $B1F8 collision
+    # dispatcher. This is CPU-oracle behavior, not a guessed native hit.
+    with tempfile.TemporaryDirectory(prefix="jp0824_private_cpu_") as tmp:
+        root=Path(tmp)
+        for flags,steps,needle in (
+            (0xc5,4,"B1F7  RTS"),
+            (0x44,32,"B232  JSR $B339")
+        ):
+            state_out=root/f"hit_{flags:02x}.mss"
+            argv=[str(mesen),str(rom),"--home",str(home),
+                  "--load-state",str(state),"--frames","5",
+                  "--timeout","20","--breakpoint",
+                  "NesMemory:0xB1F8:x:[$23]==$0B && X==1",
+                  "--write-memory",f"NesInternalRam:0x471:{flags:02X}",
+                  "--write-memory","NesInternalRam:0x439:0C",
+                  "--save-state",str(state_out)]
+            call=subprocess.run(argv,capture_output=True,text=True,timeout=28)
+            if call.returncode or '"reason":"debugger_break"' not in call.stdout:
+                raise AssertionError("original B1F8 slot1 breakpoint not reached")
+            trace=root/f"trace_{flags:02x}.txt"
+            call=subprocess.run([str(mesen),str(rom),"--home",str(home),
+                  "--load-state",str(state_out),"--frames","0",
+                  "--step",str(steps),"--timeout","20",
+                  "--trace",str(trace)],
+                  capture_output=True,text=True,timeout=28)
+            if call.returncode or needle not in trace.read_text():
+                raise AssertionError(f"Original B1F8 branch differs for flag {flags:02X}")
+            print(f"PASS JP0824 original B1F8 actor1 flags={flags:02X}: {needle}")
     print("LIMIT: controlled CPU RAM page variants, not new natural offscreen source spawns")
 if __name__=="__main__":
     ap=argparse.ArgumentParser(description=__doc__)
