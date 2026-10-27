@@ -370,6 +370,8 @@ python3 "$root/JP/decomp/tools/jp_stage1_interaction_lifetime_0819.py" --smoke
 python3 -m py_compile "$root/JP/decomp/tools/jp_stage1_natural_contact_lifetime_0821.py"
 # JP0821: owner-ROM source audit and private natural Mesen replay CLI smoke.
 python3 "$root/JP/decomp/tools/jp_stage1_contact_effects_0821.py" --smoke
+# JP0828: original signed-page movement geometry and banked E249 source window.
+python3 "$root/JP/decomp/tools/jp0828_original_movement_sound_audit.py" --smoke
 python3 "$root/JP/decomp/tools/jp_stage1_natural_contact_lifetime_0821.py" --smoke
 
 # JP0738: original/native camera-actor comparison parser on entirely invented
