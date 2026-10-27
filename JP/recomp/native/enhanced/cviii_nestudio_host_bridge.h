@@ -210,6 +210,7 @@ static void nest_tick(void){
     }
     nest_shared->count=count;
     uint8_t oam[256];
+    memset(oam,0xFF,sizeof oam);
     if(cviii_nestudio_copy_oam(oam)){
         for(int slot=0;slot<64;++slot){
             NestStudioSprite *p=&nest_shared->sprites[slot];
