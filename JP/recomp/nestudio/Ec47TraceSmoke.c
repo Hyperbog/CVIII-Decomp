@@ -13,6 +13,10 @@ int main(void)
     assert(!cviii_ec47_stack_matches(ram,sp,0x33u));
     ram[0x1FC]=0;
     assert(!cviii_ec47_stack_matches(ram,sp,0x32u));
+    assert(!cviii_ec47_return_matches(ram,0xFBu));
+    ram[0x1FC]=0x01u;
+    assert(cviii_ec47_return_matches(ram,0xFBu));
+    assert(!cviii_ec47_return_matches(ram,0xFCu));
     CviiiNestEc47Trace t;
     cviii_ec47_reset(&t);
     assert(t.sequence==0);
