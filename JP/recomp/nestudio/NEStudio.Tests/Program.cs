@@ -26,6 +26,7 @@ project.Dialogues.Add(new StudioDialogue
 {
     Id="jp.stage01.dracula.001",Room=0x2601,
     MaxCharactersPerLine=16,MaxLinesPerPage=3,
+    HasViewportRegion=true,ViewX=24,ViewY=164,ViewWidth=160,ViewHeight=32,
     Languages=new()
     {
         ["ja"]="こんばんは",
@@ -63,6 +64,10 @@ try
     Check(returned.Dialogues.Count==1 &&
           returned.Dialogues[0].Languages["ja"]=="こんばんは",
           "Unicode localization roundtrip");
+    Check(returned.Dialogues[0].HasViewportRegion &&
+          returned.Dialogues[0].ViewX==24 &&
+          returned.Dialogues[0].ViewWidth==160,
+          "authored dialogue viewport region roundtrip");
     Check(returned.Events[0].Frame==120,"timeline preservation");
     Check(returned.Assets[0].RelativePath.EndsWith("trevor.png"),
           "external image reference");
@@ -78,6 +83,11 @@ try
     try{_ = StudioProjectFile.Load(file);}
     catch(InvalidDataException){rejected=true;}
     Check(rejected,"invalid OAM member index rejected");
+    File.WriteAllText(file,"""{"SchemaVersion":1,"Dialogues":[{"HasViewportRegion":true,"ViewX":999}]}""");
+    rejected=false;
+    try{_ = StudioProjectFile.Load(file);}
+    catch(InvalidDataException){rejected=true;}
+    Check(rejected,"out of bounds dialogue marker rejected");
 }
 finally {File.Delete(file);}
 Console.WriteLine("PASS NEStudio v1 project, sprite layers, multilingual dialogue, text flow and timeline round-trip");
