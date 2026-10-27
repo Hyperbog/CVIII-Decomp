@@ -44,6 +44,7 @@ public partial class MainWindow : Window
     private bool _bridgeWaitLogged;
     private bool _captureGameKeys;
     private int _gameKeyBits;
+    private readonly HashSet<int> _selectedSpriteSlots=new();
     // Matches SDL SCANCODE_UP/DOWN/LEFT/RIGHT/Z/X/RETURN/BACKSLASH
     // in the owner-private v1 session input header.
     private static int GameBit(Key key) => key switch
@@ -250,10 +251,29 @@ public partial class MainWindow : Window
             _selectedLight=scene.Selected;
         var spriteFingerprint=string.Join("|",scene.Sprites.Select(sp=>
             $"{sp.Slot}:{sp.X}:{sp.Y}:{sp.Tile}:{sp.Attribute}"));
-        if(spriteFingerprint!=_spriteFingerprint)
+        var nativeSelection=_bridge?.SelectedSpriteSlots ?? new HashSet<int>();
+        if(spriteFingerprint!=_spriteFingerprint ||
+           !_selectedSpriteSlots.SetEquals(nativeSelection))
         {
-            _spriteFingerprint=spriteFingerprint;
-            LiveSpritesList.ItemsSource=scene.Sprites.Select(sp=>sp.Label).ToList();
+            _changing=true;
+            _selectedSpriteSlots.Clear();
+            _selectedSpriteSlots.UnionWith(nativeSelection);
+            if(spriteFingerprint!=_spriteFingerprint)
+            {
+                _spriteFingerprint=spriteFingerprint;
+                LiveSpritesList.ItemsSource=scene.Sprites.ToList();
+            }
+            LiveSpritesList.SelectedItems.Clear();
+            foreach(StudioSprite sp in scene.Sprites)
+                if(_selectedSpriteSlots.Contains(sp.Slot))
+                {
+                    var row=LiveSpritesList.Items.OfType<StudioSprite>()
+                        .FirstOrDefault(item=>item.Slot==sp.Slot);
+                    if(row is not null)LiveSpritesList.SelectedItems.Add(row);
+                }
+            _changing=false;
+            if(SpritesTab.IsSelected)
+                SelectionLabel.Text=$"{_selectedSpriteSlots.Count} visible OAM sprites selected";
         }
         RoomLabel.Text=$"Room 0x{scene.Room:X8} · {scene.Lights.Count} live light(s)";
         var fingerprint=scene.Room+"|"+_selectedLight+"|"+
@@ -602,6 +622,78 @@ public partial class MainWindow : Window
         _dirty=true;
         ProjectLabel.Text=_project.Name+" *";
     }
+    private void InspectorTabs_SelectionChanged(object sender,SelectionChangedEventArgs e)
+    {
+        if(!IsLoaded || !ReferenceEquals(e.Source,InspectorTabs))return;
+        ReleaseGameKeys();
+        if(LightingTab.IsSelected)
+        {
+            Queue(18,0);Queue(17);
+            Status("Lighting mode — compact editor; Full Lighting Studio restores the original native workbench.");
+        }
+        else if(SpritesTab.IsSelected)
+        {
+            Queue(18,1);Queue(17); // freeze the visible OAM snapshot for selection
+            Status("Sprite picker active — click a sprite; Ctrl/Shift+click multiselect; Ctrl+G groups.");
+        }
+        else if(DialogueTab.IsSelected)
+        {
+            Queue(18,2);Queue(17);
+            Status("Dialogue authoring mode — runtime text region picking awaits original event/box mappings.");
+        }
+        else Queue(18,0);
+    }
+    private void FullLighting_Click(object sender,RoutedEventArgs e)
+    {
+        ReleaseGameKeys();
+        Queue(18,0);
+        Queue(16);
+        Status("Full native Lighting Studio enabled — all legacy lighting tools are in the viewport.");
+    }
+    private void CompactLighting_Click(object sender,RoutedEventArgs e)
+    {
+        Queue(17);
+        Status("Compact lighting inspector enabled.");
+    }
+    private void LiveSprites_SelectionChanged(object sender,SelectionChangedEventArgs e)
+    {
+        if(_changing || !IsLoaded || !SpritesTab.IsSelected || _bridge is null)
+            return;
+        var slots=LiveSpritesList.SelectedItems.OfType<StudioSprite>()
+            .Select(sp=>sp.Slot).ToHashSet();
+        if(_bridge.SetSpriteSelection(slots))
+        {
+            _selectedSpriteSlots.Clear();
+            _selectedSpriteSlots.UnionWith(slots);
+            SelectionLabel.Text=$"{slots.Count} visible OAM sprites selected";
+        }
+    }
+    private void GroupSelectedSprites_Click(object sender,RoutedEventArgs e)
+    {
+        if(_scene is null || !SpritesTab.IsSelected)return;
+        var slots=_bridge?.SelectedSpriteSlots ?? _selectedSpriteSlots;
+        var members=_scene.Sprites.Where(sp=>slots.Contains(sp.Slot)).ToList();
+        if(members.Count==0)
+        {
+            Status("Select one or more visible sprites first (Ctrl/Shift+click in the game viewport).");
+            return;
+        }
+        var group=new StudioSpriteGroup
+        {
+            Name=$"Sprite Group {_project.SpriteGroups.Count+1}",
+            Layer="World",
+            Room=_scene.Room,
+            CapturedFrame=_bridge?.GameFrame??0,
+            Members=members.Select(sp=>new StudioSpriteMember
+            {
+                OamSlot=sp.Slot,Tile=sp.Tile,Attributes=sp.Attribute,
+                CaptureX=sp.X,CaptureY=sp.Y
+            }).ToList()
+        };
+        _project.SpriteGroups.Add(group);
+        Dirty();RefreshProject();SpriteList.SelectedItem=group;
+        Status($"Grouped {members.Count} OAM entries in room 0x{group.Room:X8}; membership is a frame snapshot, not stable actor IDs.");
+    }
     private void AddSpriteGroup_Click(object sender,RoutedEventArgs e)
     {
         var group=new StudioSpriteGroup{Name="Layer "+(_project.SpriteGroups.Count+1)};
@@ -739,6 +831,12 @@ public partial class MainWindow : Window
             }
         }
         if((Keyboard.Modifiers&ModifierKeys.Control)==0)return;
+        if(e.Key==Key.G && SpritesTab.IsSelected)
+        {
+            GroupSelectedSprites_Click(sender,new RoutedEventArgs());
+            e.Handled=true;
+            return;
+        }
         if(e.Key==Key.S){Save(false);e.Handled=true;}
         else if(e.Key==Key.O){OpenProject_Click(sender,new RoutedEventArgs());e.Handled=true;}
     }
