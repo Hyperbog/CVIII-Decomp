@@ -205,7 +205,9 @@ public partial class MainWindow : Window
                             if(groupRequest!=0 && groupRequest!=_lastSpriteGroupSequence)
                             {
                                 _lastSpriteGroupSequence=groupRequest;
-                                GroupSelectedSprites_Click(this,new RoutedEventArgs());
+                                if((_bridge?.SelectedOriginalObjectSlots.Count??0)>0)
+                                    GroupOriginalObjects_Click(this,new RoutedEventArgs());
+                                else GroupSelectedSprites_Click(this,new RoutedEventArgs());
                             }
                         }
                         if(DialogueTab.IsSelected)
@@ -304,13 +306,34 @@ public partial class MainWindow : Window
                 }
             _changing=false;
         }
+        // When a source-verified OAM piece is clicked, the native picker
+        // selects its original object index and highlights all its pieces.
+        var nativeOriginalSelection=_bridge?.SelectedOriginalObjectSlots
+            ?? new HashSet<int>();
+        var visibleOriginalSelection=OriginalObjectsList.SelectedItems
+            .OfType<StudioOriginalObject>().Select(o=>o.Slot).ToHashSet();
+        if(!visibleOriginalSelection.SetEquals(nativeOriginalSelection))
+        {
+            _changing=true;
+            OriginalObjectsList.SelectedItems.Clear();
+            foreach(StudioOriginalObject row in OriginalObjectsList.Items
+                         .OfType<StudioOriginalObject>())
+                if(nativeOriginalSelection.Contains(row.Slot))
+                    OriginalObjectsList.SelectedItems.Add(row);
+            _changing=false;
+        }
+        SpriteSourceStatus.Text=scene.SourceCallCount>0 && scene.AttributionErrors==0 ?
+            $"Original PRG26 source attribution: {scene.AttributionCount} sprite entries / {scene.SourceCallCount} descriptor calls." :
+            $"Source ownership unavailable for this frame (calls {scene.SourceCallCount}, errors {scene.AttributionErrors}); no guessed owners.";
+        if(scene.PpuSourceWrite is { } ppu)
+            PpuSourceStatus.Text=$"Original PPU nametable write: CPU PC ${ppu.ProgramCounter:X4} -> PPU ${ppu.PpuAddress:X4}, value ${ppu.TileValue:X2} ({ppu.ObservedWrites} observed writes). Unclassified: not proven dialogue.";
         // A native viewport handle click changes the authoritative game
         // selection. Follow it unless the editor has already queued a new
         // scene-tree selection that has not yet reached the native thread.
         if(!_commands.Any(cmd=>cmd.Op==3))
             _selectedLight=scene.Selected;
         var spriteFingerprint=string.Join("|",scene.Sprites.Select(sp=>
-            $"{sp.Slot}:{sp.X}:{sp.Y}:{sp.Tile}:{sp.Attribute}"));
+            $"{sp.Slot}:{sp.X}:{sp.Y}:{sp.Tile}:{sp.Attribute}:{sp.SourceOwner}:{sp.EmissionIndex}"));
         var nativeSelection=_bridge?.SelectedSpriteSlots ?? new HashSet<int>();
         if(spriteFingerprint!=_spriteFingerprint ||
            !_selectedSpriteSlots.SetEquals(nativeSelection))
@@ -775,7 +798,10 @@ public partial class MainWindow : Window
     private void OriginalObjects_SelectionChanged(object sender,SelectionChangedEventArgs e)
     {
         if(_changing || !SpritesTab.IsSelected)return;
-        int count=OriginalObjectsList.SelectedItems.OfType<StudioOriginalObject>().Count();
+        var selected=OriginalObjectsList.SelectedItems
+            .OfType<StudioOriginalObject>().Select(o=>o.Slot).ToHashSet();
+        _bridge?.SetOriginalObjectSelection(selected);
+        int count=selected.Count;
         if(count>0)SelectionLabel.Text=$"{count} original game object lifetime(s) selected";
     }
     private void GroupOriginalObjects_Click(object sender,RoutedEventArgs e)
@@ -802,7 +828,7 @@ public partial class MainWindow : Window
         };
         _project.SpriteGroups.Add(group);
         Dirty();RefreshProject();SpriteList.SelectedItem=group;
-        Status($"Grouped {selected.Count} source-observed object lifetimes. Slot reuse creates a new generation; OAM piece attribution still needs renderer provenance.");
+        Status($"Grouped {selected.Count} source-observed object lifetimes. Gold outlines show source-attributed OAM pieces; unavailable frames remain unassigned.");
     }
     private void LiveSprites_SelectionChanged(object sender,SelectionChangedEventArgs e)
     {
