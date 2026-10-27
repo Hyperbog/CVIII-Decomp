@@ -56,6 +56,29 @@ public sealed class StudioBridge : IDisposable
             return selected;
         }
     }
+    public bool TryReadDialogueClick(out int sequence,out int x,out int y)
+    {
+        sequence=0;x=0;y=0;
+        if(_view.ReadInt32(0)!=Magic || _view.ReadInt32(84)!=2)return false;
+        int first=_view.ReadInt32(96); // reserved[6], native click sequence
+        if(first==0)return false;
+        int px=_view.ReadInt32(100),py=_view.ReadInt32(104);
+        if(first!=_view.ReadInt32(96))return false;
+        sequence=first;x=px;y=py;
+        return px is >=0 and <256 && py is >=0 and <240;
+    }
+    public void SetDialogueHighlight(StudioDialogue? entry,uint room)
+    {
+        if(_view.ReadInt32(0)!=Magic)return;
+        bool show=entry is not null && entry.HasViewportRegion &&
+                  entry.Room==room;
+        _view.Write(108,show?entry!.ViewX:0);
+        _view.Write(112,show?entry!.ViewY:0);
+        _view.Write(116,show?entry!.ViewWidth:0);
+        _view.Write(120,show?entry!.ViewHeight:0);
+        Thread.MemoryBarrier();
+        _view.Write(124,show?1:0);
+    }
     public bool SetSpriteSelection(IEnumerable<int> slots)
     {
         if(_view.ReadInt32(0)!=Magic || _view.ReadInt32(84)!=1)return false;
