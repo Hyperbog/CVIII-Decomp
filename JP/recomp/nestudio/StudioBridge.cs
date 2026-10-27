@@ -11,8 +11,13 @@ public sealed record StudioLight(int Slot,uint Room,int X,int Y,int Radius,
 {
     public string Label => $"{Slot+1:00}  {(string.IsNullOrWhiteSpace(Name)?"Light":Name)}  ({X},{Y})";
 }
+public sealed record StudioSprite(int Slot,int X,int Y,int Tile,int Attribute)
+{
+    public string Label => $"OAM {Slot:00}   XY({X},{Y})   Tile ${Tile:X2}  Attr ${Attribute:X2}";
+}
 public sealed record StudioScene(uint Room,int Selected,bool Editing,int Renderer,
-    bool Enabled,IReadOnlyList<StudioLight> Lights,int Revision);
+    bool Enabled,IReadOnlyList<StudioLight> Lights,
+    IReadOnlyList<StudioSprite> Sprites,int Revision);
 /// <summary>
 /// Fixed-layout in-process companion to cviii_nestudio_host_bridge.h.
 /// The native recomp creates a session-isolated pagefile mapping. Only the
@@ -21,7 +26,7 @@ public sealed record StudioScene(uint Room,int Selected,bool Editing,int Rendere
 public sealed class StudioBridge : IDisposable
 {
     public const int Magic=unchecked((int)0x5453454E);
-    private const int Capacity=128+128*80;
+    private const int Capacity=128+128*80+64*24;
     private readonly MemoryMappedFile _file;
     private readonly MemoryMappedViewAccessor _view;
     private int _pendingSequence;
@@ -103,11 +108,21 @@ public sealed class StudioBridge : IDisposable
                     _view.ReadInt32(o+32),_view.ReadInt32(o+36),
                     _view.ReadInt32(o+40),_view.ReadInt32(o+44),name));
             }
+            var sprites=new List<StudioSprite>();
+            for(int i=0;i<64;++i)
+            {
+                long o=128L+128L*80L+i*24L;
+                if(_view.ReadInt32(o)==0)continue;
+                sprites.Add(new StudioSprite(
+                    _view.ReadInt32(o+4),_view.ReadInt32(o+8),
+                    _view.ReadInt32(o+12),_view.ReadInt32(o+16),
+                    _view.ReadInt32(o+20)));
+            }
             Thread.MemoryBarrier();
             int after=_view.ReadInt32(36);
             if(before==after && (after&1)==0)
                 return new StudioScene(room,selected,editing,renderer,
-                                       enabled,lights,after);
+                                       enabled,lights,sprites,after);
         }
         return null;
     }
