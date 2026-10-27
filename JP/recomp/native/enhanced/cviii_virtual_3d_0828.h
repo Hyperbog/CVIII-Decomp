@@ -84,7 +84,32 @@ static inline int cviii_virtual_tick_0828(
             a->original_slot=(uint8_t)x;
             a->original_frame=ram[0x0400u+x];
             a->original_flags=ram[0x0470u+x];
-            a->world_x=camera_x+ram[0x0438u+x];
+            /* Original page bit0 distinguishes the adjacent 256px
+             * page; choose nearest of +/-256 from the previously
+             * witnessed absolute world location, not a screen-wrap
+             * teleport. A center-page actor uses its ordinary X. */
+            const int32_t local=camera_x+(int32_t)ram[0x0438u+x];
+            int32_t projected=local;
+            if(ram[0x0470u+x]&1u){
+                const int32_t right=local+256;
+                const int32_t left=local-256;
+                const int64_t dr=(int64_t)right-a->world_x;
+                const int64_t dl=(int64_t)left-a->world_x;
+                const uint64_t ar=(uint64_t)(dr<0?-dr:dr);
+                const uint64_t al=(uint64_t)(dl<0?-dl:dl);
+                projected=ar<=al?right:left;
+            }
+            /* Guest-owned movement remains authoritative; allow it
+             * to move through original-page rollover only when
+             * the original actor's identity/position are continuous. */
+            if(a->attached_frames &&
+               (projected-a->world_x>32 ||
+                a->world_x-projected>32)){
+                a->state=CVIII_VIRTUAL_0828_FAULTED;
+                if(v->faults!=UINT32_MAX)v->faults++;
+                continue;
+            }
+            a->world_x=projected;
             a->world_y=ram[0x041cu+x];
             if(a->attached_frames!=UINT32_MAX)a->attached_frames++;
         }else{
@@ -95,8 +120,24 @@ static inline int cviii_virtual_tick_0828(
     }
     if(a->state==CVIII_VIRTUAL_0828_UNSPAWNED)
         continue; /* source records alone NEVER fabricate actors */
-    if(a->state==CVIII_VIRTUAL_0828_LINKED)
+    if(a->state==CVIII_VIRTUAL_0828_LINKED){
+        /* Original type-zero is NOT proof of a harmless offscreen
+         * despawn: normal in-viewport actor death must never be
+         * resurrected by a stale private movement timeline.
+         * Require previously witnessed adjacent-page bit0 plus
+         * OAM-cull bit7 AND an absolute position outside the
+         * original 256px gameplay strip. Even this is only a
+         * conservative offscreen detachment CANDIDATE. */
+        const int adjacent=(a->original_flags&0x81u)==0x81u;
+        const int outside=a->world_x<camera_x ||
+                          a->world_x>=camera_x+256;
+        if(!adjacent || !outside){
+            a->state=CVIII_VIRTUAL_0828_FAULTED;
+            if(v->faults!=UINT32_MAX)v->faults++;
+            continue;
+        }
         a->state=CVIII_VIRTUAL_0828_DETACHED;
+    }
     if(a->state!=CVIII_VIRTUAL_0828_DETACHED)continue;
     const unsigned slot=a->original_slot;
     if(slot<1u || slot>12u){
