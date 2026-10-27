@@ -1,4 +1,5 @@
 using Microsoft.Win32;
+using System.IO;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
@@ -304,14 +305,14 @@ public partial class MainWindow : Window
     private bool ConfirmDiscard()
     {
         if(!_dirty)return true;
-        return MessageBox.Show("Discard unsaved NEStudio project changes?",
+        return System.Windows.MessageBox.Show("Discard unsaved NEStudio project changes?",
                 "Unsaved project",MessageBoxButton.YesNo,MessageBoxImage.Warning)
                ==MessageBoxResult.Yes;
     }
     private void OpenProject_Click(object sender,RoutedEventArgs e)
     {
         if(!ConfirmDiscard())return;
-        var dlg=new OpenFileDialog
+        var dlg=new Microsoft.Win32.OpenFileDialog
         {
             Filter="NEStudio Project (*.nestudio)|*.nestudio",
             CheckFileExists=true
@@ -339,7 +340,7 @@ public partial class MainWindow : Window
         {
             if(_path is null || choose)
             {
-                var dlg=new SaveFileDialog
+                var dlg=new Microsoft.Win32.SaveFileDialog
                 {
                     Filter="NEStudio Project (*.nestudio)|*.nestudio",
                     DefaultExt=".nestudio",
@@ -361,7 +362,7 @@ public partial class MainWindow : Window
     }
     private void ChooseGame_Click(object sender,RoutedEventArgs e)
     {
-        var dlg=new OpenFileDialog
+        var dlg=new Microsoft.Win32.OpenFileDialog
         {
             Filter="Enhanced Native Game (*.exe)|*.exe",CheckFileExists=true,
             Title="Select your privately built jp_akumajou_densetsu.exe"
@@ -371,7 +372,7 @@ public partial class MainWindow : Window
             if(!Path.GetFileName(dlg.FileName).Equals("jp_akumajou_densetsu.exe",
                                                      StringComparison.OrdinalIgnoreCase))
             {
-                MessageBox.Show("Select the owner-built JP Enhanced recomp executable.",
+                System.Windows.MessageBox.Show("Select the owner-built JP Enhanced recomp executable.",
                                 "NEStudio",MessageBoxButton.OK,MessageBoxImage.Warning);
                 return;
             }
@@ -496,7 +497,7 @@ public partial class MainWindow : Window
     }
     private void AddAsset_Click(object sender,RoutedEventArgs e)
     {
-        var dlg=new OpenFileDialog
+        var dlg=new Microsoft.Win32.OpenFileDialog
         {
             Filter="Images, data, fonts|*.png;*.bmp;*.json;*.txt;*.ttf;*.otf|All Files|*.*",
             CheckFileExists=true
@@ -527,7 +528,7 @@ public partial class MainWindow : Window
     {
         Log($"{operation}: {ex.Message}");
         Status($"{operation} failed.");
-        MessageBox.Show(this,ex.Message,operation,MessageBoxButton.OK,
+        System.Windows.MessageBox.Show(this,ex.Message,operation,MessageBoxButton.OK,
                         MessageBoxImage.Error);
     }
 }
