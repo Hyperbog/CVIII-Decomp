@@ -360,10 +360,10 @@ def generate(text: str) -> str:
     text=once(text,"    f->keys = keys;",
         "#if defined(_WIN32)\n"
         "    const unsigned held=nest_keyboard_bits();\n"
-        "    const SDL_Scancode sc[7]={SDL_SCANCODE_UP,SDL_SCANCODE_DOWN,\n"
+        "    const SDL_Scancode sc[8]={SDL_SCANCODE_UP,SDL_SCANCODE_DOWN,\n"
         "       SDL_SCANCODE_LEFT,SDL_SCANCODE_RIGHT,SDL_SCANCODE_Z,\n"
-        "       SDL_SCANCODE_X,SDL_SCANCODE_RETURN};\n"
-        "    for(unsigned i=0;i<7;++i)if(held&(1u<<i))keys[sc[i]]=1;\n"
+        "       SDL_SCANCODE_X,SDL_SCANCODE_RETURN,SDL_SCANCODE_BACKSLASH};\n"
+        "    for(unsigned i=0;i<8;++i)if(held&(1u<<i))keys[sc[i]]=1;\n"
         "#endif\n    f->keys = keys;")
     text=once(text,
         "bool inactive = s_pause_unfocused && !s_hidden && !(SDL_GetWindowFlags(s_win) & SDL_WINDOW_INPUT_FOCUS);",
