@@ -311,6 +311,65 @@ int cviii_world_observe_children_0818(CviiiLevel1World0803 *w,
     }
     return live;
 }
+/* JP0827: original physical raw0B code runs in independently
+ * allocated private 2KiB 6502 RAM and private stack. Original guest
+ * CPU execution is NOT redirected or modified. Call this only after
+ * authenticated original Stage1 source/actor sample and bank hash. */
+int cviii_world_probe_vm_0827(CviiiLevel1World0803 *w,
+    const uint8_t ram[2048],const uint8_t bank0b[16384])
+{
+    if(!w || !w->ready || !ram || !bank0b ||
+       !w->wide_runtime_0826.initialized)return -1;
+    int passed=0;
+    for(unsigned i=0;i<CVIII_WIDE_SOURCE_COUNT_0825;i++){
+        const CviiiWideInstance0826 *a=&w->wide_runtime_0826.actor[i];
+        if(a->state!=CVIII_INSTANCE_LIVE_0826 ||
+           a->guest_slot<1u || a->guest_slot>12u ||
+           ram[0x054eu+a->guest_slot]!=0x3du)continue;
+        CviiiActorVM0827 vm;
+        CviiiB486Effect0821 pred={0};
+        if(!cviii_vm_init_0827(&vm,ram,a->guest_slot,0xb486u) ||
+           !cviii_effect_b486_prefix_0821(ram,a->guest_slot,&pred))
+            continue;
+        const int execution_ok=cviii_vm_run_0827(&vm,bank0b,96u);
+        const unsigned expected=pred.stop_pc==0xb525u ? 0xb53cu:
+                      pred.stop_pc==0xb4bcu ? 0xb4beu:pred.stop_pc;
+        const unsigned x=a->guest_slot;
+        int match=execution_ok && vm.stop_pc==expected &&
+            vm.x==x &&
+            vm.ram[0x0669u+x]==pred.new_0669 &&
+            vm.ram[0x067bu+x]==pred.new_067b;
+        if(match && expected==0xb53cu){
+            CviiiB525Prefix0826 sound={0};
+            match=cviii_b525_prefix_0826(ram,x,&sound) &&
+                  vm.stop_kind==CVIII_VM_STOP_EXTERNAL_0827 &&
+                  vm.external_target==0xe249u &&
+                  vm.a==sound.sound_id;
+        }
+        if(match && expected==0xb4beu)
+            match=vm.stop_kind==CVIII_VM_STOP_EXTERNAL_0827 &&
+                  vm.external_target==0xe249u && vm.a==0x24u;
+        if(match && expected==0xb4d4u)
+            match=vm.stop_kind==CVIII_VM_STOP_RTS_0827;
+        if(match && (expected==0xb4d7u || expected==0xb47bu))
+            match=vm.stop_kind==CVIII_VM_STOP_BOUNDARY_0827;
+        w->actor_vm_stop_pc_0827[i]=vm.stop_pc;
+        w->actor_vm_last_status_0827[i]=vm.stop_kind;
+        if(w->actor_vm_probes_0827!=UINT32_MAX)w->actor_vm_probes_0827++;
+        if(match){
+            passed++;
+            if(w->actor_vm_matched_0827!=UINT32_MAX)
+                w->actor_vm_matched_0827++;
+        }else if(w->actor_vm_mismatched_0827!=UINT32_MAX)
+                w->actor_vm_mismatched_0827++;
+        /* Every effect beyond the bounded original RTS is deferred,
+         * even if the original code and our predictor agree here. */
+        if(vm.stop_kind!=CVIII_VM_STOP_RTS_0827 &&
+           w->actor_vm_deferred_0827!=UINT32_MAX)
+            w->actor_vm_deferred_0827++;
+    }
+    return passed;
+}
 /* JP0813: retain the original Stage 1 chapel's resident source identities
  * while independently observing the original 6502 $8213-$8254 admission
  * window. A source is NOT an active actor. Authentic game actor allocation,
@@ -575,6 +634,14 @@ void cviii_world_clear_live_0805(CviiiLevel1World0803 *w){
     w->effect23_observations=0u;
     w->effect23_entries=0u;
     w->effect23_room=0xffu;
+    w->actor_vm_probes_0827=0u;
+    w->actor_vm_matched_0827=0u;
+    w->actor_vm_mismatched_0827=0u;
+    w->actor_vm_deferred_0827=0u;
+    memset(w->actor_vm_stop_pc_0827,0,
+           sizeof w->actor_vm_stop_pc_0827);
+    memset(w->actor_vm_last_status_0827,0,
+           sizeof w->actor_vm_last_status_0827);
     /* Restoring a guest state invalidates all live native source
      * associations, while keeping the original resident definitions.
      * A new original CPU child can be reidentified on later frames. */
