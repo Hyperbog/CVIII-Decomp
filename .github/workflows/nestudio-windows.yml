@@ -1,0 +1,53 @@
+name: NEStudio Windows Desktop and Editor Contracts
+
+on:
+  push:
+    branches:
+      - feature/nestudio-foundation
+    paths:
+      - 'JP/recomp/nestudio/**'
+      - 'JP/recomp/tools/patch_cyc_lighting_editor.py'
+      - 'JP/recomp/native/enhanced/cviii_nestudio_host_bridge.h'
+      - '.github/workflows/nestudio-windows.yml'
+  pull_request:
+    paths:
+      - 'JP/recomp/nestudio/**'
+      - 'JP/recomp/tools/patch_cyc_lighting_editor.py'
+      - 'JP/recomp/native/enhanced/cviii_nestudio_host_bridge.h'
+  workflow_dispatch:
+
+jobs:
+  nestudio:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out source (no private ROM)
+        uses: actions/checkout@v4
+      - name: Set up .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: ROM-free project and dialogue editor contracts
+        shell: pwsh
+        run: |
+          dotnet run --project JP/recomp/nestudio/NEStudio.Tests/NEStudio.Tests.csproj -c Release
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Private SDL overlay integration contract
+        shell: pwsh
+        run: |
+          python JP/recomp/tools/patch_cyc_lighting_editor.py --smoke
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Compile and publish real NEStudio.exe WPF desktop
+        shell: pwsh
+        run: |
+          dotnet publish JP/recomp/nestudio/NEStudio.csproj -c Release -r win-x64 --self-contained false -o "$env:RUNNER_TEMP/NEStudio"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if (!(Test-Path "$env:RUNNER_TEMP/NEStudio/NEStudio.exe")) {
+            throw 'Native Windows NEStudio.exe missing from publish output'
+          }
+      - name: Package ROM-free application
+        uses: actions/upload-artifact@v4
+        with:
+          name: NEStudio-Windows-editor-only
+          path: ${{ runner.temp }}/NEStudio
+          retention-days: 10
