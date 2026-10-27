@@ -1,5 +1,6 @@
 /* ROM-free independent presentation/edition contract, no 6502 reconstruction. */
 #include "cyc_host_extras.h"
+#include "cyc_mod.h"
 #include "cyc_core.h"
 #include "cyc_render.h"
 #include "cviii_chr_fetch_0600.h"
@@ -14,6 +15,17 @@
  * The isolated ROM-free host test links no guest CPU, so it supplies an
  * explicitly inert counter; this must not be linked into the game binary. */
 uint64_t cyc_cycle_count(void) { return UINT64_C(0); }
+/* Real game uses upstream cyc_mod; isolated test supplies inert doubles. */
+static uint8_t (*observed_ram_read)(uint16_t,uint16_t,uint8_t);
+static CycModPpuWriteHook observed_ppu_write;
+void cyc_mod_set_ram_read_hook(uint8_t (*hook)(uint16_t,uint16_t,uint8_t))
+{ observed_ram_read=hook; }
+void cyc_mod_set_ppu_write_hook(CycModPpuWriteHook hook)
+{ observed_ppu_write=hook; }
+void cyc_mod_regs(CycModRegs *out)
+{ if(out)memset(out,0,sizeof(*out)); }
+bool cyc_debug_peek(uint16_t addr,uint8_t *out)
+{ (void)addr;if(out)*out=0;return false; }
 /* Read-only JP0599 debug interface mocks for isolated host extension test. */
 const uint8_t *cyc_ppu_palette(void) {
     static uint8_t palette[32];
