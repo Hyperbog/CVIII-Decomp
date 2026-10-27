@@ -24,6 +24,10 @@ public sealed record StudioOriginalObject(int Slot,int Generation,uint Room,
 {
     public string Label => $"Object {Slot:00} · life {Generation}  XY({X},{Y})  selector ${Selector:X2} script ${Script:X2}";
 }
+public sealed record StudioEc47Trace(int Sequence,int SourceBank,int EntryPc,
+    int CallerPc,int Stage,int Token,int QueueStart,int QueueEnd,
+    int CursorReads,int PpuWrites,int FirstPpuAddress,int LastPpuAddress,
+    int LastPpuPc,bool Returned,int SourceFrame);
 public sealed record StudioPpuSourceWrite(int ProgramCounter,int PpuAddress,
     int TileValue,int ObservedWrites);
 public sealed record StudioOriginalDialogueEvent(int Sequence,int Bank,
@@ -34,7 +38,7 @@ public sealed record StudioScene(uint Room,int Selected,bool Editing,int Rendere
     IReadOnlyList<StudioOriginalObject> OriginalObjects,int OamPhase,
     StudioOriginalDialogueEvent? OriginalDialogue,
     int AttributionCount,int SourceCallCount,int AttributionErrors,
-    StudioPpuSourceWrite? PpuSourceWrite);
+    StudioPpuSourceWrite? PpuSourceWrite,StudioEc47Trace? FormatterTrace);
 /// <summary>
 /// Fixed-layout in-process companion to cviii_nestudio_host_bridge.h.
 /// The native recomp creates a session-isolated pagefile mapping. Only the
@@ -43,7 +47,7 @@ public sealed record StudioScene(uint Room,int Selected,bool Editing,int Rendere
 public sealed class StudioBridge : IDisposable
 {
     public const int Magic=unchecked((int)0x5453454E);
-    private const int Capacity=13468; // v3 retains all v1/v2 offsets
+    private const int Capacity=13528; // v4 appends original EC47 source trace
     private readonly MemoryMappedFile _file;
     private readonly MemoryMappedViewAccessor _view;
     private int _pendingSequence;
@@ -148,7 +152,7 @@ public sealed class StudioBridge : IDisposable
                 @"Local\NEStudio-"+session,MemoryMappedFileRights.ReadWrite);
             var bridge=new StudioBridge(map);
             if(bridge._view.ReadInt32(0)!=Magic ||
-               bridge._view.ReadInt32(4)!=3)
+               bridge._view.ReadInt32(4)!=4)
             {
                 bridge.Dispose();return null;
             }
@@ -260,6 +264,17 @@ public sealed class StudioBridge : IDisposable
                 ppuWrite=new StudioPpuSourceWrite(
                     _view.ReadInt32(13452),_view.ReadInt32(13456),
                     _view.ReadInt32(13460),ppuWrites);
+            StudioEc47Trace? formatter=null;
+            if(_view.ReadInt32(13468)>0)
+                formatter=new StudioEc47Trace(
+                    _view.ReadInt32(13468),_view.ReadInt32(13472),
+                    _view.ReadInt32(13476),_view.ReadInt32(13480),
+                    _view.ReadInt32(13484),_view.ReadInt32(13488),
+                    _view.ReadInt32(13492),_view.ReadInt32(13496),
+                    _view.ReadInt32(13500),_view.ReadInt32(13504),
+                    _view.ReadInt32(13508),_view.ReadInt32(13512),
+                    _view.ReadInt32(13516),_view.ReadInt32(13520)!=0,
+                    _view.ReadInt32(13524));
             var sprites=new List<StudioSprite>();
             for(int i=0;i<64;++i)
             {
@@ -282,7 +297,7 @@ public sealed class StudioBridge : IDisposable
                                        enabled,lights,sprites,after,
                                        originalObjects,phase,originalDialogue,
                                        attributed,sourceCalls,sourceErrors,
-                                       ppuWrite);
+                                       ppuWrite,formatter);
         }
         return null;
     }
