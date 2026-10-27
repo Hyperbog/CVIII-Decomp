@@ -143,9 +143,31 @@ public sealed class NativeGameHost : IDisposable
         SetWindowPos(_window,IntPtr.Zero,x,y,Math.Max(1,w),Math.Max(1,h),
                      SWP_NOZORDER|SWP_NOACTIVATE|SWP_FRAMECHANGED|SWP_SHOWWINDOW);
     }
-    public void FocusGame()
+    /// <summary>
+    /// Give the genuine SDL child Win32 keyboard focus. SetFocus alone cannot
+    /// cross the editor/game UI-thread input queue boundary after SetParent.
+    /// Attach only long enough to change focus, then always detach.
+    /// </summary>
+    public bool FocusGame()
     {
-        if(IsEmbedded)SetFocus(_window);
+        if(!IsEmbedded || _panel is null)return false;
+        IntPtr root=GetAncestor(_panel.Handle,2); // GA_ROOT editor top level
+        if(root!=IntPtr.Zero)SetForegroundWindow(root);
+        uint gameThread=GetWindowThreadProcessId(_window,out _);
+        uint uiThread=GetCurrentThreadId();
+        if(gameThread==0)return false;
+        bool attached=gameThread!=uiThread &&
+            AttachThreadInput(uiThread,gameThread,true);
+        if(gameThread!=uiThread && !attached)return false;
+        try
+        {
+            SetFocus(_window);
+            return GetFocus()==_window;
+        }
+        finally
+        {
+            if(attached)AttachThreadInput(uiThread,gameThread,false);
+        }
     }
     public void Stop()
     {
@@ -215,4 +237,10 @@ public sealed class NativeGameHost : IDisposable
     [DllImport("user32.dll",SetLastError=true)] private static extern bool SetWindowPos(
         IntPtr hwnd,IntPtr after,int x,int y,int w,int h,uint flags);
     [DllImport("user32.dll")] private static extern IntPtr SetFocus(IntPtr hwnd);
+    [DllImport("user32.dll")] private static extern IntPtr GetFocus();
+    [DllImport("user32.dll")] private static extern uint GetCurrentThreadId();
+    [DllImport("user32.dll",SetLastError=true)] private static extern bool AttachThreadInput(
+        uint sourceThread,uint targetThread,bool attach);
+    [DllImport("user32.dll")] private static extern IntPtr GetAncestor(IntPtr hwnd,uint flags);
+    [DllImport("user32.dll")] private static extern bool SetForegroundWindow(IntPtr hwnd);
 }
