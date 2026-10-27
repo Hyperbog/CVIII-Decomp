@@ -733,6 +733,7 @@ if(BUILD_TESTING)
   add_test(NAME JP0820_B727ContactPrefix COMMAND jp_b727_contact_test_0820)
   add_test(NAME JP0821_OriginalContactEffects COMMAND jp_contact_effects_test_0821)
   add_test(NAME JP0824_AuthenticPageActor COMMAND jp_extended_actor_test_0824)
+  add_test(NAME JP0826_OriginalSourceInstance COMMAND jp_wide_instance_test_0826)
 endif()
 
 add_executable(jp_world_sprites_test_0807
@@ -751,4 +752,9 @@ add_executable(jp_extended_actor_test_0824
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_world_sprites_0807.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_extended_actor_test_0824.c")
 set_property(TARGET jp_extended_actor_test_0824 PROPERTY C_STANDARD 11)
+# JP0826: native-owned resident source instance clock; original guest
+# remains authority for movement and all gameplay interactions.
+add_executable(jp_wide_instance_test_0826
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_wide_instance_test_0826.c")
+set_property(TARGET jp_wide_instance_test_0826 PROPERTY C_STANDARD 11)
 
