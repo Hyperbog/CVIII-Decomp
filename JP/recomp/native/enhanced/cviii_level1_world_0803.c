@@ -114,7 +114,18 @@ int cviii_world_preload_horizontal_0816(CviiiLevel1World0803 *w,
                 &tmp[i],i,src->root,src->payload,src->payload_len,
                 bank,bank_len))return 0;
     }
+    /* JP0826: original JP ROM source room 00/01/00 has two row32
+     * instances naturally observed in Mesen. Synthetic test fixtures
+     * may not include that source and must not acquire the registry. */
+    CviiiWideSources0825 source_registry={0};
+    CviiiWideRuntime0826 running_instances={0};
+    if(cviii_wide_admit_original_0825(&source_registry,&tmp[1],
+                                     bank,bank_len))
+        cviii_wide_runtime_init_0826(&running_instances,
+                                     &source_registry);
     memcpy(w->horizontal,tmp,sizeof tmp);
+    w->wide_sources_0825=source_registry;
+    w->wide_runtime_0826=running_instances;
     w->horizontal_ready=1u;
     memset(&w->horizontal_last,0,sizeof w->horizontal_last);
     w->horizontal_observations=0u;
@@ -287,6 +298,17 @@ int cviii_world_observe_children_0818(CviiiLevel1World0803 *w,
     w->horizontal_child_room=(uint8_t)room;
     if(w->horizontal_child_samples!=UINT32_MAX)
         w->horizontal_child_samples++;
+    /* Advance persistent native instance clocks after the ORIGINAL
+     * CPU frame. No parallel unverified 6502 actor behavior is run.
+     * The private source CPU slot is the sole authority for the
+     * instance's live position, animation and contact state. */
+    if(room==1 && w->wide_runtime_0826.initialized){
+        const int32_t cx=(int32_t)ram[0x53u]+
+                          256*(int32_t)ram[0x54u];
+        (void)cviii_wide_runtime_tick_0826(
+            &w->wide_runtime_0826,&w->wide_sources_0825,
+            ram,key,cx);
+    }
     return live;
 }
 /* JP0813: retain the original Stage 1 chapel's resident source identities
@@ -553,6 +575,23 @@ void cviii_world_clear_live_0805(CviiiLevel1World0803 *w){
     w->effect23_observations=0u;
     w->effect23_entries=0u;
     w->effect23_room=0xffu;
+    /* Restoring a guest state invalidates all live native source
+     * associations, while keeping the original resident definitions.
+     * A new original CPU child can be reidentified on later frames. */
+    if(w->wide_sources_0825.resident){
+        for(unsigned i=0;i<CVIII_WIDE_SOURCE_COUNT_0825;i++){
+            CviiiWideSource0825 *source=&w->wide_sources_0825.source[i];
+            source->state=CVIII_WIDE_READY_0825;
+            source->guest_slot=0u;
+            source->guest_frame=0u;source->guest_flags=0u;
+            source->cpu_observations=0u;
+            source->orphan_epochs=0u;
+        }
+        w->wide_sources_0825.frame_epoch=0u;
+        w->wide_sources_0825.live_verified=0u;
+        cviii_wide_runtime_init_0826(&w->wide_runtime_0826,
+                                      &w->wide_sources_0825);
+    }
 }
 
 /* JP0811: independent original PRG0A room hierarchy, stage selector0.
