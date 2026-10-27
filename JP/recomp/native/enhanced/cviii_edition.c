@@ -139,7 +139,8 @@ static uint8_t cviii_nest_ram_observer(uint16_t pc,uint16_t addr,uint8_t value)
            cyc_debug_peek(0xB8F6u,&b2) &&
            b0==0xACu && b1==0xA5u && b2==0x07u &&
            ptr>=0xB921u && ptr<=0xB935u &&
-           value<=2u && src>=0xB921u && src<0xB937u &&
+           ram[0x07A0u]<5u && value<=2u &&
+           src>=0xB921u && src<0xB937u &&
            cyc_debug_peek((uint16_t)src,&token)){
             unsigned room=((unsigned)ram[0x34u]<<24)|
                           ((unsigned)ram[0x35u]<<16)|
