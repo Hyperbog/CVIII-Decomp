@@ -150,7 +150,8 @@ public static class StudioProjectFile
                 (entry.SourceObjectSlot<0 || entry.SourceGeneration<=0 ||
                  entry.SourceScriptId<0)))
                 throw new InvalidDataException("Invalid original actor script-transition binding.");
-            if(entry.Trigger=="original-room-message" &&
+            if((entry.Trigger=="original-room-message" ||
+                entry.Trigger=="original-ec47-formatter") &&
                (entry.SourceMessageStage is <0 or >=5 ||
                 entry.SourceMessageByte is <0 or >255))
                 throw new InvalidDataException("Invalid original bounded room-message byte binding.");
