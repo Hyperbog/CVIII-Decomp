@@ -22,6 +22,7 @@ public partial class MainWindow : Window
     private bool _dirty;
     private int _selectedLight=-1;
     private string _fingerprint="";
+    private string _spriteFingerprint="";
     private StudioSpriteGroup? _sprite;
     private StudioDialogue? _dialogue;
     private string _language="en";
@@ -125,6 +126,13 @@ public partial class MainWindow : Window
     private void UpdateScene(StudioScene scene)
     {
         _scene=scene;
+        var spriteFingerprint=string.Join("|",scene.Sprites.Select(sp=>
+            $"{sp.Slot}:{sp.X}:{sp.Y}:{sp.Tile}:{sp.Attribute}"));
+        if(spriteFingerprint!=_spriteFingerprint)
+        {
+            _spriteFingerprint=spriteFingerprint;
+            LiveSpritesList.ItemsSource=scene.Sprites.Select(sp=>sp.Label).ToList();
+        }
         RoomLabel.Text=$"Room 0x{scene.Room:X8} · {scene.Lights.Count} live light(s)";
         var fingerprint=scene.Room+"|"+
             string.Join("|",scene.Lights.Select(l=>
