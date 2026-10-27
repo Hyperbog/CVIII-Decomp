@@ -106,6 +106,8 @@ void cviii_stage1_host_reset_0751(CviiiStage1Host0725 *h)
         h->has_verified_scene=0;
         h->has_ppu_scroll_x=0;
         h->scroll_fallback_frames=0;
+        h->blk103_candidate_frames=0;
+        memset(h->blk103_candidate,0,sizeof h->blk103_candidate);
         cviii_world_clear_live_0805(&h->world);
     }
 }
@@ -261,6 +263,42 @@ static int camera(const CviiiStage1Host0725 *h,uint8_t sel[3],
     return 1;
 }
 
+/* JP0823: original BLK 1-03 CPU source selector / hardware scroll
+ * recovery. At some legitimate room updates, the mutable nametable
+ * differs too much from the immutable ROM atlas for room_loaded()'s
+ * strict 75% tile vote. The old presenter then kept scrolling a STALE
+ * atlas room until both 85px margins became black.
+ *
+ * This weaker witness is never sufficient to learn a physical room
+ * connection, allocate actors or write a single original PPU/CPU byte.
+ * Three consecutive source-key/PPU phase matches are required before
+ * any renderer re-anchor, and only the two original BLK 1-03 subrooms
+ * already decoded from the authenticated owner's Japanese ROM qualify. */
+static int blk103_camera_phase_0823(const CviiiStage1Host0725 *h,
+    const uint8_t ram[2048],uint8_t selector[3],int *x,int *y)
+{
+    if(!h || !ram || !selector || !x || !y ||
+       ram[0x18u]!=4u || ram[0x34u]!=0u ||
+       ram[0x35u]!=2u || ram[0x36u]>1u ||
+       (ram[0x65u]&0x80u) ||
+       (cyc_render_line_mask(120)&0x08u)==0 ||
+       (cyc_render_line_bg_table(120)!=0u &&
+        cyc_render_line_bg_table(120)!=0x1000u))return 0;
+    selector[0]=0u;selector[1]=2u;selector[2]=ram[0x36u];
+    if(cviii_stage1_atlas_horizontal_width_0801(&h->atlas,selector)!=768)
+       return 0;
+    const int ppu_y=cyc_render_line_scroll_y(120);
+    if(ppu_y<118 || ppu_y>122)return 0;
+    const int local=(int)ram[0x53u]+256*(int)ram[0x54u];
+    const int ppu_x=cyc_render_line_scroll_x(120)&511;
+    int phase=((ppu_x-(local&511)+256)&511)-256;
+    if(phase>126 || phase< -126)
+       phase=phase>0 ? phase-256:phase+256;
+    if(phase < -2 || phase>2 || local+phase<0 ||
+       local+phase>512)return 0;
+    *x=local+phase;*y=0;return 1;
+}
+
 /* JP0800: the NES picture already scrolls from the real PPU on every
  * frame. When strict ROM/nametable attestation temporarily rejects the
  * room, NEVER leave the side scenery at an old frozen world position.
@@ -319,6 +357,26 @@ const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
     uint8_t selector[3]={0}; int camera_x=0,camera_y=0;
     int valid_camera=camera(h,selector,&camera_x,&camera_y);
     const uint8_t *ram=cyc_cpu_ram();
+    const int strictly_verified_camera=valid_camera;
+    int camera_phase_only=0;
+    if(!valid_camera && ram) {
+        uint8_t source_key[3]={0};int source_x=0,source_y=0;
+        if(blk103_camera_phase_0823(h,ram,source_key,
+                                    &source_x,&source_y)) {
+            if(memcmp(h->blk103_candidate,source_key,3)) {
+                memcpy(h->blk103_candidate,source_key,3);
+                h->blk103_candidate_frames=0;
+            }
+            if(h->blk103_candidate_frames<3u)
+                h->blk103_candidate_frames++;
+            if(h->blk103_candidate_frames>=3u) {
+                memcpy(selector,source_key,3);
+                camera_x=source_x;camera_y=source_y;
+                valid_camera=1;
+                camera_phase_only=1;
+            }
+        } else h->blk103_candidate_frames=0;
+    } else if(valid_camera) h->blk103_candidate_frames=0;
     const int horizontal_play=ram && ram[0x18u]==4u &&
         ram[0x34u]==0u && !(ram[0x65u]&0x80u) &&
         (cyc_render_line_mask(120)&0x08u);
@@ -331,8 +389,13 @@ const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
         if(room_width>=256 && camera_x>=0 &&
            (chapel?camera_x==0:camera_x<=room_width-256)) {
             if(!chapel) {
-                cviii_stage1_join_accept_0751(&h->join,selector,camera_x,room_width);
-                cviii_stage1_join_restore_0782(&h->join,selector,camera_x,room_width);
+                /* A CPU/PPU phase witness is enough to paint authentic
+                 * ROM tiles, NOT to register a new physical room edge. */
+                if(strictly_verified_camera && !camera_phase_only)
+                    cviii_stage1_join_accept_0751(
+                        &h->join,selector,camera_x,room_width);
+                cviii_stage1_join_restore_0782(
+                    &h->join,selector,camera_x,room_width);
             } else cviii_stage1_join_soft_reset_0782(&h->join);
             /* A crossing only becomes a world connection after BOTH
              * original room selectors passed real PPU/atlas verification.
