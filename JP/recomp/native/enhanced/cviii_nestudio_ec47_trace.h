@@ -24,6 +24,13 @@ static int cviii_ec47_stack_matches(const uint8_t ram[2048],
     return ram[a]==0x4Cu && ram[b]==0xECu &&
            ram[c]==token && ram[d]==0x01u && ram[e]==0xB9u;
 }
+/* On original EC47's terminal JMP E62D, the nested JSR into bank
+ * zero has returned: the B8FF caller's JSR return B901 is atop stack. */
+static int cviii_ec47_return_matches(const uint8_t ram[2048],uint8_t sp)
+{
+    return ram[0x100u|((unsigned)(sp+1u)&255u)]==0x01u &&
+           ram[0x100u|((unsigned)(sp+2u)&255u)]==0xB9u;
+}
 static void cviii_ec47_reset(CviiiNestEc47Trace *trace)
 {
     memset(trace,0,sizeof(*trace));
