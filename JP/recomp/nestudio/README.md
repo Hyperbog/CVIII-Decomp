@@ -102,11 +102,16 @@ The fixed-layout bridge has compile-time C size assertions and is never created 
 
 ## Native game keyboard and lighting gizmo controls
 
-**Play:** after attaching a game, click **Play** or **Focus Game** to
-transfer Windows keyboard focus to the embedded SDL child HWND. Arrows
-move the player; Z/X are A/B, Enter is Start, and Backslash is Select.
-The editor attaches input threads only while setting cross-process focus,
-then immediately detaches. Gamepad input remains native SDL2.
+**Play:** after attaching a game, click **Play** or **Capture Keys**.
+NEStudio captures arrows, Z/X, Enter and Backslash within its own WPF
+window and publishes an eight-bit held-key mask through the authenticated
+local native session bridge. The original NESRecomp SDL host merges
+that mask with physical keyboard/gamepad state in `read_frame`, even if
+Win32 focus cannot cross the embedded HWND boundary. Press **Escape**
+to release input, or click **Release Keys**. Capture is cleared on
+pause, stop, window deactivation and editor shutdown. External gamepad
+support continues to use SDL. No ROM, guest CPU/PPU RAM or controller
+serialization is edited by the bridge.
 
 **Edit / Pause:** use **+ Torch** or **+ Candle** to place a light, then
 click and hold the white light handle visible in the native game viewport,
@@ -121,6 +126,13 @@ visuals directly, not a WPF overlay across Win32 airspace.
 These changes require **both** the updated NEStudio Windows editor and
 a newly compiled owner-private game from the latest feature branch.
 Prior native executables will not have the new editor drag router.
+
+## True-dark interface
+
+The editor uses near-black graphite backgrounds and bright foreground
+labels, with custom dark ComboBox dropdowns, visible focus borders and
+contrast-preserving selected items. The formerly dark-on-dark ComboBox
+foreground is no longer inherited from the Windows system template.
 
 ## Windows launcher and live viewport acceptance
 
