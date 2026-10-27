@@ -464,9 +464,22 @@ const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
                 /* Real 6502 opcodes in isolated native RAM: compare
                  * B486/B525 would-call outcomes on ORIGINAL children.
                  * This never injects guest CPU damage or acts as an AI. */
-                if(h->actor_vm_bank_valid_0827)
+                if(h->actor_vm_bank_valid_0827) {
                     (void)cviii_world_probe_vm_0827(
                         &h->world,ram,h->actor_vm_bank0b_0827);
+                    /* JP0828: continue original $8001 2A03 movement
+                     * in persistent *PRIVATE* CPU RAM if an authentic
+                     * row32 child lost its original allocator slot.
+                     * No detached combat/effect callback is authorized. */
+                    if(selector[0]==0u && selector[1]==1u &&
+                       selector[2]==0u && !camera_phase_only &&
+                       strictly_verified_camera)
+                        (void)cviii_virtual_tick_0828(
+                            &h->world.virtual_3d_0828,
+                            &h->world.wide_sources_0825,
+                            h->actor_vm_bank0b_0827,ram,selector,
+                            camera_x);
+                }
             }
             /* JP0813: follow the genuine vertical chapel camera with
              * resident source identities. CPU actor state stays authoritative;
