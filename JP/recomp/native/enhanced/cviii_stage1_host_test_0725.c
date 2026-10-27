@@ -172,6 +172,50 @@ int main(void)
                 bg_table=0x1000;
             }
         }
+        /* JP0823: reproduced user-observed BLK 1-03 right black side.
+         * Both source ROM layouts are loaded, but their world rooms
+         * remain unplaced. A source-backed sibling visual must fill
+         * only margins without moving NES gameplay or spawning actors. */
+        {
+          const uint8_t blk3a[]={0,2,0},blk3b[]={0,2,1};
+          cviii_stage1_host_reset_0751(&host);
+          test_ram[0x34]=0;test_ram[0x35]=2;test_ram[0x36]=0;
+          test_ram[0x53]=0;test_ram[0x54]=2;
+          scroll_x=0;scroll_y=0;bg_table=0x1000;
+          memset(live_nt,0,sizeof live_nt);
+          seed_visible_room_from_x(blk3a,0,512u);
+          w=256;h=240;
+          pixels=cviii_stage1_host_present_0725(&host,original,&w,&h,1);
+          memset(isolated_room,0,sizeof isolated_room);
+          if(!require(cviii_stage1_atlas_paint_0724(
+                 &host.atlas,blk3b,-256,0,isolated_room,
+                 426,240,85,cyc_render_chr,cyc_render_color)>0 &&
+              pixels[100*426+400]==isolated_room[100*426+400] &&
+              pixels[100*426+400]!=0xff000000u &&
+              pixels[100*426+85]==original[100*256] &&
+              !host.world.rooms[5].placed &&
+              !host.world.rooms[6].placed,
+              "BLK 1-03 unplaced right ROM sibling fills real source margin"))
+             return 1;
+          /* Second subroom must keep the first original subroom in
+           * its left 85 pixels, independent of room-graph placement. */
+          cviii_stage1_host_reset_0751(&host);
+          test_ram[0x36]=1;test_ram[0x53]=0;test_ram[0x54]=0;
+          scroll_x=0;
+          memset(live_nt,0,sizeof live_nt);
+          seed_visible_room(blk3b,0);
+          w=256;h=240;
+          pixels=cviii_stage1_host_present_0725(&host,original,&w,&h,1);
+          memset(isolated_room,0,sizeof isolated_room);
+          if(!require(cviii_stage1_atlas_paint_0724(
+                 &host.atlas,blk3a,768,0,isolated_room,
+                 426,240,85,cyc_render_chr,cyc_render_color)>0 &&
+              pixels[100*426+30]==isolated_room[100*426+30] &&
+              pixels[100*426+30]!=0xff000000u &&
+              pixels[100*426+85]==original[100*256],
+              "BLK 1-03 left-margin projection persists across subroom"))
+             return 1;
+        }
         /* Truly nonhorizontal room 1-02:1 is never painted sideways. */
         const uint8_t vertical[3]={0,1,1};
         if(!require(cviii_stage1_atlas_horizontal_width_0801(
