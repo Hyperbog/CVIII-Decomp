@@ -216,6 +216,38 @@ int main(void)
               "BLK 1-03 left-margin projection persists across subroom"))
              return 1;
         }
+        /* JP0823: even when the current BLK 1-03 room is physically
+         * placed and world painter returned pixels, the following
+         * BLK 1-03 sibling can still be unplaced. The old
+         * if(!world_pixels) gate made that right margin black. */
+        {
+          const uint8_t narrow[]={0,1,0},blk3a[]={0,2,0};
+          const uint8_t successor[]={0,2,1};
+          cviii_stage1_host_reset_0751(&host);
+          if(!require(cviii_world_build_0803(&host.world,&host.atlas) &&
+               cviii_world_connect_0803(&host.world,narrow,blk3a,
+                   CVIII_WORLD_RIGHT_0803),
+               "synthetic physically witnessed BLK1-03 predecessor link"))
+              return 1;
+          test_ram[0x34]=0;test_ram[0x35]=2;test_ram[0x36]=0;
+          test_ram[0x53]=0;test_ram[0x54]=2;
+          scroll_x=0;
+          memset(live_nt,0,sizeof live_nt);
+          seed_visible_room_from_x(blk3a,0,512u);
+          w=256;h=240;
+          pixels=cviii_stage1_host_present_0725(&host,original,&w,&h,1);
+          memset(isolated_room,0,sizeof isolated_room);
+          if(!require(host.world.rooms[5].placed &&
+              !host.world.rooms[6].placed &&
+              cviii_stage1_atlas_paint_0724(&host.atlas,successor,-256,0,
+                  isolated_room,426,240,85,cyc_render_chr,
+                  cyc_render_color)>0 &&
+              pixels[100*426+400]==isolated_room[100*426+400] &&
+              pixels[100*426+400]!=0xff000000u &&
+              pixels[100*426+85]==original[100*256],
+              "placed current world cannot hide unplaced BLK1-03 sibling"))
+              return 1;
+        }
         /* Truly nonhorizontal room 1-02:1 is never painted sideways. */
         const uint8_t vertical[3]={0,1,1};
         if(!require(cviii_stage1_atlas_horizontal_width_0801(
