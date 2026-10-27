@@ -229,6 +229,13 @@ static bool cviii_light_sdl_event(const SDL_Event *ev, bool other_open)
         }
         return true;
     }
+#if defined(_WIN32)
+    // Release native mouse capture if Play was selected while dragging.
+    if(!cviii_lighting_editor_active() && nest_studio_dragging){
+        nest_studio_dragging=false;
+        SDL_CaptureMouse(SDL_FALSE);
+    }
+#endif
     if(!cviii_lighting_editor_active())return false;
     /* ReShade handles mouse input inside its own overlay. Never let
      * its clicks also drag a gameplay emitter in the native editor. */
