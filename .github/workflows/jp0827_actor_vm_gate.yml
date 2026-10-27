@@ -1,0 +1,47 @@
+name: JP0827 Isolated 2A03 Actor VM Validation
+on:
+  push:
+    branches: [jp0813-level1-source-world-lifetime]
+    paths:
+      - '.github/workflows/jp0827_actor_vm_gate.yml'
+      - 'JP/recomp/native/enhanced/cviii_actor_vm*'
+permissions:
+  contents: read
+jobs:
+  original-actor-vm:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile and run synthetic original-CPU isolation tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          gcc -std=c11 -Wall -Wextra -Werror -pedantic -O2 \
+            -IJP/recomp/native/enhanced \
+            JP/recomp/native/enhanced/cviii_actor_vm_test_0827.c \
+            -o /tmp/jp0827_2a03_vm
+          /tmp/jp0827_2a03_vm
+      - name: Run memory/undefined-behavior sanitizers
+        shell: bash
+        run: |
+          set -euo pipefail
+          clang -std=c11 -Wall -Wextra -Werror -pedantic -O1 -g \
+            -fsanitize=address,undefined -fno-omit-frame-pointer \
+            -IJP/recomp/native/enhanced \
+            JP/recomp/native/enhanced/cviii_actor_vm_test_0827.c \
+            -o /tmp/jp0827_2a03_vm_asan
+          /tmp/jp0827_2a03_vm_asan
+      - name: Export source only for private original-ROM differential test
+        uses: actions/upload-artifact@v4
+        with:
+          name: jp0827-actor-vm-public-source
+          path: |
+            JP/recomp/native/enhanced/cviii_actor_vm_0827.h
+            JP/recomp/native/enhanced/cviii_actor_vm_test_0827.c
+            JP/recomp/native/enhanced/cviii_contact_effects_0821.h
+            JP/recomp/native/enhanced/cviii_wide_instance_0826.h
+            JP/recomp/native/enhanced/cviii_wide_source_admission_0825.h
+            JP/recomp/native/enhanced/cviii_horizontal_sources_0816.h
+          retention-days: 1
+          if-no-files-found: error
