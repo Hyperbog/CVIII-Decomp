@@ -349,6 +349,29 @@ def generate(text: str) -> str:
 '''+KEY_ANCHOR)
     text=once(text,START,START[:-1]+" || cviii_lighting_editor_active() || cviii_light_rebinding;")
     text=once(text,FINAL,FINAL[:-1]+" || cviii_lighting_editor_active() || cviii_light_rebinding;")
+    # The WPF input-capture path bypasses the unreliable cross-process
+    # keyboard focus of SetParent. NESRecomp samples SDL keyboard state
+    # per frame, so merge bounded session-owned keys in read_frame.
+    text=once(text,"static void read_frame(CycInputFrame *f)\n{",
+        "#if defined(_WIN32)\n"
+        "static unsigned nest_keyboard_bits(void);\n"
+        "static int nest_keyboard_owned(void);\n"
+        "#endif\nstatic void read_frame(CycInputFrame *f)\n{")
+    text=once(text,"    f->keys = keys;",
+        "#if defined(_WIN32)\n"
+        "    const unsigned held=nest_keyboard_bits();\n"
+        "    const SDL_Scancode sc[7]={SDL_SCANCODE_UP,SDL_SCANCODE_DOWN,\n"
+        "       SDL_SCANCODE_LEFT,SDL_SCANCODE_RIGHT,SDL_SCANCODE_Z,\n"
+        "       SDL_SCANCODE_X,SDL_SCANCODE_RETURN};\n"
+        "    for(unsigned i=0;i<7;++i)if(held&(1u<<i))keys[sc[i]]=1;\n"
+        "#endif\n    f->keys = keys;")
+    text=once(text,
+        "bool inactive = s_pause_unfocused && !s_hidden && !(SDL_GetWindowFlags(s_win) & SDL_WINDOW_INPUT_FOCUS);",
+        "bool inactive = s_pause_unfocused && !s_hidden && !(SDL_GetWindowFlags(s_win) & SDL_WINDOW_INPUT_FOCUS)\n"
+        "#if defined(_WIN32)\n"
+        "        && !nest_keyboard_owned()\n"
+        "#endif\n"
+        "        ;")
     text=once(text,"    if (s_ui_shot_id >= 0) {",
         "    if(cviii_imgui_render(s_win,s_ren))save_settings();\n"
         "#if defined(_WIN32)\n    nest_tick();\n#endif\n"
@@ -360,7 +383,11 @@ def generate(text: str) -> str:
 
 def smoke() -> None:
     fixture="\n".join(("/* "+PREV+" */","static bool cviii_stage_open;",
-                       KEY_ANCHOR,START,FINAL,"    if (s_ui_shot_id >= 0) {",
+                       KEY_ANCHOR,START,FINAL,
+                       "static void read_frame(CycInputFrame *f)\n{",
+                       "    f->keys = keys;",
+                       "bool inactive = s_pause_unfocused && !s_hidden && !(SDL_GetWindowFlags(s_win) & SDL_WINDOW_INPUT_FOCUS);",
+                       "    if (s_ui_shot_id >= 0) {",
                        "    SDL_DestroyRenderer(s_ren);"))
     product=generate(fixture)
     assert product.count(MARKER)==1
@@ -382,6 +409,8 @@ def smoke() -> None:
     assert "nest_studio_pointer_event(ev)" in product
     assert "cviii_lighting_editor_input(3,nx,ny)" in product
     assert "SDL_CaptureMouse(SDL_TRUE)" in product
+    assert "nest_keyboard_bits()" in product and "SDL_SCANCODE_RIGHT" in product
+    assert "nest_keyboard_owned()" in product
     assert "nest_tick();" in product and "nest_close();" in product
     assert "cviii_light_place_window(int window_x,int window_y)" in product
     assert "cviii_light_place_kit_window(int kind,int id,int window_x,int window_y)" in product
