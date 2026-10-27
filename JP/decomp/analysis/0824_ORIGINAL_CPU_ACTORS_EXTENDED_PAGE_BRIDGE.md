@@ -55,6 +55,41 @@ The new **original CPU adjacent-page bridge** fixes both gaps:
   Thus player-facing interaction stays original rather
   than a second, approximate native hitbox engine.
 
+## JP0824b: continuity for other already-installed original actors
+
+The original per-frame `$FDE4` loop invokes original
+`$80E3` camera compensation for allocated actor slots.
+The ROM-only **first appearance** of a hidden adjacent-page
+actor remains restricted to independently evidenced
+source-linked type `$3D`.
+
+Other actor types (nonzero original `$054E` less than
+`$83`, slots1–18) can continue into the widescreen
+margin **only after** the native world has seen that
+same original CPU actor alive in the normal viewport.
+The original actor must retain the exact original
+slot, type, ROM PRG26 sprite selector and room;
+original `$0470` must have both page bit `$01`
+and OAM cull bit `$80`; the new position
+`($0438,X + / - 256)` must be within **32px**
+of its previously observed world-space position.
+
+A descriptor change, original allocator type-zero,
+room discontinuity, large coordinate jump, absent
+source authentication or unsupported actor slot
+fails closed and never inherits another actor's
+identity. This extends **existing original CPU
+allocations**, not background source-to-actor
+creation, and leaves original AI and collision
+execution untouched. The ROM-free C11 regression
+covers both directions, reallocation/type change,
+and sprite descriptor identity rejection.
+
+This broader handoff has not yet received
+per-type Mesen or owner-gameplay acceptance.
+No external projectile or pickup can acquire
+a native margin-only hitbox through the bridge.
+
 ## Real original Mesen test for page-1 CPU survival
 
 Using Mesen 2.1.1 with authenticated Japanese ROM
