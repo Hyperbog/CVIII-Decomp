@@ -36,6 +36,8 @@ project.Dialogues.Add(new StudioDialogue
     Id="jp.stage01.dracula.001",Room=0x2601,
     MaxCharactersPerLine=16,MaxLinesPerPage=3,
     HasViewportRegion=true,ViewX=24,ViewY=164,ViewWidth=160,ViewHeight=32,
+    Trigger="observed-actor-script",SourceObjectSlot=4,
+    SourceGeneration=1,SourceScriptId=0x1B,
     Languages=new()
     {
         ["ja"]="こんばんは",
@@ -81,6 +83,11 @@ try
           returned.Dialogues[0].ViewX==24 &&
           returned.Dialogues[0].ViewWidth==160,
           "authored dialogue viewport region roundtrip");
+    Check(returned.Dialogues[0].Trigger=="observed-actor-script" &&
+          returned.Dialogues[0].SourceObjectSlot==4 &&
+          returned.Dialogues[0].SourceGeneration==1 &&
+          returned.Dialogues[0].SourceScriptId==0x1B,
+          "original actor script transition binding roundtrip");
     Check(returned.Events[0].Frame==120,"timeline preservation");
     Check(returned.Assets[0].RelativePath.EndsWith("trevor.png"),
           "external image reference");
@@ -101,6 +108,11 @@ try
     try{_ = StudioProjectFile.Load(file);}
     catch(InvalidDataException){rejected=true;}
     Check(rejected,"source object slot limit enforced");
+    File.WriteAllText(file,"""{"SchemaVersion":1,"Dialogues":[{"Trigger":"observed-actor-script","SourceObjectSlot":28,"SourceGeneration":1,"SourceScriptId":27}]}""");
+    rejected=false;
+    try{_ = StudioProjectFile.Load(file);}
+    catch(InvalidDataException){rejected=true;}
+    Check(rejected,"invalid source script trigger rejected");
     File.WriteAllText(file,"""{"SchemaVersion":1,"Dialogues":[{"HasViewportRegion":true,"ViewX":999}]}""");
     rejected=false;
     try{_ = StudioProjectFile.Load(file);}
