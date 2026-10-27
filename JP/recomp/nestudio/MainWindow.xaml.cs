@@ -29,6 +29,8 @@ public partial class MainWindow : Window
     private readonly Dictionary<int,(int Generation,int Script)> _lastObjectScripts=new();
     private int _lastAuthenticatedDialogueEvent;
     private StudioOriginalDialogueEvent? _lastOriginalRoomMessage;
+    private StudioEc47Trace? _lastVerifiedFormatter;
+    private int _lastFormatterSequence;
     private StudioSpriteGroup? _sprite;
     private StudioDialogue? _dialogue;
     private string _language="en";
@@ -275,6 +277,29 @@ public partial class MainWindow : Window
     {
         _scene=scene;
         ObserveOriginalScriptTransitions(scene);
+        if(scene.FormatterTrace is { } formatter)
+        {
+            string completion=formatter.Returned?"validated $E62D return":
+                "entry observed; return not yet verified";
+            FormatterStatus.Text=$"Original ${formatter.SourceBank:X2}:${formatter.CallerPc:X4} -> ${formatter.EntryPc:X4}, stage {formatter.Stage}, byte ${formatter.Token:X2}; {completion}. " +
+                $"Command buffer ${formatter.QueueStart:X2} -> ${formatter.QueueEnd:X2}, cursor reads {formatter.CursorReads}; " +
+                $"temporally nearby nametable PPU writes {formatter.PpuWrites} (not proven text glyphs).";
+            if(formatter.Returned && formatter.Sequence!=_lastFormatterSequence)
+            {
+                _lastFormatterSequence=formatter.Sequence;
+                _lastVerifiedFormatter=formatter;
+                Log($"Authenticated original formatter invocation: bank ${formatter.SourceBank:X2}, source ${formatter.CallerPc:X4}, entry ${formatter.EntryPc:X4}, token ${formatter.Token:X2}, cursor ${formatter.QueueStart:X2}->${formatter.QueueEnd:X2}, temporally nearby PPU writes {formatter.PpuWrites}.");
+                foreach(StudioDialogue entry in _project.Dialogues.Where(entry=>
+                    entry.Trigger=="original-ec47-formatter" &&
+                    entry.Room==scene.Room &&
+                    entry.SourceMessageStage==formatter.Stage &&
+                    entry.SourceMessageByte==formatter.Token))
+                {
+                    Log("Matched authenticated original formatter call with authored entry "+entry.Id);
+                    if(DialogueTab.IsSelected)DialogueList.SelectedItem=entry;
+                }
+            }
+        }
         // Original bank0A:B8F4 message-selector byte, proven upstream of
         // JSR $EC47; no claim that $EC47's rendering is fully decoded.
         if(scene.OriginalDialogue is { Sequence: >0 } authentic &&
@@ -501,6 +526,8 @@ public partial class MainWindow : Window
             _game.Start(path);
             _lastAuthenticatedDialogueEvent=0;
             _lastOriginalRoomMessage=null;
+            _lastVerifiedFormatter=null;
+            _lastFormatterSequence=0;
             _lastNativePid=0;_lastNativeFrame=-1;_lastAck=0;
             _lastSentOperation=0;_frameProgressLogged=false;
             _frameDelayLogged=false;_snapshotLogged=false;_lightEditLogged=false;
@@ -790,6 +817,21 @@ public partial class MainWindow : Window
             }
             _lastObjectScripts[obj.Slot]=(obj.Generation,obj.Script);
         }
+    }
+    private void BindFormatter_Click(object sender,RoutedEventArgs e)
+    {
+        if(_dialogue is null || _scene is null ||
+           _lastVerifiedFormatter is not { Returned:true } trace)
+        {
+            Status("Select an authored dialogue entry and observe a completed, source-verified original $EC47 formatter call first.");
+            return;
+        }
+        _dialogue.Trigger="original-ec47-formatter";
+        _dialogue.Room=_scene.Room;
+        _dialogue.SourceMessageStage=trace.Stage;
+        _dialogue.SourceMessageByte=trace.Token;
+        Dirty();
+        Status($"Bound {_dialogue.Id} to authenticated $EC47 call: stage {trace.Stage}, source byte ${trace.Token:X2}. No guest text or PPU state modified.");
     }
     private void BindRoomMessage_Click(object sender,RoutedEventArgs e)
     {
