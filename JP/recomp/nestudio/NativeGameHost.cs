@@ -110,15 +110,21 @@ public sealed class NativeGameHost : IDisposable
         // The game is a genuine resizable Win32 CHILD window of our panel.
         // It owns its SDL input and graphics context. SetWindowPos resizes
         // the real SDL drawable, so its mouse mapping remains correct.
-        long style=GetWindowLongPtr(found,-16).ToInt64();
+        IntPtr originalStyle=GetWindowLongPtr(found,-16);
+        long style=originalStyle.ToInt64();
         style&=~(WS_CAPTION|WS_THICKFRAME|WS_MINIMIZEBOX|
                  WS_MAXIMIZEBOX|WS_SYSMENU|WS_POPUP);
         style|=WS_CHILD|WS_VISIBLE;
         SetWindowLongPtr(found,-16,new IntPtr(style));
         SetParent(found,_panel.Handle);
+        int parentError=Marshal.GetLastWin32Error();
         if(GetParent(found)!=_panel.Handle)
+        {
+            // Do not leave a detached floating SDL window styled as a child.
+            SetWindowLongPtr(found,-16,originalStyle);
             throw new InvalidOperationException(
-                $"Could not embed SDL2 window: Win32 {Marshal.GetLastWin32Error()}");
+                $"Could not embed SDL2 window: Win32 {parentError}");
+        }
         _window=found;
         Resize();
         return true;
