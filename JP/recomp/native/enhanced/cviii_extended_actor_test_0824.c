@@ -75,7 +75,14 @@ int main(void){
     require(!cviii_guest_page_actor_0824(ram,1).eligible &&
             cviii_world_capture_live_0803(w,key,0,0,ram)==0,
             "wrong parent index cannot fabricate an actor");
-    ram[0x646]=3u;ram[0x54f]=0u;
+    /* Authenticated Mesen 2.1.1 original frame: page1 x=$81 is
+     * outside both visible page margins, and original CPU clears
+     * the actor type/frame at the next frame. No ghost object. */
+    ram[0x646]=3u;ram[0x439]=0x81u;
+    require(!cviii_guest_page_actor_0824(ram,1u).eligible &&
+            !cviii_world_capture_live_0803(w,key,0,0,ram),
+            "middle of adjacent page cannot yield a fake visible actor");
+    ram[0x439]=240u;ram[0x54f]=0u;
     require(cviii_world_capture_live_0803(w,key,0,0,ram)==0,
             "original allocator type zero despawns actor immediately");
     ram[0x54f]=0x3du;w->horizontal_ready=0u;
