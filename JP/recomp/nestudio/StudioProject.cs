@@ -34,9 +34,21 @@ public sealed class StudioSpriteGroup
     public string Name { get; set; } = "New Sprite Group";
     public string Layer { get; set; } = "World";
     public uint Room { get; set; } = 0;
+    // Frame-local PPU OAM binding snapshots. These are not persistent
+    // game-character identities: original OAM slots rotate every frame.
+    public List<StudioSpriteMember> Members { get; set; } = new();
+    public int CapturedFrame { get; set; }
     public bool Visible { get; set; } = true;
     public string? ReplacementAssetId { get; set; }
     public override string ToString() => $"{Name}  [{Layer}]";
+}
+public sealed class StudioSpriteMember
+{
+    public int OamSlot { get; set; }
+    public int Tile { get; set; }
+    public int Attributes { get; set; }
+    public int CaptureX { get; set; }
+    public int CaptureY { get; set; }
 }
 public sealed class StudioDialogue
 {
@@ -90,6 +102,15 @@ public static class StudioProjectFile
         if(project.SpriteGroups.Count>4096 || project.Dialogues.Count>8192 ||
            project.Events.Count>32768 || project.Assets.Count>8192)
             throw new InvalidDataException("Project exceeds bounded editor content limits.");
+        foreach(var group in project.SpriteGroups)
+        {
+            group.Members ??=new();
+            if(group.Members.Count>64 ||
+               group.Members.Any(m=>m.OamSlot<0 || m.OamSlot>=64 ||
+                   m.Tile<0 || m.Tile>255 || m.Attributes<0 || m.Attributes>255 ||
+                   m.CaptureX<0 || m.CaptureX>255 || m.CaptureY<0 || m.CaptureY>255))
+                throw new InvalidDataException("Invalid bounded OAM snapshot group.");
+        }
         foreach(var entry in project.Dialogues)
         {
             if(entry.Languages is null)entry.Languages=new();
