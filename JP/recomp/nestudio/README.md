@@ -79,6 +79,36 @@ NEStudio.exe (.NET 8/WPF editor)
 
 The fixed-layout bridge has compile-time C size assertions and is never created when the game is launched normally without `CVIII_NESTUDIO_SESSION`. The session token prevents accidentally talking to a different game window. The bridge exposes **presentation/light authoring only**, not game memory, mapper/PPU state or save-state serialization.
 
+## Windows launcher and live viewport acceptance
+
+Open the **Acceptance Log** button after starting the game. It opens a
+local text file in `%LOCALAPPDATA%\\NEStudio\\Acceptance`. The editor
+records the game's bridge-reported PID, whether native frames advance,
+successful Win32 viewport parenting, the first live OAM/light snapshot,
+and acknowledgements or rejections from native lighting commands.
+The file is local to the Windows PC and is not uploaded automatically;
+review it before sharing it.
+
+Acceptance procedure for the real owner-private Windows build:
+
+1. Use **Set Game / Launcher** to select the updated Enhanced `.exe`,
+   `.bat` or `.cmd`. Click **Run / Attach** and confirm game video and
+   audio appear inside the resizable NEStudio viewport.
+2. Confirm the acceptance log contains both **frame counter is advancing**
+   and **Win32 parent verified** (with the native game PID). Resize the
+   editor and check that the native game stays in its viewport.
+3. Click **Edit / Pause**, place a **Torch**, select it in the Scene
+   Outliner, change its color and radius, and confirm an acknowledged
+   native lighting property edit. Click **Play** and check controls.
+4. Save the project, click **Stop**, reopen the game, and inspect the
+   native lighting settings for persistence. A project save does not
+   replace the native lighting `config.ini`.
+
+**CI cannot certify the user's actual SDL/D3D11 rendering, mouse focus,
+gamepad input, or persistence.** Mark those as accepted only after the
+Windows gameplay exercise; an active bridge and parented HWND alone
+are not proof of correct visual output.
+
 ## Important limitations and next production steps
 
 - WPF application and ROM-free schema tests can run in GitHub Actions, but **actual native game embedding, focus, SDL2/D3D11 behavior and owner Windows gameplay** still require user acceptance.
