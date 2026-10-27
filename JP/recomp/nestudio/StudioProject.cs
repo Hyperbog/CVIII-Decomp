@@ -64,6 +64,11 @@ public sealed class StudioDialogue
     public string Id { get; set; } = "dialogue." + Guid.NewGuid().ToString("N");
     public uint Room { get; set; }
     public string Trigger { get; set; } = "manual";
+    // A real original per-actor AI script-byte transition ($05EF+slot),
+    // distinct from an unverified NES dialogue/text-print opcode.
+    public int SourceObjectSlot { get; set; } = -1;
+    public int SourceGeneration { get; set; }
+    public int SourceScriptId { get; set; } = -1;
     // Authored screen-space marker only. This is not an automatically
     // discovered original NES script trigger or textbox identity.
     public bool HasViewportRegion { get; set; }
@@ -135,6 +140,12 @@ public static class StudioProjectFile
         foreach(var entry in project.Dialogues)
         {
             if(entry.Languages is null)entry.Languages=new();
+            if(entry.SourceObjectSlot is <-1 or >=28 ||
+               entry.SourceGeneration<0 || entry.SourceScriptId is <-1 or >255 ||
+               (entry.Trigger=="observed-actor-script" &&
+                (entry.SourceObjectSlot<0 || entry.SourceGeneration<=0 ||
+                 entry.SourceScriptId<0)))
+                throw new InvalidDataException("Invalid original actor script-transition binding.");
             if(entry.HasViewportRegion &&
                (entry.ViewX<0 || entry.ViewX>=256 ||
                 entry.ViewY<0 || entry.ViewY>=240 ||
