@@ -73,6 +73,11 @@ public sealed class StudioDialogue
     // Verified source byte, NOT a proven rendered text glyph.
     public int SourceMessageStage { get; set; } = -1;
     public int SourceMessageByte { get; set; } = -1;
+    // The only supported replacement workflow is local and preview-only.
+    // Store a source SHA-256 commitment, NEVER original ROM/command bytes
+    // or a switch which could enable guest memory mutation.
+    public string ReplacementMode { get; set; } = "none";
+    public string SourceCommandSha256 { get; set; } = "";
     // Authored screen-space marker only. This is not an automatically
     // discovered original NES script trigger or textbox identity.
     public bool HasViewportRegion { get; set; }
@@ -155,6 +160,14 @@ public static class StudioProjectFile
                (entry.SourceMessageStage is <0 or >=5 ||
                 entry.SourceMessageByte is <0 or >255))
                 throw new InvalidDataException("Invalid original bounded room-message byte binding.");
+            if(entry.ReplacementMode is not ("none" or "dry-run") ||
+               entry.SourceCommandSha256.Length is not (0 or 64) ||
+               entry.SourceCommandSha256.Any(c=>
+                   c is not (>= '0' and <= '9' or >= 'a' and <= 'f')) ||
+               (entry.ReplacementMode=="dry-run" &&
+                   entry.SourceCommandSha256.Length!=64))
+                throw new InvalidDataException(
+                    "Invalid offline-only replacement plan or source proof digest.");
             if(entry.HasViewportRegion &&
                (entry.ViewX<0 || entry.ViewX>=256 ||
                 entry.ViewY<0 || entry.ViewY>=240 ||
