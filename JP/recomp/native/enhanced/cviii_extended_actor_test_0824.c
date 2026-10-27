@@ -85,6 +85,36 @@ int main(void){
     ram[0x439]=240u;ram[0x54f]=0u;
     require(cviii_world_capture_live_0803(w,key,0,0,ram)==0,
             "original allocator type zero despawns actor immediately");
+    /* JP0824b genuine actor of another type: FIRST observe the
+     * original CPU slot on the original 256px page. Then source
+     * identity is unchanged and the original CPU page bit signals
+     * an 18px crossing to the right. No fabricated source/spawn. */
+    ram[0x54f]=0x21u;ram[0x471]=0x40u;
+    ram[0x439]=250u;ram[0x48d]=8u;ram[0x401]=0x94u;
+    require(cviii_world_capture_live_0803(w,key,0,0,ram)==1 &&
+            w->actors[1].x==250 && !w->actors[1].guest_adjacent_0824,
+            "original CPU actor must first be observed in native page");
+    ram[0x471]=0xc1u;ram[0x439]=12u;
+    require(cviii_world_capture_live_0803(w,key,0,0,ram)==1 &&
+            w->actors[1].guest_adjacent_0824 &&
+            w->actors[1].x==268,
+            "original actor of another type crosses adjacent page");
+    ram[0x48d]=9u;
+    require(cviii_world_capture_live_0803(w,key,0,0,ram)==0 &&
+            !w->actors[1].active,
+            "changed original sprite identity cannot inherit old actor");
+    ram[0x48d]=8u;ram[0x471]=0x40u;ram[0x439]=5u;
+    require(cviii_world_capture_live_0803(w,key,0,0,ram)==1 &&
+            w->actors[1].x==5,
+            "original CPU actor observed near left boundary");
+    ram[0x471]=0xc1u;ram[0x439]=240u;
+    require(cviii_world_capture_live_0803(w,key,0,0,ram)==1 &&
+            w->actors[1].guest_adjacent_0824 &&
+            w->actors[1].x==-16,
+            "original CPU actor crosses left, no substitute AI");
+    ram[0x54f]=0u;
+    require(cviii_world_capture_live_0803(w,key,0,0,ram)==0,
+            "real original typezero deallocation ends retained actor");
     ram[0x54f]=0x3du;w->horizontal_ready=0u;
     require(!cviii_world_capture_live_0803(w,key,0,0,ram),
             "unverified source metadata rejects local capture");
