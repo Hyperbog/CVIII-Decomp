@@ -73,7 +73,7 @@ static inline int cviii_wide_runtime_tick_0826(
          * spawn coordinate; a continuing link must keep the same
          * original slot to prevent ambiguous allocation reuse. */
         const int32_t px=camera_x+ram[0x438u+x];
-        const int32_t prior=a->state==CVIII_INSTANCE_LIVE ?
+        const int32_t prior=a->state==CVIII_INSTANCE_LIVE_0826 ?
                               a->world_x:a->source_x;
         if(px-prior>32 || prior-px>32)continue;
         if(a->state==CVIII_INSTANCE_LIVE && a->guest_slot!=x)
