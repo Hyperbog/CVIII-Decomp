@@ -171,13 +171,44 @@ static bool nest_sprite_sdl_event(const SDL_Event *ev)
         if(chosen<32)lo=multi?(lo^bit):(lo|bit);
         else hi=multi?(hi^bit):(hi|bit);
     }
-    InterlockedIncrement(&nest_shared->reserved[8]);
-    MemoryBarrier();
     nest_shared->reserved[4]=lo;
     nest_shared->reserved[5]=hi;
-    MemoryBarrier();
-    InterlockedIncrement(&nest_shared->reserved[8]);
     return true;
+}
+/* Dialogue mode picks only user-authored region anchors, never invents
+ * source dialogue event IDs from rendered pixels. */
+static bool nest_dialog_sdl_event(const SDL_Event *ev)
+{
+    if(!nest_shared || nest_shared->magic!=NEST_MAGIC ||
+       nest_shared->reserved[3]!=2)return false;
+    if(ev->type!=SDL_MOUSEBUTTONDOWN)return false;
+    if(ev->button.button!=SDL_BUTTON_LEFT)return true;
+    int wx=0,wy=0,x=-1,y=-1;
+    cviii_imgui_window_point(s_ren,ev->button.x,ev->button.y,&wx,&wy);
+    zapper_window_point(wx,wy,&x,&y,NULL,NULL);
+    if(x<0 || x>=256 || y<0 || y>=240)return true;
+    nest_shared->reserved[7]=x;
+    nest_shared->reserved[8]=y;
+    MemoryBarrier();
+    InterlockedIncrement(&nest_shared->reserved[6]);
+    return true;
+}
+static void nest_dialog_draw_selection(SDL_Renderer *renderer)
+{
+    if(!nest_shared || nest_shared->magic!=NEST_MAGIC ||
+       nest_shared->reserved[3]!=2 || !nest_shared->reserved[13])return;
+    int x=nest_shared->reserved[9],y=nest_shared->reserved[10],
+        w=nest_shared->reserved[11],h=nest_shared->reserved[12];
+    if(x<0 || y<0 || x>=256 || y>=240 || w<1 || h<1 ||
+       w>256 || h>240)return;
+    Uint8 r=0,g=0,b=0,a=0;
+    SDL_GetRenderDrawColor(renderer,&r,&g,&b,&a);
+    SDL_SetRenderDrawColor(renderer,255,193,94,255);
+    SDL_Rect box={x,y,w,h};
+    SDL_RenderDrawRect(renderer,&box);
+    SDL_Rect outer={x-1,y-1,w+2,h+2};
+    SDL_RenderDrawRect(renderer,&outer);
+    SDL_SetRenderDrawColor(renderer,r,g,b,a);
 }
 static void nest_sprite_draw_selection(SDL_Renderer *renderer)
 {
@@ -407,6 +438,7 @@ def generate(text: str) -> str:
     text=once(text,KEY_ANCHOR,
         '''#if defined(_WIN32)
             if(nest_sprite_sdl_event(&ev))continue;
+            if(nest_dialog_sdl_event(&ev))continue;
 #endif
             if(cviii_light_sdl_event(&ev,open)){
                 open=menu_open() || cviii_stage_open || cviii_audio_menu_active() ||
@@ -442,7 +474,8 @@ def generate(text: str) -> str:
         "        ;")
     text=once(text,"    if (s_ui_shot_id >= 0) {",
         "    if(cviii_imgui_render(s_win,s_ren))save_settings();\n"
-        "#if defined(_WIN32)\n    nest_tick();\n    nest_sprite_draw_selection(s_ren);\n#endif\n"
+        "#if defined(_WIN32)\n    nest_tick();\n    nest_sprite_draw_selection(s_ren);
+    nest_dialog_draw_selection(s_ren);\n#endif\n"
         "    if (s_ui_shot_id >= 0) {")
     text=once(text,"    SDL_DestroyRenderer(s_ren);",
         "#if defined(_WIN32)\n    nest_close();\n#endif\n"
@@ -481,6 +514,8 @@ def smoke() -> None:
     assert "nest_keyboard_owned()" in product
     assert "nest_sprite_sdl_event(&ev)" in product
     assert "nest_sprite_draw_selection(s_ren);" in product
+    assert "nest_dialog_sdl_event(&ev)" in product
+    assert "nest_dialog_draw_selection(s_ren);" in product
     assert "GetAsyncKeyState(VK_CONTROL)" in product
     assert "nest_tick();" in product and "nest_close();" in product
     assert "cviii_light_place_window(int window_x,int window_y)" in product
