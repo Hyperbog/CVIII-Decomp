@@ -34,4 +34,29 @@ static inline CviiiGuestPageActor0824 cviii_guest_page_actor_0824(
     p.eligible=1u;
     return p;
 }
+/* JP0824b: a previously seen authentic CPU actor can cross a 256px
+ * edge even if it has no type3D row32 source tag. Prove CONTINUITY
+ * instead: caller must verify the unchanged original actor slot,
+ * original allocator TYPE and sprite descriptor, in the same room.
+ * $80E3 acts on these ordinary slots during original FDE4 CPU loop.
+ * Only original page1/OAM-cull state and a <=32px physical
+ * per-frame displacement permit retaining the already-live actor. */
+static inline CviiiGuestPageActor0824 cviii_guest_page_continue_0824(
+    const uint8_t ram[2048],unsigned slot,int32_t prior_local_world,
+    int32_t current_local_camera)
+{
+    CviiiGuestPageActor0824 p={0};
+    if(!ram || slot<1u || slot>18u || !ram[0x400u+slot] ||
+       !ram[0x54eu+slot] || ram[0x54eu+slot]>=0x83u ||
+       (ram[0x470u+slot]&0x81u)!=0x81u)return p;
+    const unsigned low=ram[0x438u+slot];
+    if(low<=92u){p.side=2u;p.viewport_x=(int32_t)low+256;}
+    else if(low>=164u){p.side=1u;p.viewport_x=(int32_t)low-256;}
+    else return p;
+    const int64_t candidate=(int64_t)current_local_camera+p.viewport_x;
+    const int64_t displacement=candidate-prior_local_world;
+    if(displacement < -32 || displacement > 32)return p;
+    p.eligible=1u;p.real_original=1u;p.original_slot=(uint8_t)slot;
+    return p;
+}
 #endif
