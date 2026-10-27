@@ -55,6 +55,13 @@ public sealed class StudioDialogue
     public string Id { get; set; } = "dialogue." + Guid.NewGuid().ToString("N");
     public uint Room { get; set; }
     public string Trigger { get; set; } = "manual";
+    // Authored screen-space marker only. This is not an automatically
+    // discovered original NES script trigger or textbox identity.
+    public bool HasViewportRegion { get; set; }
+    public int ViewX { get; set; }
+    public int ViewY { get; set; }
+    public int ViewWidth { get; set; } = 80;
+    public int ViewHeight { get; set; } = 24;
     public int MaxCharactersPerLine { get; set; } = 28;
     public int MaxLinesPerPage { get; set; } = 4;
     public Dictionary<string, string> Languages { get; set; } = new()
@@ -114,6 +121,12 @@ public static class StudioProjectFile
         foreach(var entry in project.Dialogues)
         {
             if(entry.Languages is null)entry.Languages=new();
+            if(entry.HasViewportRegion &&
+               (entry.ViewX<0 || entry.ViewX>=256 ||
+                entry.ViewY<0 || entry.ViewY>=240 ||
+                entry.ViewWidth<1 || entry.ViewWidth>256 ||
+                entry.ViewHeight<1 || entry.ViewHeight>240))
+                throw new InvalidDataException("Invalid authored dialogue screen bounds.");
             entry.MaxCharactersPerLine=Math.Clamp(entry.MaxCharactersPerLine,8,80);
             entry.MaxLinesPerPage=Math.Clamp(entry.MaxLinesPerPage,1,16);
         }
