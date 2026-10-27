@@ -164,6 +164,10 @@ static uint8_t cviii_nest_ram_observer(uint16_t pc,uint16_t addr,uint8_t value)
             trusted &= cyc_debug_peek((uint16_t)(0xE62Du+i),&b) &&
                        b==expected[i];
         }
+        CycModRegs regs;
+        cyc_mod_regs(&regs);
+        trusted &= value==0x0Au &&
+                   cviii_ec47_return_matches(ram,regs.s);
         if(trusted)cviii_ec47_finish(&cviii_nest_ec47,ram[0x1Eu]);
         return value;
     }
