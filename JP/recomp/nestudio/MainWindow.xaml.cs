@@ -24,6 +24,7 @@ public partial class MainWindow : Window
     private int _selectedLight=-1;
     private string _fingerprint="";
     private string _spriteFingerprint="";
+    private string _originalObjectFingerprint="";
     private StudioSpriteGroup? _sprite;
     private StudioDialogue? _dialogue;
     private string _language="en";
@@ -267,6 +268,28 @@ public partial class MainWindow : Window
     private void UpdateScene(StudioScene scene)
     {
         _scene=scene;
+        // Original CPU object slot/generation comes from RAM $0400..$05EF,
+        // never from the physical OAM index. Preserve selected lifetimes.
+        var originalFingerprint=string.Join("|",scene.OriginalObjects.Select(o=>
+            $"{o.Room}:{o.Slot}:{o.Generation}:{o.X}:{o.Y}:{o.Selector}:{o.Flags}"));
+        if(_originalObjectFingerprint!=originalFingerprint)
+        {
+            _originalObjectFingerprint=originalFingerprint;
+            var selectedHandles=OriginalObjectsList.SelectedItems
+                .OfType<StudioOriginalObject>()
+                .Select(o=>(o.Room,o.Slot,o.Generation)).ToHashSet();
+            _changing=true;
+            OriginalObjectsList.ItemsSource=scene.OriginalObjects.ToList();
+            foreach(StudioOriginalObject item in scene.OriginalObjects)
+                if(selectedHandles.Contains((item.Room,item.Slot,item.Generation)))
+                {
+                    var row=OriginalObjectsList.Items.OfType<StudioOriginalObject>()
+                        .FirstOrDefault(o=>o.Room==item.Room &&
+                            o.Slot==item.Slot && o.Generation==item.Generation);
+                    if(row is not null)OriginalObjectsList.SelectedItems.Add(row);
+                }
+            _changing=false;
+        }
         // A native viewport handle click changes the authoritative game
         // selection. Follow it unless the editor has already queued a new
         // scene-tree selection that has not yet reached the native thread.
@@ -685,6 +708,38 @@ public partial class MainWindow : Window
         Queue(17);
         Status("Compact lighting inspector enabled.");
     }
+    private void OriginalObjects_SelectionChanged(object sender,SelectionChangedEventArgs e)
+    {
+        if(_changing || !SpritesTab.IsSelected)return;
+        int count=OriginalObjectsList.SelectedItems.OfType<StudioOriginalObject>().Count();
+        if(count>0)SelectionLabel.Text=$"{count} original game object lifetime(s) selected";
+    }
+    private void GroupOriginalObjects_Click(object sender,RoutedEventArgs e)
+    {
+        if(_scene is null || !SpritesTab.IsSelected)return;
+        var selected=OriginalObjectsList.SelectedItems
+            .OfType<StudioOriginalObject>()
+            .Where(o=>o.Room==_scene.Room && o.Generation>0)
+            .ToList();
+        if(selected.Count==0)
+        {
+            Status("Select one or more original CPU game objects before grouping.");
+            return;
+        }
+        var group=new StudioSpriteGroup
+        {
+            Name=$"Original Objects {_project.SpriteGroups.Count+1}",
+            Room=_scene.Room,Layer="World",
+            CapturedFrame=_bridge?.GameFrame??0,
+            OriginalObjects=selected.Select(o=>new StudioOriginalObjectRef
+            {
+                Room=o.Room,ObjectSlot=o.Slot,Generation=o.Generation
+            }).ToList()
+        };
+        _project.SpriteGroups.Add(group);
+        Dirty();RefreshProject();SpriteList.SelectedItem=group;
+        Status($"Grouped {selected.Count} source-observed object lifetimes. Slot reuse creates a new generation; OAM piece attribution still needs renderer provenance.");
+    }
     private void LiveSprites_SelectionChanged(object sender,SelectionChangedEventArgs e)
     {
         if(_changing || !IsLoaded || !SpritesTab.IsSelected || _bridge is null)
@@ -913,7 +968,9 @@ public partial class MainWindow : Window
         if((Keyboard.Modifiers&ModifierKeys.Control)==0)return;
         if(e.Key==Key.G && SpritesTab.IsSelected)
         {
-            GroupSelectedSprites_Click(sender,new RoutedEventArgs());
+            if(OriginalObjectsList.SelectedItems.Count>0)
+                GroupOriginalObjects_Click(sender,new RoutedEventArgs());
+            else GroupSelectedSprites_Click(sender,new RoutedEventArgs());
             e.Handled=true;
             return;
         }
