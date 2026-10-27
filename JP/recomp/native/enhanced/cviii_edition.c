@@ -115,7 +115,7 @@ static void cviii_nest_ppu_observer(unsigned reg,uint16_t address,
                                    uint8_t tile,unsigned increment)
 {
     (void)increment;
-    if(!cviii_nest_observe || reg!=0x2007u ||
+    if(!cviii_nest_observe || reg!=7u ||
        address<0x2000u || address>=0x3000u)return;
     CycModRegs r;
     cyc_mod_regs(&r);
