@@ -28,6 +28,37 @@
       <Setter Property="FontSize" Value="12"/>
       <Setter Property="MinHeight" Value="30"/>
       <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Border x:Name="ButtonSurface"
+                    Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    CornerRadius="4"
+                    SnapsToDevicePixels="True">
+              <ContentPresenter Margin="{TemplateBinding Padding}"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                RecognizesAccessKey="True"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="ButtonSurface" Property="BorderBrush" Value="#83CFEF"/>
+              </Trigger>
+              <Trigger Property="IsPressed" Value="True">
+                <Setter TargetName="ButtonSurface" Property="Background" Value="#284A60"/>
+              </Trigger>
+              <Trigger Property="IsKeyboardFocused" Value="True">
+                <Setter TargetName="ButtonSurface" Property="BorderBrush" Value="#A2E3FF"/>
+              </Trigger>
+              <Trigger Property="IsEnabled" Value="False">
+                <Setter TargetName="ButtonSurface" Property="Opacity" Value="0.65"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
       <Style.Triggers>
         <Trigger Property="IsMouseOver" Value="True">
           <Setter Property="Background" Value="#34526A"/>
@@ -143,7 +174,32 @@
     </Style>
     <Style TargetType="ListBoxItem">
       <Setter Property="Foreground" Value="#F2F7FD"/>
-      <Setter Property="Padding" Value="6,4"/>
+      <Setter Property="Padding" Value="7,5"/>
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="ListBoxItem">
+            <Border x:Name="Row"
+                    Background="{TemplateBinding Background}"
+                    Padding="{TemplateBinding Padding}"
+                    CornerRadius="2">
+              <ContentPresenter/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Row" Property="Background" Value="#263B50"/>
+              </Trigger>
+              <Trigger Property="IsSelected" Value="True">
+                <Setter TargetName="Row" Property="Background" Value="#285A77"/>
+                <Setter Property="Foreground" Value="#FFFFFF"/>
+              </Trigger>
+              <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Foreground" Value="#AFBBC9"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
       <Style.Triggers>
         <Trigger Property="IsSelected" Value="True">
           <Setter Property="Background" Value="#285A77"/>
@@ -168,22 +224,84 @@
         </Trigger>
       </Style.Triggers>
     </Style>
+    <!-- The default Windows theme paints selected WPF TabItem headers white.
+         Both control templates are owned by NEStudio, in every visual state. -->
     <Style TargetType="TabControl">
-      <Setter Property="Background" Value="#121820"/>
-      <Setter Property="BorderBrush" Value="#425569"/>
-      <Setter Property="Foreground" Value="#F3F8FE"/>
+      <Setter Property="Background" Value="#101720"/>
+      <Setter Property="Foreground" Value="#E7EFF8"/>
+      <Setter Property="BorderBrush" Value="#3D5267"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="TabControl">
+            <Grid KeyboardNavigation.TabNavigation="Local"
+                  SnapsToDevicePixels="True">
+              <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+              </Grid.RowDefinitions>
+              <TabPanel x:Name="HeaderPanel" Grid.Row="0"
+                        IsItemsHost="True"
+                        Background="#151E28"
+                        KeyboardNavigation.TabIndex="1"
+                        Panel.ZIndex="1"/>
+              <Border Grid.Row="1" Background="{TemplateBinding Background}"
+                      BorderBrush="{TemplateBinding BorderBrush}"
+                      BorderThickness="1"
+                      SnapsToDevicePixels="True">
+                <ContentPresenter x:Name="PART_SelectedContentHost"
+                                  ContentSource="SelectedContent"
+                                  KeyboardNavigation.TabIndex="2"
+                                  SnapsToDevicePixels="True"/>
+              </Border>
+            </Grid>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
     </Style>
     <Style TargetType="TabItem">
-      <Setter Property="Background" Value="#1F2E3D"/>
-      <Setter Property="Foreground" Value="#E8F5FF"/>
-      <Setter Property="Padding" Value="10,6"/>
+      <Setter Property="Background" Value="#192532"/>
+      <Setter Property="Foreground" Value="#C5D6E5"/>
+      <Setter Property="BorderBrush" Value="#344A5E"/>
+      <Setter Property="Padding" Value="13,8"/>
       <Setter Property="FontSize" Value="12"/>
-      <Style.Triggers>
-        <Trigger Property="IsSelected" Value="True">
-          <Setter Property="Background" Value="#31546C"/>
-          <Setter Property="Foreground" Value="#FFFFFF"/>
-        </Trigger>
-      </Style.Triggers>
+      <Setter Property="MinHeight" Value="33"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="TabItem">
+            <Border x:Name="TabSurface"
+                    Margin="0,0,2,0" Padding="{TemplateBinding Padding}"
+                    Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="1,1,1,0"
+                    CornerRadius="4,4,0,0"
+                    SnapsToDevicePixels="True">
+              <ContentPresenter ContentSource="Header"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                RecognizesAccessKey="True"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="TabSurface" Property="Background" Value="#263A4E"/>
+                <Setter Property="Foreground" Value="#FFFFFF"/>
+              </Trigger>
+              <Trigger Property="IsSelected" Value="True">
+                <Setter TargetName="TabSurface" Property="Background" Value="#213246"/>
+                <Setter TargetName="TabSurface" Property="BorderBrush" Value="#6ABDE9"/>
+                <Setter Property="Foreground" Value="#FFFFFF"/>
+              </Trigger>
+              <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                <Setter TargetName="TabSurface" Property="BorderBrush" Value="#A2E3FF"/>
+              </Trigger>
+              <Trigger Property="IsEnabled" Value="False">
+                <Setter TargetName="TabSurface" Property="Background" Value="#151A23"/>
+                <Setter TargetName="TabSurface" Property="BorderBrush" Value="#303A45"/>
+                <Setter Property="Foreground" Value="#B0BAC6"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
     </Style>
     <Style TargetType="Slider">
       <Setter Property="Foreground" Value="#8EDCFF"/>
