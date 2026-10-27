@@ -12,6 +12,16 @@ project.SpriteGroups.Add(new StudioSpriteGroup{Name="Trevor Body",
     Layer="World",Room=0x2601});
 project.SpriteGroups.Add(new StudioSpriteGroup{Name="Torch Flame",
     Layer="Above Game",Room=0x2601});
+project.SpriteGroups.Add(new StudioSpriteGroup
+{
+    Name="Paused OAM Body Parts",Room=0x2601,Layer="World",
+    CapturedFrame=120,
+    Members=new()
+    {
+        new StudioSpriteMember{OamSlot=3,Tile=0x24,Attributes=0x01,CaptureX=64,CaptureY=100},
+        new StudioSpriteMember{OamSlot=8,Tile=0x25,Attributes=0x01,CaptureX=72,CaptureY=100}
+    }
+});
 project.Dialogues.Add(new StudioDialogue
 {
     Id="jp.stage01.dracula.001",Room=0x2601,
@@ -44,7 +54,12 @@ try
 {
     StudioProjectFile.Save(project,file);
     StudioProject returned=StudioProjectFile.Load(file);
-    Check(returned.SpriteGroups.Count==5,"sprite grouping persistence");
+    Check(returned.SpriteGroups.Count==6,"sprite grouping persistence");
+    Check(returned.SpriteGroups[^1].Members.Count==2 &&
+          returned.SpriteGroups[^1].Members[0].OamSlot==3 &&
+          returned.SpriteGroups[^1].Members[1].Tile==0x25 &&
+          returned.SpriteGroups[^1].CapturedFrame==120,
+          "snapshot group OAM membership roundtrip");
     Check(returned.Dialogues.Count==1 &&
           returned.Dialogues[0].Languages["ja"]=="こんばんは",
           "Unicode localization roundtrip");
@@ -58,6 +73,11 @@ try
     try{_ = StudioProjectFile.Load(file);}
     catch(InvalidDataException){rejected=true;}
     Check(rejected,"unknown project schema fails closed");
+    File.WriteAllText(file,"""{"SchemaVersion":1,"SpriteGroups":[{"Members":[{"OamSlot":100}]}]}""");
+    rejected=false;
+    try{_ = StudioProjectFile.Load(file);}
+    catch(InvalidDataException){rejected=true;}
+    Check(rejected,"invalid OAM member index rejected");
 }
 finally {File.Delete(file);}
 Console.WriteLine("PASS NEStudio v1 project, sprite layers, multilingual dialogue, text flow and timeline round-trip");
