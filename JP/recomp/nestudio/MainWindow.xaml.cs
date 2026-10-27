@@ -118,16 +118,21 @@ public partial class MainWindow : Window
                     _scene?.Editing==true?"LIVE · EDIT MODE / PAUSED":"LIVE · PLAYING";
                 return;
             }
-            if(_bridge is not null || _game.IsEmbedded ||
-               _game.IsBatchLauncher)
+            // Session is the definitive launch marker, including an EXE
+            // that exits before its native bridge or SDL window appears.
+            if(!string.IsNullOrEmpty(_game.Session))
             {
+                bool wasBatchLauncher=_game.IsBatchLauncher;
                 _bridge?.Dispose();_bridge=null;_scene=null;
                 _commands.Clear();_fingerprint="";
                 ViewportHint.Visibility=Visibility.Visible;
                 ConnectionLabel.Text="OFFLINE · Game stopped";
-                Log(_game.IsBatchLauncher?
+                Log(wasBatchLauncher?
                     "Launcher exited without a connected native SDL game. A BAT that only builds or starts another emulator does not provide NEStudio's C11 bridge.":
                     "Game stopped; saved NEStudio project content remains available.");
+                // Release the launcher handle and reset the session once;
+                // otherwise the same failure is logged every polling tick.
+                _game.Stop();
             }
         }
         catch(Exception ex)
