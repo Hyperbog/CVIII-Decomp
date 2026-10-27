@@ -37,6 +37,39 @@ public sealed class StudioBridge : IDisposable
     public int GameProcessId => _view.ReadInt32(72);
     public int GameFrame => _view.ReadInt32(64);
     public int AcknowledgedSequence => _view.ReadInt32(12);
+    // Reserved v1 header mode=84, OAM selection masks=88/92.
+    // These indicate visible 8x8 PPU OAM slots, NOT stable actor identities.
+    public IReadOnlySet<int> SelectedSpriteSlots
+    {
+        get
+        {
+            if(_view.ReadInt32(0)!=Magic || _view.ReadInt32(84)!=1)
+                return new HashSet<int>();
+            uint lo=unchecked((uint)_view.ReadInt32(88));
+            uint hi=unchecked((uint)_view.ReadInt32(92));
+            var selected=new HashSet<int>();
+            for(int i=0;i<32;i++)
+            {
+                if(((lo>>i)&1u)!=0)selected.Add(i);
+                if(((hi>>i)&1u)!=0)selected.Add(i+32);
+            }
+            return selected;
+        }
+    }
+    public bool SetSpriteSelection(IEnumerable<int> slots)
+    {
+        if(_view.ReadInt32(0)!=Magic || _view.ReadInt32(84)!=1)return false;
+        uint lo=0,hi=0;
+        foreach(int slot in slots)
+        {
+            if(slot is <0 or >=64)continue;
+            if(slot<32)lo|=1u<<slot;
+            else hi|=1u<<(slot-32);
+        }
+        _view.Write(88,unchecked((int)lo));
+        _view.Write(92,unchecked((int)hi));
+        return true;
+    }
     private StudioBridge(MemoryMappedFile map)
     {
         _file=map;
