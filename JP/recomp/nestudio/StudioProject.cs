@@ -37,6 +37,9 @@ public sealed class StudioSpriteGroup
     // Frame-local PPU OAM binding snapshots. These are not persistent
     // game-character identities: original OAM slots rotate every frame.
     public List<StudioSpriteMember> Members { get; set; } = new();
+    // Source-observed object lives: slot index is stable for one continuous
+    // active interval; generations prevent relinking a despawned slot.
+    public List<StudioOriginalObjectRef> OriginalObjects { get; set; } = new();
     public int CapturedFrame { get; set; }
     public bool Visible { get; set; } = true;
     public string? ReplacementAssetId { get; set; }
@@ -49,6 +52,12 @@ public sealed class StudioSpriteMember
     public int Attributes { get; set; }
     public int CaptureX { get; set; }
     public int CaptureY { get; set; }
+}
+public sealed class StudioOriginalObjectRef
+{
+    public uint Room { get; set; }
+    public int ObjectSlot { get; set; }
+    public int Generation { get; set; }
 }
 public sealed class StudioDialogue
 {
@@ -112,6 +121,11 @@ public static class StudioProjectFile
         foreach(var group in project.SpriteGroups)
         {
             group.Members ??=new();
+            group.OriginalObjects ??=new();
+            if(group.OriginalObjects.Count>28 ||
+               group.OriginalObjects.Any(o=>o.ObjectSlot<0 ||
+                   o.ObjectSlot>=28 || o.Generation<=0))
+                throw new InvalidDataException("Invalid original object lifetime reference.");
             if(group.Members.Count>64 ||
                group.Members.Any(m=>m.OamSlot<0 || m.OamSlot>=64 ||
                    m.Tile<0 || m.Tile>255 || m.Attributes<0 || m.Attributes>255 ||
