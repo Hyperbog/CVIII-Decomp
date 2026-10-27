@@ -23,6 +23,11 @@ typedef struct {
     CviiiLevel1World0803 world; /* persistent coordinate graph and actor registry */
     uint8_t sprite_bank_0807[CVIII_SPRITE_BANK_BYTES_0807];
     int sprite_bank_valid_0807; /* owner-private PRG26/27 SHA-verified */
+    /* JP0827: original ROM raw0B retained privately after launch-time
+     * SHA authentication for reentrant bounded actor-code execution.
+     * No ROM bank or private actor RAM is serialized to savestates. */
+    uint8_t actor_vm_bank0b_0827[16384];
+    int actor_vm_bank_valid_0827;
     uint8_t last_verified_selector[3];
     int last_verified_camera, last_verified_center;
     int has_verified_scene; /* retains authenticated room between transitions */
