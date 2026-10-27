@@ -95,9 +95,34 @@ typedef struct {unsigned pc,address,tile,writes;} CviiiNestPpuSource;
 static CviiiNestPpuSource cviii_nest_ppu;
 static uint8_t cviii_nest_ram_observer(uint16_t pc,uint16_t addr,uint8_t value)
 {
-    if(!cviii_nest_observe || pc!=0x8070u)return value;
+    if(!cviii_nest_observe)return value;
     const uint8_t *ram=cyc_cpu_ram();
     if(!ram)return value;
+    /* Original $8038 LDX $04 is reached after every ordinary object
+     * pass, before other game logic can reuse the $07 scratch counter. */
+    if(pc==0x8038u && addr==0x0004u){
+        uint8_t b0=0,b1=0;
+        if(cyc_debug_peek(0x8038u,&b0) &&
+           cyc_debug_peek(0x8039u,&b1) &&
+           b0==0xA6u && b1==0x04u)
+            cviii_owner_end(&cviii_nest_owner,ram[0x07u]);
+        else ++cviii_nest_owner.invalid;
+        return value;
+    }
+    /* Original $80ED PLA;PLA;RTS bypasses $8038 at full 64 OAM
+     * slots. First stack pull is the proof of the terminal edge. */
+    if(pc==0x80EDu && addr>=0x100u && addr<=0x1FFu &&
+       cviii_nest_owner.pending && ram[0x07u]==0){
+        uint8_t b0=0,b1=0,b2=0;
+        if(cyc_debug_peek(0x80EDu,&b0) &&
+           cyc_debug_peek(0x80EEu,&b1) &&
+           cyc_debug_peek(0x80EFu,&b2) &&
+           b0==0x68u && b1==0x68u && b2==0x60u)
+            cviii_owner_end(&cviii_nest_owner,0);
+        else ++cviii_nest_owner.invalid;
+        return value;
+    }
+    if(pc!=0x8070u)return value;
     unsigned owner=ram[0x05u];
     if(owner>=28u || addr!=0x048Cu+owner)return value;
     uint8_t b0=0,b1=0,b2=0;
@@ -503,10 +528,9 @@ static void frame_end(void *context)
 {
     CviiiEdition *settings = (CviiiEdition *)context;
     ++settings->lighting_frame;
-    if(cviii_nest_observe){
-        const uint8_t *ram=cyc_cpu_ram();
-        if(ram)cviii_owner_finish(&cviii_nest_owner,ram[0x07u]);
-    }
+    if(cviii_nest_observe && cviii_nest_owner.observed &&
+       !cviii_nest_owner.ended)
+        ++cviii_nest_owner.invalid; /* missing verified original exit */
     if (settings->object_trace.out)
         cviii_object_oam_trace_frame(&settings->object_trace,
                                     cyc_cpu_ram(), cyc_ppu_oam());
