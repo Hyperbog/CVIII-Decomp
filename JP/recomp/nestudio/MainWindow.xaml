@@ -23,6 +23,7 @@
           <Button Content="Save" Click="SaveProject_Click"/>
           <Button Content="Save As" Click="SaveAs_Click"/>
           <Button Content="Set Game / Launcher" Click="ChooseGame_Click"/>
+          <Button Content="Acceptance Log" Click="OpenAcceptanceLog_Click" ToolTip="Open the user-local Windows viewport and bridge acceptance log"/>
         </StackPanel>
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
           <Button Content="Run / Attach" Click="Run_Click" Background="#235D56"/>
