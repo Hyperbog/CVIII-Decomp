@@ -14,7 +14,7 @@
 #include <stdio.h>
 #include "cviii_lighting_host.h"
 #define NEST_MAGIC 0x5453454eL /* little-endian "NEST" */
-#define NEST_VERSION 2
+#define NEST_VERSION 3
 #define NEST_MAX_LIGHTS 128
 typedef struct {
     LONG used,room,x,y,radius,energy,red,green,blue,shape,muted,flicker;
@@ -34,6 +34,10 @@ typedef struct {
 } NestStudioOriginalDialogueEvent; /* 32 bytes */
 extern int cviii_nestudio_copy_oam(uint8_t out[256]);
 extern int cviii_nestudio_copy_original_objects(uint8_t out[8][28],uint8_t *phase);
+extern int cviii_nestudio_copy_original_ownership(uint8_t owners[64],
+    unsigned *attributed,unsigned *observed,unsigned *invalid);
+extern int cviii_nestudio_ppu_source(unsigned *pc,unsigned *address,
+                                   unsigned *tile,unsigned *writes);
 typedef struct {
     volatile LONG magic,version,request,response;
     volatile LONG op,a,b,c,result;
@@ -45,6 +49,12 @@ typedef struct {
     volatile LONG oam_phase,original_object_count;
     NestStudioOriginalObject original_objects[28];
     NestStudioOriginalDialogueEvent original_dialogue;
+    /* v3: owner assigned only by original PRG26:$8070 source reads. */
+    volatile LONG owner_for_oam[64];
+    volatile LONG ownership_valid,ownership_count,ownership_calls,ownership_errors;
+    volatile LONG selected_original_mask;
+    /* Original PPU $2007 write telemetry; NOT dialogue-printer events. */
+    volatile LONG ppu_source_pc,ppu_source_addr,ppu_source_tile,ppu_write_count;
 } NestStudioMapping;
 typedef char nest_layout_1[(sizeof(NestStudioLight)==80)?1:-1];
 typedef char nest_layout_2[(offsetof(NestStudioMapping,lights)==128)?1:-1];
@@ -54,7 +64,9 @@ typedef char nest_layout_5[(sizeof(NestStudioOriginalObject)==44)?1:-1];
 typedef char nest_layout_6[(offsetof(NestStudioMapping,oam_phase)==11904)?1:-1];
 typedef char nest_layout_7[(offsetof(NestStudioMapping,original_objects)==11912)?1:-1];
 typedef char nest_layout_8[(offsetof(NestStudioMapping,original_dialogue)==13144)?1:-1];
-typedef char nest_layout_9[(sizeof(NestStudioMapping)==13176)?1:-1];
+typedef char nest_layout_9[(offsetof(NestStudioMapping,owner_for_oam)==13176)?1:-1];
+typedef char nest_layout_10[(offsetof(NestStudioMapping,selected_original_mask)==13448)?1:-1];
+typedef char nest_layout_11[(sizeof(NestStudioMapping)==13468)?1:-1];
 static LONG nest_object_generation[28];
 static uint8_t nest_object_was_active[28];
 static uint32_t nest_object_room=UINT32_MAX;
@@ -240,6 +252,23 @@ static void nest_tick(void){
                sizeof nest_shared->original_objects);
         memset(nest_object_was_active,0,sizeof nest_object_was_active);
     }
+    uint8_t owners[64];
+    unsigned owned=0,calls=0,errors=0;
+    int ok=cviii_nestudio_copy_original_ownership(owners,&owned,&calls,&errors);
+    nest_shared->ownership_valid=ok?1:0;
+    nest_shared->ownership_count=(LONG)owned;
+    nest_shared->ownership_calls=(LONG)calls;
+    nest_shared->ownership_errors=(LONG)errors;
+    for(int i=0;i<64;++i){
+        nest_shared->owner_for_oam[i]=(ok && oam[i*4]<239u &&
+            owners[i]<28u)?(LONG)owners[i]:-1;
+    }
+    unsigned pc=0,addr=0,tile=0,writes=0;
+    (void)cviii_nestudio_ppu_source(&pc,&addr,&tile,&writes);
+    nest_shared->ppu_source_pc=(LONG)pc;
+    nest_shared->ppu_source_addr=(LONG)addr;
+    nest_shared->ppu_source_tile=(LONG)tile;
+    nest_shared->ppu_write_count=(LONG)writes;
     MemoryBarrier();
     InterlockedIncrement(&nest_shared->revision); /* even: stable snapshot */
 }
