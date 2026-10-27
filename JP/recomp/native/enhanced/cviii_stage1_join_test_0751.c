@@ -89,6 +89,30 @@ int main(void) {
        projected==768,"neighbor survives respawn and scene reload"))return 14;
     if(!check(!cviii_stage1_join_neighbor_0790(j,c,0,768,-1,known,&projected),
        "unknown neighbors never fabricate scenery"))return 15;
+    /* JP0823 original ROM-backed BLK 1-03 sibling: visual-only margin
+     * projection, never a gameplay connection or actor spawn. */
+    {
+      const uint8_t blk3a[]={0,2,0},blk3b[]={0,2,1};
+      uint8_t sibling[3]={0};int camera_s=777;
+      if(!check(cviii_stage1_neighbor_visual_0823(blk3a,512,768,1,
+                    sibling,&camera_s) &&
+                !memcmp(sibling,blk3b,3) && camera_s==-256,
+                "BLK1-03 first part extends source-backed right margin") ||
+         !check(cviii_stage1_neighbor_visual_0823(blk3b,0,768,-1,
+                    sibling,&camera_s) &&
+                !memcmp(sibling,blk3a,3) && camera_s==768,
+                "BLK1-03 second part extends source-backed left margin") ||
+         !check(!cviii_stage1_neighbor_visual_0823(blk3a,0,768,-1,
+                    sibling,&camera_s) &&
+                !cviii_stage1_neighbor_visual_0823(blk3b,512,768,1,
+                    sibling,&camera_s) &&
+                !cviii_stage1_neighbor_visual_0823(c,0,768,1,
+                    sibling,&camera_s) &&
+                !cviii_stage1_neighbor_visual_0823(blk3a,513,768,1,
+                    sibling,&camera_s),
+                "no fabricated predecessor, successor or out-of-room camera"))
+          return 17;
+    }
     free(frame);free(j);
     puts("PASS JP0751 authenticated room seams and bounded margin cache");
     return 0;
