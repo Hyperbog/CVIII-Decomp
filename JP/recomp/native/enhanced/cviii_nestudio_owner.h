@@ -12,7 +12,7 @@
 typedef struct {
     uint8_t owners[64];
     uint8_t pending_object,pending_offset,pending_remaining,pending;
-    unsigned observed,attributed,invalid;
+    unsigned observed,attributed,invalid,ended;
 } CviiiNestOwnerTrace;
 static void cviii_owner_reset(CviiiNestOwnerTrace *t)
 {
@@ -40,6 +40,11 @@ static void cviii_owner_finish(CviiiNestOwnerTrace *t,unsigned remaining)
     }
     t->pending=0;
 }
+static void cviii_owner_end(CviiiNestOwnerTrace *t,unsigned remaining)
+{
+    cviii_owner_finish(t,remaining);
+    if(t->observed)t->ended=1;
+}
 static void cviii_owner_enter(CviiiNestOwnerTrace *t,unsigned owner,
                               unsigned offset,unsigned remaining)
 {
@@ -56,6 +61,7 @@ static void cviii_owner_enter(CviiiNestOwnerTrace *t,unsigned owner,
 /* A frame with no observed source calls must never be treated as mapped. */
 static int cviii_owner_ready(const CviiiNestOwnerTrace *t)
 {
-    return t->observed!=0 && t->invalid==0 && t->attributed!=0;
+    return t->observed!=0 && t->ended!=0 &&
+           t->invalid==0 && t->attributed!=0 && !t->pending;
 }
 #endif
