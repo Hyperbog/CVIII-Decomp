@@ -128,6 +128,21 @@ static void synthetic(void){
  check(v.actor[0].state==CVIII_VIRTUAL_0828_UNSPAWNED &&
        !v.detached_steps && !v.actor[0].cpu.ram[0x54fu],
        "savestate epoch reset never treats stale private CPU as current");
+ /* A normal in-screen allocator removal can be defeat/cleanup,
+  * not a safe offscreen detachment. The private CPU must REFUSE
+  * to revive this type-zero actor without original page evidence. */
+ ram[0x54f]=0x3du;ram[0x471u]=4u;ram[0x439u]=160u;
+ s.source[0].state=CVIII_WIDE_CPU_OWNED_0825;
+ s.source[0].guest_slot=1u;
+ check(cviii_virtual_tick_0828(&v,&s,bank,ram,key,0)==0 &&
+       v.actor[0].state==CVIII_VIRTUAL_0828_LINKED,
+       "new CPU-linked original 4:3 actor witness");
+ s.source[0].state=CVIII_WIDE_SOURCE_UNVERIFIED_0825;
+ s.source[0].guest_slot=0u;ram[0x54f]=0;
+ check(cviii_virtual_tick_0828(&v,&s,bank,ram,key,0)==0 &&
+       v.actor[0].state==CVIII_VIRTUAL_0828_FAULTED &&
+       !cviii_virtual_can_apply_effect_0828(&v.actor[0]),
+       "normal center-screen actor death cannot spawn fake offscreen survivor");
  puts("PASS JP0828 native original movement detach, persistent CPU, B447 candidates");
 }
 static void original(const char *path){
