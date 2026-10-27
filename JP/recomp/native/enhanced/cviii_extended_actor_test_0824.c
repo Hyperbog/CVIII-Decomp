@@ -2,6 +2,7 @@
  * Fake original RAM + fake sprite descriptor; no commercial data. */
 #include "cviii_level1_world_0803.h"
 #include "cviii_world_sprites_0807.h"
+#include "cviii_collision_route_0816.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -36,6 +37,13 @@ int main(void){
     word(0x8200u+0x94u,0x8300u);
     bank[0x300]=1u;bank[0x301]=0;bank[0x302]=3u;
     bank[0x303]=0;bank[0x304]=0;
+    /* Original $B1F8 is invoked for this still-allocated CPU slot:
+     * page1 correctly defers player hit handling; when original
+     * CPU clears page1 on camera entry, it resumes original B339
+     * proximity/collision handler without a native substitute. */
+    require(cviii_b1f8_route_0816(0x3du,0xc5u,0x94u,0u,0u)==0xb1f7u &&
+            cviii_b1f8_route_0816(0x3du,0x44u,0x94u,0u,0u)==0xb232u,
+            "original CPU interaction gated off-page and restored in-page");
     CviiiGuestPageActor0824 gate=cviii_guest_page_actor_0824(ram,1u);
     require(gate.eligible && gate.real_original &&
             gate.viewport_x==268 && gate.side==2u,
