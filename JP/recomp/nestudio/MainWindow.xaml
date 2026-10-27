@@ -22,7 +22,7 @@
           <Button Content="Open" Click="OpenProject_Click"/>
           <Button Content="Save" Click="SaveProject_Click"/>
           <Button Content="Save As" Click="SaveAs_Click"/>
-          <Button Content="Set Game .exe" Click="ChooseGame_Click"/>
+          <Button Content="Set Game / Launcher" Click="ChooseGame_Click"/>
         </StackPanel>
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
           <Button Content="Run / Attach" Click="Run_Click" Background="#235D56"/>
