@@ -45,6 +45,12 @@ project.Dialogues.Add(new StudioDialogue
         ["fr"]="Bienvenue au château."
     }
 });
+project.Dialogues.Add(new StudioDialogue
+{
+    Id="jp.original.room.message",Room=0x2601,
+    Trigger="original-room-message",SourceMessageStage=2,
+    SourceMessageByte=0x34
+});
 project.Events.Add(new StudioEvent
 {
     Room=0x2601,Frame=120,Kind="dialogue",
@@ -76,7 +82,7 @@ try
           returned.SpriteGroups[^1].Members[1].Tile==0x25 &&
           returned.SpriteGroups[^1].CapturedFrame==120,
           "snapshot group OAM membership roundtrip");
-    Check(returned.Dialogues.Count==1 &&
+    Check(returned.Dialogues.Count==2 &&
           returned.Dialogues[0].Languages["ja"]=="こんばんは",
           "Unicode localization roundtrip");
     Check(returned.Dialogues[0].HasViewportRegion &&
@@ -88,6 +94,10 @@ try
           returned.Dialogues[0].SourceGeneration==1 &&
           returned.Dialogues[0].SourceScriptId==0x1B,
           "original actor script transition binding roundtrip");
+    Check(returned.Dialogues[1].Trigger=="original-room-message" &&
+          returned.Dialogues[1].SourceMessageStage==2 &&
+          returned.Dialogues[1].SourceMessageByte==0x34,
+          "authenticated original room-message source byte roundtrip");
     Check(returned.Events[0].Frame==120,"timeline preservation");
     Check(returned.Assets[0].RelativePath.EndsWith("trevor.png"),
           "external image reference");
@@ -113,6 +123,11 @@ try
     try{_ = StudioProjectFile.Load(file);}
     catch(InvalidDataException){rejected=true;}
     Check(rejected,"invalid source script trigger rejected");
+    File.WriteAllText(file,"""{"SchemaVersion":1,"Dialogues":[{"Trigger":"original-room-message","SourceMessageStage":5,"SourceMessageByte":52}]}""");
+    rejected=false;
+    try{_ = StudioProjectFile.Load(file);}
+    catch(InvalidDataException){rejected=true;}
+    Check(rejected,"invalid source room-message selector rejected");
     File.WriteAllText(file,"""{"SchemaVersion":1,"Dialogues":[{"HasViewportRegion":true,"ViewX":999}]}""");
     rejected=false;
     try{_ = StudioProjectFile.Load(file);}
