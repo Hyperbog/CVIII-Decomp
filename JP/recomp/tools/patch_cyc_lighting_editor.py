@@ -143,6 +143,13 @@ static bool nest_sprite_sdl_event(const SDL_Event *ev)
 {
     if(!nest_shared || nest_shared->magic!=NEST_MAGIC ||
        nest_shared->reserved[3]!=1)return false;
+    if(ev->type==SDL_KEYDOWN && !ev->key.repeat &&
+       ev->key.keysym.scancode==SDL_SCANCODE_G &&
+       ((SDL_GetModState()&KMOD_CTRL)!=0 ||
+        (GetAsyncKeyState(VK_CONTROL)&0x8000)!=0)){
+        InterlockedIncrement(&nest_shared->reserved[8]); // Ctrl+G request
+        return true;
+    }
     if(ev->type!=SDL_MOUSEBUTTONDOWN)return false;
     if(ev->button.button!=SDL_BUTTON_LEFT)return true;
     int wx=0,wy=0,x=-1,y=-1;
@@ -516,6 +523,7 @@ def smoke() -> None:
     assert "nest_dialog_sdl_event(&ev)" in product
     assert "nest_dialog_draw_selection(s_ren);" in product
     assert "GetAsyncKeyState(VK_CONTROL)" in product
+    assert "SDL_SCANCODE_G" in product
     assert "nest_tick();" in product and "nest_close();" in product
     assert "cviii_light_place_window(int window_x,int window_y)" in product
     assert "cviii_light_place_kit_window(int kind,int id,int window_x,int window_y)" in product
