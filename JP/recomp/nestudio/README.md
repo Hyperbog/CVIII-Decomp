@@ -28,6 +28,32 @@ Pass `-GameFolder "C:\path\to\AlphaCandidate"` to generate a starter project ref
 
 Prerequisites: Windows x64, .NET **8 SDK** to build, and a private original-Japanese-ROM-authenticated native Enhanced build with SDL2.dll. The WPF published build targets the .NET 8 desktop runtime (not included in the editor-only GitHub artifact). No proprietary assets ship in the repository or CI artifact.
 
+## Using an existing game .bat or .cmd launcher
+
+NEStudio now accepts both an actual native `jp_akumajou_densetsu.exe`
+and a Windows **.bat/.cmd game launcher**.
+
+1. Open a project. Choose **Set Game .exe** (the file selector supports
+   .exe/.bat/.cmd), point it at the existing launcher, then save the project.
+2. Select **Run / Attach**. NEStudio starts that launcher under `cmd.exe`
+   with an inherited private `CVIII_NESTUDIO_SESSION`.
+3. When the actual Enhanced recomp process starts, its C11 bridge publishes
+   **its native Windows process ID**. NEStudio embeds that process's SDL2
+   window in the viewport, rather than trying to embed `cmd.exe`.
+4. **Stop** terminates only NEStudio's own game/session.
+
+A launcher script is **not** itself a game binary. If it only builds the
+program and exits, then the native game still needs to compile and launch
+successfully; this is not a workaround for errors in the private NESRecomp
+build. An unmodified emulator or an older recomp lacking the unique
+NEStudio native bridge will not publish the session/PID handshake and
+therefore cannot supply live editor controls.
+
+This update is available in new NEStudio Windows CI builds. A previously
+downloaded `NEStudio.exe` from an older bundle must be **replaced with the
+new editor binary**; changing only the starter project's JSON path cannot
+retrofit BAT support into the original executable.
+
 ## Integrated workstation
 
 - **Real native viewport:** Starts `jp_akumajou_densetsu.exe --edition Enhanced` with a private session environment variable and embeds its actual SDL2 Win32 child window. The viewport maintains the game's 256×240 presentation aspect ratio. NES frame timing, mouse mapping, gamepad, mapper and audio remain owned by the native process; no screenshot mirroring.
