@@ -42,11 +42,23 @@ public partial class MainWindow : Window
     private bool _snapshotLogged;
     private bool _lightEditLogged;
     private bool _bridgeWaitLogged;
+    private bool _captureGameKeys;
+    private int _gameKeyBits;
+    // Matches SDL SCANCODE_UP/DOWN/LEFT/RIGHT/Z/X/RETURN/BACKSLASH
+    // in the owner-private v1 session input header.
+    private static int GameBit(Key key) => key switch
+    {
+        Key.Up=>1,Key.Down=>2,Key.Left=>4,Key.Right=>8,
+        Key.Z=>16,Key.X=>32,Key.Enter=>64,Key.Oem5=>128,
+        _=>0
+    };
     public MainWindow()
     {
         InitializeComponent();
         _poll.Tick+=Poll_Tick;
         PreviewKeyDown+=Hotkeys;
+        PreviewKeyUp+=GameKeyUp;
+        Deactivated+=(sender,args)=>ReleaseGameKeys();
     }
     private void Window_Loaded(object sender,RoutedEventArgs e)
     {
@@ -86,6 +98,7 @@ public partial class MainWindow : Window
     {
         if(!ConfirmDiscard()){e.Cancel=true;return;}
         _poll.Stop();
+        ReleaseGameKeys();
         _bridge?.Dispose();_bridge=null;
         _game.Dispose();
     }
@@ -208,6 +221,7 @@ public partial class MainWindow : Window
             if(!string.IsNullOrEmpty(_game.Session))
             {
                 bool wasBatchLauncher=_game.IsBatchLauncher;
+                ReleaseGameKeys();
                 _bridge?.Dispose();_bridge=null;_scene=null;
                 _commands.Clear();_fingerprint="";
                 ViewportHint.Visibility=Visibility.Visible;
@@ -362,6 +376,7 @@ public partial class MainWindow : Window
                 path=ResolveGame();
             }
             if(!File.Exists(path))return;
+            ReleaseGameKeys();
             _game.Start(path);
             _lastNativePid=0;_lastNativeFrame=-1;_lastAck=0;
             _lastSentOperation=0;_frameProgressLogged=false;
@@ -384,6 +399,7 @@ public partial class MainWindow : Window
     }
     private void Stop_Click(object sender,RoutedEventArgs e)
     {
+        ReleaseGameKeys();
         _bridge?.Dispose();_bridge=null;
         _game.Stop();
         _scene=null;_commands.Clear();
@@ -394,24 +410,55 @@ public partial class MainWindow : Window
     }
     private void Pause_Click(object sender,RoutedEventArgs e)
     {
+        ReleaseGameKeys();
         Queue(1);Status("Entering live editing: original game simulation pauses.");
     }
     private void Play_Click(object sender,RoutedEventArgs e)
     {
         Queue(2);
-        bool focused=_game.FocusGame();
-        Status(focused?"Resuming game; keyboard focused in native viewport.":
-            "Resuming game; click Focus Game if keyboard input is not active.");
-        Log(focused?"Native SDL game HWND received keyboard focus.":
-            "Native SDL game HWND focus not confirmed; use Focus Game.");
+        CaptureGameKeys();
     }
     private void FocusGame_Click(object sender,RoutedEventArgs e)
     {
-        bool focused=_game.FocusGame();
-        Status(focused?"Keyboard focus moved to embedded game. Arrows/Z/X/Enter control the game.":
-            "Unable to focus native game. Run / Attach a game first, then retry.");
-        Log(focused?"Game input focus confirmed via Win32 GetFocus.":
-            "Could not confirm native SDL keyboard focus.");
+        if(_captureGameKeys)ReleaseGameKeys();
+        else CaptureGameKeys();
+    }
+    private void CaptureGameKeys()
+    {
+        if(_bridge is null || !_game.IsEmbedded)
+        {
+            Status("Attach a bridge-enabled native game before capturing controls.");
+            return;
+        }
+        _gameKeyBits=0;
+        _captureGameKeys=_bridge.SetInputState(0,true);
+        GameInputButton.Content=_captureGameKeys?"Release Keys":"Capture Keys";
+        if(_captureGameKeys)
+        {
+            Focus();
+            Keyboard.Focus(this);
+            Status("GAME CONTROLS CAPTURED — arrows / Z / X / Enter / Backslash. Esc releases.");
+            Log("NEStudio keyboard input capture enabled (native SDL frame mapping).");
+        }
+        else Status("Unable to enable keyboard capture on native session.");
+    }
+    private void ReleaseGameKeys()
+    {
+        bool hadCapture=_captureGameKeys;
+        _captureGameKeys=false;
+        _gameKeyBits=0;
+        _bridge?.SetInputState(0,false);
+        GameInputButton.Content="Capture Keys";
+        if(hadCapture)Status("Game keys released. Click Capture Keys or Play to control the game.");
+    }
+    private void GameKeyUp(object sender,System.Windows.Input.KeyEventArgs e)
+    {
+        if(!_captureGameKeys)return;
+        int bit=GameBit(e.Key);
+        if(bit==0)return;
+        _gameKeyBits&=~bit;
+        _bridge?.SetInputState(_gameKeyBits,true);
+        e.Handled=true;
     }
     private void Candle_Click(object sender,RoutedEventArgs e)
     {
@@ -674,6 +721,23 @@ public partial class MainWindow : Window
     }
     private void Hotkeys(object sender,System.Windows.Input.KeyEventArgs e)
     {
+        if(_captureGameKeys)
+        {
+            if(e.Key==Key.Escape)
+            {
+                ReleaseGameKeys();
+                e.Handled=true;
+                return;
+            }
+            int bit=GameBit(e.Key);
+            if(bit!=0)
+            {
+                _gameKeyBits|=bit;
+                _bridge?.SetInputState(_gameKeyBits,true);
+                e.Handled=true;
+                return;
+            }
+        }
         if((Keyboard.Modifiers&ModifierKeys.Control)==0)return;
         if(e.Key==Key.S){Save(false);e.Handled=true;}
         else if(e.Key==Key.O){OpenProject_Click(sender,new RoutedEventArgs());e.Handled=true;}
