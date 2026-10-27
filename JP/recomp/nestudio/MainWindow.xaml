@@ -124,11 +124,15 @@
             <TextBlock x:Name="SelectionLabel" Text="Select an object in the scene tree" TextWrapping="Wrap"
                        Foreground="#D0DEEA" FontSize="11" Margin="0,5,0,0"/>
           </StackPanel>
-          <TabControl Margin="6,0,6,8">
-            <TabItem Header="Lighting">
+          <TabControl x:Name="InspectorTabs" Margin="6,0,6,8" SelectionChanged="InspectorTabs_SelectionChanged">
+            <TabItem x:Name="LightingTab" Header="Lighting">
               <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel Margin="10,8,10,12">
                   <TextBlock Text="LIVE LIGHTING" Foreground="#B0DCF2" FontWeight="Bold" Margin="0,0,0,7"/>
+                  <Button Content="Full Lighting Studio — all features" Click="FullLighting_Click" HorizontalAlignment="Stretch"/>
+                  <Button Content="Compact Lighting Inspector" Click="CompactLighting_Click" HorizontalAlignment="Stretch"/>
+                  <TextBlock Text="Full Studio restores the original native editor: kits, global styles, sky, grading, masks, particles, weather and presets."
+                             Foreground="#CDD9E6" TextWrapping="Wrap" Margin="0,5,0,10"/>
                   <StackPanel Orientation="Horizontal">
                     <Button Content="+ Candle" Click="Candle_Click"/>
                     <Button Content="+ Torch" Click="Torch_Click"/>
@@ -172,12 +176,16 @@
                 </StackPanel>
               </ScrollViewer>
             </TabItem>
-            <TabItem Header="Sprites">
+            <TabItem x:Name="SpritesTab" Header="Sprites">
               <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel Margin="10,8">
                   <TextBlock Text="LIVE PPU SPRITES" FontWeight="Bold" Foreground="#B0DCF2"/>
                   <TextBlock Text="Actual OAM slots (read-only; original rotation changes slot identity)" Foreground="#CAD9E7" FontSize="11" TextWrapping="Wrap" Margin="0,5,0,0"/>
-                  <ListBox x:Name="LiveSpritesList" Height="135" Margin="0,8"/>
+                  <TextBlock Text="Click a sprite in the paused viewport. Ctrl/Shift+click to multiselect; Ctrl+G groups OAM snapshots."
+                             Foreground="#E1F1FA" TextWrapping="Wrap" Margin="0,5,0,4"/>
+                  <ListBox x:Name="LiveSpritesList" Height="135" Margin="0,8"
+                           SelectionMode="Extended" SelectionChanged="LiveSprites_SelectionChanged"/>
+                  <Button Content="Group Selected Sprites (Ctrl+G)" Click="GroupSelectedSprites_Click"/>
                   <Separator Margin="0,12"/>
                   <TextBlock Text="SPRITE LAYER GROUPS" FontWeight="Bold" Foreground="#B0DCF2"/>
                   <ListBox x:Name="SpriteList" Height="155" Margin="0,8" SelectionChanged="SpriteList_SelectionChanged"/>
@@ -194,14 +202,16 @@
                     <Button Content="+ Group" Click="AddSpriteGroup_Click"/>
                     <Button Content="Remove" Click="RemoveSpriteGroup_Click"/>
                   </StackPanel>
-                  <TextBlock Text="Groups are now project assets. Runtime sprite replacement and OAM source mapping require the next integration pass." Foreground="#CAD9E7" FontSize="11" TextWrapping="Wrap" Margin="0,14,0,0"/>
+                  <TextBlock Text="Groups capture room, frame and OAM slot/tile snapshots; original OAM slot rotation prevents stable character identity without future source mapping." Foreground="#CAD9E7" FontSize="11" TextWrapping="Wrap" Margin="0,14,0,0"/>
                 </StackPanel>
               </ScrollViewer>
             </TabItem>
-            <TabItem Header="Dialogue">
+            <TabItem x:Name="DialogueTab" Header="Dialogue">
               <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel Margin="10,8">
                   <TextBlock Text="DIALOGUE &amp; TRANSLATIONS" FontWeight="Bold" Foreground="#B0DCF2"/>
+                  <TextBlock Text="Dialogue view is separate from sprite picking. Original text-click selection requires authenticated dialogue IDs and screen bounds not yet exposed by the native recomp."
+                             Foreground="#CDD9E6" TextWrapping="Wrap" Margin="0,4,0,10"/>
                   <ListBox x:Name="DialogueList" Height="120" Margin="0,8" SelectionChanged="DialogueList_SelectionChanged"/>
                   <StackPanel Orientation="Horizontal">
                     <Button Content="+ Dialogue" Click="AddDialogue_Click"/>
