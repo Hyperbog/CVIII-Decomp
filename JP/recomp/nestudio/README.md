@@ -134,6 +134,52 @@ labels, with custom dark ComboBox dropdowns, visible focus borders and
 contrast-preserving selected items. The formerly dark-on-dark ComboBox
 foreground is no longer inherited from the Windows system template.
 
+## Original game-object identity and source-trigger milestone
+
+The v2 bridge appends **28 actual original Japanese PRG26 object slots**
+read from original game CPU RAM, with the seven verified renderer table
+families (frame, Y, X, attributes, flags, sprite selector, mirror) plus
+the original per-actor AI script byte at `$05EF+slot`. Source evidence
+is in `JP/decomp/PreservationArchive/03_PPU_OAM_SPRITE_PIPELINE.md`,
+`04_OBJECT_SCHEDULER_COLLISION_SCRATCH.md` and
+`05_AI_SCRIPT_AND_ACTION_VM.md`. The native editor never writes this
+guest state. Each active object obtains a host-only generation when
+it first becomes active or its room changes; an inactive-to-active
+transition also increments the generation. A slot reused without an
+observed inactive frame cannot be distinguished and is explicitly
+left uncertain.
+
+In **Sprites**, the new **Original Game Objects** list shows raw
+object slot, generation, position, selector and original AI-script ID.
+Select multiple source objects (Ctrl-click) and choose **Group Original
+Objects**, or press **Ctrl+G** while the object list has selection.
+Room+slot+generation references are stored separately from the
+older OAM snapshot groups. OAM pieces also display the original
+phase-normalized emission index when `$22` is 4-byte aligned; that
+emission order compensates for the proven `+$44` phase rotation but
+**is not itself a proven object-to-piece owner lookup**. A verified
+per-emission source-renderer owner hook remains necessary to highlight
+every sprite piece belonging to a selected original object.
+
+**Dialogue trigger status:** No bank/PC-qualified original
+text-print routine has yet been established. The v2 bridge reserves
+an authenticated original dialogue-event record, initialized with
+sequence zero; editor-authored screen markers never populate it.
+The editor can now bind an authored dialogue to a **real observed
+original actor AI-script byte transition** from `$05EF+slot`,
+including original object generation and room. Select an original
+game object in Sprites, select an authored dialogue in Dialogue,
+and click **Bind selected original actor script**. The editor logs
+and selects that entry if the observed AI-script byte later changes
+into the bound value during the same object lifetime. **This is a
+source-backed AI-script transition, not proof that the game printed
+dialogue or that a script opcode is a text-rendering event.**
+Automatic capture of original dialogue commands and replacement of
+original guest text remain pending actual original-source proof.
+
+These identifiers and trigger observations are ROM-free project data,
+not semantic decompilation completeness claims.
+
 ## Restored full lighting and viewport tools
 
 **Full Lighting Studio:** In the Lighting inspector, select **Full
