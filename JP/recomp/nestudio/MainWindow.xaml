@@ -220,9 +220,11 @@
               <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel Margin="10,8">
                   <TextBlock Text="DIALOGUE &amp; TRANSLATIONS" FontWeight="Bold" Foreground="#B0DCF2"/>
-                  <TextBlock Text="Original script-byte transitions are observable from the genuine CPU object table. They are not certified dialogue-print opcodes. Bank/PC-authenticated original text triggers are still unhooked."
+                  <TextBlock Text="Original raw0A:$B8F4 room-message bytes are source-observed before $EC47. They can trigger authored entries, but $EC47 text-rendering semantics are not yet verified. Actor AI-script triggers remain separate."
                              Foreground="#CDD9E6" TextWrapping="Wrap" Margin="0,3,0,8"/>
                   <Button Content="Bind selected original actor script" Click="BindActorScript_Click"/>
+                  <Button Content="Bind last original room-message byte" Click="BindRoomMessage_Click"
+                          ToolTip="Source event at JP raw0A:B8F4; original JSR $EC47 follows nonterminal bytes."/>
                   <TextBlock x:Name="OriginalScriptStatus" Text="Original dialogue-printer hook: unavailable"
                              Foreground="#B6CFE4" TextWrapping="Wrap" Margin="0,3,0,8"/>
                   <TextBlock x:Name="PpuSourceStatus" Text="Original PPU nametable-write source recorder: waiting for game"
