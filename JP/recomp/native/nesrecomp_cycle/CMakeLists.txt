@@ -734,6 +734,8 @@ if(BUILD_TESTING)
   add_test(NAME JP0821_OriginalContactEffects COMMAND jp_contact_effects_test_0821)
   add_test(NAME JP0824_AuthenticPageActor COMMAND jp_extended_actor_test_0824)
   add_test(NAME JP0826_OriginalSourceInstance COMMAND jp_wide_instance_test_0826)
+  add_test(NAME JP0827_Original6502VM COMMAND jp_actor_vm_test_0827)
+  add_test(NAME JP0827_PrivateWorldProbe COMMAND jp_actor_vm_world_test_0827)
 endif()
 
 add_executable(jp_world_sprites_test_0807
@@ -757,4 +759,16 @@ set_property(TARGET jp_extended_actor_test_0824 PROPERTY C_STANDARD 11)
 add_executable(jp_wide_instance_test_0826
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_wide_instance_test_0826.c")
 set_property(TARGET jp_wide_instance_test_0826 PROPERTY C_STANDARD 11)
+# JP0827: original 6502/2A03 restricted private RAM VM, bank0B only.
+# CI runs ROM-free source/stack guards. Owner may optionally supply
+# private original ROM as argv[1] for 131072 source differential cases.
+add_executable(jp_actor_vm_test_0827
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_actor_vm_test_0827.c")
+set_property(TARGET jp_actor_vm_test_0827 PROPERTY C_STANDARD 11)
+add_executable(jp_actor_vm_world_test_0827
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_stage1_rom_0724.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_stage1_atlas_0724.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_level1_world_0803.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_actor_vm_world_test_0827.c")
+set_property(TARGET jp_actor_vm_world_test_0827 PROPERTY C_STANDARD 11)
 
