@@ -17,6 +17,7 @@
 #include "cviii_wide_source_admission_0825.h"
 #include "cviii_wide_instance_0826.h"
 #include "cviii_actor_vm_0827.h"
+#include "cviii_virtual_collision_0828.h"
 #include <stdint.h>
 #include <stddef.h>
 enum { CVIII_WORLD_ROOMS_0803=8, CVIII_WORLD_ACTORS_0803=28,
@@ -148,6 +149,11 @@ typedef struct {
      * is separately witnessed. Never use READY sources as hitboxes. */
     CviiiWideSources0825 wide_sources_0825;
     CviiiWideRuntime0826 wide_runtime_0826;
+    /* JP0828: two original type3D per-source PRIVATE CPU-state
+     * instances; an allocated original guest may detach and the
+     * virtual $8001 movement continues without any guest write.
+     * Authoritative combat remains deliberately disabled. */
+    CviiiVirtualActors0828 virtual_3d_0828;
     /* JP0827: bounded physical-ROM opcode execution for the genuine
      * actor slots. Counterfactual replay on isolated private RAM,
      * NEVER original CPU gameplay authority. */
