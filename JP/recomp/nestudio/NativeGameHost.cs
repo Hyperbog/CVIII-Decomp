@@ -72,8 +72,8 @@ public sealed class NativeGameHost : IDisposable
                  WS_MAXIMIZEBOX|WS_SYSMENU|WS_POPUP);
         style|=WS_CHILD|WS_VISIBLE;
         SetWindowLongPtr(found,-16,new IntPtr(style));
-        if(SetParent(found,_panel.Handle)==IntPtr.Zero &&
-           Marshal.GetLastWin32Error()!=0)
+        SetParent(found,_panel.Handle);
+        if(GetParent(found)!=_panel.Handle)
             throw new InvalidOperationException(
                 $"Could not embed SDL2 window: Win32 {Marshal.GetLastWin32Error()}");
         _window=found;
@@ -134,6 +134,7 @@ public sealed class NativeGameHost : IDisposable
         IntPtr hwnd,System.Text.StringBuilder name,int max);
     [DllImport("user32.dll",SetLastError=true)] private static extern IntPtr SetParent(
         IntPtr child,IntPtr parent);
+    [DllImport("user32.dll")] private static extern IntPtr GetParent(IntPtr hwnd);
     [DllImport("user32.dll",EntryPoint="GetWindowLongPtrW",SetLastError=true)]
     private static extern IntPtr GetWindowLongPtr(IntPtr hwnd,int index);
     [DllImport("user32.dll",EntryPoint="SetWindowLongPtrW",SetLastError=true)]
