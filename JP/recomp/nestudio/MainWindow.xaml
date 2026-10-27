@@ -229,6 +229,12 @@
                           ToolTip="Source event at JP raw0A:B8F4; original JSR $EC47 follows nonterminal bytes."/>
                   <TextBlock x:Name="OriginalScriptStatus" Text="Original dialogue-printer hook: unavailable"
                              Foreground="#B6CFE4" TextWrapping="Wrap" Margin="0,3,0,8"/>
+                  <TextBlock x:Name="GlyphDecodeStatus" Text="Original $0300 tile decoder: waiting for verified command data"
+                             Foreground="#BFE8D7" TextWrapping="Wrap" Margin="0,4,0,6"/>
+                  <Button Content="Validate Replacement Draft (offline only)" Click="ValidateReplacement_Click"
+                          ToolTip="Preserve original VRAM rows and byte counts; no changes to ROM, guest memory, PPU or live text."/>
+                  <TextBlock x:Name="ReplacementSafetyStatus" Text="Live text replacement is disabled. Only validated source hashes and draft previews are saved."
+                             Foreground="#F6D18B" TextWrapping="Wrap" Margin="0,4,0,8"/>
                   <TextBlock x:Name="FormatterStatus" Text="Original $EC47 formatter: no authenticated call yet"
                              Foreground="#D7E9F3" TextWrapping="Wrap" Margin="0,4,0,6"/>
                   <TextBlock x:Name="PpuSourceStatus" Text="Original PPU nametable-write source recorder: waiting for game"
