@@ -71,6 +71,71 @@ int cviii_light_mask_window_rect(int ax,int ay,int bx,int by){
     int h=(wy0>wy1?wy0-wy1:wy1-wy0)+1;
     return cviii_lighting_editor_mask_add(x,y,w,h)>=0;
 }
+/* NEStudio owns the property inspector, but the native SDL viewport
+ * owns pointer positions, hit testing and drag updates. ReShade uses its
+ * separate editor and must never receive these interactions. */
+#if defined(_WIN32)
+static bool nest_studio_dragging;
+static bool nest_studio_pointer_event(const SDL_Event *ev)
+{
+    if(!cviii_lighting_editor_external_active() ||
+       !cviii_lighting_editor_active())return false;
+    if(ev->type==SDL_MOUSEBUTTONUP && ev->button.button==SDL_BUTTON_LEFT){
+        if(nest_studio_dragging){
+            (void)cviii_lighting_editor_input(4,-1,-1);
+            nest_studio_dragging=false;
+            SDL_CaptureMouse(SDL_FALSE);
+            save_settings();
+        }
+        return true;
+    }
+    if(ev->type!=SDL_MOUSEBUTTONDOWN && ev->type!=SDL_MOUSEMOTION)
+        return false;
+    int mx=0,my=0,nx=-1,ny=-1;
+    if(ev->type==SDL_MOUSEMOTION){
+        if(!nest_studio_dragging)return true;
+        if(!(ev->motion.state&SDL_BUTTON_LMASK)){
+            (void)cviii_lighting_editor_input(4,-1,-1);
+            nest_studio_dragging=false;
+            SDL_CaptureMouse(SDL_FALSE);
+            save_settings();
+            return true;
+        }
+        cviii_imgui_window_point(s_ren,ev->motion.x,ev->motion.y,&mx,&my);
+    }else{
+        if(ev->button.button!=SDL_BUTTON_LEFT)return true;
+        cviii_imgui_window_point(s_ren,ev->button.x,ev->button.y,&mx,&my);
+    }
+    zapper_window_point(mx,my,&nx,&ny,NULL,NULL);
+    if(nx<0 || nx>=256 || ny<CVIII_LIGHT_HUD || ny>=240)return true;
+    if(ev->type==SDL_MOUSEMOTION){
+        (void)cviii_lighting_editor_input(3,nx,ny);
+        return true;
+    }
+    /* Clicking empty space must not silently create a second light.
+     * An existing on-screen handle within 12 NES pixels starts dragging. */
+    const CviiiLighting *model=cviii_lighting_editor_model();
+    int nearest=-1,best=12*12+1;
+    unsigned room=cviii_lighting_editor_room();
+    for(int i=0;i<CVIII_LIGHT_MAX;++i){
+        if(!model->light[i].used || model->light[i].room!=room)continue;
+        int px=0,py=0;
+        if(!cviii_lighting_editor_point(i,&px,&py))continue;
+        int dx=nx-px,dy=ny-py,d2=dx*dx+dy*dy;
+        if(d2<best){best=d2;nearest=i;}
+    }
+    if(nearest>=0){
+        /* Event 2 snapshots one undo step, selects and arms the existing
+         * native light dragger; event 3 updates world coordinates using
+         * actual per-scanline PPU scroll, event 4 commits on mouse release. */
+        if(cviii_lighting_editor_input(2,nx,ny)){
+            nest_studio_dragging=true;
+            SDL_CaptureMouse(SDL_TRUE);
+        }
+    }
+    return true;
+}
+#endif
 static bool cviii_light_rebinding;
 static SDL_Scancode cviii_light_bind_pending=SDL_SCANCODE_UNKNOWN;
 static SDL_Scancode cviii_light_key(void)
@@ -169,7 +234,12 @@ static bool cviii_light_sdl_event(const SDL_Event *ev, bool other_open)
      * its clicks also drag a gameplay emitter in the native editor. */
     if(cviii_lighting_editor_external_active() &&
        (ev->type==SDL_MOUSEBUTTONDOWN || ev->type==SDL_MOUSEBUTTONUP ||
-        ev->type==SDL_MOUSEMOTION || ev->type==SDL_MOUSEWHEEL))return true;
+        ev->type==SDL_MOUSEMOTION || ev->type==SDL_MOUSEWHEEL)){
+#if defined(_WIN32)
+        (void)nest_studio_pointer_event(ev);
+#endif
+        return true;
+    }
     if(cviii_imgui_event(ev,s_win,s_ren))return true;
     if(ev->type==SDL_KEYDOWN){
         const SDL_Scancode sc=ev->key.keysym.scancode;
@@ -302,6 +372,9 @@ def smoke() -> None:
     assert "cviii_imgui_window_point(s_ren,ev->button.x,ev->button.y,&mx,&my)" in product
     assert "cviii_imgui_scene_click(code,x,y)" in product
     assert "cviii_imgui_shutdown();" in product
+    assert "nest_studio_pointer_event(ev)" in product
+    assert "cviii_lighting_editor_input(3,nx,ny)" in product
+    assert "SDL_CaptureMouse(SDL_TRUE)" in product
     assert "nest_tick();" in product and "nest_close();" in product
     assert "cviii_light_place_window(int window_x,int window_y)" in product
     assert "cviii_light_place_kit_window(int kind,int id,int window_x,int window_y)" in product
