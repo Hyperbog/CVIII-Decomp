@@ -47,6 +47,7 @@ public partial class MainWindow : Window
     private readonly HashSet<int> _selectedSpriteSlots=new();
     private bool _placingDialogueRegion;
     private int _lastDialogueClickSequence;
+    private int _lastSpriteGroupSequence;
     // Matches SDL SCANCODE_UP/DOWN/LEFT/RIGHT/Z/X/RETURN/BACKSLASH
     // in the owner-private v1 session input header.
     private static int GameBit(Key key) => key switch
@@ -194,6 +195,15 @@ public partial class MainWindow : Window
                             Log($"Live scene snapshot received (room 0x{snapshot.Room:X8}, {snapshot.Lights.Count} lights, {snapshot.Sprites.Count} OAM slots).");
                         }
                         UpdateScene(snapshot);
+                        if(SpritesTab.IsSelected)
+                        {
+                            int groupRequest=_bridge.SpriteGroupRequestSequence;
+                            if(groupRequest!=0 && groupRequest!=_lastSpriteGroupSequence)
+                            {
+                                _lastSpriteGroupSequence=groupRequest;
+                                GroupSelectedSprites_Click(this,new RoutedEventArgs());
+                            }
+                        }
                         if(DialogueTab.IsSelected)
                         {
                             if(_bridge.TryReadDialogueClick(out int clickSeq,
@@ -652,6 +662,7 @@ public partial class MainWindow : Window
         }
         else if(SpritesTab.IsSelected)
         {
+            _lastSpriteGroupSequence=0;
             Queue(18,1);Queue(17); // freeze the visible OAM snapshot for selection
             Status("Sprite picker active — click a sprite; Ctrl/Shift+click multiselect; Ctrl+G groups.");
         }
