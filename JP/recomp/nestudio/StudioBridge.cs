@@ -32,6 +32,9 @@ public sealed class StudioBridge : IDisposable
     private int _pendingSequence;
     private int _completedSequence;
     public int LastResult { get; private set; }
+    // v1 reserved header slot, written before the session magic.
+    // Used to locate SDL HWND when cmd.exe launches the native game.
+    public int GameProcessId => _view.ReadInt32(72);
     private StudioBridge(MemoryMappedFile map)
     {
         _file=map;
