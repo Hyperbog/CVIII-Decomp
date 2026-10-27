@@ -25,6 +25,9 @@ public partial class MainWindow : Window
     private string _fingerprint="";
     private string _spriteFingerprint="";
     private string _originalObjectFingerprint="";
+    private uint _scriptObservationRoom=uint.MaxValue;
+    private readonly Dictionary<int,(int Generation,int Script)> _lastObjectScripts=new();
+    private int _lastAuthenticatedDialogueEvent;
     private StudioSpriteGroup? _sprite;
     private StudioDialogue? _dialogue;
     private string _language="en";
@@ -268,6 +271,17 @@ public partial class MainWindow : Window
     private void UpdateScene(StudioScene scene)
     {
         _scene=scene;
+        ObserveOriginalScriptTransitions(scene);
+        // No authenticated original text-printer source callback is present
+        // in this native recomp. Do not conflate project screen markers,
+        // observed AI script bytes, and original dialogue events.
+        if(scene.OriginalDialogue is { Sequence: >0 } authentic &&
+           authentic.Sequence!=_lastAuthenticatedDialogueEvent)
+        {
+            _lastAuthenticatedDialogueEvent=authentic.Sequence;
+            Log($"Original source event received (bank {authentic.Bank:X2}, PC {authentic.ProgramCounter:X4}, script {authentic.ScriptId:X2}).");
+            OriginalScriptStatus.Text="Original source event received; inspect bank/PC provenance.";
+        }
         // Original CPU object slot/generation comes from RAM $0400..$05EF,
         // never from the physical OAM index. Preserve selected lifetimes.
         var originalFingerprint=string.Join("|",scene.OriginalObjects.Select(o=>
@@ -707,6 +721,56 @@ public partial class MainWindow : Window
     {
         Queue(17);
         Status("Compact lighting inspector enabled.");
+    }
+    private void ObserveOriginalScriptTransitions(StudioScene scene)
+    {
+        if(_scriptObservationRoom!=scene.Room)
+        {
+            _scriptObservationRoom=scene.Room;
+            _lastObjectScripts.Clear();
+        }
+        var visibleSlots=scene.OriginalObjects.Select(o=>o.Slot).ToHashSet();
+        foreach(int slot in _lastObjectScripts.Keys.Except(visibleSlots).ToList())
+            _lastObjectScripts.Remove(slot);
+        foreach(StudioOriginalObject obj in scene.OriginalObjects)
+        {
+            if(_lastObjectScripts.TryGetValue(obj.Slot,out var prior) &&
+               prior.Generation==obj.Generation && prior.Script!=obj.Script)
+            {
+                foreach(StudioDialogue entry in _project.Dialogues.Where(entry=>
+                    entry.Trigger=="observed-actor-script" &&
+                    entry.Room==obj.Room &&
+                    entry.SourceObjectSlot==obj.Slot &&
+                    entry.SourceGeneration==obj.Generation &&
+                    entry.SourceScriptId==obj.Script))
+                {
+                    Log($"Observed source actor script byte transition: original slot {obj.Slot}, lifetime {obj.Generation}, script ${obj.Script:X2}, linked authored entry {entry.Id}.");
+                    OriginalScriptStatus.Text="Observed actor-script trigger: "+entry.Id+
+                        " (not an original dialogue-printer event)";
+                    if(DialogueTab.IsSelected)DialogueList.SelectedItem=entry;
+                }
+            }
+            _lastObjectScripts[obj.Slot]=(obj.Generation,obj.Script);
+        }
+    }
+    private void BindActorScript_Click(object sender,RoutedEventArgs e)
+    {
+        if(_dialogue is null || _scene is null)return;
+        StudioOriginalObject? obj=OriginalObjectsList.SelectedItems
+            .OfType<StudioOriginalObject>().FirstOrDefault(o=>o.Room==_scene.Room);
+        if(obj is null)
+        {
+            Status("First select an original object in the Sprites tab, then return to Dialogue.");
+            return;
+        }
+        _dialogue.Trigger="observed-actor-script";
+        _dialogue.Room=obj.Room;
+        _dialogue.SourceObjectSlot=obj.Slot;
+        _dialogue.SourceGeneration=obj.Generation;
+        _dialogue.SourceScriptId=obj.Script;
+        Dirty();
+        OriginalScriptStatus.Text=$"Bound original object {obj.Slot} / life {obj.Generation} / AI script ${obj.Script:X2}";
+        Status("Bound authored dialogue to a real observed original actor-script transition, not an original text-print trigger.");
     }
     private void OriginalObjects_SelectionChanged(object sender,SelectionChangedEventArgs e)
     {
