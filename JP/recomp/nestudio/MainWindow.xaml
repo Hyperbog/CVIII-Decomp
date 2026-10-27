@@ -182,6 +182,8 @@
                   <TextBlock Text="ORIGINAL GAME OBJECTS (28-slot CPU table)" FontWeight="Bold" Foreground="#B0DCF2"/>
                   <TextBlock Text="True game object index and active-lifetime generation, not a rotating PPU sprite slot. Ctrl-click to select multiple."
                              Foreground="#CAD9E7" FontSize="11" TextWrapping="Wrap" Margin="0,5,0,0"/>
+                  <TextBlock x:Name="SpriteSourceStatus" Text="Original source OAM ownership: waiting for native frames"
+                             Foreground="#F6D18B" TextWrapping="Wrap" Margin="0,5,0,2"/>
                   <ListBox x:Name="OriginalObjectsList" Height="142" Margin="0,8"
                            SelectionMode="Extended" DisplayMemberPath="Label"
                            SelectionChanged="OriginalObjects_SelectionChanged"/>
@@ -210,7 +212,7 @@
                     <Button Content="+ Group" Click="AddSpriteGroup_Click"/>
                     <Button Content="Remove" Click="RemoveSpriteGroup_Click"/>
                   </StackPanel>
-                  <TextBlock Text="Groups can now store source-observed object lifetimes (room + original slot + generation). OAM click selections remain sprite-emission snapshots; assigning individual sprite pieces to actors requires the source renderer provenance hook." Foreground="#CAD9E7" FontSize="11" TextWrapping="Wrap" Margin="0,14,0,0"/>
+                  <TextBlock Text="Exact source-observed sprite owners highlight in gold; manually chosen sprite slots highlight in cyan. Any frame with missing or inconsistent PRG26 source evidence stays unattributed." Foreground="#CAD9E7" FontSize="11" TextWrapping="Wrap" Margin="0,14,0,0"/>
                 </StackPanel>
               </ScrollViewer>
             </TabItem>
@@ -223,7 +225,8 @@
                   <Button Content="Bind selected original actor script" Click="BindActorScript_Click"/>
                   <TextBlock x:Name="OriginalScriptStatus" Text="Original dialogue-printer hook: unavailable"
                              Foreground="#B6CFE4" TextWrapping="Wrap" Margin="0,3,0,8"/>
-                             Foreground="#CDD9E6" TextWrapping="Wrap" Margin="0,4,0,10"/>
+                  <TextBlock x:Name="PpuSourceStatus" Text="Original PPU nametable-write source recorder: waiting for game"
+                             Foreground="#F6D18B" TextWrapping="Wrap" Margin="0,4,0,10"/>
                   <StackPanel Orientation="Horizontal" Margin="0,5,0,4">
                     <Button Content="Bind region: click viewport" Click="BindDialogueRegion_Click"/>
                     <Button Content="Clear region" Click="ClearDialogueRegion_Click"/>
