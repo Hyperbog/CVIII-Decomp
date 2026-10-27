@@ -98,7 +98,10 @@ static void original(const char *path){
     test(vm.x==actor && vm.ram[0x669u+actor]==pred.new_0669 &&
          vm.ram[0x67bu+actor]==pred.new_067b,
          "original 6502 RAM postconditions match B486 C11 model");
-    const unsigned stop=pred.stop_pc==0xb525u ? 0xb53cu:pred.stop_pc;
+    /* Earlier JP0821 intentionally stopped before LDA #$24 at B4BC;
+     * the source-executing VM can advance to actual JSR $E249 B4BE. */
+    const unsigned stop=pred.stop_pc==0xb525u ? 0xb53cu:
+                        pred.stop_pc==0xb4bcu ? 0xb4beu:pred.stop_pc;
     test(vm.stop_pc==stop,"exact original ROM B486/B525 stop PC");
     if(stop==0xb53cu){
         CviiiB525Prefix0826 first={0};
@@ -107,7 +110,7 @@ static void original(const char *path){
              vm.external_target==0xe249u &&
              vm.a==first.sound_id,
              "original B525 selects exact sound on private 2A03 CPU");
-    }else if(stop==0xb4bcu){
+    }else if(stop==0xb4beu){
         test(vm.stop_kind==CVIII_VM_STOP_EXTERNAL_0827 &&
              vm.external_target==0xe249u &&
              vm.a==0x24u,
