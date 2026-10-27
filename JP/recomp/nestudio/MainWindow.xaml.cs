@@ -511,7 +511,7 @@ public partial class MainWindow : Window
         });
         Dirty();RefreshProject();
     }
-    private void Hotkeys(object sender,KeyEventArgs e)
+    private void Hotkeys(object sender,System.Windows.Input.KeyEventArgs e)
     {
         if((Keyboard.Modifiers&ModifierKeys.Control)==0)return;
         if(e.Key==Key.S){Save(false);e.Handled=true;}
