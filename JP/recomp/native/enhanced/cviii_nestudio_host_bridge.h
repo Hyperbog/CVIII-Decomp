@@ -118,6 +118,24 @@ static void nest_tick(void){
                      save=done;break;
             case 14: done=1;save=1;break;
             case 15: done=cviii_lighting_editor_checkpoint();break;
+            /* Bring back the original full ImGui Lighting Studio. The
+             * game's native SDL renderer retains every existing feature. */
+            case 16:
+                (void)cviii_lighting_editor_external_session(0);
+                done=cviii_lighting_editor_input(1,-1,-1);
+                break;
+            /* Resume NEStudio's compact external inspector. */
+            case 17: done=cviii_lighting_editor_external_session(1);break;
+            /* Workbench input mode: 0 lighting, 1 snapshot OAM sprites,
+             * 2 authored dialogue anchors. Close any native light modal. */
+            case 18:
+                if(a<0 || a>2){done=0;break;}
+                nest_shared->reserved[3]=a;
+                nest_shared->reserved[4]=0;
+                nest_shared->reserved[5]=0;
+                if(a!=0)(void)cviii_lighting_editor_external_session(0);
+                done=1;
+                break;
             default: done=0;break;
         }
         if(save)save_settings();
