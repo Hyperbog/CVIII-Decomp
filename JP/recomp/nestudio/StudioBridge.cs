@@ -56,6 +56,11 @@ public sealed class StudioBridge : IDisposable
             return selected;
         }
     }
+    // v1 reserved[8] doubles as a group shortcut sequence in OAM mode;
+    // it is the dialogue-click Y coordinate only in Dialogue mode.
+    public int SpriteGroupRequestSequence =>
+        _view.ReadInt32(0)==Magic && _view.ReadInt32(84)==1 ?
+            _view.ReadInt32(104):0;
     public bool TryReadDialogueClick(out int sequence,out int x,out int y)
     {
         sequence=0;x=0;y=0;
