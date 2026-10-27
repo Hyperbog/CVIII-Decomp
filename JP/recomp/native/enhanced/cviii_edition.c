@@ -248,8 +248,25 @@ static void cviii_nest_ppu_observer(unsigned reg,uint16_t address,
     cviii_nest_ppu.address=address;
     cviii_nest_ppu.tile=tile;
     ++cviii_nest_ppu.writes;
-    cviii_ec47_ppu_write(&cviii_nest_ec47,
-        (unsigned)cviii.lighting_frame,address,r.pc);
+    /* Distinguish original EC85+ $0300 command-buffer flushes from
+     * unrelated game nametable updates: prove STA $2007 at the
+     * current instruction or immediately prior (PC convention may
+     * be post-increment). A matching opcode still does NOT prove
+     * the individual tile was caused by this particular message. */
+    int original_writer=0;
+    for(unsigned k=0;k<2u;++k){
+        unsigned pc=k?(unsigned)((uint16_t)(r.pc-3u)):r.pc;
+        if(pc<0xEC85u || pc>0xED80u)continue;
+        uint8_t b0=0,b1=0,b2=0;
+        if(cyc_debug_peek((uint16_t)pc,&b0) &&
+           cyc_debug_peek((uint16_t)(pc+1u),&b1) &&
+           cyc_debug_peek((uint16_t)(pc+2u),&b2) &&
+           b0==0x8Du && b1==0x07u && b2==0x20u)
+            original_writer=1;
+    }
+    if(original_writer)
+        cviii_ec47_ppu_write(&cviii_nest_ec47,
+            (unsigned)cviii.lighting_frame,address,r.pc);
 }
 
 /* JP0620: optional built-in paused runtime menu rows for recomp-ui builds.
