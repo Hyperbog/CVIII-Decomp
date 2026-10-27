@@ -424,6 +424,12 @@ jobs:
           $build = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win'
           ctest --test-dir $build -C Release -R '^JP0821_' --output-on-failure
           if ($LASTEXITCODE -ne 0) { throw 'JP0821 original contact effect test failed' }
+      - name: Verify JP0824 authentic original CPU offscreen actor projection
+        shell: pwsh
+        run: |
+          $build = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win'
+          ctest --test-dir $build -C Release -R '^JP0824_' --output-on-failure
+          if ($LASTEXITCODE -ne 0) { throw 'JP0824 original guest-page actor regression failed' }
       - name: Verify original PRG26 active actors in widescreen columns (ROM-free)
         shell: pwsh
         run: |
