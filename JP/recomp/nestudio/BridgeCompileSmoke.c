@@ -11,5 +11,11 @@ int main(void)
     return sizeof(NestStudioLight)==80 &&
            sizeof(NestStudioSprite)==24 &&
            offsetof(NestStudioMapping,lights)==128 &&
-           offsetof(NestStudioMapping,sprites)==10368?0:1;
+           offsetof(NestStudioMapping,sprites)==10368 &&
+           sizeof(NestStudioOriginalObject)==44 &&
+           offsetof(NestStudioMapping,oam_phase)==11904 &&
+           offsetof(NestStudioMapping,original_objects)==11912 &&
+           offsetof(NestStudioMapping,original_dialogue)==13144 &&
+           sizeof(NestStudioMapping)==13176 &&
+           NEST_VERSION==2 ?0:1;
 }
