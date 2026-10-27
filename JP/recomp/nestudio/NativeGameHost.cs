@@ -55,6 +55,8 @@ public sealed class NativeGameHost : IDisposable
     public void Start(string path)
     {
         if(IsRunning)return;
+        // Reclaim an exited previous launch before starting another session.
+        if(_process is not null)Stop();
         if(!File.Exists(path))
             throw new FileNotFoundException("Game launcher does not exist.",path);
         string full=Path.GetFullPath(path);
@@ -140,7 +142,12 @@ public sealed class NativeGameHost : IDisposable
     }
     public void Stop()
     {
-        if(_process is null)return;
+        if(_process is null)
+        {
+            _nativeGamePid=0;_batchLauncher=false;
+            _window=IntPtr.Zero;Session="";
+            return;
+        }
         try
         {
             if(_nativeGamePid>0 && _nativeGamePid!=_process.Id)
