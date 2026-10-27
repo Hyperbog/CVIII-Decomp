@@ -26,6 +26,11 @@ if ($GameFolder) {
     if (-not (Test-Path $game) -or -not (Test-Path $sdl)) {
         throw 'GameFolder must contain the privately built game EXE and SDL2.dll.'
     }
+    $nativeLauncher=Join-Path $folder 'Launch-NEStudio-Game.bat'
+    if (-not (Test-Path -LiteralPath $nativeLauncher -PathType Leaf)) {
+        throw 'GameFolder needs Launch-NEStudio-Game.bat from the bridge-compatible private preview build. Run Preview-NEStudio.bat first.'
+    }
+    $game=$nativeLauncher
     $starter=Join-Path $target 'EnhancedProject.nestudio'
     $payload=[ordered]@{
        SchemaVersion=1
@@ -41,7 +46,7 @@ if ($GameFolder) {
        Assets=@()
     }
     $payload | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $starter -Encoding utf8
-    Write-Host ('Linked owner-private Enhanced game: '+$game)
+    Write-Host ('Linked bridge-compatible owner-private Enhanced launcher: '+$game)
 }
 Write-Host ('NEStudio ready: '+$exe)
 if ($Launch) {
