@@ -29,6 +29,7 @@
           <Button Content="Run / Attach" Click="Run_Click" Background="#235D56"/>
           <Button Content="Edit / Pause" Click="Pause_Click"/>
           <Button Content="Play" Click="Play_Click"/>
+          <Button Content="Focus Game" Click="FocusGame_Click" ToolTip="Give keyboard input to the embedded SDL game window"/>
           <Button Content="Stop" Click="Stop_Click" Background="#623B48"/>
         </StackPanel>
       </DockPanel>
