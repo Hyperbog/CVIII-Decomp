@@ -387,7 +387,20 @@ public partial class MainWindow : Window
     }
     private void Play_Click(object sender,RoutedEventArgs e)
     {
-        Queue(2);_game.FocusGame();Status("Resuming native game.");
+        Queue(2);
+        bool focused=_game.FocusGame();
+        Status(focused?"Resuming game; keyboard focused in native viewport.":
+            "Resuming game; click Focus Game if keyboard input is not active.");
+        Log(focused?"Native SDL game HWND received keyboard focus.":
+            "Native SDL game HWND focus not confirmed; use Focus Game.");
+    }
+    private void FocusGame_Click(object sender,RoutedEventArgs e)
+    {
+        bool focused=_game.FocusGame();
+        Status(focused?"Keyboard focus moved to embedded game. Arrows/Z/X/Enter control the game.":
+            "Unable to focus native game. Run / Attach a game first, then retry.");
+        Log(focused?"Game input focus confirmed via Win32 GetFocus.":
+            "Could not confirm native SDL keyboard focus.");
     }
     private void Candle_Click(object sender,RoutedEventArgs e)
     {
