@@ -60,12 +60,24 @@ persistent 2KiB private CPU RAM image per source**.
 For authenticated sources phases 3 and 4, when the
 corresponding actual CPU actor is alive, its existing
 guest poststate is copied into the private image.
-If the original slot goes away, the virtual instance
-changes from LINKED to DETACHED and resumes the
-actual original $8001 movement from its saved private
-RAM on every new PPU/source-verified room frame.
-It computes X delta from the original 9-bit page and
-8-bit integer position with 512px rollover; Y applies
+If the original slot goes away, its old private state
+is retained and can change from LINKED to DETACHED
+**only when the last original CPU flags contain
+both adjacent-page bit $01 and OAM-cull bit $80,
+and its world X lies outside the original 256px
+gameplay strip**. Otherwise the instance fails
+closed as FAULTED: a type-zero original slot may
+represent a defeated enemy or normal room cleanup,
+and must NEVER become an artificial offscreen survivor.
+For eligible offscreen witnesses, the virtual actor
+resumes authentic $8001 movement from saved private
+RAM on new PPU/source-verified room frames.
+It maps both original +256/-256 page candidates
+to the nearest historically observed 32px-continuous
+world coordinate **before** detachment, rather than
+teleporting an adjacent-page sprite back to screen X.
+It then computes X delta from the original 9-bit page
+and 8-bit integer position with 512px rollover; Y applies
 original signed modulo-256 increment. Impossible
 >32-pixel per-frame shifts, unknown instructions, and
 untrusted source/room keys mark the instance FAULTED
@@ -109,9 +121,12 @@ confirmed signed velocity, 9-bit page carry,
 both integer coordinates, fractional X/Y and
 guest RAM isolation against independently computed
 C11 arithmetic. A separate synthetic test verifies
-an actor survives guest type-zero disappearance,
-advances X across multiple private 6502 ticks, and
-is not reassigned when the original CPU reuses slot1.
+an adjacent-page/OAM-culled actor survives type-zero
+disappearance, advances X across multiple private 6502
+ticks, and is not reassigned when the original CPU
+reuses slot1. The regression also asserts that an
+actor disappearing INSIDE the normal 4:3 gameplay
+strip is rejected rather than being revived.
 
 **Natural caveat:** the controlled original ROM
 trace proves the movement implementation on a
