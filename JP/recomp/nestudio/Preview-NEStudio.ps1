@@ -60,6 +60,29 @@ $build=Join-Path $repo 'JP/recomp/release/alpha/Build-Alpha.ps1'
 if (-not (Test-Path -LiteralPath $build)) { throw 'Feature branch build tool missing.' }
 & $build -Rom $romPath -OutDir $target -ProjectRoot $repo
 if ($LASTEXITCODE -ne 0) {throw 'The private Enhanced game build failed.'}
+# The generic Alpha player launcher can reuse an older CVIII-Alpha EXE.
+# Stage a dedicated, ROM-authenticated launcher against this freshly built
+# feature-branch native candidate instead of adopting that older executable.
+$gameFolder=Join-Path $target 'AlphaCandidate'
+$nativeExe=Join-Path $gameFolder 'jp_akumajou_densetsu.exe'
+if (-not (Test-Path -LiteralPath $nativeExe -PathType Leaf)) {
+ throw 'Private NEStudio native game executable was not generated.'
+}
+# This literal is compiled into the Windows C11 native bridge. Reject a
+# plausible-looking EXE if the bridge integration was absent at build time.
+$nativeBytes=[IO.File]::ReadAllBytes($nativeExe)
+$nativeText=[Text.Encoding]::ASCII.GetString($nativeBytes)
+if (-not $nativeText.Contains('CVIII_NESTUDIO_SESSION')) {
+ throw 'Private game EXE lacks the NEStudio session bridge. Build cannot be used for live editing.'
+}
+Remove-Variable nativeBytes,nativeText
+$launchSource=Join-Path $repo 'JP/recomp/nestudio'
+foreach ($name in @('Launch-NEStudio-Game.bat','Launch-NEStudio-Game.ps1')) {
+ Copy-Item -LiteralPath (Join-Path $launchSource $name) -Destination (Join-Path $gameFolder $name) -Force
+}
+$romHint=Join-Path $gameFolder 'NEStudio-RomPath.txt'
+[IO.File]::WriteAllText($romHint,$romPath+[Environment]::NewLine,[Text.UTF8Encoding]::new($false))
+Write-Host ('Bridge-compatible game launcher: '+(Join-Path $gameFolder 'Launch-NEStudio-Game.bat'))
 $nestudioBuild=Join-Path $repo 'JP/recomp/nestudio/Build-NEStudio.ps1'
 if (-not (Test-Path -LiteralPath $nestudioBuild)) {throw 'NEStudio desktop builder missing.'}
 $argsForStudio=@{
