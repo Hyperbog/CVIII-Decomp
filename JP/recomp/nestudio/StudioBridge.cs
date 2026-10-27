@@ -38,7 +38,8 @@ public sealed record StudioScene(uint Room,int Selected,bool Editing,int Rendere
     IReadOnlyList<StudioOriginalObject> OriginalObjects,int OamPhase,
     StudioOriginalDialogueEvent? OriginalDialogue,
     int AttributionCount,int SourceCallCount,int AttributionErrors,
-    StudioPpuSourceWrite? PpuSourceWrite,StudioEc47Trace? FormatterTrace);
+    StudioPpuSourceWrite? PpuSourceWrite,StudioEc47Trace? FormatterTrace,
+    OriginalCommandPreview? FormatterCommand,string FormatterDecodeStatus);
 /// <summary>
 /// Fixed-layout in-process companion to cviii_nestudio_host_bridge.h.
 /// The native recomp creates a session-isolated pagefile mapping. Only the
@@ -47,7 +48,7 @@ public sealed record StudioScene(uint Room,int Selected,bool Editing,int Rendere
 public sealed class StudioBridge : IDisposable
 {
     public const int Magic=unchecked((int)0x5453454E);
-    private const int Capacity=13528; // v4 appends original EC47 source trace
+    private const int Capacity=13792; // v5 appends read-only $0300 command bytes
     private readonly MemoryMappedFile _file;
     private readonly MemoryMappedViewAccessor _view;
     private int _pendingSequence;
@@ -152,7 +153,7 @@ public sealed class StudioBridge : IDisposable
                 @"Local\NEStudio-"+session,MemoryMappedFileRights.ReadWrite);
             var bridge=new StudioBridge(map);
             if(bridge._view.ReadInt32(0)!=Magic ||
-               bridge._view.ReadInt32(4)!=4)
+               bridge._view.ReadInt32(4)!=5)
             {
                 bridge.Dispose();return null;
             }
@@ -275,6 +276,18 @@ public sealed class StudioBridge : IDisposable
                     _view.ReadInt32(13508),_view.ReadInt32(13512),
                     _view.ReadInt32(13516),_view.ReadInt32(13520)!=0,
                     _view.ReadInt32(13524));
+            OriginalCommandPreview? formatterCommand=null;
+            string decodeStatus="No completed original command-buffer capture.";
+            int commandLength=_view.ReadInt32(13528);
+            int commandSequence=_view.ReadInt32(13532);
+            if(commandLength is >0 and <=256 && formatter is { Returned:true } &&
+               formatter.Sequence==commandSequence)
+            {
+                var commands=new byte[commandLength];
+                _view.ReadArray(13536L,commands,0,commandLength);
+                OriginalGlyphCodec.TryParse(commands,
+                    out formatterCommand,out decodeStatus);
+            }
             var sprites=new List<StudioSprite>();
             for(int i=0;i<64;++i)
             {
@@ -297,7 +310,7 @@ public sealed class StudioBridge : IDisposable
                                        enabled,lights,sprites,after,
                                        originalObjects,phase,originalDialogue,
                                        attributed,sourceCalls,sourceErrors,
-                                       ppuWrite,formatter);
+                                       ppuWrite,formatter,formatterCommand,decodeStatus);
         }
         return null;
     }
