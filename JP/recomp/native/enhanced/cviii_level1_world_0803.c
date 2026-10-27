@@ -769,13 +769,22 @@ unsigned cviii_world_capture_live_0803(CviiiLevel1World0803 *w,
     const uint8_t key[3],int cx,int cy,const uint8_t ram[2048]){
     if(!w || !ram || !w->ready)return 0;
     int idx=cviii_world_index_0803(w,key);
-    if(idx<0 || !w->rooms[idx].placed || cx<0 || cy<0)return 0;
+    if(idx<0 || cx<0 || cy<0)return 0;
+    /* Original horizontal source is ROM-authenticated, but the room's
+     * world-graph position may still be unknown during BLK1-03.
+     * Use local camera only for existing original CPU actors. */
+    const int local=!w->rooms[idx].placed &&
+        w->horizontal_ready && w->horizontal[idx].valid &&
+        w->rooms[idx].width>=256 && cx<=w->rooms[idx].width-256;
+    if(!w->rooms[idx].placed && !local)return 0;
     (void)cviii_world_visit_0803(w,key);
     unsigned count=0;
     for(unsigned i=0;i<CVIII_WORLD_ACTORS_0803;i++){
         CviiiWorldActor0803 *actor=&w->actors[i];
         uint8_t frame=ram[0x400u+i],flags=ram[0x470u+i];
-        if(!frame || (flags&0x80u)){
+        const CviiiGuestPageActor0824 adjacent=
+            cviii_guest_page_actor_0824(ram,i);
+        if(!frame || ((flags&0x80u) && !adjacent.eligible)){
             actor->active=0;
             actor->source_cpu_0814=0;
             actor->source_generation_0814=0;
@@ -785,6 +794,7 @@ unsigned cviii_world_capture_live_0803(CviiiLevel1World0803 *w,
         const uint8_t type=ram[0x54eu+i];
         const int same_identity=actor->active &&
              actor->room==(uint8_t)idx &&
+             actor->local_coords_0824==!w->rooms[idx].placed &&
              actor->slot==(uint8_t)i &&
              actor->selector==selector && actor->original_type==type;
         /* Original PRG26 sprite base coordinates are 8-bit local X.
@@ -794,8 +804,12 @@ unsigned cviii_world_capture_live_0803(CviiiLevel1World0803 *w,
          * slot/descriptor retains its original identity and displacement
          * is within genuine per-frame motion bounds; never fabricate a
          * spawn or synthesize an absent actor. */
-        int32_t world_x=w->rooms[idx].x+cx+ram[0x438u+i];
-        if(same_identity) {
+        int32_t world_x=(w->rooms[idx].placed?w->rooms[idx].x:0)+
+                        cx+ram[0x438u+i];
+        if(adjacent.eligible)
+            world_x=(w->rooms[idx].placed?w->rooms[idx].x:0)+
+                    cx+adjacent.viewport_x;
+        if(same_identity && !adjacent.eligible) {
             int64_t predicted=(int64_t)actor->x;
             int64_t candidate=world_x;
             if(candidate-predicted>=224 &&
@@ -813,6 +827,8 @@ unsigned cviii_world_capture_live_0803(CviiiLevel1World0803 *w,
             actor->source_generation_0814=0;
         }
         actor->original_type=type;
+        actor->guest_adjacent_0824=adjacent.eligible;
+        actor->local_coords_0824=!w->rooms[idx].placed;
         actor->active=1;
         actor->room=(uint8_t)idx;
         actor->slot=(uint8_t)i;
@@ -826,7 +842,8 @@ unsigned cviii_world_capture_live_0803(CviiiLevel1World0803 *w,
         /* Authentic CPU array contains viewport-local sprite base XY;
          * projection is observational, not permission to simulate AI. */
         actor->x=world_x;
-        actor->y=w->rooms[idx].y+cy+actor->raw_y;
+        actor->y=(w->rooms[idx].placed?w->rooms[idx].y:0)+
+                 cy+actor->raw_y;
         count++;
     }
     /* JP0821: $B5DF can install slot23 sprites WITHOUT setting
