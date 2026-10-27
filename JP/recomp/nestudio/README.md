@@ -134,6 +134,36 @@ labels, with custom dark ComboBox dropdowns, visible focus borders and
 contrast-preserving selected items. The formerly dark-on-dark ComboBox
 foreground is no longer inherited from the Windows system template.
 
+## JP0665 — authenticated original `$EC47` formatter and PPU consumer
+
+This is a **v4 native-bridge change**. Rebuild both the editor and the
+private native game from the same source SHA (do not attach an older
+v3 recomp). The Dialogue tab now displays a source-verified original
+room-message formatter call and lets an authored dialogue entry bind
+to the completed call through **Bind verified $EC47 formatter call**.
+The trigger includes the original source byte and stage, not a guessed
+Unicode glyph. The event requires original `B8FF` caller ancestry,
+the `EC47 -> E2CA` bank-switch path, and `E62D` return-stack
+validation. In the same record, NEStudio shows the original
+`$0300` command-buffer start/end cursor, source `EC72` reads, and
+temporally associated writes from verified fixed-bank `STA $2007`
+buffer-consumer instruction sites.
+
+The original private ROM passed 15 pinned opcode windows at the
+original SHA-256; the ROM-free test covers true/false nested JSR
+stacks, verified returns, cursor changes, and bounded PPU temporal
+association. Reproduce privately with
+`python JP/decomp/tools/audit_original_ec47_0665.py --rom "Akumajou Densetsu (Japan).nes"`.
+For original behavior, opcode evidence and unresolved semantics see
+`JP/decomp/analysis/0665_ORIGINAL_EC47_MESSAGE_FORMATTER.md`.
+
+**Strict limit:** the original `$EC47` path queues formatting
+commands; it does not directly paint text glyphs. There is not yet a
+complete mapping of commands/glyphs to actual original rendered text
+and no safe in-game dialogue replacement. The PPU correlation is
+limited to source-verified buffered writer sites within a two-frame
+observation window, not per-command or per-glyph causal proof.
+
 ## Original sprite-emission ownership and text-source discovery
 
 NEStudio **v3** observes the original PRG26 sprite renderer, rather
