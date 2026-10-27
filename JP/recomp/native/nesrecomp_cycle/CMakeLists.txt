@@ -736,6 +736,7 @@ if(BUILD_TESTING)
   add_test(NAME JP0826_OriginalSourceInstance COMMAND jp_wide_instance_test_0826)
   add_test(NAME JP0827_Original6502VM COMMAND jp_actor_vm_test_0827)
   add_test(NAME JP0827_PrivateWorldProbe COMMAND jp_actor_vm_world_test_0827)
+  add_test(NAME JP0828_DetachedOriginalMovement COMMAND jp_virtual_3d_test_0828)
 endif()
 
 add_executable(jp_world_sprites_test_0807
@@ -771,4 +772,9 @@ add_executable(jp_actor_vm_world_test_0827
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_level1_world_0803.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_actor_vm_world_test_0827.c")
 set_property(TARGET jp_actor_vm_world_test_0827 PROPERTY C_STANDARD 11)
+# JP0828: actual $8001-$804A original per-frame native actor movement,
+# persistent detached 2KiB CPU state and original B447 world-space inputs.
+add_executable(jp_virtual_3d_test_0828
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_virtual_3d_test_0828.c")
+set_property(TARGET jp_virtual_3d_test_0828 PROPERTY C_STANDARD 11)
 
