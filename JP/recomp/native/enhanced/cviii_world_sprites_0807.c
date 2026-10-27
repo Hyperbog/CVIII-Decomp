@@ -37,14 +37,23 @@ uint32_t cviii_world_sprites_draw_0807(const CviiiLevel1World0803 *w,
        center<0 || center+256>width ||
        (sprite_table!=0 && sprite_table!=0x1000))return 0;
     int32_t wx=0,wy=0;
-    if(!cviii_world_camera_0803(w,key,cx,cy,&wx,&wy))return 0;
+    const int room=cviii_world_index_0803(w,key);
+    if(room<0)return 0;
+    const int local=!w->rooms[room].placed && w->horizontal_ready &&
+        w->horizontal[room].valid && cx>=0 && cy>=0 &&
+        w->rooms[room].width>=256 && cx<=w->rooms[room].width-256;
+    if(local){wx=cx;wy=cy;}
+    else if(!cviii_world_camera_0803(w,key,cx,cy,&wx,&wy))return 0;
     uint32_t painted=0;
     uint8_t attr_cache=0;
     int cached=0;
     for(unsigned i=0;i<CVIII_WORLD_ACTORS_0803;i++){
         const CviiiWorldActor0803 *a=&w->actors[i];
-        if(!a->active || a->slot!=i ||
-           (a->flags&0x80u) || !a->frame)continue;
+        if(!a->active || a->slot!=i || !a->frame ||
+           ((a->flags&0x80u) && !a->guest_adjacent_0824) ||
+           (local && (a->room!=(uint8_t)room ||
+                      !a->local_coords_0824)) ||
+           (!local && a->local_coords_0824))continue;
         uint16_t set=0,descriptor=0;
         if(!ptr_at(bank,0x817fu,a->selector,&set) ||
            !ptr_at(bank,set,a->frame,&descriptor))continue;

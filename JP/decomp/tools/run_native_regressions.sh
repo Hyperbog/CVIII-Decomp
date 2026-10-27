@@ -355,6 +355,24 @@ python3 "$root/JP/decomp/tools/jp_room_clear_0658.py" --smoke
 # JP0659 synthetic stage-room source and exact reversible resource geometry.
 python3 "$root/JP/decomp/tools/jp_room_stream_0659.py" --smoke
 python3 "$root/JP/decomp/tools/jp_room_resources_0659.py" --smoke
+# JP0815: ROM-free visual descriptor ABI and unsafe-count rejection.
+python3 "$root/JP/decomp/tools/jp_stage1_visual_identity_0815.py" --smoke
+# JP0816: 6502 source phase and 16-bit camera arithmetic, ROM-free.
+python3 "$root/JP/decomp/tools/jp_stage1_horizontal_collision_0816.py" --smoke
+# JP0817 original event-source motion and response predicates.
+python3 "$root/JP/decomp/tools/jp_stage1_activation_response_0817.py" --smoke
+# JP0818: original B249/B258 control-flow and row32 ancestry smoke.
+python3 "$root/JP/decomp/tools/jp_stage1_reaction_lineage_0818.py" --smoke
+# JP0819: original $B3EC absolute-byte and partner-mask arithmetic.
+python3 "$root/JP/decomp/tools/jp_stage1_interaction_lifetime_0819.py" --smoke
+# JP0821: original contact arithmetic and phase-correct private Mesen
+# replay syntax. Public CI does not run a copyrighted cartridge.
+python3 -m py_compile "$root/JP/decomp/tools/jp_stage1_natural_contact_lifetime_0821.py"
+# JP0821: owner-ROM source audit and private natural Mesen replay CLI smoke.
+python3 "$root/JP/decomp/tools/jp_stage1_contact_effects_0821.py" --smoke
+# JP0828: original signed-page movement geometry and banked E249 source window.
+python3 "$root/JP/decomp/tools/jp0828_original_movement_sound_audit.py" --smoke
+python3 "$root/JP/decomp/tools/jp_stage1_natural_contact_lifetime_0821.py" --smoke
 
 # JP0738: original/native camera-actor comparison parser on entirely invented
 # ZIP/CYCFRAME records; authentic owner gameplay requires separate private logs.

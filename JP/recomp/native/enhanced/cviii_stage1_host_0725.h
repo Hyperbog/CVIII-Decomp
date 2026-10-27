@@ -23,12 +23,21 @@ typedef struct {
     CviiiLevel1World0803 world; /* persistent coordinate graph and actor registry */
     uint8_t sprite_bank_0807[CVIII_SPRITE_BANK_BYTES_0807];
     int sprite_bank_valid_0807; /* owner-private PRG26/27 SHA-verified */
+    /* JP0827: original ROM raw0B retained privately after launch-time
+     * SHA authentication for reentrant bounded actor-code execution.
+     * No ROM bank or private actor RAM is serialized to savestates. */
+    uint8_t actor_vm_bank0b_0827[16384];
+    int actor_vm_bank_valid_0827;
     uint8_t last_verified_selector[3];
     int last_verified_camera, last_verified_center;
     int has_verified_scene; /* retains authenticated room between transitions */
     int last_ppu_scroll_x; /* authoritative visible scanline modulo-512 X */
     int has_ppu_scroll_x; /* reset with scene, never serialized to saves */
     unsigned scroll_fallback_frames; /* diagnostic consecutive step tracking */
+    /* JP0823 Stage1-03 CPU/PPU phase-stable presentation recovery after
+     * original nametable probes disagree. No graph or actor authority. */
+    uint8_t blk103_candidate[3];
+    unsigned blk103_candidate_frames;
     int enabled, attempted, video_wide;
 } CviiiStage1Host0725;
 /* Options are only applied to this presentation object, not guest memory. */

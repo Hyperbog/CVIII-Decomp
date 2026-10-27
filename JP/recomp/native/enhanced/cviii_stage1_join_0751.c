@@ -81,6 +81,23 @@ int cviii_stage1_join_neighbor_0790(const CviiiStage1Join0751 *j,
     }
     return 0;
 }
+int cviii_stage1_neighbor_visual_0823(const uint8_t key[3],
+    int camera_x,int width,int side,uint8_t neighbor[3],
+    int *neighbor_camera)
+{
+    if(!key || !neighbor || !neighbor_camera ||
+       key[0]!=0u || key[1]!=2u || key[2]>1u ||
+       width!=768 || camera_x<0 || camera_x>width-256 ||
+       (side!=-1 && side!=1))return 0;
+    /* Only the two actual ROM-decoded horizontal BLK 1-03 halves;
+     * no extrapolation into stage 1-04 or an unknown branch. */
+    if((key[2]==0u && side!=1) ||
+       (key[2]==1u && side!=-1))return 0;
+    neighbor[0]=0u; neighbor[1]=2u;
+    neighbor[2]=key[2]==0u ? 1u:0u;
+    *neighbor_camera=key[2]==0u ? camera_x-width:camera_x+768;
+    return 1;
+}
 void cviii_stage1_join_gap_0751(CviiiStage1Join0751 *j) {
     if(j && j->gap<CVIII_JOIN_GAP_MAX+1u)j->gap++;
 }

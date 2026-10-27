@@ -394,6 +394,60 @@ jobs:
           if (!(Test-Path -LiteralPath $test)) { throw 'JP0803 world registry test missing' }
           & $test
           if ($LASTEXITCODE -ne 0) { throw 'JP0803 persistent world graph and object shadow failed' }
+      - name: Verify JP0817 source activation and collision response (ROM-free)
+        shell: pwsh
+        run: |
+          $build = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win'
+          ctest --test-dir $build -C Release -R '^JP0817_' --output-on-failure
+          if ($LASTEXITCODE -ne 0) { throw 'JP0817 source scheduler or response tests failed' }
+      - name: Verify JP0818 original reaction and actor ancestry (ROM-free)
+        shell: pwsh
+        run: |
+          $build = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win'
+          ctest --test-dir $build -C Release -R '^JP0818_' --output-on-failure
+          if ($LASTEXITCODE -ne 0) { throw 'JP0818 original reaction or child ancestry regression failed' }
+      - name: Verify JP0819 player and partner collision preflight, original source lifetime
+        shell: pwsh
+        run: |
+          $build = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win'
+          ctest --test-dir $build -C Release -R '^JP0819_' --output-on-failure
+          if ($LASTEXITCODE -ne 0) { throw 'JP0819 original B3EC or source-parent lifetime tests failed' }
+      - name: Verify JP0820 original B727 contact-state prefix (ROM-free)
+        shell: pwsh
+        run: |
+          $build = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win'
+          ctest --test-dir $build -C Release -R '^JP0820_' --output-on-failure
+          if ($LASTEXITCODE -ne 0) { throw 'JP0820 B727 original contact-state regression failed' }
+      - name: Verify JP0821 original effect routines and live effect23 (ROM-free)
+        shell: pwsh
+        run: |
+          $build = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win'
+          ctest --test-dir $build -C Release -R '^JP0821_' --output-on-failure
+          if ($LASTEXITCODE -ne 0) { throw 'JP0821 original contact effect test failed' }
+      - name: Verify JP0828 original detached actor movement and B447 geometry
+        shell: pwsh
+        run: |
+          $build = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win'
+          ctest --test-dir $build -C Release -R '^JP0828_' --output-on-failure
+          if ($LASTEXITCODE -ne 0) { throw 'JP0828 detached original 6502 actor regression failed' }
+      - name: Verify JP0827 2A03 source executor and sandboxed Stage1 world
+        shell: pwsh
+        run: |
+          $build = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win'
+          ctest --test-dir $build -C Release -R '^JP0827_' --output-on-failure
+          if ($LASTEXITCODE -ne 0) { throw 'JP0827 original 6502 VM or native-world sandbox regression failed' }
+      - name: Verify JP0826 source-instance native ticks and B486 B525 boundary
+        shell: pwsh
+        run: |
+          $build = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win'
+          ctest --test-dir $build -C Release -R '^JP0826_' --output-on-failure
+          if ($LASTEXITCODE -ne 0) { throw 'JP0826 source-instance or B525 regression failed' }
+      - name: Verify JP0824 authentic original CPU offscreen actor projection
+        shell: pwsh
+        run: |
+          $build = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win'
+          ctest --test-dir $build -C Release -R '^JP0824_' --output-on-failure
+          if ($LASTEXITCODE -ne 0) { throw 'JP0824 original guest-page actor regression failed' }
       - name: Verify original PRG26 active actors in widescreen columns (ROM-free)
         shell: pwsh
         run: |

@@ -662,6 +662,82 @@ add_executable(jp_level1_world_test_0803
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_level1_world_0803.c"
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_level1_world_test_0803.c")
 set_property(TARGET jp_level1_world_test_0803 PROPERTY C_STANDARD 11)
+# JP0813 source-faithful chapel world-axis admission, independent 6502 math.
+add_executable(jp_stage1_source_window_test_0813
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_stage1_source_window_test_0813.c")
+set_property(TARGET jp_stage1_source_window_test_0813 PROPERTY C_STANDARD 11)
+# JP0814 original source-event vs direct actor slot; ROM-free only.
+add_executable(jp_stage1_source_link_test_0814
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_stage1_source_link_test_0814.c")
+set_property(TARGET jp_stage1_source_link_test_0814 PROPERTY C_STANDARD 11)
+# JP0815 authentic source-presence / offscreen interaction dry-run.
+add_executable(jp_source_offscreen_test_0815
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_source_offscreen_test_0815.c")
+set_property(TARGET jp_source_offscreen_test_0815 PROPERTY C_STANDARD 11)
+# JP0816 horizontal original six-slot source census and B1F8/B162 stop PCs.
+add_executable(jp_horizontal_sources_test_0816
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_horizontal_sources_test_0816.c")
+set_property(TARGET jp_horizontal_sources_test_0816 PROPERTY C_STANDARD 11)
+add_executable(jp_collision_route_test_0816
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_collision_route_test_0816.c")
+set_property(TARGET jp_collision_route_test_0816 PROPERTY C_STANDARD 11)
+add_executable(jp_collision_b634_test_0816
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_collision_b634_test_0816.c")
+set_property(TARGET jp_collision_b634_test_0816 PROPERTY C_STANDARD 11)
+# JP0817 original six-event scheduler witnesses and bounded B115/B18A.
+add_executable(jp_horizontal_activation_test_0817
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_horizontal_activation_test_0817.c")
+set_property(TARGET jp_horizontal_activation_test_0817 PROPERTY C_STANDARD 11)
+add_executable(jp_collision_response_test_0817
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_collision_response_test_0817.c")
+set_property(TARGET jp_collision_response_test_0817 PROPERTY C_STANDARD 11)
+# JP0818 original $B249/$B258 continuation and $8B50 row32 ancestry.
+add_executable(jp_collision_continuation_test_0818
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_collision_continuation_test_0818.c")
+set_property(TARGET jp_collision_continuation_test_0818 PROPERTY C_STANDARD 11)
+add_executable(jp_horizontal_child_test_0818
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_horizontal_child_test_0818.c")
+set_property(TARGET jp_horizontal_child_test_0818 PROPERTY C_STANDARD 11)
+# JP0819 original B3EC/B29D proximity preflight and six row32 parents.
+add_executable(jp_interaction_preflight_test_0819
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_interaction_preflight_test_0819.c")
+set_property(TARGET jp_interaction_preflight_test_0819 PROPERTY C_STANDARD 11)
+add_executable(jp_horizontal_lineage_test_0819
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_horizontal_lineage_test_0819.c")
+set_property(TARGET jp_horizontal_lineage_test_0819 PROPERTY C_STANDARD 11)
+# JP0820: original B727/B2B5 counter + contact-state prefix, pure ROM-free.
+add_executable(jp_b727_contact_test_0820
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_b727_contact_test_0820.c")
+set_property(TARGET jp_b727_contact_test_0820 PROPERTY C_STANDARD 11)
+# JP0821 owner-ROM original B6CE/B5DF/B486 effects: pure prefix model.
+add_executable(jp_contact_effects_test_0821
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_contact_effects_test_0821.c")
+set_property(TARGET jp_contact_effects_test_0821 PROPERTY C_STANDARD 11)
+# These four executables are ROM-free; build them in the owner-native tree
+# and run from CTest instead of silently only compiling test targets.
+include(CTest)
+if(BUILD_TESTING)
+  add_test(NAME JP0803_Level1World COMMAND jp_level1_world_test_0803)
+  add_test(NAME JP0813_OriginalSourceAxis COMMAND jp_stage1_source_window_test_0813)
+  add_test(NAME JP0814_SourceAllocatorLink COMMAND jp_stage1_source_link_test_0814)
+  add_test(NAME JP0815_OffscreenProbe COMMAND jp_source_offscreen_test_0815)
+  add_test(NAME JP0816_HorizontalSources COMMAND jp_horizontal_sources_test_0816)
+  add_test(NAME JP0816_CollisionRoute COMMAND jp_collision_route_test_0816)
+  add_test(NAME JP0816_B634ContactGate COMMAND jp_collision_b634_test_0816)
+  add_test(NAME JP0817_SourceMovement COMMAND jp_horizontal_activation_test_0817)
+  add_test(NAME JP0817_CollisionResponse COMMAND jp_collision_response_test_0817)
+  add_test(NAME JP0818_CollisionContinuation COMMAND jp_collision_continuation_test_0818)
+  add_test(NAME JP0818_OriginalChildLineage COMMAND jp_horizontal_child_test_0818)
+  add_test(NAME JP0819_B3ecAndPartners COMMAND jp_interaction_preflight_test_0819)
+  add_test(NAME JP0819_SourceParentLifetime COMMAND jp_horizontal_lineage_test_0819)
+  add_test(NAME JP0820_B727ContactPrefix COMMAND jp_b727_contact_test_0820)
+  add_test(NAME JP0821_OriginalContactEffects COMMAND jp_contact_effects_test_0821)
+  add_test(NAME JP0824_AuthenticPageActor COMMAND jp_extended_actor_test_0824)
+  add_test(NAME JP0826_OriginalSourceInstance COMMAND jp_wide_instance_test_0826)
+  add_test(NAME JP0827_Original6502VM COMMAND jp_actor_vm_test_0827)
+  add_test(NAME JP0827_PrivateWorldProbe COMMAND jp_actor_vm_world_test_0827)
+  add_test(NAME JP0828_DetachedOriginalMovement COMMAND jp_virtual_3d_test_0828)
+endif()
 
 add_executable(jp_world_sprites_test_0807
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_stage1_rom_0724.c"
@@ -670,3 +746,35 @@ add_executable(jp_world_sprites_test_0807
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_world_sprites_0807.c"
  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_world_sprites_test_0807.c")
 set_property(TARGET jp_world_sprites_test_0807 PROPERTY C_STANDARD 11)
+# JP0824 original CPU-owned source-linked adjacent-page actors, not
+# virtual NPCs: ROM-free both-margins and unplaced-room regression.
+add_executable(jp_extended_actor_test_0824
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_stage1_rom_0724.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_stage1_atlas_0724.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_level1_world_0803.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_world_sprites_0807.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_extended_actor_test_0824.c")
+set_property(TARGET jp_extended_actor_test_0824 PROPERTY C_STANDARD 11)
+# JP0826: native-owned resident source instance clock; original guest
+# remains authority for movement and all gameplay interactions.
+add_executable(jp_wide_instance_test_0826
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_wide_instance_test_0826.c")
+set_property(TARGET jp_wide_instance_test_0826 PROPERTY C_STANDARD 11)
+# JP0827: original 6502/2A03 restricted private RAM VM, bank0B only.
+# CI runs ROM-free source/stack guards. Owner may optionally supply
+# private original ROM as argv[1] for 131072 source differential cases.
+add_executable(jp_actor_vm_test_0827
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_actor_vm_test_0827.c")
+set_property(TARGET jp_actor_vm_test_0827 PROPERTY C_STANDARD 11)
+add_executable(jp_actor_vm_world_test_0827
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_stage1_rom_0724.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_stage1_atlas_0724.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_level1_world_0803.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_actor_vm_world_test_0827.c")
+set_property(TARGET jp_actor_vm_world_test_0827 PROPERTY C_STANDARD 11)
+# JP0828: actual $8001-$804A original per-frame native actor movement,
+# persistent detached 2KiB CPU state and original B447 world-space inputs.
+add_executable(jp_virtual_3d_test_0828
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_virtual_3d_test_0828.c")
+set_property(TARGET jp_virtual_3d_test_0828 PROPERTY C_STANDARD 11)
+

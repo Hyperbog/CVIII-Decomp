@@ -86,10 +86,44 @@ static int load(CviiiStage1Host0725 *h)
                  cviii_world_attach_source_rooms_0811(&h->world,
                                                       &room_catalog) &&
                  cviii_world_preload_source_payload_0812(&h->world,
+                                                  room_bank,sizeof room_bank) &&
+                 cviii_world_preload_horizontal_0816(&h->world,
                                                   room_bank,sizeof room_bank);
         }
         if(!room_ok)
             fprintf(stderr,"CVIII JP0811: original stage source hierarchy not authenticated; no inferred world connections\n");
+        /* JP0827: independent original physical raw0B actor code.
+         * The combined ROM loader already checked the complete
+         * cartridge. Refuse mixed physical PRG revisions with a second
+         * SHA256 check, and keep the 16KiB owner-private code solely
+         * in process memory for sandbox opcode reads. */
+        static const uint8_t expected_actor_bank_sha[32]={
+          0x17,0xb2,0x16,0x08,0x8d,0x12,0xac,0x7b,
+          0x6a,0x4a,0x68,0xbb,0xea,0x34,0x34,0xdb,
+          0xdb,0xa3,0x17,0x86,0x5b,0xd6,0xcf,0x4d,
+          0x11,0x64,0x6a,0x3d,0x4e,0xfa,0xf6,0x4a
+        };
+        uint8_t code_digest[32];
+        FILE *actor_code=fopen(h->rom_path,"rb");
+        int actor_bank_ok=room_ok && actor_code &&
+            fseek(actor_code,16L+11L*16384L,SEEK_SET)==0 &&
+            fread(h->actor_vm_bank0b_0827,1,
+                  sizeof h->actor_vm_bank0b_0827,actor_code)==
+                  sizeof h->actor_vm_bank0b_0827;
+        if(actor_code)fclose(actor_code);
+        if(actor_bank_ok){
+            cviii_sha256_0727(h->actor_vm_bank0b_0827,
+                             sizeof h->actor_vm_bank0b_0827,
+                             code_digest);
+            actor_bank_ok=memcmp(expected_actor_bank_sha,
+                                 code_digest,sizeof code_digest)==0;
+        }
+        h->actor_vm_bank_valid_0827=actor_bank_ok;
+        if(!actor_bank_ok){
+            memset(h->actor_vm_bank0b_0827,0,
+                   sizeof h->actor_vm_bank0b_0827);
+            fprintf(stderr,"CVIII JP0827: original raw0B actor VM bank not authenticated; replay disabled\n");
+        }
         return 1;
     }
     fprintf(stderr,"CVIII JP0727: runtime Stage 1 resource load rejected (status %d); stock presentation retained\\n",
@@ -104,6 +138,8 @@ void cviii_stage1_host_reset_0751(CviiiStage1Host0725 *h)
         h->has_verified_scene=0;
         h->has_ppu_scroll_x=0;
         h->scroll_fallback_frames=0;
+        h->blk103_candidate_frames=0;
+        memset(h->blk103_candidate,0,sizeof h->blk103_candidate);
         cviii_world_clear_live_0805(&h->world);
     }
 }
@@ -128,6 +164,9 @@ int cviii_stage1_host_rom_0725(CviiiStage1Host0725 *h,const char *path)
     h->attempted=0;
     h->atlas.loaded=0;
     h->sprite_bank_valid_0807=0;
+    h->actor_vm_bank_valid_0827=0;
+    memset(h->actor_vm_bank0b_0827,0,
+           sizeof h->actor_vm_bank0b_0827);
     return 1;
 }
 int cviii_stage1_host_cache_0729(CviiiStage1Host0725 *h,const char *path)
@@ -259,6 +298,42 @@ static int camera(const CviiiStage1Host0725 *h,uint8_t sel[3],
     return 1;
 }
 
+/* JP0823: original BLK 1-03 CPU source selector / hardware scroll
+ * recovery. At some legitimate room updates, the mutable nametable
+ * differs too much from the immutable ROM atlas for room_loaded()'s
+ * strict 75% tile vote. The old presenter then kept scrolling a STALE
+ * atlas room until both 85px margins became black.
+ *
+ * This weaker witness is never sufficient to learn a physical room
+ * connection, allocate actors or write a single original PPU/CPU byte.
+ * Three consecutive source-key/PPU phase matches are required before
+ * any renderer re-anchor, and only the two original BLK 1-03 subrooms
+ * already decoded from the authenticated owner's Japanese ROM qualify. */
+static int blk103_camera_phase_0823(const CviiiStage1Host0725 *h,
+    const uint8_t ram[2048],uint8_t selector[3],int *x,int *y)
+{
+    if(!h || !ram || !selector || !x || !y ||
+       ram[0x18u]!=4u || ram[0x34u]!=0u ||
+       ram[0x35u]!=2u || ram[0x36u]>1u ||
+       (ram[0x65u]&0x80u) ||
+       (cyc_render_line_mask(120)&0x08u)==0 ||
+       (cyc_render_line_bg_table(120)!=0u &&
+        cyc_render_line_bg_table(120)!=0x1000u))return 0;
+    selector[0]=0u;selector[1]=2u;selector[2]=ram[0x36u];
+    if(cviii_stage1_atlas_horizontal_width_0801(&h->atlas,selector)!=768)
+       return 0;
+    const int ppu_y=cyc_render_line_scroll_y(120);
+    if(ppu_y<118 || ppu_y>122)return 0;
+    const int local=(int)ram[0x53u]+256*(int)ram[0x54u];
+    const int ppu_x=cyc_render_line_scroll_x(120)&511;
+    int phase=((ppu_x-(local&511)+256)&511)-256;
+    if(phase>126 || phase< -126)
+       phase=phase>0 ? phase-256:phase+256;
+    if(phase < -2 || phase>2 || local+phase<0 ||
+       local+phase>512)return 0;
+    *x=local+phase;*y=0;return 1;
+}
+
 /* JP0800: the NES picture already scrolls from the real PPU on every
  * frame. When strict ROM/nametable attestation temporarily rejects the
  * room, NEVER leave the side scenery at an old frozen world position.
@@ -317,6 +392,26 @@ const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
     uint8_t selector[3]={0}; int camera_x=0,camera_y=0;
     int valid_camera=camera(h,selector,&camera_x,&camera_y);
     const uint8_t *ram=cyc_cpu_ram();
+    const int strictly_verified_camera=valid_camera;
+    int camera_phase_only=0;
+    if(!valid_camera && ram) {
+        uint8_t source_key[3]={0};int source_x=0,source_y=0;
+        if(blk103_camera_phase_0823(h,ram,source_key,
+                                    &source_x,&source_y)) {
+            if(memcmp(h->blk103_candidate,source_key,3)) {
+                memcpy(h->blk103_candidate,source_key,3);
+                h->blk103_candidate_frames=0;
+            }
+            if(h->blk103_candidate_frames<3u)
+                h->blk103_candidate_frames++;
+            if(h->blk103_candidate_frames>=3u) {
+                memcpy(selector,source_key,3);
+                camera_x=source_x;camera_y=source_y;
+                valid_camera=1;
+                camera_phase_only=1;
+            }
+        } else h->blk103_candidate_frames=0;
+    } else if(valid_camera) h->blk103_candidate_frames=0;
     const int horizontal_play=ram && ram[0x18u]==4u &&
         ram[0x34u]==0u && !(ram[0x65u]&0x80u) &&
         (cyc_render_line_mask(120)&0x08u);
@@ -329,8 +424,13 @@ const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
         if(room_width>=256 && camera_x>=0 &&
            (chapel?camera_x==0:camera_x<=room_width-256)) {
             if(!chapel) {
-                cviii_stage1_join_accept_0751(&h->join,selector,camera_x,room_width);
-                cviii_stage1_join_restore_0782(&h->join,selector,camera_x,room_width);
+                /* A CPU/PPU phase witness is enough to paint authentic
+                 * ROM tiles, NOT to register a new physical room edge. */
+                if(strictly_verified_camera && !camera_phase_only)
+                    cviii_stage1_join_accept_0751(
+                        &h->join,selector,camera_x,room_width);
+                cviii_stage1_join_restore_0782(
+                    &h->join,selector,camera_x,room_width);
             } else cviii_stage1_join_soft_reset_0782(&h->join);
             /* A crossing only becomes a world connection after BOTH
              * original room selectors passed real PPU/atlas verification.
@@ -347,6 +447,61 @@ const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
             (void)cviii_world_detect_loader_0805(&h->world,selector,ram);
             (void)cviii_world_capture_live_0803(&h->world,selector,
                          camera_x,camera_y,ram);
+            /* JP0816: original CPU $53/$54/$62/$07F6 selects the
+             * installed room-cell source (NOT an inferred enemy).
+             * Genuine guest actor allocation remains unchanged. */
+            if(!chapel) {
+                (void)cviii_world_observe_horizontal_0816(
+                    &h->world,selector,ram);
+                /* JP0817: original $84EA six-source-slot CPU evidence,
+                 * not a claim of original FF06 successful allocation. */
+                (void)cviii_world_observe_scheduler_0817(
+                    &h->world,selector,ram);
+                /* JP0818: $8B50 $0645 source-child witness, never
+                 * infer another actor or extend guest AI lifetime. */
+                (void)cviii_world_observe_children_0818(
+                    &h->world,selector,ram);
+                /* Real 6502 opcodes in isolated native RAM: compare
+                 * B486/B525 would-call outcomes on ORIGINAL children.
+                 * This never injects guest CPU damage or acts as an AI. */
+                if(h->actor_vm_bank_valid_0827) {
+                    (void)cviii_world_probe_vm_0827(
+                        &h->world,ram,h->actor_vm_bank0b_0827);
+                    /* JP0828: continue original $8001 2A03 movement
+                     * in persistent *PRIVATE* CPU RAM if an authentic
+                     * row32 child lost its original allocator slot.
+                     * No detached combat/effect callback is authorized. */
+                    if(selector[0]==0u && selector[1]==1u &&
+                       selector[2]==0u && !camera_phase_only &&
+                       strictly_verified_camera)
+                        (void)cviii_virtual_tick_0828(
+                            &h->world.virtual_3d_0828,
+                            &h->world.wide_sources_0825,
+                            h->actor_vm_bank0b_0827,ram,selector,
+                            camera_x);
+                }
+            }
+            /* JP0813: follow the genuine vertical chapel camera with
+             * resident source identities. CPU actor state stays authoritative;
+             * no offscreen AI/guest-RAM writes or fabricated sprites. */
+            if(chapel) {
+                /* JP0814: same source, but allocator signatures use
+                 * the original CPU $54:$53, not the PPU camera phase.
+                 * Zero guest writes: the game keeps authority over
+                 * actor creation, collision, scripts and despawn. */
+                (void)cviii_world_track_chapel_0813(
+                    &h->world,selector,camera_y);
+                (void)cviii_world_link_chapel_0814(
+                    &h->world,selector,ram);
+                /* JP0815: dry-run source presence, source-tagged sprite
+                 * identity and explicitly DEFERRED offscreen interaction.
+                 * Original NES guest collisions and its PRG26 sprite
+                 * emission stay unchanged, even outside the 256px image. */
+                (void)cviii_world_probe_chapel_0815(
+                    &h->world,selector,camera_x,camera_y,
+                    CVIII_STAGE1_ORIGIN_0725,CVIII_STAGE1_WIDE_0725,
+                    h->sprite_bank_valid_0807?h->sprite_bank_0807:NULL);
+            }
             center=chapel?CVIII_STAGE1_ORIGIN_0725:
                 viewport_center_0790(selector,camera_x);
             memcpy(h->last_verified_selector,selector,sizeof selector);
@@ -441,21 +596,42 @@ const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
                 CVIII_STAGE1_WIDE_0725,240,center,bg_table,
                 cyc_render_chr,cyc_render_color);
             if(!world_pixels) {
-                /* Rooms reached by an unobserved branch stay fully
-                 * preloaded but unplaced. Preserve the old PPU-validated
-                 * per-room fallback until original transition evidence
-                 * establishes their physical position in the graph. */
+                /* An original room may be source-verified by the PPU yet
+                 * not placed in the global coordinate graph. Its own ROM
+                 * tiles still cover authentic side columns. */
                 (void)cviii_stage1_atlas_paint_bg_table_0802(&h->atlas,selector,
                     camera_x,camera_y,h->pixels,CVIII_STAGE1_WIDE_0725,240,
                     center,bg_table,cyc_render_chr,cyc_render_color);
+            }
+            /* JP0823: compositor coverage is NOT the same as successful
+             * neighbor placement. A placed current room can paint some
+             * left-margin pixels while the unplaced right successor is
+             * still completely black. Paint *both* room-side projections
+             * from the decoded ROM, even with world_pixels>0, whenever
+             * the linked neighbor is not already covered by world paint.
+             *
+             * A true observed join is preferred. BLK 1-03 has two ROM-
+             * decoded horizontal sibling subrooms; allow their side-only
+             * visual preview where a live join has not yet been witnessed.
+             * Neither rule attaches a room to the global world or spawns
+             * an actor, so unknown level geometry stays unmodified. */
+            for(int side=-1;side<=1;side+=2) {
                 uint8_t neighbor[3];int neighbor_x=0;
-                for(int side=-1;side<=1;side+=2)
-                    if(cviii_stage1_join_neighbor_0790(&h->join,selector,
-                            camera_x,width_px,side,neighbor,&neighbor_x))
-                        (void)cviii_stage1_atlas_paint_bg_table_0802(
-                            &h->atlas,neighbor,neighbor_x,camera_y,h->pixels,
-                            CVIII_STAGE1_WIDE_0725,240,center,bg_table,
-                            cyc_render_chr,cyc_render_color);
+                const int linked=cviii_stage1_join_neighbor_0790(
+                    &h->join,selector,camera_x,width_px,side,
+                    neighbor,&neighbor_x);
+                if(!linked && !cviii_stage1_neighbor_visual_0823(
+                    selector,camera_x,width_px,side,
+                    neighbor,&neighbor_x))continue;
+                if(cviii_stage1_atlas_horizontal_width_0801(
+                    &h->atlas,neighbor)<256)continue;
+                int neighbor_index=cviii_world_index_0803(&h->world,neighbor);
+                if(world_pixels && neighbor_index>=0 &&
+                   h->world.rooms[neighbor_index].placed)continue;
+                (void)cviii_stage1_atlas_paint_bg_table_0802(
+                    &h->atlas,neighbor,neighbor_x,camera_y,h->pixels,
+                    CVIII_STAGE1_WIDE_0725,240,center,bg_table,
+                    cyc_render_chr,cyc_render_color);
             }
         }
     }

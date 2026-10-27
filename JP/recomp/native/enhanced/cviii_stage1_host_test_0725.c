@@ -172,6 +172,123 @@ int main(void)
                 bg_table=0x1000;
             }
         }
+        /* JP0823: reproduced user-observed BLK 1-03 right black side.
+         * Both source ROM layouts are loaded, but their world rooms
+         * remain unplaced. A source-backed sibling visual must fill
+         * only margins without moving NES gameplay or spawning actors. */
+        {
+          const uint8_t blk3a[]={0,2,0},blk3b[]={0,2,1};
+          cviii_stage1_host_reset_0751(&host);
+          test_ram[0x34]=0;test_ram[0x35]=2;test_ram[0x36]=0;
+          test_ram[0x53]=0;test_ram[0x54]=2;
+          scroll_x=0;scroll_y=0;bg_table=0x1000;
+          memset(live_nt,0,sizeof live_nt);
+          seed_visible_room_from_x(blk3a,0,512u);
+          w=256;h=240;
+          pixels=cviii_stage1_host_present_0725(&host,original,&w,&h,1);
+          memset(isolated_room,0,sizeof isolated_room);
+          if(!require(cviii_stage1_atlas_paint_0724(
+                 &host.atlas,blk3b,-256,0,isolated_room,
+                 426,240,85,cyc_render_chr,cyc_render_color)>0 &&
+              pixels[100*426+400]==isolated_room[100*426+400] &&
+              pixels[100*426+400]!=0xff000000u &&
+              pixels[100*426+85]==original[100*256] &&
+              !host.world.rooms[5].placed &&
+              !host.world.rooms[6].placed,
+              "BLK 1-03 unplaced right ROM sibling fills real source margin"))
+             return 1;
+          /* Second subroom must keep the first original subroom in
+           * its left 85 pixels, independent of room-graph placement. */
+          cviii_stage1_host_reset_0751(&host);
+          test_ram[0x36]=1;test_ram[0x53]=0;test_ram[0x54]=0;
+          scroll_x=0;
+          memset(live_nt,0,sizeof live_nt);
+          seed_visible_room(blk3b,0);
+          w=256;h=240;
+          pixels=cviii_stage1_host_present_0725(&host,original,&w,&h,1);
+          memset(isolated_room,0,sizeof isolated_room);
+          if(!require(cviii_stage1_atlas_paint_0724(
+                 &host.atlas,blk3a,768,0,isolated_room,
+                 426,240,85,cyc_render_chr,cyc_render_color)>0 &&
+              pixels[100*426+30]==isolated_room[100*426+30] &&
+              pixels[100*426+30]!=0xff000000u &&
+              pixels[100*426+85]==original[100*256],
+              "BLK 1-03 left-margin projection persists across subroom"))
+             return 1;
+        }
+        /* JP0823: even when the current BLK 1-03 room is physically
+         * placed and world painter returned pixels, the following
+         * BLK 1-03 sibling can still be unplaced. The old
+         * if(!world_pixels) gate made that right margin black. */
+        {
+          const uint8_t narrow[]={0,1,0},blk3a[]={0,2,0};
+          const uint8_t successor[]={0,2,1};
+          cviii_stage1_host_reset_0751(&host);
+          if(!require(cviii_world_build_0803(&host.world,&host.atlas) &&
+               cviii_world_connect_0803(&host.world,narrow,blk3a,
+                   CVIII_WORLD_RIGHT_0803),
+               "synthetic physically witnessed BLK1-03 predecessor link"))
+              return 1;
+          test_ram[0x34]=0;test_ram[0x35]=2;test_ram[0x36]=0;
+          test_ram[0x53]=0;test_ram[0x54]=2;
+          scroll_x=0;
+          memset(live_nt,0,sizeof live_nt);
+          seed_visible_room_from_x(blk3a,0,512u);
+          w=256;h=240;
+          pixels=cviii_stage1_host_present_0725(&host,original,&w,&h,1);
+          memset(isolated_room,0,sizeof isolated_room);
+          if(!require(host.world.rooms[5].placed &&
+              !host.world.rooms[6].placed &&
+              cviii_stage1_atlas_paint_0724(&host.atlas,successor,-256,0,
+                  isolated_room,426,240,85,cyc_render_chr,
+                  cyc_render_color)>0 &&
+              pixels[100*426+400]==isolated_room[100*426+400] &&
+              pixels[100*426+400]!=0xff000000u &&
+              pixels[100*426+85]==original[100*256],
+              "placed current world cannot hide unplaced BLK1-03 sibling"))
+              return 1;
+        }
+        /* JP0823: Stage1-03 original CPU/PPU camera agrees, but the
+         * mutable name table no longer has enough immutable ROM tiles.
+         * After three consecutive stable CPU/PPU source observations,
+         * switch the PRESENTATION camera. Never create a new graph link. */
+        {
+          cviii_stage1_host_reset_0751(&host);
+          test_ram[0x34]=0;test_ram[0x35]=2;test_ram[0x36]=0;
+          test_ram[0x53]=144;test_ram[0x54]=1; /* original camera 400 */
+          scroll_x=400;bg_table=0x1000;
+          memset(live_nt,0xff,sizeof live_nt);
+          const unsigned links_before=host.join.link_count;
+          for(unsigned probe=1;probe<=3;probe++){
+             w=256;h=240;
+             pixels=cviii_stage1_host_present_0725(&host,
+                        original,&w,&h,1);
+             if(!require(host.blk103_candidate_frames==probe,
+                 "only phase-locked BLK1-03 frames promote camera"))return 1;
+          }
+          if(!require(host.has_verified_scene &&
+              !memcmp(host.last_verified_selector,(uint8_t[]){0,2,0},3) &&
+              host.last_verified_camera==400 &&
+              host.join.link_count==links_before &&
+              pixels[100*426+0]!=0xff000000u &&
+              pixels[100*426+400]!=0xff000000u &&
+              pixels[100*426+85]==original[100*256],
+              "original CPU/PPU stable BLK1-03 recovers BOTH side margins"))
+              return 1;
+          /* A mismatched PPU phase must never make a new source key
+           * valid, even after many frames. */
+          test_ram[0x36]=1;scroll_x=448;
+          for(unsigned probe=0;probe<4;probe++){
+              w=256;h=240;
+              pixels=cviii_stage1_host_present_0725(&host,
+                          original,&w,&h,1);
+          }
+          if(!require(host.blk103_candidate_frames==0u &&
+              !memcmp(host.last_verified_selector,(uint8_t[]){0,2,0},3) &&
+              host.join.link_count==links_before,
+              "unverified phase/selector cannot install false BLK1-03 edge"))
+              return 1;
+        }
         /* Truly nonhorizontal room 1-02:1 is never painted sideways. */
         const uint8_t vertical[3]={0,1,1};
         if(!require(cviii_stage1_atlas_horizontal_width_0801(

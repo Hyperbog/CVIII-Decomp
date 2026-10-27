@@ -42,6 +42,14 @@ void cviii_stage1_join_accept_0751(CviiiStage1Join0751 *join,
 int cviii_stage1_join_previous_0751(const CviiiStage1Join0751 *join,
                                     int camera,int width_px,
                                     uint8_t old_selector[3],int *old_camera);
+/* JP0823 visual-only subroom continuity: both BLK 1-03 halves are
+ * decoded from the authenticated original ROM. This paints side margins
+ * only; it does NOT certify a physical transition, connect world rooms,
+ * install actors, extend AI or grant collision. A real visited-room link
+ * always takes precedence when available. */
+int cviii_stage1_neighbor_visual_0823(const uint8_t key[3],
+    int camera_x,int width,int side,uint8_t neighbor[3],
+    int *neighbor_camera);
 void cviii_stage1_join_cache_0751(CviiiStage1Join0751 *join,
                                   const uint32_t frame[CVIII_JOIN_W*CVIII_JOIN_H]);
 int cviii_stage1_join_hold_0751(CviiiStage1Join0751 *join,

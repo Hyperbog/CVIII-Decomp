@@ -278,7 +278,415 @@ int main(void){
     if(!check(cviii_world_detect_loader_0805(world,second,ram)==-1 &&
               world->groups[4].activations==1,
               "partial original loader rejected"))return 14;
+    /* JP0813: invented seven-byte chapel source data, no game content. */
+    CviiiWorldSourceRoom0811 *chapel=&world->source_rooms[2];
+    memset(chapel,0,sizeof *chapel);
+    chapel->root=0xab1fu;chapel->end_exclusive=0xab5fu;
+    chapel->record_count=CVIII_STAGE1_CHAPEL_SOURCES_0813;
+    chapel->width=7u;chapel->payload_len=64u;
+    for(unsigned i=0;i<CVIII_STAGE1_CHAPEL_SOURCES_0813;i++){
+        chapel->payload[7u*i]=0x03u;
+        chapel->payload[7u*i+1u]=0xf0u;
+        chapel->payload[7u*i+2u]=0x80u;
+        chapel->payload[7u*i+3u]=(uint8_t)(0x20u+i);
+    }
+    chapel->payload[0]=0x01u;chapel->payload[1]=0x80u;
+    chapel->payload[63]=0xffu;
+    world->source_payload_ready=1u;
+    if(!check(cviii_world_track_chapel_0813(world,vertical,0x180)==1 &&
+              world->chapel[0].axis_world==0x0180u &&
+              world->chapel[0].local_axis==0x37u &&
+              world->chapel[0].world_placed &&
+              world->chapel[0].world_x==world->rooms[2].x+0x20 &&
+              world->chapel[0].world_y==world->rooms[2].y+0x180 &&
+              world->chapel[0].entries==1u && world->chapel_epochs==1u,
+              "original world-axis admission") ||
+       !check(cviii_world_track_chapel_0813(world,vertical,0x1ff)==0 &&
+              world->chapel[0].exits==1u && !world->chapel[0].eligible &&
+              world->chapel[0].axis_world==0x0180u,
+              "source persists after leaving original admission window") ||
+       !check(cviii_world_track_chapel_0813(world,vertical,0x180)==1 &&
+              world->chapel[0].entries==2u && world->chapel_epochs==3u,
+              "re-enter original window without spawning game actors") ||
+       !check(cviii_world_track_chapel_0813(world,second,0x180)==-1 &&
+              world->chapel[0].entries==2u,
+              "wrong selector rejected without mutation"))
+        return 25;
+    /* JP0814 original-ROM installation signatures, fabricated RAM only.
+     * The observation MUST NOT create or prolong a game actor. */
+    ram[0x53u]=0x80u;ram[0x54u]=0x01u; /* original CPU camera $0180 */
+    /* The guest already allocated actor 13; tagging cannot create it. */
+    world->actors[13].active=1u;
+    world->actors[13].frame=1u;
+    ram[0x0400u+13u]=1u;
+    world->actors[13].room=2u;
+    world->actors[13].slot=13u;
+    world->actors[13].original_type=0x80u;
+    world->actors[13].generation=7u;
+    ram[0x054eu+13u]=0x80u;
+    ram[0x0438u+13u]=chapel->payload[3];
+    ram[0x05d8u+13u]=chapel->payload[4];
+    ram[0x041cu+13u]=0x37u;
+    ram[0x05efu+13u]=0x30u;
+    if(!check(cviii_world_link_chapel_0814(world,vertical,ram)==1 &&
+              world->chapel_links[0].kind==CVIII_LINK_DIRECT_0814 &&
+              world->chapel_links[0].slot==13u &&
+              world->chapel_link_epochs==1u &&
+              world->actors[13].source_cpu_0814==0xab1fu &&
+              world->actors[13].source_generation_0814==7u,
+              "type80 direct original installer exact match"))return 26;
+    /* JP0815: real source is installed, but the proposed X movement
+     * here is a synthetic projection-only test, not a natural Mesen
+     * camera or a new original CPU movement rule. */
+    world->actors[13].x=world->rooms[2].x+0x20;
+    world->actors[13].y=world->rooms[2].y+0x180+0x37;
+    world->actors[13].selector=0x0eu;
+    world->actors[13].mirror=1u;
+    /* Invented authenticated-bank SHAPE, not copyrighted sprite art.
+     * JP0807 selector/frame bytes are pointer-table offsets. */
+    uint8_t fake_sprites[16384]={0};
+    fake_sprites[0x818du-0x8000u]=0x00u;
+    fake_sprites[0x818eu-0x8000u]=0x90u;
+    fake_sprites[0x9001u-0x8000u]=0x00u;
+    fake_sprites[0x9002u-0x8000u]=0x91u;
+    fake_sprites[0x9100u-0x8000u]=4u;
+    if(!check(cviii_world_probe_chapel_0815(
+                  world,vertical,80,0x180,85,426,fake_sprites)==1 &&
+              world->chapel_projection[0].actor_confirmed &&
+              world->chapel_projection[0].linked_slot==13u &&
+              world->chapel_projection[0].sprite_selector==0x0eu &&
+              world->chapel_projection[0].sprite_frame==1u &&
+              world->chapel_projection[0].visual_valid &&
+              world->chapel_projection[0].sprite_descriptor_cpu==0x9100u &&
+              world->chapel_projection[0].sprite_pieces==4u &&
+              world->chapel_projection[0].screen_x==37 &&
+              world->chapel_projection[0].screen_y==55 &&
+              world->chapel_projection[0].point_region==
+                  CVIII_PROBE_MARGIN_0815 &&
+              world->chapel_projection[0].interaction_policy==
+                  CVIII_INTERACTION_TYPE80_B258_0816,
+              "only original installed actor projects into synthetic margin"))
+        return 31;
+    if(!check(cviii_world_probe_chapel_0815(
+                  world,vertical,0,0x180,85,426,fake_sprites)==0 &&
+              world->chapel_projection[0].point_region==
+                  CVIII_PROBE_NATIVE_0815 &&
+              world->chapel_projection[0].screen_x==117,
+              "authentic chapel X stays inside NES game window"))
+        return 32;
+    uint32_t projected_epochs=world->chapel_projection_epochs;
+    if(!check(cviii_world_probe_chapel_0815(
+                  world,second,0,0x180,85,426,fake_sprites)==-1 &&
+              projected_epochs==world->chapel_projection_epochs,
+              "wrong source selector cannot mutate projection"))
+        return 33;
+    /* Natural JP0519 type-$80 has original $0470 high bit set.
+     * The PRG26 visible-sprite observer suppresses such a shadow,
+     * but the original $054E slot remains allocated and processed
+     * by FDFE/BD11/EF93. Do not conflate those two lifetimes. */
+    ram[0x0470u+13u]=0x81u;
+    (void)cviii_world_capture_live_0803(world,vertical,0,0,ram);
+    if(!check(!world->actors[13].active &&
+              cviii_world_link_chapel_0814(world,vertical,ram)==1 &&
+              cviii_world_probe_chapel_0815(
+                  world,vertical,80,0x180,85,426,fake_sprites)==0 &&
+              world->chapel_projection[0].guest_installed &&
+              world->chapel_projection[0].guest_slot==13u &&
+              !world->chapel_projection[0].actor_confirmed &&
+              !world->chapel_projection[0].visual_valid &&
+              world->chapel_projection[0].interaction_policy==
+                  CVIII_INTERACTION_TYPE80_B258_0816,
+              "hidden original actor is allocated but never ghost-rendered"))
+        return 35;
+    /* Restore a synthetic visible guest actor for later recycling tests. */
+    world->actors[13].active=1u;
+    world->actors[13].room=2u;world->actors[13].slot=13u;
+    world->actors[13].original_type=0x80u;
+    ram[0x0470u+13u]=0u;
+    if(!check(cviii_world_link_chapel_0814(world,vertical,ram)==1,
+              "restored original installation signature"))return 36;
+    /* Two records claiming one original slot are both ambiguous. */
+    memcpy(chapel->payload+7u,chapel->payload,7u);
+    if(!check(cviii_world_link_chapel_0814(world,vertical,ram)==0 &&
+              world->chapel_links[0].kind==CVIII_LINK_AMBIGUOUS_0814 &&
+              world->chapel_links[1].kind==CVIII_LINK_AMBIGUOUS_0814,
+              "reject multiple sources to one direct allocator slot"))
+        return 27;
+    /* Original nonnegative $0D source follows $8287-$82A8,
+     * not the direct-object branch at $82B2. */
+    chapel->payload[7u+2u]=0x0du;
+    chapel->payload[7u+3u]=0xd8u;
+    chapel->payload[7u+5u]=0x7au;
+    chapel->payload[7u+6u]=0x4cu;
+    ram[0x07c2u+3u]=0x0du;
+    ram[0x07dau+3u]=0xd8u;
+    ram[0x07e6u+3u]=0x7au;
+    ram[0x07ceu+3u]=0x4cu;
+    ram[0x07d4u+3u]=0x37u;
+    ram[0x07c8u+3u]=0u;ram[0x07e0u+3u]=0u;
+    if(!check(cviii_world_link_chapel_0814(world,vertical,ram)==2 &&
+              world->chapel_links[1].kind==CVIII_LINK_EVENT_0814 &&
+              world->chapel_links[1].slot==3u &&
+              world->chapel_links[0].kind==CVIII_LINK_DIRECT_0814,
+              "source-event and direct actor paths stay separate"))
+        return 28;
+    /* Destroyed or recycled game actors cannot inherit stale provenance. */
+    ram[0x0400u+13u]=0u;
+    (void)cviii_world_capture_live_0803(world,vertical,0,0,ram);
+    if(!check(!world->actors[13].source_cpu_0814 &&
+              !world->actors[13].source_generation_0814,
+              "actor deactivation invalidates source tag"))return 30;
+    /* Blank graphics frame is NOT proof the original actor type was
+     * deallocated. Keep $054E genuine allocator state separate from
+     * JP0807 visual shadow until the guest itself clears the type. */
+    (void)cviii_world_link_chapel_0814(world,vertical,ram);
+    if(!check(cviii_world_probe_chapel_0815(
+                  world,vertical,80,0x180,85,426,fake_sprites)==0 &&
+              !world->chapel_projection[0].actor_confirmed &&
+              world->chapel_projection[0].source_cpu==0xab1fu &&
+              world->chapel_projection[0].guest_installed &&
+              world->chapel_projection[0].guest_slot==13u &&
+              world->chapel_projection[0].interaction_policy==
+                  CVIII_INTERACTION_TYPE80_B258_0816,
+              "frame-zero source remains allocated but visually suppressed"))
+        return 34;
+    /* Actual original slot deallocation requires $054E,X=0;
+     * no silent inference of a despawn from $0400,X alone. */
+    ram[0x054eu+13u]=0u;
+    (void)cviii_world_link_chapel_0814(world,vertical,ram);
+    if(!check(cviii_world_probe_chapel_0815(
+                  world,vertical,80,0x180,85,426,fake_sprites)==0 &&
+              !world->chapel_projection[0].actor_confirmed &&
+              !world->chapel_projection[0].guest_installed &&
+              world->chapel_projection[0].source_cpu==0xab1fu &&
+              world->chapel_projection[0].interaction_policy==
+                  CVIII_INTERACTION_ALLOCATION_UNVERIFIED_0815,
+              "original $054E slot removed while ROM source remains resident"))
+        return 43;
+    uint32_t previous_links=world->chapel_link_epochs;
+    if(!check(cviii_world_link_chapel_0814(world,second,ram)==-1 &&
+              world->chapel_link_epochs==previous_links,
+              "wrong room must not change source identities"))
+        return 29;
+    /* JP0816: all seven horizontal source spans are resident with
+     * authentic ROM-local roots. The selected pointers/rows below are
+     * artificial; commercial ROM bytes are NEVER embedded in C tests. */
+    {
+        static const uint16_t roots[8]={
+            0x93ccu,0x93e8u,0u,0x93f4u,
+            0x9410u,0x9424u,0x9440u,0x945cu
+        };
+        static const uint8_t sizes[8]={28u,12u,0u,28u,20u,28u,28u,28u};
+        for(unsigned i=0;i<8;i++)if(i!=2u){
+            CviiiWorldSourceRoom0811 *src=&world->source_rooms[i];
+            src->root=roots[i];
+            src->end_exclusive=(uint16_t)(roots[i]+sizes[i]);
+            src->width=4u;
+            src->record_count=(uint16_t)(sizes[i]/4u);
+            src->payload_len=sizes[i];
+            memset(src->payload,0,sizeof src->payload);
+        }
+        world->source_rooms[0].payload[10]=0xd1u;
+        world->source_rooms[0].payload[11]=1u;
+        memset(bank0a,0,sizeof bank0a);
+        bank0a[0x9f6eu-0x8000u]=0x20u;
+        bank0a[0x9f6fu-0x8000u]=0xa1u;
+        bank0a[0xa06eu+0xa2u-0x8000u]=0x20u;
+        bank0a[0xa06fu+0xa2u-0x8000u]=0xa2u;
+        bank0a[0xa56bu+2u-0x8000u]=0x20u;
+        bank0a[0xa56cu+2u-0x8000u]=0xa3u;
+        bank0a[0xa220u-0x8000u]=0x32u;
+        bank0a[0xa320u-0x8000u]=0x80u;
+        if(!check(cviii_world_preload_horizontal_0816(
+                       world,bank0a,sizeof bank0a) &&
+                   world->horizontal_ready &&
+                   world->horizontal[0].count==14u &&
+                   world->horizontal[1].count==6u &&
+                   world->horizontal[7].count==14u &&
+                   !world->horizontal[2].valid,
+                  "seven horizontal source-pair payloads resident"))
+             return 37;
+        ram[0x53u]=0x3eu;ram[0x54u]=0x01u;
+        ram[0x62u]=0;ram[0x7f6u]=1u;
+        if(!check(cviii_world_observe_horizontal_0816(
+                       world,first,ram)==1 &&
+                   world->horizontal_last.valid &&
+                   world->horizontal_last.phase==5u &&
+                   world->horizontal_last.slot==5u &&
+                   world->horizontal_last.source_id==0xd1u &&
+                   world->horizontal_last.aux_id==1u &&
+                   world->horizontal_last.event_row==0x32u &&
+                   world->horizontal_last.aux_type==0x80u,
+                  "original $07F6 nonzero opening source resolution"))
+             return 38;
+        ram[0x7f6u]=0u;
+        if(!check(cviii_world_observe_horizontal_0816(
+                       world,first,ram)==1 &&
+                   world->horizontal_last.event_row==0u,
+                  "original $07F6 zero forbids unconditional spawn"))
+             return 39;
+        ram[0x62u]=1u;
+        if(!check(cviii_world_observe_horizontal_0816(
+                       world,first,ram)==1 &&
+                   world->horizontal_last.phase==10u &&
+                   world->horizontal_last.slot==4u,
+                  "original direction62 advances source phase five"))
+             return 40;
+        uint32_t observed=world->horizontal_observations;
+        if(!check(cviii_world_observe_horizontal_0816(
+                       world,vertical,ram)==-1 &&
+                   observed==world->horizontal_observations,
+                  "vertical chapel may not reuse horizontal source pair"))
+             return 41;
+    }
+    /* JP0817: fabricated original CPU RAM source row lifetimes.
+     * No 84EA handler runs in this synthetic test; this is only
+     * source-slot observation, never a claim of an actual enemy spawn. */
+    memset(ram+0x07c2u,0,6u);
+    memset(ram+0x07c8u,0,6u);
+    memset(ram+0x07e0u,0,6u);
+    ram[0x07c2u+3u]=0x32u;
+    ram[0x53u]=0u;
+    ram[0x6bu]=1u;ram[0x65u]=0u;
+    ram[0x07dau+3u]=0u;
+    if(!check(cviii_world_observe_scheduler_0817(world,first,ram)==1 &&
+              world->horizontal_scheduler_samples==1u &&
+              world->horizontal_live[3].will_dispatch &&
+              world->horizontal_live[3].common_8cdd_gate &&
+              world->horizontal_predicted[3].x_after==0xffu &&
+              world->horizontal_predicted[3].page_after==1u,
+              "horizontal 84EA active row and source movement observation"))
+        return 44;
+    ram[0x07c8u+3u]=1u;
+    if(!check(cviii_world_observe_scheduler_0817(world,first,ram)==1 &&
+              world->horizontal_scheduler_samples==2u &&
+              world->horizontal_event_transitions==1u &&
+              !world->horizontal_row_activations,
+              "source script index changed without new actor claim"))
+        return 45;
+    ram[0x07c2u+3u]=0u;
+    if(!check(cviii_world_observe_scheduler_0817(world,first,ram)==0 &&
+              world->horizontal_row_deactivations==1u &&
+              !world->horizontal_predicted[3].will_run,
+              "source row cleared: original 84EA no handler dispatch"))
+        return 46;
+    uint32_t sample_count=world->horizontal_scheduler_samples;
+    if(!check(cviii_world_observe_scheduler_0817(world,vertical,ram)==-1 &&
+              world->horizontal_scheduler_samples==sample_count,
+              "vertical room cannot enter horizontal source scheduler observer"))
+        return 47;
+    /* JP0818: source $8B50 marks actor with bit4 and parent-source
+     * ID in $0645,X. A type3D alone does NOT prove ancestry or
+     * native widescreen drawable AI. */
+    ram[0x07c2u+3u]=0x32u;
+    ram[0x07c8u+3u]=0x11u;
+    ram[0x054eu+2u]=0x3du;
+    ram[0x0470u+2u]=0x04u;
+    ram[0x0645u+2u]=3u;
+    ram[0x0400u+2u]=1u;
+    if(!check(cviii_world_observe_children_0818(world,first,ram)==1 &&
+              world->horizontal_child_samples==1u &&
+              world->horizontal_children[2].allocated &&
+              world->horizontal_children[2].parent_source==3u &&
+              world->horizontal_children[2].source_row_is_32 &&
+              world->horizontal_children[2].sprite_candidate &&
+              world->parent_census_epochs==1u &&
+              world->parent_census[3].children==1u &&
+              world->parent_census[3].actor_slot_mask==(1u<<2) &&
+              world->parent_census[3].visible_candidates==1u &&
+              !world->parent_new_witnesses,
+              "original row32 actor child linked through $0645"))
+        return 48;
+    /* The authentic guest may hide the sprite and clear the source
+     * before the child slot itself has been deallocated. */
+    ram[0x0470u+2u]=0x84u;
+    ram[0x07c2u+3u]=0u;
+    if(!check(cviii_world_observe_children_0818(world,first,ram)==1 &&
+              world->horizontal_children[2].allocated &&
+              !world->horizontal_children[2].sprite_candidate &&
+              !world->horizontal_children[2].source_row_is_32 &&
+              world->parent_census[3].source_cleared_with_child &&
+              !world->parent_census[3].visible_candidates &&
+              world->parent_released_while_child_allocated==1u &&
+              (world->horizontal_unresolved_lineage_mask&(1u<<2)) &&
+              !world->horizontal_child_allocations &&
+              !world->horizontal_child_removals,
+              "original hidden actor retains parent but no OAM claim"))
+        return 49;
+    /* An identically numbered source slot can restart row32 while
+     * its previous child remains allocated; no new identity credit. */
+    ram[0x07c2u+3u]=0x32u;
+    if(!check(cviii_world_observe_children_0818(world,first,ram)==1 &&
+              (world->horizontal_unresolved_lineage_mask&(1u<<2)) &&
+              world->horizontal_source_reuse_warnings==1u &&
+              !world->parent_new_witnesses,
+              "original recycled row32 cannot reassign survivor's identity"))
+         return 52;
+    ram[0x054eu+2u]=0u;
+    if(!check(cviii_world_observe_children_0818(world,first,ram)==0 &&
+              world->horizontal_child_removals==1u &&
+              !world->parent_census[3].actor_slot_mask &&
+              world->parent_lost_witnesses==1u,
+              "original type zero removes prior actor-to-source witness"))
+        return 50;
+    const uint32_t child_samples=world->horizontal_child_samples;
+    if(!check(cviii_world_observe_children_0818(world,vertical,ram)==-1 &&
+              child_samples==world->horizontal_child_samples,
+              "unsupported chapel does not mutate horizontal child state"))
+        return 51;
+    /* JP0821: the original B5DF effect uses slot23 sprite frame
+     * $12, selector $0E, flags $20, WITHOUT allocating $054E+23.
+     * Renderer may project the actual guest sprite outside 256px;
+     * do not create a synthetic enemy or contact. */
+    ram[0x0400u+23u]=0x12u;
+    ram[0x048cu+23u]=0x0eu;
+    ram[0x0470u+23u]=0x20u;
+    ram[0x054eu+23u]=0u;
+    ram[0x0438u+23u]=0x40u;
+    ram[0x041cu+23u]=0x84u;
+    (void)cviii_world_capture_live_0803(world,first,0,0,ram);
+    if(!check(world->effect23.matched &&
+              world->effect23.draw_candidate &&
+              world->effect23.type23==0u &&
+              world->effect23_entries==1u &&
+              world->actors[23].active &&
+              world->actors[23].frame==0x12u &&
+              world->actors[23].original_type==0u,
+              "guest slot23 original visual effect is not an allocated enemy"))
+         return 53;
+    (void)cviii_world_capture_live_0803(world,first,0,0,ram);
+    if(!check(world->effect23.matched &&
+              world->effect23_entries==1u &&
+              world->effect23_observations==2u,
+              "identical live original slot23 sample is not another spawn"))
+         return 54;
+    ram[0x0400u+23u]=0u;
+    (void)cviii_world_capture_live_0803(world,first,0,0,ram);
+    if(!check(!world->effect23.matched && !world->actors[23].active &&
+              world->effect23_entries==1u,
+              "original blank frame stops slot23 visual without actor death"))
+         return 55;
     cviii_world_clear_live_0805(world);
+    if(!check(world->horizontal_ready &&
+              world->horizontal[0].count==14u &&
+              !world->horizontal_observations &&
+              !world->horizontal_last.valid &&
+              !world->horizontal_scheduler_samples &&
+              !world->horizontal_row_deactivations &&
+              !world->horizontal_event_transitions &&
+              !world->horizontal_child_samples &&
+              !world->horizontal_child_removals &&
+              !world->horizontal_children[2].allocated &&
+              !world->parent_census_epochs &&
+              !world->parent_lost_witnesses &&
+              !world->parent_released_while_child_allocated &&
+              !world->horizontal_unresolved_lineage_mask &&
+              !world->horizontal_source_reuse_warnings &&
+              !world->effect23.matched &&
+              !world->effect23_observations &&
+              !world->effect23_entries,
+              "transient original source phase reset preserves source directory"))
+         return 42;
     if(!check(!world->actors[0].active &&
               world->groups[4].active && world->templates_ready &&
               world->rooms[1].placed,
