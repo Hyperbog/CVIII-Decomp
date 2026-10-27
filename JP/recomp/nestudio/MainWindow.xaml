@@ -218,7 +218,11 @@
               <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel Margin="10,8">
                   <TextBlock Text="DIALOGUE &amp; TRANSLATIONS" FontWeight="Bold" Foreground="#B0DCF2"/>
-                  <TextBlock Text="Bound screen regions are editor annotations only. Original script/dialogue source event ABI is reserved but reports no authentic triggers until a bank/PC-qualified interpreter hook is verified."
+                  <TextBlock Text="Original script-byte transitions are observable from the genuine CPU object table. They are not certified dialogue-print opcodes. Bank/PC-authenticated original text triggers are still unhooked."
+                             Foreground="#CDD9E6" TextWrapping="Wrap" Margin="0,3,0,8"/>
+                  <Button Content="Bind selected original actor script" Click="BindActorScript_Click"/>
+                  <TextBlock x:Name="OriginalScriptStatus" Text="Original dialogue-printer hook: unavailable"
+                             Foreground="#B6CFE4" TextWrapping="Wrap" Margin="0,3,0,8"/>
                              Foreground="#CDD9E6" TextWrapping="Wrap" Margin="0,4,0,10"/>
                   <StackPanel Orientation="Horizontal" Margin="0,5,0,4">
                     <Button Content="Bind region: click viewport" Click="BindDialogueRegion_Click"/>
