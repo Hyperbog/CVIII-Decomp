@@ -14,14 +14,26 @@
 #include <stdio.h>
 #include "cviii_lighting_host.h"
 #define NEST_MAGIC 0x5453454eL /* little-endian "NEST" */
-#define NEST_VERSION 1
+#define NEST_VERSION 2
 #define NEST_MAX_LIGHTS 128
 typedef struct {
     LONG used,room,x,y,radius,energy,red,green,blue,shape,muted,flicker;
     char name[32];
 } NestStudioLight; /* exactly 80 bytes */
 typedef struct {LONG used,slot,x,y,tile,attributes;} NestStudioSprite; /* 24 bytes */
+/* Original 28-entry CPU object-table lifetime, never raw OAM identity. */
+typedef struct {
+    LONG active,slot,generation,room,x,y,frame,selector,mirror,flags,script;
+} NestStudioOriginalObject; /* 44 bytes */
+/* Reserved ABI for future bank+PC authenticated original dialogue events.
+ * sequence == 0 until a validated original interpreter hook exists.
+ * Authored viewport annotations MUST NOT feed this structure. */
+typedef struct {
+    volatile LONG sequence;
+    LONG bank,cpu_pc,script_id,event_id,room,frame,kind;
+} NestStudioOriginalDialogueEvent; /* 32 bytes */
 extern int cviii_nestudio_copy_oam(uint8_t out[256]);
+extern int cviii_nestudio_copy_original_objects(uint8_t out[8][28],uint8_t *phase);
 typedef struct {
     volatile LONG magic,version,request,response;
     volatile LONG op,a,b,c,result;
@@ -29,11 +41,23 @@ typedef struct {
     volatile LONG reserved[14]; /* 128 byte header */
     NestStudioLight lights[NEST_MAX_LIGHTS];
     NestStudioSprite sprites[64];
+    /* Version 2 tail; version 1 field offsets remain byte-for-byte intact. */
+    volatile LONG oam_phase,original_object_count;
+    NestStudioOriginalObject original_objects[28];
+    NestStudioOriginalDialogueEvent original_dialogue;
 } NestStudioMapping;
 typedef char nest_layout_1[(sizeof(NestStudioLight)==80)?1:-1];
 typedef char nest_layout_2[(offsetof(NestStudioMapping,lights)==128)?1:-1];
 typedef char nest_layout_3[(sizeof(NestStudioSprite)==24)?1:-1];
 typedef char nest_layout_4[(offsetof(NestStudioMapping,sprites)==10368)?1:-1];
+typedef char nest_layout_5[(sizeof(NestStudioOriginalObject)==44)?1:-1];
+typedef char nest_layout_6[(offsetof(NestStudioMapping,oam_phase)==11904)?1:-1];
+typedef char nest_layout_7[(offsetof(NestStudioMapping,original_objects)==11912)?1:-1];
+typedef char nest_layout_8[(offsetof(NestStudioMapping,original_dialogue)==13144)?1:-1];
+typedef char nest_layout_9[(sizeof(NestStudioMapping)==13176)?1:-1];
+static LONG nest_object_generation[28];
+static uint8_t nest_object_was_active[28];
+static uint32_t nest_object_room=UINT32_MAX;
 static HANDLE nest_mapping_handle;
 static NestStudioMapping *nest_shared;
 static int nest_checked;
@@ -183,6 +207,39 @@ static void nest_tick(void){
             p->attributes=oam[at+2];p->x=oam[at+3];
         }
     }else memset(nest_shared->sprites,0,sizeof nest_shared->sprites);
+    /* Authenticated original PRG26 object-table positions and selector.
+     * Generation is host-only, advancing on room change or inactive->active.
+     * A slot reused without an observed inactive frame stays ambiguous. */
+    uint8_t tables[8][28],phase=0;
+    if(cviii_nestudio_copy_original_objects(tables,&phase)){
+        const uint32_t room=(uint32_t)nest_shared->room;
+        int room_changed=(room!=nest_object_room);
+        if(room_changed)nest_object_room=room;
+        nest_shared->oam_phase=(LONG)phase;
+        LONG active_count=0;
+        for(int i=0;i<28;++i){
+            NestStudioOriginalObject *obj=&nest_shared->original_objects[i];
+            int active=tables[0][i]!=0 && (tables[4][i]&0x80u)==0;
+            if(active && (!nest_object_was_active[i] || room_changed)){
+                if(++nest_object_generation[i]<=0)nest_object_generation[i]=1;
+            }
+            nest_object_was_active[i]=(uint8_t)active;
+            obj->active=active;obj->slot=i;
+            obj->generation=nest_object_generation[i];
+            obj->room=(LONG)room;obj->x=tables[2][i];
+            obj->y=tables[1][i];obj->frame=tables[0][i];
+            obj->selector=tables[5][i];obj->mirror=tables[6][i];
+            obj->flags=tables[4][i];obj->script=tables[7][i];
+            active_count+=active;
+        }
+        nest_shared->original_object_count=active_count;
+    }else{
+        nest_shared->oam_phase=-1;
+        nest_shared->original_object_count=0;
+        memset(nest_shared->original_objects,0,
+               sizeof nest_shared->original_objects);
+        memset(nest_object_was_active,0,sizeof nest_object_was_active);
+    }
     MemoryBarrier();
     InterlockedIncrement(&nest_shared->revision); /* even: stable snapshot */
 }
