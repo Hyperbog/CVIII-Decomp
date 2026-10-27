@@ -508,6 +508,15 @@ static void frame_end(void *context)
     fclose(snapshot);
 }
 
+/* Read-only PPU sprite evidence for NEStudio. A raw OAM slot is NOT a
+ * stable game actor identity: original OAM rotation may reorder slots. */
+int cviii_nestudio_copy_oam(uint8_t out[256])
+{
+    const uint8_t *oam=cyc_render_oam();
+    if(!out || !oam)return 0;
+    memcpy(out,oam,256);
+    return 1;
+}
 static const uint32_t *present_game(void *context, int *width, int *height)
 {
     CviiiEdition *settings = (CviiiEdition *)context;
