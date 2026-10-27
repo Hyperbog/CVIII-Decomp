@@ -1,6 +1,7 @@
 using Microsoft.Win32;
 using System.IO;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -26,7 +27,20 @@ public partial class MainWindow : Window
     private StudioSpriteGroup? _sprite;
     private StudioDialogue? _dialogue;
     private string _language="en";
-    private int _lastConsoleFrame;
+    // User-local acceptance evidence; no ROM bytes or project assets are logged.
+    private readonly string _acceptanceLogPath=Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "NEStudio","Acceptance",
+        $"session-{DateTime.Now:yyyyMMdd-HHmmss}-{Guid.NewGuid():N}.log");
+    private int _lastNativePid;
+    private int _lastNativeFrame=-1;
+    private int _lastAck;
+    private int _lastSentOperation;
+    private DateTime _lastFrameAdvanceUtc;
+    private bool _frameProgressLogged;
+    private bool _frameDelayLogged;
+    private bool _snapshotLogged;
+    private bool _lightEditLogged;
     public MainWindow()
     {
         InitializeComponent();
@@ -55,6 +69,7 @@ public partial class MainWindow : Window
         _poll.Start();
         Log("Editor initialized. Open a .nestudio project or create one.");
         Log("Runtime is a separate native recomp process; no ROM assets enter project files.");
+        Log("Acceptance log: "+_acceptanceLogPath);
     }
     private static string FindGame()
     {
@@ -85,15 +100,48 @@ public partial class MainWindow : Window
                 {
                     _bridge=StudioBridge.TryOpen(_game.Session);
                     if(_bridge is not null)
+                    {
+                        _lastFrameAdvanceUtc=DateTime.UtcNow;
                         Log("Connected to live C11 Enhanced scene bridge.");
+                    }
                 }
                 if(_bridge is not null)
                 {
-                    _game.SetNativeProcessId(_bridge.GameProcessId);
+                    int nativePid=_bridge.GameProcessId;
+                    _game.SetNativeProcessId(nativePid);
+                    if(nativePid>0 && nativePid!=_lastNativePid)
+                    {
+                        _lastNativePid=nativePid;
+                        Log($"Native game PID confirmed by session bridge: {nativePid}.");
+                    }
+                    int frame=_bridge.GameFrame;
+                    if(_lastNativeFrame<0)
+                    {
+                        _lastNativeFrame=frame;
+                        _lastFrameAdvanceUtc=DateTime.UtcNow;
+                    }
+                    else if(frame!=_lastNativeFrame)
+                    {
+                        _lastNativeFrame=frame;
+                        _lastFrameAdvanceUtc=DateTime.UtcNow;
+                        _frameDelayLogged=false;
+                        if(!_frameProgressLogged)
+                        {
+                            _frameProgressLogged=true;
+                            Log("Native SDL host frame counter is advancing.");
+                        }
+                    }
+                    else if(!_frameDelayLogged &&
+                            _scene?.Editing!=true &&
+                            DateTime.UtcNow-_lastFrameAdvanceUtc>TimeSpan.FromSeconds(5))
+                    {
+                        _frameDelayLogged=true;
+                        Log("Native frame counter unchanged for 5 seconds; game may be paused or stalled.");
+                    }
                     if(!_game.IsEmbedded && _game.TryEmbed())
                     {
                         ViewportHint.Visibility=Visibility.Collapsed;
-                        Log("Embedded native SDL2 game viewport.");
+                        Log($"Embedded native SDL2 viewport (PID {_game.ProcessId}, Win32 parent verified; panel {ViewportHost.ActualWidth:0}x{ViewportHost.ActualHeight:0}).");
                     }
                 }
                 if(!_game.IsEmbedded && !_game.IsBatchLauncher &&
@@ -104,14 +152,41 @@ public partial class MainWindow : Window
                 }
                 if(_bridge is not null)
                 {
+                    // Read the previous acknowledgement before dispatching the
+                    // next command, so acceptance logs name the correct action.
+                    StudioScene? snapshot=_bridge.Poll();
+                    int ack=_bridge.AcknowledgedSequence;
+                    if(ack!=_lastAck)
+                    {
+                        _lastAck=ack;
+                        if(_bridge.LastResult==0)
+                            Log($"Native editor command rejected (op {_lastSentOperation}).");
+                        else if(_lastSentOperation is 1 or 2 or 13 or 14)
+                            Log($"Native editor command acknowledged (op {_lastSentOperation}).");
+                        else if(_lastSentOperation==4 && !_lightEditLogged)
+                        {
+                            _lightEditLogged=true;
+                            Log("Native lighting property edit acknowledged.");
+                        }
+                    }
+                    if(snapshot is not null)
+                    {
+                        if(!_snapshotLogged)
+                        {
+                            _snapshotLogged=true;
+                            Log($"Live scene snapshot received (room 0x{snapshot.Room:X8}, {snapshot.Lights.Count} lights, {snapshot.Sprites.Count} OAM slots).");
+                        }
+                        UpdateScene(snapshot);
+                    }
                     if(_commands.Count>0)
                     {
                         var cmd=_commands.Peek();
                         if(_bridge.TryCommand(cmd.Op,cmd.A,cmd.B,cmd.C))
+                        {
+                            _lastSentOperation=cmd.Op;
                             _commands.Dequeue();
+                        }
                     }
-                    StudioScene? snapshot=_bridge.Poll();
-                    if(snapshot is not null)UpdateScene(snapshot);
                 }
                 ConnectionLabel.Text=_bridge is null?
                     "GAME RUNNING · Bridge connecting":
@@ -267,6 +342,10 @@ public partial class MainWindow : Window
             }
             if(!File.Exists(path))return;
             _game.Start(path);
+            _lastNativePid=0;_lastNativeFrame=-1;_lastAck=0;
+            _lastSentOperation=0;_frameProgressLogged=false;
+            _frameDelayLogged=false;_snapshotLogged=false;_lightEditLogged=false;
+            _lastFrameAdvanceUtc=DateTime.UtcNow;
             _fingerprint="";
             Status("Launching game in embedded viewport.");
             Log($"Launched {Path.GetFileName(path)} (owner-local {(_game.IsBatchLauncher?"BAT/CMD launcher":"native executable")}).");
@@ -564,11 +643,30 @@ public partial class MainWindow : Window
         if(e.Key==Key.S){Save(false);e.Handled=true;}
         else if(e.Key==Key.O){OpenProject_Click(sender,new RoutedEventArgs());e.Handled=true;}
     }
+    private void OpenAcceptanceLog_Click(object sender,RoutedEventArgs e)
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName=_acceptanceLogPath,UseShellExecute=true
+            });
+        }
+        catch(Exception ex){Error("Opening acceptance log",ex);}
+    }
     private void Status(string message){StatusText.Text=message;}
     private void Log(string line)
     {
-        ConsoleText.AppendText($"[{DateTime.Now:HH:mm:ss}] {line}\n");
+        string entry=$"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] {line}";
+        ConsoleText.AppendText(entry+"\n");
         ConsoleText.ScrollToEnd();
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(_acceptanceLogPath)!);
+            File.AppendAllText(_acceptanceLogPath,entry+Environment.NewLine);
+        }
+        catch(IOException){} // Never interrupt game input for diagnostic I/O.
+        catch(UnauthorizedAccessException){}
     }
     private void Error(string operation,Exception ex)
     {
