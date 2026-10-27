@@ -76,6 +76,25 @@ controlled CPU-oracle**:
    through that offscreen frame; no synthetic CPU code
    or separate scheduler is required to keep it alive.
 
+### Three independently executed original-page variants
+
+From the same genuine natural Mesen frame3122 snapshot,
+the test reset the original CPU state for each variant and
+ran **one complete original 6502 gameplay frame**:
+
+| Original input page1 | Original frame postcondition | Native gate |
+| --- | --- | --- |
+| actor X=`$0C`, flags=`$C5` | original actor type`$3D`, frame`$94`, flags`$C5`, parent source3 survived | project right |
+| actor X=`$F0`, flags=`$C5` | original actor type`$3D`, frame`$94`, flags`$C5`, parent source3 survived | project left |
+| actor X=`$81`, flags=`$C5` | original `$054F=0`, `$0401=0` (CPU deallocated) | reject middle page |
+
+The new reproducible private owner oracle
+`JP/decomp/tools/jp0824_mesen_original_actor_page_oracle.py`
+validates both authorized core hashes, the original ROM,
+the original natural type3D input state and **all three**
+actual 6502 postconditions. It never includes the original
+state or ROM in Git.
+
 This is an original **controlled-state test**, **NOT**
 proof of natural wide source spawning, natural offscreen
 AI motion for every actor type, or contact/parity against
