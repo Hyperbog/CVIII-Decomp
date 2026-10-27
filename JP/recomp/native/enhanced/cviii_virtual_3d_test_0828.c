@@ -2,6 +2,7 @@
  * simulation. Synthetic RAM; real owner ROM only as optional argv[1].
  * Source code includes NO commercial PRG bytes or encoded sprites. */
 #include "cviii_virtual_collision_0828.h"
+#include "cviii_sound_prelude_0828.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -92,6 +93,23 @@ static void synthetic(void){
                                          21u,&hit) &&
        hit.outcome==CVIII_VCOL_UNVERIFIED_0828,
        "type05 original special hitbox remains blocked");
+ /* The real fixed-bank $E249 prelude saves original PRG bank,
+  * selects $0C and reaches JSR $8850 with the sound ID untouched.
+  * All sound/mapper writes remain hypothetical sandbox values. */
+ uint8_t ram_before[2048];memcpy(ram_before,ram,sizeof ram);
+ ram[0x23u]=0x0bu;ram[0x26u]=0x00u;
+ CviiiE249Prelude0828 sound={0};
+ check(cviii_e249_prelude_0828(ram,0x27u,&sound) &&
+       sound.original_bank==0x0bu &&
+       sound.proposed_25==0x0bu &&
+       sound.proposed_26==0xffu &&
+       sound.proposed_prg_bank==0x0cu &&
+       sound.pending_sound==0x27u &&
+       sound.stop_pc==0xe258u &&
+       sound.external_target==0x8850u &&
+       !sound.effects_authorized,
+       "E249 real fixed-bank sound prelude stops BEFORE bank0C APU effects");
+ (void)ram_before;
  cviii_virtual_reset_0828(&v,&s);
  check(v.actor[0].state==CVIII_VIRTUAL_0828_UNSPAWNED &&
        !v.detached_steps && !v.actor[0].cpu.ram[0x54fu],
