@@ -6,6 +6,7 @@
 #include "cyc_host_extras.h"
 #include "cyc_mod.h"
 #include "cviii_nestudio_owner.h"
+#include "cviii_nestudio_ec47_trace.h"
 #if defined(_WIN32)
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -97,11 +98,75 @@ typedef struct {
     unsigned sequence,source_pc,stage,byte_value,room,frame,kind;
 } CviiiNestRoomMessage;
 static CviiiNestRoomMessage cviii_nest_room_message;
+static CviiiNestEc47Trace cviii_nest_ec47;
 static uint8_t cviii_nest_ram_observer(uint16_t pc,uint16_t addr,uint8_t value)
 {
     if(!cviii_nest_observe)return value;
     const uint8_t *ram=cyc_cpu_ram();
     if(!ram)return value;
+    /* Fixed EC47 delegates through E2CA into bank00:$966A.
+     * E2CB:LDA $23 provides an original instruction read on entry.
+     * Validate mapper bank, source caller and the true JSR/PHA stack. */
+    if(pc==0xE2CBu && addr==0x23u &&
+       value==0x0Au && cviii_nest_room_message.sequence &&
+       cviii_nest_room_message.kind==1u &&
+       cviii_nest_room_message.frame==(unsigned)cviii.lighting_frame){
+        const uint8_t expected_entry[6]={0x48u,0xA9u,0x00u,
+                                         0x20u,0xCAu,0xE2u};
+        const uint8_t expected_switch[3]={0x48u,0xA5u,0x23u};
+        const uint8_t expected_caller[3]={0x20u,0x47u,0xECu};
+        int trusted=1;
+        for(unsigned i=0;i<6u;++i){
+            uint8_t b=0;
+            trusted &= cyc_debug_peek((uint16_t)(0xEC47u+i),&b) &&
+                       b==expected_entry[i];
+        }
+        for(unsigned i=0;i<3u;++i){
+            uint8_t b=0,c=0;
+            trusted &= cyc_debug_peek((uint16_t)(0xE2CAu+i),&b) &&
+                       b==expected_switch[i];
+            trusted &= cyc_debug_peek((uint16_t)(0xB8FFu+i),&c) &&
+                       c==expected_caller[i];
+        }
+        CycModRegs regs;
+        cyc_mod_regs(&regs);
+        trusted &= cviii_ec47_stack_matches(ram,regs.s,
+                (uint8_t)cviii_nest_room_message.byte_value) && regs.x==8u;
+        if(trusted)
+            cviii_ec47_begin(&cviii_nest_ec47,
+                cviii_nest_room_message.stage,
+                cviii_nest_room_message.byte_value,
+                (unsigned)cviii.lighting_frame,ram[0x1Eu],
+                cviii_nest_room_message.sequence);
+        return value;
+    }
+    /* Original EC72:LDX $1E reads the formatter output cursor.
+     * The data is queued to $0300, not directly written to the PPU. */
+    if(pc==0xEC72u && addr==0x001Eu &&
+       cviii_nest_ec47.sequence && !cviii_nest_ec47.completed &&
+       ram[0x23u]==0u){
+        uint8_t a=0,b=0;
+        if(cyc_debug_peek(0xEC72u,&a) &&
+           cyc_debug_peek(0xEC73u,&b) &&
+           a==0xA6u && b==0x1Eu)
+            cviii_ec47_queue_read(&cviii_nest_ec47);
+        return value;
+    }
+    /* Original E62D:LDA $24, JMP E2D0 restores prior mapper bank
+     * after bank00 formatter $966A returns to the EC47 trampoline. */
+    if(pc==0xE62Du && addr==0x24u &&
+       cviii_nest_ec47.sequence && !cviii_nest_ec47.completed &&
+       ram[0x23u]==0u){
+        const uint8_t expected[5]={0xA5u,0x24u,0x4Cu,0xD0u,0xE2u};
+        int trusted=1;
+        for(unsigned i=0;i<5u;++i){
+            uint8_t b=0;
+            trusted &= cyc_debug_peek((uint16_t)(0xE62Du+i),&b) &&
+                       b==expected[i];
+        }
+        if(trusted)cviii_ec47_finish(&cviii_nest_ec47,ram[0x1Eu]);
+        return value;
+    }
     /* Original $8038 LDX $04 is reached after every ordinary object
      * pass, before other game logic can reuse the $07 scratch counter. */
     if(pc==0x8038u && addr==0x0004u){
@@ -183,6 +248,8 @@ static void cviii_nest_ppu_observer(unsigned reg,uint16_t address,
     cviii_nest_ppu.address=address;
     cviii_nest_ppu.tile=tile;
     ++cviii_nest_ppu.writes;
+    cviii_ec47_ppu_write(&cviii_nest_ec47,
+        (unsigned)cviii.lighting_frame,address,r.pc);
 }
 
 /* JP0620: optional built-in paused runtime menu rows for recomp-ui builds.
@@ -494,6 +561,7 @@ static void power_on(void *context)
     cviii_owner_reset(&cviii_nest_owner);
     memset(&cviii_nest_ppu,0,sizeof cviii_nest_ppu);
     memset(&cviii_nest_room_message,0,sizeof cviii_nest_room_message);
+    cviii_ec47_reset(&cviii_nest_ec47);
 #if defined(_WIN32)
     char session[72]={0};
     DWORD len=GetEnvironmentVariableA("CVIII_NESTUDIO_SESSION",session,sizeof session);
@@ -538,6 +606,7 @@ static void state_loaded(void *context)
     cviii_owner_reset(&cviii_nest_owner);
     memset(&cviii_nest_ppu,0,sizeof cviii_nest_ppu);
     memset(&cviii_nest_room_message,0,sizeof cviii_nest_room_message);
+    cviii_ec47_reset(&cviii_nest_ec47);
     cviii_audio_menu_state_close(&settings->audio_ui); /* loaded gameplay never owns a stale modal */
     cviii_start_close(&settings->start_menu);
     cviii_slot_cancel(&settings->slot_menu);
@@ -640,6 +709,19 @@ int cviii_nestudio_copy_original_ownership(uint8_t owners[64],
     *observed=cviii_nest_owner.observed;
     *invalid=cviii_nest_owner.invalid;
     return cviii_owner_ready(&cviii_nest_owner);
+}
+int cviii_nestudio_ec47_trace(unsigned out[15])
+{
+    if(!out)return 0;
+    const CviiiNestEc47Trace *t=&cviii_nest_ec47;
+    out[0]=t->sequence;
+    out[1]=0x0Au;out[2]=0xEC47u;out[3]=0xB8FFu;
+    out[4]=t->stage;out[5]=t->token;out[6]=t->queue_start;
+    out[7]=t->queue_end;out[8]=t->queue_reads;
+    out[9]=t->ppu_writes;out[10]=t->first_ppu;
+    out[11]=t->last_ppu;out[12]=t->last_ppu_pc;
+    out[13]=t->completed;out[14]=t->source_frame;
+    return t->sequence!=0;
 }
 int cviii_nestudio_room_message(unsigned out[7])
 {
