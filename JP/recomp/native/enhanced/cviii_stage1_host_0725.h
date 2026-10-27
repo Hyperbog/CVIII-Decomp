@@ -29,6 +29,10 @@ typedef struct {
     int last_ppu_scroll_x; /* authoritative visible scanline modulo-512 X */
     int has_ppu_scroll_x; /* reset with scene, never serialized to saves */
     unsigned scroll_fallback_frames; /* diagnostic consecutive step tracking */
+    /* JP0823 Stage1-03 CPU/PPU phase-stable presentation recovery after
+     * original nametable probes disagree. No graph or actor authority. */
+    uint8_t blk103_candidate[3];
+    unsigned blk103_candidate_frames;
     int enabled, attempted, video_wide;
 } CviiiStage1Host0725;
 /* Options are only applied to this presentation object, not guest memory. */
