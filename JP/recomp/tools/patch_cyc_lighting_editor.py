@@ -180,6 +180,17 @@ static bool nest_sprite_sdl_event(const SDL_Event *ev)
     }
     nest_shared->reserved[4]=lo;
     nest_shared->reserved[5]=hi;
+    /* Only validated source-instruction attribution can select the
+     * original CPU object; unowned pieces do not fabricate an identity. */
+    int owner=chosen>=0 && nest_shared->ownership_valid?
+        (int)nest_shared->owner_for_oam[chosen]:-1;
+    unsigned mask=(unsigned)nest_shared->selected_original_mask;
+    if(!multi)mask=0;
+    if(owner>=0 && owner<28){
+        unsigned bit=1u<<owner;
+        mask=multi?(mask^bit):(mask|bit);
+    }
+    nest_shared->selected_original_mask=(LONG)mask;
     return true;
 }
 /* Dialogue mode picks only user-authored region anchors, never invents
@@ -225,12 +236,18 @@ static void nest_sprite_draw_selection(SDL_Renderer *renderer)
     if(!cviii_nestudio_copy_oam(oam))return;
     unsigned lo=(unsigned)nest_shared->reserved[4];
     unsigned hi=(unsigned)nest_shared->reserved[5];
+    unsigned ownerMask=(unsigned)nest_shared->selected_original_mask;
     Uint8 r=0,g=0,b=0,a=0;
     SDL_GetRenderDrawColor(renderer,&r,&g,&b,&a);
-    SDL_SetRenderDrawColor(renderer,91,222,255,255);
     for(int i=0;i<64;++i){
         bool selected=i<32?((lo>>i)&1u)!=0:((hi>>(i-32))&1u)!=0;
-        if(!selected || oam[4*i]>=239)continue;
+        int owner=nest_shared->ownership_valid?
+            (int)nest_shared->owner_for_oam[i]:-1;
+        bool sourceSelected=owner>=0 && owner<28 &&
+            (ownerMask&(1u<<owner))!=0;
+        if((!selected && !sourceSelected) || oam[4*i]>=239)continue;
+        if(sourceSelected)SDL_SetRenderDrawColor(renderer,255,194,95,255);
+        else SDL_SetRenderDrawColor(renderer,91,222,255,255);
         SDL_Rect box={(int)oam[4*i+3]-1,(int)oam[4*i]+0,10,10};
         SDL_RenderDrawRect(renderer,&box);
         SDL_Rect inner={box.x-1,box.y-1,12,12};
@@ -520,6 +537,8 @@ def smoke() -> None:
     assert "nest_keyboard_owned()" in product
     assert "nest_sprite_sdl_event(&ev)" in product
     assert "nest_sprite_draw_selection(s_ren);" in product
+    assert "owner_for_oam[chosen]" in product
+    assert "selected_original_mask" in product
     assert "nest_dialog_sdl_event(&ev)" in product
     assert "nest_dialog_draw_selection(s_ren);" in product
     assert "GetAsyncKeyState(VK_CONTROL)" in product
