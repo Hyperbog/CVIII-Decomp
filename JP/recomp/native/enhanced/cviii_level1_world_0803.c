@@ -126,6 +126,8 @@ int cviii_world_preload_horizontal_0816(CviiiLevel1World0803 *w,
     memcpy(w->horizontal,tmp,sizeof tmp);
     w->wide_sources_0825=source_registry;
     w->wide_runtime_0826=running_instances;
+    cviii_virtual_reset_0828(&w->virtual_3d_0828,
+                             &w->wide_sources_0825);
     w->horizontal_ready=1u;
     memset(&w->horizontal_last,0,sizeof w->horizontal_last);
     w->horizontal_observations=0u;
@@ -658,6 +660,11 @@ void cviii_world_clear_live_0805(CviiiLevel1World0803 *w){
         w->wide_sources_0825.live_verified=0u;
         cviii_wide_runtime_init_0826(&w->wide_runtime_0826,
                                       &w->wide_sources_0825);
+        /* Save-state restoration cannot reuse a prior detached CPU
+         * timeline without the original guest virtual state serialized.
+         * Restore only verified resident source identities. */
+        cviii_virtual_reset_0828(&w->virtual_3d_0828,
+                                 &w->wide_sources_0825);
     }
 }
 
