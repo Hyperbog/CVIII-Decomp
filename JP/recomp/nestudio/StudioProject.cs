@@ -69,6 +69,10 @@ public sealed class StudioDialogue
     public int SourceObjectSlot { get; set; } = -1;
     public int SourceGeneration { get; set; }
     public int SourceScriptId { get; set; } = -1;
+    // Original raw0A:B8F4 room-message source event (pre-$EC47).
+    // Verified source byte, NOT a proven rendered text glyph.
+    public int SourceMessageStage { get; set; } = -1;
+    public int SourceMessageByte { get; set; } = -1;
     // Authored screen-space marker only. This is not an automatically
     // discovered original NES script trigger or textbox identity.
     public bool HasViewportRegion { get; set; }
@@ -146,6 +150,10 @@ public static class StudioProjectFile
                 (entry.SourceObjectSlot<0 || entry.SourceGeneration<=0 ||
                  entry.SourceScriptId<0)))
                 throw new InvalidDataException("Invalid original actor script-transition binding.");
+            if(entry.Trigger=="original-room-message" &&
+               (entry.SourceMessageStage is <0 or >=5 ||
+                entry.SourceMessageByte is <0 or >255))
+                throw new InvalidDataException("Invalid original bounded room-message byte binding.");
             if(entry.HasViewportRegion &&
                (entry.ViewX<0 || entry.ViewX>=256 ||
                 entry.ViewY<0 || entry.ViewY>=240 ||
