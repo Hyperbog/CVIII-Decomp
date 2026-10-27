@@ -45,6 +45,8 @@ public partial class MainWindow : Window
     private bool _captureGameKeys;
     private int _gameKeyBits;
     private readonly HashSet<int> _selectedSpriteSlots=new();
+    private bool _placingDialogueRegion;
+    private int _lastDialogueClickSequence;
     // Matches SDL SCANCODE_UP/DOWN/LEFT/RIGHT/Z/X/RETURN/BACKSLASH
     // in the owner-private v1 session input header.
     private static int GameBit(Key key) => key switch
@@ -192,6 +194,17 @@ public partial class MainWindow : Window
                             Log($"Live scene snapshot received (room 0x{snapshot.Room:X8}, {snapshot.Lights.Count} lights, {snapshot.Sprites.Count} OAM slots).");
                         }
                         UpdateScene(snapshot);
+                        if(DialogueTab.IsSelected)
+                        {
+                            if(_bridge.TryReadDialogueClick(out int clickSeq,
+                                out int x,out int y) &&
+                                clickSeq!=_lastDialogueClickSequence)
+                            {
+                                _lastDialogueClickSequence=clickSeq;
+                                HandleDialogueViewportClick(x,y);
+                            }
+                            _bridge.SetDialogueHighlight(_dialogue,_scene?.Room??0);
+                        }
                     }
                     if(_commands.Count>0)
                     {
@@ -295,13 +308,18 @@ public partial class MainWindow : Window
             LightGreen.Value=selected.Green;
             LightBlue.Value=selected.Blue;
             FlickerCombo.SelectedIndex=Math.Clamp(selected.Flicker,0,4);
-            SelectionLabel.Text=selected.Label;
+            if(LightingTab.IsSelected)SelectionLabel.Text=selected.Label;
         }
         else
         {
             LightName.Text="Select or drag a light in the game viewport";
-            SelectionLabel.Text="No light selected";
+            if(LightingTab.IsSelected)SelectionLabel.Text="No light selected";
         }
+        if(SpritesTab.IsSelected)
+            SelectionLabel.Text=$"{_selectedSpriteSlots.Count} visible OAM sprites selected";
+        if(DialogueTab.IsSelected)
+            SelectionLabel.Text=_dialogue is null?"No authored dialogue selected":
+                _dialogue.Id+(_dialogue.HasViewportRegion?" — bound to viewport":" — region unbound");
         RendererCombo.SelectedIndex=Math.Clamp(scene.Renderer,0,2);
         _changing=false;
     }
@@ -626,6 +644,7 @@ public partial class MainWindow : Window
     {
         if(!IsLoaded || !ReferenceEquals(e.Source,InspectorTabs))return;
         ReleaseGameKeys();
+        _placingDialogueRegion=false;
         if(LightingTab.IsSelected)
         {
             Queue(18,0);Queue(17);
@@ -730,6 +749,55 @@ public partial class MainWindow : Window
             SpriteLayerCombo.SelectedIndex];
         Dirty();SpriteList.Items.Refresh();
     }
+    private void BindDialogueRegion_Click(object sender,RoutedEventArgs e)
+    {
+        if(_dialogue is null || _scene is null || !DialogueTab.IsSelected)
+        {
+            Status("Select or add an authored dialogue entry, then open Dialogue mode.");
+            return;
+        }
+        _placingDialogueRegion=true;
+        Status("Click the game viewport where this authored dialogue box appears to bind its screen region.");
+    }
+    private void ClearDialogueRegion_Click(object sender,RoutedEventArgs e)
+    {
+        if(_dialogue is null)return;
+        _placingDialogueRegion=false;
+        _dialogue.HasViewportRegion=false;
+        _bridge?.SetDialogueHighlight(null,_scene?.Room??0);
+        Dirty();
+        Status("Authored dialogue screen marker cleared.");
+    }
+    private void HandleDialogueViewportClick(int x,int y)
+    {
+        if(_scene is null || !DialogueTab.IsSelected)return;
+        if(_placingDialogueRegion && _dialogue is not null)
+        {
+            _dialogue.Room=_scene.Room;
+            _dialogue.HasViewportRegion=true;
+            _dialogue.ViewX=Math.Clamp(x-40,0,256-80);
+            _dialogue.ViewY=Math.Clamp(y-12,0,240-24);
+            _dialogue.ViewWidth=80;
+            _dialogue.ViewHeight=24;
+            _placingDialogueRegion=false;
+            _bridge?.SetDialogueHighlight(_dialogue,_scene.Room);
+            Dirty();
+            SelectionLabel.Text=_dialogue.Id+" — screen region bound";
+            Status($"Bound authored dialogue marker at ({x},{y}); no original game-script hook is claimed.");
+            return;
+        }
+        StudioDialogue? hit=_project.Dialogues.LastOrDefault(d=>
+            d.HasViewportRegion && d.Room==_scene.Room &&
+            x>=d.ViewX && y>=d.ViewY &&
+            x<d.ViewX+d.ViewWidth && y<d.ViewY+d.ViewHeight);
+        if(hit is not null)
+        {
+            DialogueList.SelectedItem=hit;
+            _bridge?.SetDialogueHighlight(hit,_scene.Room);
+            Status("Selected authored dialogue region: "+hit.Id);
+        }
+        else Status("No authored dialogue marker at that point. Use Bind region to add one.");
+    }
     private void AddDialogue_Click(object sender,RoutedEventArgs e)
     {
         var dialog=new StudioDialogue
@@ -755,6 +823,7 @@ public partial class MainWindow : Window
         DialogueText.Text=entry.Languages.GetValueOrDefault(_language,"");
         SelectionLabel.Text=entry.Id;
         _changing=false;
+        _bridge?.SetDialogueHighlight(entry,_scene?.Room??0);
         UpdateDialoguePreview();
     }
     private void Language_Changed(object sender,SelectionChangedEventArgs e)
