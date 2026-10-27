@@ -479,21 +479,42 @@ const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
                 CVIII_STAGE1_WIDE_0725,240,center,bg_table,
                 cyc_render_chr,cyc_render_color);
             if(!world_pixels) {
-                /* Rooms reached by an unobserved branch stay fully
-                 * preloaded but unplaced. Preserve the old PPU-validated
-                 * per-room fallback until original transition evidence
-                 * establishes their physical position in the graph. */
+                /* An original room may be source-verified by the PPU yet
+                 * not placed in the global coordinate graph. Its own ROM
+                 * tiles still cover authentic side columns. */
                 (void)cviii_stage1_atlas_paint_bg_table_0802(&h->atlas,selector,
                     camera_x,camera_y,h->pixels,CVIII_STAGE1_WIDE_0725,240,
                     center,bg_table,cyc_render_chr,cyc_render_color);
+            }
+            /* JP0823: compositor coverage is NOT the same as successful
+             * neighbor placement. A placed current room can paint some
+             * left-margin pixels while the unplaced right successor is
+             * still completely black. Paint *both* room-side projections
+             * from the decoded ROM, even with world_pixels>0, whenever
+             * the linked neighbor is not already covered by world paint.
+             *
+             * A true observed join is preferred. BLK 1-03 has two ROM-
+             * decoded horizontal sibling subrooms; allow their side-only
+             * visual preview where a live join has not yet been witnessed.
+             * Neither rule attaches a room to the global world or spawns
+             * an actor, so unknown level geometry stays unmodified. */
+            for(int side=-1;side<=1;side+=2) {
                 uint8_t neighbor[3];int neighbor_x=0;
-                for(int side=-1;side<=1;side+=2)
-                    if(cviii_stage1_join_neighbor_0790(&h->join,selector,
-                            camera_x,width_px,side,neighbor,&neighbor_x))
-                        (void)cviii_stage1_atlas_paint_bg_table_0802(
-                            &h->atlas,neighbor,neighbor_x,camera_y,h->pixels,
-                            CVIII_STAGE1_WIDE_0725,240,center,bg_table,
-                            cyc_render_chr,cyc_render_color);
+                const int linked=cviii_stage1_join_neighbor_0790(
+                    &h->join,selector,camera_x,width_px,side,
+                    neighbor,&neighbor_x);
+                if(!linked && !cviii_stage1_neighbor_visual_0823(
+                    selector,camera_x,width_px,side,
+                    neighbor,&neighbor_x))continue;
+                if(cviii_stage1_atlas_horizontal_width_0801(
+                    &h->atlas,neighbor)<256)continue;
+                int neighbor_index=cviii_world_index_0803(&h->world,neighbor);
+                if(world_pixels && neighbor_index>=0 &&
+                   h->world.rooms[neighbor_index].placed)continue;
+                (void)cviii_stage1_atlas_paint_bg_table_0802(
+                    &h->atlas,neighbor,neighbor_x,camera_y,h->pixels,
+                    CVIII_STAGE1_WIDE_0725,240,center,bg_table,
+                    cyc_render_chr,cyc_render_color);
             }
         }
     }
