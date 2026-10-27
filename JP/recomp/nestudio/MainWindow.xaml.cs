@@ -28,6 +28,7 @@ public partial class MainWindow : Window
     private uint _scriptObservationRoom=uint.MaxValue;
     private readonly Dictionary<int,(int Generation,int Script)> _lastObjectScripts=new();
     private int _lastAuthenticatedDialogueEvent;
+    private StudioOriginalDialogueEvent? _lastOriginalRoomMessage;
     private StudioSpriteGroup? _sprite;
     private StudioDialogue? _dialogue;
     private string _language="en";
@@ -274,15 +275,27 @@ public partial class MainWindow : Window
     {
         _scene=scene;
         ObserveOriginalScriptTransitions(scene);
-        // No authenticated original text-printer source callback is present
-        // in this native recomp. Do not conflate project screen markers,
-        // observed AI script bytes, and original dialogue events.
+        // Original bank0A:B8F4 message-selector byte, proven upstream of
+        // JSR $EC47; no claim that $EC47's rendering is fully decoded.
         if(scene.OriginalDialogue is { Sequence: >0 } authentic &&
            authentic.Sequence!=_lastAuthenticatedDialogueEvent)
         {
             _lastAuthenticatedDialogueEvent=authentic.Sequence;
-            Log($"Original source event received (bank {authentic.Bank:X2}, PC {authentic.ProgramCounter:X4}, script {authentic.ScriptId:X2}).");
-            OriginalScriptStatus.Text="Original source event received; inspect bank/PC provenance.";
+            _lastOriginalRoomMessage=authentic;
+            string kind=authentic.Kind==1?"nonterminal byte toward $EC47":
+                authentic.Kind==2?"$FF message terminator":"unclassified source event";
+            Log($"Original room-message source: bank ${authentic.Bank:X2}, PC ${authentic.ProgramCounter:X4}, stage {authentic.ScriptId}, byte ${authentic.EventId:X2}, {kind}.");
+            OriginalScriptStatus.Text=$"Source ${authentic.Bank:X2}:${authentic.ProgramCounter:X4}  stage {authentic.ScriptId}  byte ${authentic.EventId:X2} ({kind}); printer semantics unverified.";
+            if(authentic.Kind==1)
+                foreach(StudioDialogue entry in _project.Dialogues.Where(entry=>
+                    entry.Trigger=="original-room-message" &&
+                    entry.Room==authentic.Room &&
+                    entry.SourceMessageStage==authentic.ScriptId &&
+                    entry.SourceMessageByte==authentic.EventId))
+                {
+                    Log("Matched original room-message byte with authored dialogue entry "+entry.Id);
+                    if(DialogueTab.IsSelected)DialogueList.SelectedItem=entry;
+                }
         }
         // Original CPU object slot/generation comes from RAM $0400..$05EF,
         // never from the physical OAM index. Preserve selected lifetimes.
@@ -486,6 +499,8 @@ public partial class MainWindow : Window
             if(!File.Exists(path))return;
             ReleaseGameKeys();
             _game.Start(path);
+            _lastAuthenticatedDialogueEvent=0;
+            _lastOriginalRoomMessage=null;
             _lastNativePid=0;_lastNativeFrame=-1;_lastAck=0;
             _lastSentOperation=0;_frameProgressLogged=false;
             _frameDelayLogged=false;_snapshotLogged=false;_lightEditLogged=false;
@@ -775,6 +790,21 @@ public partial class MainWindow : Window
             }
             _lastObjectScripts[obj.Slot]=(obj.Generation,obj.Script);
         }
+    }
+    private void BindRoomMessage_Click(object sender,RoutedEventArgs e)
+    {
+        if(_dialogue is null || _lastOriginalRoomMessage is not { Kind: 1 } msg)
+        {
+            Status("Select an authored dialogue entry and observe a real nonterminal room-message byte first.");
+            return;
+        }
+        _dialogue.Trigger="original-room-message";
+        _dialogue.Room=msg.Room;
+        _dialogue.SourceMessageStage=msg.ScriptId;
+        _dialogue.SourceMessageByte=msg.EventId;
+        Dirty();
+        OriginalScriptStatus.Text=$"Bound original JP room-message stage {msg.ScriptId}, byte ${msg.EventId:X2} to {_dialogue.Id}. Not a verified rendered glyph.";
+        Status("Bound source-proven original room-message byte; full $EC47 text-printer semantics remain unverified.");
     }
     private void BindActorScript_Click(object sender,RoutedEventArgs e)
     {
