@@ -424,6 +424,12 @@ jobs:
           $build = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win'
           ctest --test-dir $build -C Release -R '^JP0821_' --output-on-failure
           if ($LASTEXITCODE -ne 0) { throw 'JP0821 original contact effect test failed' }
+      - name: Verify JP0828 original detached actor movement and B447 geometry
+        shell: pwsh
+        run: |
+          $build = Join-Path $env:RUNNER_TEMP 'cvi-alpha-win'
+          ctest --test-dir $build -C Release -R '^JP0828_' --output-on-failure
+          if ($LASTEXITCODE -ne 0) { throw 'JP0828 detached original 6502 actor regression failed' }
       - name: Verify JP0827 2A03 source executor and sandboxed Stage1 world
         shell: pwsh
         run: |
