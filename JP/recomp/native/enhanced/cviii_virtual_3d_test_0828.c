@@ -41,55 +41,69 @@ static void synthetic(void){
        v.actor[0].world_x==160 &&
        !cviii_virtual_can_apply_effect_0828(&v.actor[0]),
        "native instance copied actual 6502 RAM but cannot inflict damage");
+ /* First witness the authentic actor traverse the original
+  * page boundary while still CPU-owned. Its adjacent-page/OAM-cull
+  * flags provide conservative evidence before virtual detach. */
+ const unsigned positions[]={190u,220u,250u,10u};
+ for(unsigned k=0;k<4u;k++){
+    ram[0x439u]=(uint8_t)positions[k];
+    ram[0x471u]=k==3u ? 0xc5u:4u;
+    check(cviii_virtual_tick_0828(&v,&s,bank,ram,key,0)==0 &&
+          v.actor[0].state==CVIII_VIRTUAL_0828_LINKED,
+          "continuous authentic source moves from center to adjacent page");
+ }
+ check(v.actor[0].world_x==266 &&
+       v.actor[0].original_flags==0xc5u,
+       "page bit takes original raw X10 to world X266");
  s.source[0].state=CVIII_WIDE_SOURCE_UNVERIFIED_0825;
  s.source[0].guest_slot=0u;ram[0x54f]=0u;
  check(cviii_virtual_tick_0828(&v,&s,bank,ram,key,0)==1 &&
        v.actor[0].state==CVIII_VIRTUAL_0828_DETACHED &&
-       v.actor[0].world_x==162 &&
+       v.actor[0].world_x==268 &&
        v.actor[0].cpu.ram[0x54f]==0x3du &&
-       v.actor[0].cpu.ram[0x439]==162 &&
-       ram[0x439]==160 && ram[0x54f]==0u &&
+       v.actor[0].cpu.ram[0x439]==12 &&
+       ram[0x439]==10 && ram[0x54f]==0u &&
        v.detached_steps==1u,
        "original guest actor deallocated; isolated private 6502 still moves");
  check(cviii_virtual_tick_0828(&v,&s,bank,ram,key,0)==1 &&
-       v.actor[0].world_x==164 &&
+       v.actor[0].world_x==270 &&
        v.actor[0].detached_frames==2u &&
-       v.actor[0].cpu.ram[0x439]==164,
+       v.actor[0].cpu.ram[0x439]==14,
        "persistent private CPU RAM advances over multiple detached frames");
  ram[0x54f]=0x3du;
  s.source[0].state=CVIII_WIDE_CPU_OWNED_0825;
  s.source[0].guest_slot=1u;
  check(cviii_virtual_tick_0828(&v,&s,bank,ram,key,0)==1 &&
        v.actor[0].state==CVIII_VIRTUAL_0828_DETACHED &&
-       v.actor[0].world_x==166,
+       v.actor[0].world_x==272,
        "reused original guest slot cannot overwrite detached virtual identity");
  /* Synthetic table radii and weapon guest inputs: same original B447
   * normal partner branch, but compare in world rather than 8-bit X. */
  ram[0x54eu+21u]=2u;
- ram[0x438u+21u]=166u;ram[0x41cu+21u]=80u;
+ ram[0x438u+21u]=16u;ram[0x41cu+21u]=80u;
  bank[0xbb80u+0x3du-0x8000u]=5u;
  bank[0xbb60u+2u-0x8000u]=2u;
  bank[0xbc08u+0x3du-0x8000u]=4u;
  bank[0xbb6bu+2u-0x8000u]=3u;
  CviiiVirtualCollision0828 hit={0};
- check(cviii_virtual_partner_input_0828(&v.actor[0],ram,bank,0,
+ check(cviii_virtual_partner_input_0828(&v.actor[0],ram,bank,256,
                                          21u,&hit) &&
        hit.outcome==CVIII_VCOL_NEAR_0828 &&
        hit.radius_x==7u && hit.radius_y==7u &&
        !cviii_virtual_can_apply_effect_0828(&v.actor[0]),
        "verified original B447 table dimensions produce near INPUT, not hit");
  ram[0x438u+21u]=246u;
- check(cviii_virtual_partner_input_0828(&v.actor[0],ram,bank,0,
+ check(cviii_virtual_partner_input_0828(&v.actor[0],ram,bank,256,
                                          21u,&hit) &&
        hit.outcome==CVIII_VCOL_FAR_0828,
        "world X distance does not wrap distant original projectile");
  ram[0xb7u]=1u;
- check(cviii_virtual_partner_input_0828(&v.actor[0],ram,bank,0,
+ check(cviii_virtual_partner_input_0828(&v.actor[0],ram,bank,256,
                                          21u,&hit) &&
        hit.outcome==CVIII_VCOL_UNVERIFIED_0828,
        "original E5BE altered B447 branch cannot grant guessed hit");
  ram[0xb7u]=0;ram[0x54eu+21u]=5u;
- check(cviii_virtual_partner_input_0828(&v.actor[0],ram,bank,0,
+ check(cviii_virtual_partner_input_0828(&v.actor[0],ram,bank,256,
                                          21u,&hit) &&
        hit.outcome==CVIII_VCOL_UNVERIFIED_0828,
        "type05 original special hitbox remains blocked");
