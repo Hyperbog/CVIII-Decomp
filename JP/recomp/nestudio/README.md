@@ -134,6 +134,47 @@ labels, with custom dark ComboBox dropdowns, visible focus borders and
 contrast-preserving selected items. The formerly dark-on-dark ComboBox
 foreground is no longer inherited from the Windows system template.
 
+## Restored full lighting and viewport tools
+
+**Full Lighting Studio:** In the Lighting inspector, select **Full
+Lighting Studio — all features**. This switches from NEStudio's compact
+inspector to the existing game-owned Dear ImGui lighting editor. The
+original implementation remains authoritative and includes emitter
+types/shapes, range, intensity, direction, color, animation, global
+styles, library presets and saved kits, ambient tint, independent
+sky/hemisphere fill, exposure/temperature/saturation grading, particle
+regions, weather and light-occlusion masks. The native game still
+controls `config.ini` persistence, undo/redo and frame lighting. The
+**Compact Lighting Inspector** button restores the simpler NEStudio
+controls without resetting authored lighting data. The full panel draws
+inside the SDL viewport, not as a separate operating-system window.
+
+**Sprites:** Selecting the **Sprites** tab activates native OAM picker
+mode and freezes the visible game frame through the existing host editor
+session. Click the visible 8×8 portion of a sprite to select its current
+OAM slot; Ctrl/Shift-click toggles additional selections. Selected
+sprites receive cyan outlines inside the SDL viewport. **Ctrl+G** or
+**Group Selected Sprites** adds a named group with the room, frame and
+bounded slot/tile/attributes/coordinates captured. Editing names and
+sort layers remains project authoring. Because the original game
+rotates OAM indices, these saved members are **frame-local reference
+snapshots**, not stable character IDs or live sprite overrides. Sprite
+height may be 8×16 in other rendering contexts; this initial picker
+only covers a conservative 8×8 hit area.
+
+**Dialogue:** Selecting **Dialogue** switches away from OAM/light
+picking. Add/select a dialogue record and choose **Bind region: click
+viewport** to place an 80×24 authoring marker. The selected region is
+outlined in amber; clicking any previously bound region selects its
+dialogue entry. Region associations live in the `.nestudio` project
+file and are bounded to a screen location and room. They are **not**
+automatic extraction of the original NES dialogue script, or runtime
+replacement of guest text. Actual textbox trigger identification
+requires authenticated source hooks and guest-to-host event IDs.
+
+All modes share one authenticated native session; no ROM or PPU RAM is
+modified by these editor interactions.
+
 ## Windows launcher and live viewport acceptance
 
 Open the **Acceptance Log** button after starting the game. It opens a
@@ -168,7 +209,7 @@ are not proof of correct visual output.
 
 - WPF application and ROM-free schema tests can run in GitHub Actions, but **actual native game embedding, focus, SDL2/D3D11 behavior and owner Windows gameplay** still require user acceptance.
 - The first editor does **not** make sprite group order affect NES OAM, import custom sprites into the live engine, patch original dialogue triggers, change textbox runtime geometry, or rebuild stages. These need one shared versioned resource compiler and source-authenticated runtime adapters, rather than writing speculative guest RAM.
-- There is no draggable viewport-object gizmo or arbitrary frame-step API yet; pause and lighting operations work through existing host exports. Debug mode cannot be equated with full game-engine simulation controls.
+- Native emitter handles can be dragged and selected and the OAM picker highlights frame-local slot snapshots. There is no stable guest-object identity/transform gizmo or arbitrary frame-step API yet. Debug mode cannot be equated with full game-engine simulation controls.
 - Original/Enhanced parity and user data safety remain authoritative. Do not commit ROMs, locally built EXEs containing retail content, ripped CHR archives, or private saves.
 
 ## Acceptance milestones
