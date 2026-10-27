@@ -170,10 +170,22 @@ the last observed source PC, PPU address, tile value, and total writes.
 These are **source-side PPU access observations, NOT confirmed dialogue
 events**. The address and tile alone do not identify the rendering
 routine or originating script bank, and not all tile writes are text.
-The original dialogue event ABI remains reserved and unpopulated until
-actual text-printer control flow is authenticated. To help identify
-that path, run a repeatable real-game dialogue scene and save the local
-NEStudio acceptance log together with the scene location/timing.
+The original Japanese raw-bank 0A:$B8CC-$B908 room-message
+selector also provides a verified source entry at $B8F4 (LDY $07A5).
+The observer accepts that event only while the original mapped
+instruction bytes AC A5 07, bounded $B921-$B936 message stream,
+and 0..4 stage selector agree. For each authenticated source byte,
+the v3 event record carries bank 0A, source PC $B8F4, original stage
+and byte, and whether the value is the $FF terminator. A nonterminal
+byte follows the game's JSR $EC47 at $B8FF. This is a **genuine
+original message-source event**, not a proven text glyph or a
+completed $EC47 printer hook. The editor lets authored Dialogue
+entries bind to the last source-observed nonterminal byte.
+Identify $EC47's actual text/PPU side effects before enabling
+in-game text replacement or calling it a completed dialogue renderer.
+
+For subsequent source tracing, run a repeatable real-game text scene
+and save the local NEStudio acceptance log with location/timing.
 
 ## Original game-object identity and source-trigger milestone
 
@@ -198,9 +210,10 @@ Room+slot+generation references are stored separately from the
 older OAM snapshot groups. OAM pieces also display the original
 phase-normalized emission index when `$22` is 4-byte aligned; that
 emission order compensates for the proven `+$44` phase rotation but
-**is not itself a proven object-to-piece owner lookup**. A verified
-per-emission source-renderer owner hook remains necessary to highlight
-every sprite piece belonging to a selected original object.
+**is not itself a proven object-to-piece owner lookup**. The newer v3 observer now identifies source-emitted OAM
+ownership at original PRG26 instruction boundaries and highlights
+attributed pieces. Failed or missing original boundary observations
+remain unmapped instead of being assigned guessed owners.
 
 **Dialogue trigger status:** No bank/PC-qualified original
 text-print routine has yet been established. The v2 bridge reserves
