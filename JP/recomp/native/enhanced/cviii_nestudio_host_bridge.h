@@ -14,7 +14,7 @@
 #include <stdio.h>
 #include "cviii_lighting_host.h"
 #define NEST_MAGIC 0x5453454eL /* little-endian "NEST" */
-#define NEST_VERSION 4
+#define NEST_VERSION 5
 #define NEST_MAX_LIGHTS 128
 typedef struct {
     LONG used,room,x,y,radius,energy,red,green,blue,shape,muted,flicker;
@@ -39,6 +39,7 @@ extern int cviii_nestudio_copy_original_ownership(uint8_t owners[64],
     unsigned *attributed,unsigned *observed,unsigned *invalid);
 extern int cviii_nestudio_room_message(unsigned out[7]);
 extern int cviii_nestudio_ec47_trace(unsigned out[15]);
+extern int cviii_nestudio_ec47_queue(uint8_t out[256],unsigned *size);
 extern int cviii_nestudio_ppu_source(unsigned *pc,unsigned *address,
                                    unsigned *tile,unsigned *writes);
 typedef struct {
@@ -61,6 +62,10 @@ typedef struct {
     /* v4: authenticated original EC47 message-formatter invocation.
      * PPU observations are explicitly temporal, not proven glyph causality. */
     volatile LONG ec47_trace[15];
+    /* v5: exact already-completed, read-only $0300 command fragment.
+     * Only the original EC47 producer may populate this snapshot. */
+    volatile LONG ec47_queue_length,ec47_queue_sequence;
+    uint8_t ec47_queue_bytes[256];
 } NestStudioMapping;
 typedef char nest_layout_1[(sizeof(NestStudioLight)==80)?1:-1];
 typedef char nest_layout_2[(offsetof(NestStudioMapping,lights)==128)?1:-1];
@@ -73,7 +78,9 @@ typedef char nest_layout_8[(offsetof(NestStudioMapping,original_dialogue)==13144
 typedef char nest_layout_9[(offsetof(NestStudioMapping,owner_for_oam)==13176)?1:-1];
 typedef char nest_layout_10[(offsetof(NestStudioMapping,selected_original_mask)==13448)?1:-1];
 typedef char nest_layout_11[(offsetof(NestStudioMapping,ec47_trace)==13468)?1:-1];
-typedef char nest_layout_12[(sizeof(NestStudioMapping)==13528)?1:-1];
+typedef char nest_layout_12[(offsetof(NestStudioMapping,ec47_queue_length)==13528)?1:-1];
+typedef char nest_layout_13[(offsetof(NestStudioMapping,ec47_queue_bytes)==13536)?1:-1];
+typedef char nest_layout_14[(sizeof(NestStudioMapping)==13792)?1:-1];
 static LONG nest_object_generation[28];
 static uint8_t nest_object_was_active[28];
 static uint32_t nest_object_room=UINT32_MAX;
@@ -293,6 +300,20 @@ static void nest_tick(void){
         for(int k=0;k<15;++k)nest_shared->ec47_trace[k]=(LONG)format[k];
     else memset((void *)nest_shared->ec47_trace,0,
                 sizeof nest_shared->ec47_trace);
+    uint8_t fragment[256]={0};
+    unsigned fragment_len=0;
+    if(cviii_nestudio_ec47_queue(fragment,&fragment_len) &&
+       fragment_len>0 && fragment_len<=256u){
+        memcpy(nest_shared->ec47_queue_bytes,fragment,fragment_len);
+        memset(nest_shared->ec47_queue_bytes+fragment_len,0,
+               256u-fragment_len);
+        nest_shared->ec47_queue_sequence=nest_shared->ec47_trace[0];
+        nest_shared->ec47_queue_length=(LONG)fragment_len;
+    }else{
+        nest_shared->ec47_queue_length=0;
+        nest_shared->ec47_queue_sequence=0;
+        memset(nest_shared->ec47_queue_bytes,0,256);
+    }
     MemoryBarrier();
     InterlockedIncrement(&nest_shared->revision); /* even: stable snapshot */
 }
