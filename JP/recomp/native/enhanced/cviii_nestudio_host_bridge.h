@@ -59,6 +59,10 @@ static void nest_init(void){
         CloseHandle(nest_mapping_handle);nest_mapping_handle=NULL;return;
     }
     nest_shared->version=NEST_VERSION;
+    /* The batch/cmd launcher is not the game process. Publish the
+     * owner-local native PID in unused v1 header space so the editor can
+     * find the real SDL window even if cmd.exe has already exited. */
+    nest_shared->reserved[0]=(LONG)GetCurrentProcessId();
     InterlockedExchange(&nest_shared->magic,NEST_MAGIC);
 }
 static void nest_close(void){
