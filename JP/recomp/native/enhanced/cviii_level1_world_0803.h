@@ -16,6 +16,7 @@
 #include "cviii_extended_actor_0824.h"
 #include "cviii_wide_source_admission_0825.h"
 #include "cviii_wide_instance_0826.h"
+#include "cviii_actor_vm_0827.h"
 #include <stdint.h>
 #include <stddef.h>
 enum { CVIII_WORLD_ROOMS_0803=8, CVIII_WORLD_ACTORS_0803=28,
@@ -147,6 +148,13 @@ typedef struct {
      * is separately witnessed. Never use READY sources as hitboxes. */
     CviiiWideSources0825 wide_sources_0825;
     CviiiWideRuntime0826 wide_runtime_0826;
+    /* JP0827: bounded physical-ROM opcode execution for the genuine
+     * actor slots. Counterfactual replay on isolated private RAM,
+     * NEVER original CPU gameplay authority. */
+    uint32_t actor_vm_probes_0827,actor_vm_matched_0827;
+    uint32_t actor_vm_mismatched_0827,actor_vm_deferred_0827;
+    uint16_t actor_vm_stop_pc_0827[CVIII_WIDE_SOURCE_COUNT_0825];
+    uint8_t actor_vm_last_status_0827[CVIII_WIDE_SOURCE_COUNT_0825];
 } CviiiLevel1World0803;
 
 /* All eight source rooms are resident on success. One known horizontal
@@ -238,6 +246,12 @@ int cviii_world_probe_chapel_0815(CviiiLevel1World0803 *world,
    const uint8_t selector[3],int camera_x,int camera_y,
    int native_left,int wide_width,
    const uint8_t authenticated_prg26[16384]);
+/* Bounded original bank0B opcode replay for currently authenticated
+ * source-linked CPU actors; bank must be SHA-authenticated by host.
+ * This models a would-call-B486 snapshot; does not claim CPU actually
+ * invoked B486, and never changes machine RAM or approves native combat. */
+int cviii_world_probe_vm_0827(CviiiLevel1World0803 *world,
+        const uint8_t ram[2048],const uint8_t bank0b[16384]);
 void cviii_world_clear_live_0805(CviiiLevel1World0803 *world);
 unsigned cviii_world_capture_live_0803(CviiiLevel1World0803 *world,
         const uint8_t selector[3],int local_camera_x,int local_camera_y,
