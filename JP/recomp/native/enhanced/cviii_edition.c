@@ -4,6 +4,12 @@
  * No ROM data or NESRecomp source is copied here.
  */
 #include "cyc_host_extras.h"
+#include "cyc_mod.h"
+#include "cviii_nestudio_owner.h"
+#if defined(_WIN32)
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#endif
 #include "cyc_core.h"
 #include "cyc_render.h"
 #include "cviii_chr_index_0598.h"
@@ -83,6 +89,42 @@ static CviiiEdition cviii = { .volume = CVIII_AUDIO_LEVELS_DEFAULT };
 static int cviii_start_ready;
 static int cviii_lighting_ready;
 static int cviii_external_light_editor;
+static CviiiNestOwnerTrace cviii_nest_owner;
+static int cviii_nest_observe;
+typedef struct {unsigned pc,address,tile,writes;} CviiiNestPpuSource;
+static CviiiNestPpuSource cviii_nest_ppu;
+static uint8_t cviii_nest_ram_observer(uint16_t pc,uint16_t addr,uint8_t value)
+{
+    if(!cviii_nest_observe || pc!=0x8070u)return value;
+    const uint8_t *ram=cyc_cpu_ram();
+    if(!ram)return value;
+    unsigned owner=ram[0x05u];
+    if(owner>=28u || addr!=0x048Cu+owner)return value;
+    uint8_t b0=0,b1=0,b2=0;
+    if(!cyc_debug_peek(0x8070u,&b0) ||
+       !cyc_debug_peek(0x8071u,&b1) ||
+       !cyc_debug_peek(0x8072u,&b2) ||
+       b0!=0xBCu || b1!=0x8Cu || b2!=0x04u){
+        ++cviii_nest_owner.invalid;return value;
+    }
+    cviii_owner_enter(&cviii_nest_owner,owner,ram[0x04u],ram[0x07u]);
+    return value;
+}
+/* Original PPU nametable write, NOT proof of original dialogue text. */
+static void cviii_nest_ppu_observer(unsigned reg,uint16_t address,
+                                   uint8_t tile,unsigned increment)
+{
+    (void)increment;
+    if(!cviii_nest_observe || reg!=0x2007u ||
+       address<0x2000u || address>=0x3000u)return;
+    CycModRegs r;
+    cyc_mod_regs(&r);
+    if(r.pc<0x8000u)return;
+    cviii_nest_ppu.pc=r.pc;
+    cviii_nest_ppu.address=address;
+    cviii_nest_ppu.tile=tile;
+    ++cviii_nest_ppu.writes;
+}
 
 /* JP0620: optional built-in paused runtime menu rows for recomp-ui builds.
  * The separate F6 modal now uses the original CHR overlay on all supported
@@ -390,6 +432,17 @@ static void power_on(void *context)
     settings->lighting.dragging=0;
     cviii_external_light_editor=0;
     settings->lighting_frame=0;
+    cviii_owner_reset(&cviii_nest_owner);
+    memset(&cviii_nest_ppu,0,sizeof cviii_nest_ppu);
+#if defined(_WIN32)
+    char session[72]={0};
+    DWORD len=GetEnvironmentVariableA("CVIII_NESTUDIO_SESSION",session,sizeof session);
+    cviii_nest_observe=len>=8 && len<sizeof session;
+#else
+    cviii_nest_observe=0;
+#endif
+    cyc_mod_set_ram_read_hook(cviii_nest_observe?cviii_nest_ram_observer:NULL);
+    cyc_mod_set_ppu_write_hook(cviii_nest_observe?cviii_nest_ppu_observer:NULL);
     cviii_audio_menu_state_close(&settings->audio_ui); /* reset cannot leave a stale modal */
     cviii_start_close(&settings->start_menu);
     cviii_slot_cancel(&settings->slot_menu);
@@ -422,6 +475,8 @@ static void state_loaded(void *context)
     settings->lighting.dragging=0;
     cviii_external_light_editor=0;
     settings->lighting_frame=0;
+    cviii_owner_reset(&cviii_nest_owner);
+    memset(&cviii_nest_ppu,0,sizeof cviii_nest_ppu);
     cviii_audio_menu_state_close(&settings->audio_ui); /* loaded gameplay never owns a stale modal */
     cviii_start_close(&settings->start_menu);
     cviii_slot_cancel(&settings->slot_menu);
@@ -436,6 +491,7 @@ static void state_loaded(void *context)
 static void frame_begin(void *context)
 {
     CviiiEdition *settings = (CviiiEdition *)context;
+    if(cviii_nest_observe)cviii_owner_reset(&cviii_nest_owner);
     if (settings->enhanced) {
         cviii_chr_fetch_frame_begin(&settings->fetch, &settings->assets);
         cviii_nt_begin(&settings->nt_trace, settings->fetch.active != 0,
@@ -447,6 +503,10 @@ static void frame_end(void *context)
 {
     CviiiEdition *settings = (CviiiEdition *)context;
     ++settings->lighting_frame;
+    if(cviii_nest_observe){
+        const uint8_t *ram=cyc_cpu_ram();
+        if(ram)cviii_owner_finish(&cviii_nest_owner,ram[0x07u]);
+    }
     if (settings->object_trace.out)
         cviii_object_oam_trace_frame(&settings->object_trace,
                                     cyc_cpu_ram(), cyc_ppu_oam());
@@ -510,6 +570,27 @@ static void frame_end(void *context)
 
 /* Read-only PPU sprite evidence for NEStudio. A raw OAM slot is NOT a
  * stable game actor identity: original OAM rotation may reorder slots. */
+int cviii_nestudio_copy_original_ownership(uint8_t owners[64],
+    unsigned *attributed,unsigned *observed,unsigned *invalid)
+{
+    if(!owners || !attributed || !observed || !invalid)return 0;
+    memcpy(owners,cviii_nest_owner.owners,64);
+    *attributed=cviii_owner_ready(&cviii_nest_owner)?
+        cviii_nest_owner.attributed:0;
+    *observed=cviii_nest_owner.observed;
+    *invalid=cviii_nest_owner.invalid;
+    return cviii_owner_ready(&cviii_nest_owner);
+}
+int cviii_nestudio_ppu_source(unsigned *pc,unsigned *address,
+                              unsigned *value,unsigned *writes)
+{
+    if(!pc || !address || !value || !writes)return 0;
+    *pc=cviii_nest_ppu.pc;
+    *address=cviii_nest_ppu.address;
+    *value=cviii_nest_ppu.tile;
+    *writes=cviii_nest_ppu.writes;
+    return cviii_nest_ppu.writes!=0;
+}
 int cviii_nestudio_copy_oam(uint8_t out[256])
 {
     const uint8_t *oam=cyc_render_oam();
