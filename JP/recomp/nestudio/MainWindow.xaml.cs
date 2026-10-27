@@ -79,18 +79,28 @@ public partial class MainWindow : Window
         {
             if(_game.IsRunning)
             {
-                if(!_game.IsEmbedded)
+                // The executable launched by a .bat is a CHILD of cmd.exe.
+                // The unique game-session bridge publishes its actual PID.
+                if(_bridge is null)
                 {
-                    if(_game.TryEmbed())
+                    _bridge=StudioBridge.TryOpen(_game.Session);
+                    if(_bridge is not null)
+                        Log("Connected to live C11 Enhanced scene bridge.");
+                }
+                if(_bridge is not null)
+                {
+                    _game.SetNativeProcessId(_bridge.GameProcessId);
+                    if(!_game.IsEmbedded && _game.TryEmbed())
                     {
                         ViewportHint.Visibility=Visibility.Collapsed;
                         Log("Embedded native SDL2 game viewport.");
                     }
                 }
-                if(_bridge is null)
+                if(!_game.IsEmbedded && !_game.IsBatchLauncher &&
+                   _game.TryEmbed())
                 {
-                    _bridge=StudioBridge.TryOpen(_game.Session);
-                    if(_bridge is not null)Log("Connected to live C11 Enhanced scene bridge.");
+                    ViewportHint.Visibility=Visibility.Collapsed;
+                    Log("Embedded native SDL2 game viewport.");
                 }
                 if(_bridge is not null)
                 {
@@ -108,13 +118,16 @@ public partial class MainWindow : Window
                     _scene?.Editing==true?"LIVE · EDIT MODE / PAUSED":"LIVE · PLAYING";
                 return;
             }
-            if(_bridge is not null || _game.IsEmbedded)
+            if(_bridge is not null || _game.IsEmbedded ||
+               _game.IsBatchLauncher)
             {
                 _bridge?.Dispose();_bridge=null;_scene=null;
                 _commands.Clear();_fingerprint="";
                 ViewportHint.Visibility=Visibility.Visible;
                 ConnectionLabel.Text="OFFLINE · Game stopped";
-                Log("Game stopped; saved NEStudio project content remains available.");
+                Log(_game.IsBatchLauncher?
+                    "Launcher exited without a connected native SDL game. A BAT that only builds or starts another emulator does not provide NEStudio's C11 bridge.":
+                    "Game stopped; saved NEStudio project content remains available.");
             }
         }
         catch(Exception ex)
@@ -251,7 +264,7 @@ public partial class MainWindow : Window
             _game.Start(path);
             _fingerprint="";
             Status("Launching game in embedded viewport.");
-            Log($"Launched {Path.GetFileName(path)} (owner-local executable).");
+            Log($"Launched {Path.GetFileName(path)} (owner-local {(_game.IsBatchLauncher?"BAT/CMD launcher":"native executable")}).");
         }
         catch(Exception ex){Error("Starting game",ex);}
     }
@@ -391,15 +404,16 @@ public partial class MainWindow : Window
     {
         var dlg=new Microsoft.Win32.OpenFileDialog
         {
-            Filter="Enhanced Native Game (*.exe)|*.exe",CheckFileExists=true,
-            Title="Select your privately built jp_akumajou_densetsu.exe"
+            Filter="Game executable or launcher (*.exe;*.bat;*.cmd)|*.exe;*.bat;*.cmd|Native game (*.exe)|*.exe|Windows launcher (*.bat;*.cmd)|*.bat;*.cmd",
+            CheckFileExists=true,
+            Title="Select the native Enhanced game .exe or the .bat/.cmd that launches it"
         };
         if(dlg.ShowDialog()==true)
         {
-            if(!Path.GetFileName(dlg.FileName).Equals("jp_akumajou_densetsu.exe",
-                                                     StringComparison.OrdinalIgnoreCase))
+            string ext=Path.GetExtension(dlg.FileName).ToLowerInvariant();
+            if(ext is not (".exe" or ".bat" or ".cmd"))
             {
-                System.Windows.MessageBox.Show("Select the owner-built JP Enhanced recomp executable.",
+                System.Windows.MessageBox.Show("Select a game executable or a Windows game launcher.",
                                 "NEStudio",MessageBoxButton.OK,MessageBoxImage.Warning);
                 return;
             }
