@@ -12,10 +12,11 @@ public sealed record StudioLight(int Slot,uint Room,int X,int Y,int Radius,
     public string Label => $"{Slot+1:00}  {(string.IsNullOrWhiteSpace(Name)?"Light":Name)}  ({X},{Y})";
 }
 public sealed record StudioSprite(int Slot,int X,int Y,int Tile,int Attribute,
-    int EmissionIndex=-1)
+    int EmissionIndex=-1,int SourceOwner=-1)
 {
     public string Label => $"OAM {Slot:00}  {(
-        EmissionIndex>=0?$"Emission {EmissionIndex:00}":"Unknown emission")}  XY({X},{Y})  Tile ${Tile:X2}";
+        EmissionIndex>=0?$"Emission {EmissionIndex:00}":"Unknown emission")}  {(
+        SourceOwner>=0?$"Object {SourceOwner:00}":"Unattributed")}  XY({X},{Y})  Tile ${Tile:X2}";
 }
 /* Game-observed source object slot, not an inferred sprite identity. */
 public sealed record StudioOriginalObject(int Slot,int Generation,uint Room,
@@ -23,13 +24,17 @@ public sealed record StudioOriginalObject(int Slot,int Generation,uint Room,
 {
     public string Label => $"Object {Slot:00} · life {Generation}  XY({X},{Y})  selector ${Selector:X2} script ${Script:X2}";
 }
+public sealed record StudioPpuSourceWrite(int ProgramCounter,int PpuAddress,
+    int TileValue,int ObservedWrites);
 public sealed record StudioOriginalDialogueEvent(int Sequence,int Bank,
     int ProgramCounter,int ScriptId,int EventId,uint Room,int Frame,int Kind);
 public sealed record StudioScene(uint Room,int Selected,bool Editing,int Renderer,
     bool Enabled,IReadOnlyList<StudioLight> Lights,
     IReadOnlyList<StudioSprite> Sprites,int Revision,
     IReadOnlyList<StudioOriginalObject> OriginalObjects,int OamPhase,
-    StudioOriginalDialogueEvent? OriginalDialogue);
+    StudioOriginalDialogueEvent? OriginalDialogue,
+    int AttributionCount,int SourceCallCount,int AttributionErrors,
+    StudioPpuSourceWrite? PpuSourceWrite);
 /// <summary>
 /// Fixed-layout in-process companion to cviii_nestudio_host_bridge.h.
 /// The native recomp creates a session-isolated pagefile mapping. Only the
@@ -38,7 +43,7 @@ public sealed record StudioScene(uint Room,int Selected,bool Editing,int Rendere
 public sealed class StudioBridge : IDisposable
 {
     public const int Magic=unchecked((int)0x5453454E);
-    private const int Capacity=13176; // v2 extends, never reorders the v1 fields
+    private const int Capacity=13468; // v3 retains all v1/v2 offsets
     private readonly MemoryMappedFile _file;
     private readonly MemoryMappedViewAccessor _view;
     private int _pendingSequence;
@@ -51,6 +56,26 @@ public sealed class StudioBridge : IDisposable
     public int AcknowledgedSequence => _view.ReadInt32(12);
     // Reserved v1 header mode=84, OAM selection masks=88/92.
     // These indicate visible 8x8 PPU OAM slots, NOT stable actor identities.
+    public IReadOnlySet<int> SelectedOriginalObjectSlots
+    {
+        get
+        {
+            var selected=new HashSet<int>();
+            if(_view.ReadInt32(0)!=Magic || _view.ReadInt32(84)!=1)return selected;
+            uint mask=unchecked((uint)_view.ReadInt32(13448));
+            for(int i=0;i<28;++i)if(((mask>>i)&1u)!=0)selected.Add(i);
+            return selected;
+        }
+    }
+    public bool SetOriginalObjectSelection(IEnumerable<int> slots)
+    {
+        if(_view.ReadInt32(0)!=Magic || _view.ReadInt32(84)!=1)return false;
+        uint mask=0;
+        foreach(int slot in slots)
+            if(slot is >=0 and <28)mask|=1u<<slot;
+        _view.Write(13448,unchecked((int)mask));
+        return true;
+    }
     public IReadOnlySet<int> SelectedSpriteSlots
     {
         get
@@ -123,7 +148,7 @@ public sealed class StudioBridge : IDisposable
                 @"Local\NEStudio-"+session,MemoryMappedFileRights.ReadWrite);
             var bridge=new StudioBridge(map);
             if(bridge._view.ReadInt32(0)!=Magic ||
-               bridge._view.ReadInt32(4)!=2)
+               bridge._view.ReadInt32(4)!=3)
             {
                 bridge.Dispose();return null;
             }
@@ -225,6 +250,16 @@ public sealed class StudioBridge : IDisposable
                     unchecked((uint)_view.ReadInt32(13164)),
                     _view.ReadInt32(13168),_view.ReadInt32(13172));
             }
+            int sourceValid=_view.ReadInt32(13432);
+            int attributed=_view.ReadInt32(13436);
+            int sourceCalls=_view.ReadInt32(13440);
+            int sourceErrors=_view.ReadInt32(13444);
+            StudioPpuSourceWrite? ppuWrite=null;
+            int ppuWrites=_view.ReadInt32(13464);
+            if(ppuWrites>0)
+                ppuWrite=new StudioPpuSourceWrite(
+                    _view.ReadInt32(13452),_view.ReadInt32(13456),
+                    _view.ReadInt32(13460),ppuWrites);
             var sprites=new List<StudioSprite>();
             for(int i=0;i<64;++i)
             {
@@ -235,14 +270,19 @@ public sealed class StudioBridge : IDisposable
                     _view.ReadInt32(o+12),_view.ReadInt32(o+16),
                     _view.ReadInt32(o+20),
                     (phase>=0 && (phase&3)==0)
-                       ? (((i-(phase>>2))&63)*17)&63 : -1));
+                       ? (((i-(phase>>2))&63)*17)&63 : -1,
+                    sourceValid!=0 &&
+                    _view.ReadInt32(13176L+4L*i) is >=0 and <28
+                       ? _view.ReadInt32(13176L+4L*i) : -1));
             }
             Thread.MemoryBarrier();
             int after=_view.ReadInt32(36);
             if(before==after && (after&1)==0)
                 return new StudioScene(room,selected,editing,renderer,
                                        enabled,lights,sprites,after,
-                                       originalObjects,phase,originalDialogue);
+                                       originalObjects,phase,originalDialogue,
+                                       attributed,sourceCalls,sourceErrors,
+                                       ppuWrite);
         }
         return null;
     }
