@@ -88,6 +88,31 @@ ran **one complete original 6502 gameplay frame**:
 | actor X=`$F0`, flags=`$C5` | original actor type`$3D`, frame`$94`, flags`$C5`, parent source3 survived | project left |
 | actor X=`$81`, flags=`$C5` | original `$054F=0`, `$0401=0` (CPU deallocated) | reject middle page |
 
+### Interaction handoff verified by original 6502 stepping
+
+From the same controller-reached private actor state, two
+independent original-game runs were interrupted at
+bank0B `$B1F8` with original register **X=1**.
+A controlled source-page flag was applied before
+executing the original CPU, never an invented contact:
+
+- Page-1 `$0471=$C5`: exactly
+  `B1F8 LDA $0470,X; B1FB AND #$11;
+  B1FD BNE $B1F7; B1F7 RTS`.
+  Offscreen OAM/simulation must **not** create a
+  second native collision response.
+- In-page `$0471=$44`: the original CPU takes
+  `$B1F8,$B1FF,$B204,$B20B,$B217,$B227,$B22E`,
+  then `$B232 JSR $B339` for authentic proximity.
+  That path can subsequently reach original B727
+  and actor responses under real collision preconditions.
+
+These are independently captured **original Mesen
+instruction traces**, not predicted C branch results.
+They validate the game's authority when an existing
+actor returns to page0. They do **not** establish new
+offscreen projectile or player collisions outside 256px.
+
 The new reproducible private owner oracle
 `JP/decomp/tools/jp0824_mesen_original_actor_page_oracle.py`
 validates both authorized core hashes, the original ROM,
