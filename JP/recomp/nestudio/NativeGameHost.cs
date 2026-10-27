@@ -74,7 +74,7 @@ public sealed class NativeGameHost : IDisposable
             Arguments=_batchLauncher?
                 "/d /s /c \"\""+full+"\"\"":"--edition Enhanced",
             UseShellExecute=false,
-            CreateNoWindow=_batchLauncher
+            CreateNoWindow=false // Keep a build/launcher console visible for errors
         };
         // The environment variable is inherited by the real game started
         // inside cmd.exe. The game advertises its TRUE PID via the bridge.
