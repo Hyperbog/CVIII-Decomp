@@ -248,6 +248,47 @@ int main(void)
               "placed current world cannot hide unplaced BLK1-03 sibling"))
               return 1;
         }
+        /* JP0823: Stage1-03 original CPU/PPU camera agrees, but the
+         * mutable name table no longer has enough immutable ROM tiles.
+         * After three consecutive stable CPU/PPU source observations,
+         * switch the PRESENTATION camera. Never create a new graph link. */
+        {
+          cviii_stage1_host_reset_0751(&host);
+          test_ram[0x34]=0;test_ram[0x35]=2;test_ram[0x36]=0;
+          test_ram[0x53]=144;test_ram[0x54]=1; /* original camera 400 */
+          scroll_x=400;bg_table=0x1000;
+          memset(live_nt,0xff,sizeof live_nt);
+          const unsigned links_before=host.join.link_count;
+          for(unsigned probe=1;probe<=3;probe++){
+             w=256;h=240;
+             pixels=cviii_stage1_host_present_0725(&host,
+                        original,&w,&h,1);
+             if(!require(host.blk103_candidate_frames==probe,
+                 "only phase-locked BLK1-03 frames promote camera"))return 1;
+          }
+          if(!require(host.has_verified_scene &&
+              !memcmp(host.last_verified_selector,(uint8_t[]){0,2,0},3) &&
+              host.last_verified_camera==400 &&
+              host.join.link_count==links_before &&
+              pixels[100*426+0]!=0xff000000u &&
+              pixels[100*426+400]!=0xff000000u &&
+              pixels[100*426+85]==original[100*256],
+              "original CPU/PPU stable BLK1-03 recovers BOTH side margins"))
+              return 1;
+          /* A mismatched PPU phase must never make a new source key
+           * valid, even after many frames. */
+          test_ram[0x36]=1;scroll_x=448;
+          for(unsigned probe=0;probe<4;probe++){
+              w=256;h=240;
+              pixels=cviii_stage1_host_present_0725(&host,
+                          original,&w,&h,1);
+          }
+          if(!require(host.blk103_candidate_frames==0u &&
+              !memcmp(host.last_verified_selector,(uint8_t[]){0,2,0},3) &&
+              host.join.link_count==links_before,
+              "unverified phase/selector cannot install false BLK1-03 edge"))
+              return 1;
+        }
         /* Truly nonhorizontal room 1-02:1 is never painted sideways. */
         const uint8_t vertical[3]={0,1,1};
         if(!require(cviii_stage1_atlas_horizontal_width_0801(
