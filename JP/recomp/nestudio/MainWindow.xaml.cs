@@ -31,6 +31,7 @@ public partial class MainWindow : Window
     private StudioOriginalDialogueEvent? _lastOriginalRoomMessage;
     private StudioEc47Trace? _lastVerifiedFormatter;
     private int _lastFormatterSequence;
+    private string _lastDecodedSourceHash="";
     private StudioSpriteGroup? _sprite;
     private StudioDialogue? _dialogue;
     private string _language="en";
@@ -277,6 +278,19 @@ public partial class MainWindow : Window
     {
         _scene=scene;
         ObserveOriginalScriptTransitions(scene);
+        if(scene.FormatterCommand is { } decoded)
+        {
+            if(_lastDecodedSourceHash!=decoded.SourceSha256)
+            {
+                _lastDecodedSourceHash=decoded.SourceSha256;
+                Log($"Decoded source formatter tile rows ({decoded.Rows.Count}) from original $0300 queue; hash {decoded.SourceSha256[..12]}.");
+            }
+            GlyphDecodeStatus.Text="ORIGINAL TILE ROWS — "+decoded.SourceSha256[..12]+"\n"+
+                string.Join("\n",decoded.Rows.Take(6).Select(r=>r.Label))+
+                (decoded.Rows.Count>6?"\n...":"");
+        }
+        else GlyphDecodeStatus.Text="Command capture not replacement-safe: "+
+            scene.FormatterDecodeStatus;
         if(scene.FormatterTrace is { } formatter)
         {
             string completion=formatter.Returned?"validated $E62D return":
@@ -528,6 +542,7 @@ public partial class MainWindow : Window
             _lastOriginalRoomMessage=null;
             _lastVerifiedFormatter=null;
             _lastFormatterSequence=0;
+            _lastDecodedSourceHash="";
             _lastNativePid=0;_lastNativeFrame=-1;_lastAck=0;
             _lastSentOperation=0;_frameProgressLogged=false;
             _frameDelayLogged=false;_snapshotLogged=false;_lightEditLogged=false;
@@ -818,6 +833,29 @@ public partial class MainWindow : Window
             _lastObjectScripts[obj.Slot]=(obj.Generation,obj.Script);
         }
     }
+    private void ValidateReplacement_Click(object sender,RoutedEventArgs e)
+    {
+        if(_dialogue is null || _scene is null || !DialogueTab.IsSelected)
+        {
+            ReplacementSafetyStatus.Text="Select an authored dialogue entry in Dialogue mode.";
+            return;
+        }
+        ReplacementPreview preview=OriginalGlyphCodec.PreviewReplacement(
+            _scene.FormatterCommand,DialogueText.Text);
+        ReplacementSafetyStatus.Text=preview.Allowed?
+            $"PASS: {preview.OriginalBytes} source bytes = {preview.CandidateBytes} draft bytes; hash {preview.SourceSha256[..12]}. PREVIEW ONLY, never applied to the game.":
+            "BLOCKED: "+preview.Explanation;
+        if(!preview.Allowed)
+        {
+            _dialogue.ReplacementMode="none";
+            _dialogue.SourceCommandSha256="";
+            return;
+        }
+        _dialogue.ReplacementMode="dry-run";
+        _dialogue.SourceCommandSha256=preview.SourceSha256;
+        Dirty();
+        Log($"Validated offline A-Z source-geometry replacement draft for {_dialogue.Id} against original formatter hash {preview.SourceSha256}; no native writes or binary payload persisted.");
+    }
     private void BindFormatter_Click(object sender,RoutedEventArgs e)
     {
         if(_dialogue is null || _scene is null ||
@@ -1069,6 +1107,9 @@ public partial class MainWindow : Window
         if(_changing || _dialogue is null)return;
         _dialogue.Id=DialogueId.Text.Trim();
         _dialogue.Languages[_language]=DialogueText.Text;
+        // Any edited characters invalidate the previous source-bound draft.
+        _dialogue.ReplacementMode="none";
+        _dialogue.SourceCommandSha256="";
         if(int.TryParse(DialogueWrap.Text,out int width))
             _dialogue.MaxCharactersPerLine=Math.Clamp(width,8,80);
         Dirty();UpdateDialoguePreview();
