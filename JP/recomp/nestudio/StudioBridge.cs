@@ -60,6 +60,17 @@ public sealed class StudioBridge : IDisposable
         catch(UnauthorizedAccessException){return null;}
         catch(IOException){return null;}
     }
+    // Session-scoped input capture: bitmask of 8 NES keyboard bindings.
+    // Writes touch only reserved v1 presentation header fields (76,80).
+    // The native SDL host merges them with physical keyboard/gamepads.
+    public bool SetInputState(int bits,bool capture)
+    {
+        if(_view.ReadInt32(0)!=Magic)return false;
+        _view.Write(76,bits&255);
+        Thread.MemoryBarrier();
+        _view.Write(80,capture?1:0);
+        return true;
+    }
     public bool TryCommand(int operation,int arg0=0,int arg1=0,int arg2=0)
     {
         if(_view.ReadInt32(0)!=Magic)return false;
@@ -133,6 +144,7 @@ public sealed class StudioBridge : IDisposable
     }
     public void Dispose()
     {
+        try {SetInputState(0,false);} catch(IOException){}
         _view.Dispose();
         _file.Dispose();
     }
