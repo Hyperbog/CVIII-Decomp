@@ -13,6 +13,7 @@
 #include "cviii_horizontal_child_0818.h"
 #include "cviii_horizontal_lineage_0819.h"
 #include "cviii_contact_effects_0821.h"
+#include "cviii_extended_actor_0824.h"
 #include <stdint.h>
 #include <stddef.h>
 enum { CVIII_WORLD_ROOMS_0803=8, CVIII_WORLD_ACTORS_0803=28,
@@ -33,6 +34,7 @@ typedef struct {
     int32_t x,y;
     uint8_t raw_x,raw_y,attrs;
     uint8_t original_type; /* original $054E+X slot allocator */
+    uint8_t guest_adjacent_0824,local_coords_0824; /* original CPU state */
     uint32_t generation; /* advances only on new slot identity */
     /* Optional JP0814 original-ROM provenance. Never grants interaction. */
     uint16_t source_cpu_0814; /* exact matched original seven-byte record */
