@@ -14,11 +14,38 @@ public sealed class NativeGameHost : IDisposable
 {
     private Process? _process;
     private IntPtr _window;
+    private int _nativeGamePid;
+    private bool _batchLauncher;
+    private DateTime _launchTimeUtc;
     private WinForms.Panel? _panel;
     public string Session { get; private set; } = "";
-    public bool IsRunning => _process is { HasExited: false };
+    public bool IsRunning =>
+        (_process is { HasExited: false }) ||
+        NativeProcessAlive(_nativeGamePid) ||
+        (_batchLauncher && _process is not null &&
+         DateTime.UtcNow-_launchTimeUtc<TimeSpan.FromSeconds(25));
     public bool IsEmbedded => _window!=IntPtr.Zero && IsWindow(_window);
-    public int? ProcessId => IsRunning?_process!.Id:null;
+    public int? ProcessId =>
+        NativeProcessAlive(_nativeGamePid)?_nativeGamePid:
+        (_process is { HasExited: false }?_process.Id:null);
+    public bool IsBatchLauncher => _batchLauncher;
+    private static bool NativeProcessAlive(int pid)
+    {
+        if(pid<=0)return false;
+        try
+        {
+            using Process process=Process.GetProcessById(pid);
+            return !process.HasExited;
+        }
+        catch(ArgumentException){return false;}
+        catch(InvalidOperationException){return false;}
+    }
+    public void SetNativeProcessId(int pid)
+    {
+        // The PID comes from the unique, per-launch native session map.
+        // It is not supplied by a path, .bat command or a user text field.
+        if(pid>0 && NativeProcessAlive(pid))_nativeGamePid=pid;
+    }
     public void AttachPanel(WinForms.Panel panel)
     {
         _panel=panel;
@@ -29,29 +56,43 @@ public sealed class NativeGameHost : IDisposable
     {
         if(IsRunning)return;
         if(!File.Exists(path))
-            throw new FileNotFoundException("Build the verified Japanese Enhanced game first.",path);
-        string directory=Path.GetDirectoryName(Path.GetFullPath(path))!;
-        if(!File.Exists(Path.Combine(directory,"SDL2.dll")))
-            throw new FileNotFoundException("Game directory must contain SDL2.dll.");
+            throw new FileNotFoundException("Game launcher does not exist.",path);
+        string full=Path.GetFullPath(path);
+        string directory=Path.GetDirectoryName(full)!;
+        string extension=Path.GetExtension(full).ToLowerInvariant();
+        if(extension is not (".exe" or ".bat" or ".cmd"))
+            throw new InvalidDataException("Select an Enhanced game .exe, .bat, or .cmd launcher.");
+        _batchLauncher=extension is ".bat" or ".cmd";
+        if(!_batchLauncher && !File.Exists(Path.Combine(directory,"SDL2.dll")))
+            throw new FileNotFoundException("Native game directory must contain SDL2.dll.");
         Session=Guid.NewGuid().ToString("N");
         var start=new ProcessStartInfo
         {
-            FileName=Path.GetFullPath(path),
+            FileName=_batchLauncher?
+                Path.Combine(Environment.SystemDirectory,"cmd.exe"):full,
             WorkingDirectory=directory,
-            Arguments="--edition Enhanced",
+            Arguments=_batchLauncher?
+                "/d /s /c \"\""+full+"\"\"":"--edition Enhanced",
             UseShellExecute=false,
-            CreateNoWindow=false
+            CreateNoWindow=_batchLauncher
         };
+        // The environment variable is inherited by the real game started
+        // inside cmd.exe. The game advertises its TRUE PID via the bridge.
         start.Environment["CVIII_NESTUDIO_SESSION"]=Session;
         _process=Process.Start(start) ??
             throw new IOException("Could not launch the Enhanced game.");
+        _nativeGamePid=_batchLauncher?0:_process.Id;
+        _launchTimeUtc=DateTime.UtcNow;
         _window=IntPtr.Zero;
     }
     public bool TryEmbed()
     {
         if(!IsRunning || _panel is null)return false;
         if(IsEmbedded){Resize();return true;}
-        int pid=_process!.Id;
+        // For .bat/.cmd launchers cmd.exe is NEVER the SDL window owner.
+        // Wait for the game to publish its PID in the session handshake.
+        int pid=_nativeGamePid;
+        if(pid<=0 || !NativeProcessAlive(pid))return false;
         IntPtr found=IntPtr.Zero;
         EnumWindows((hwnd,param)=>
         {
@@ -102,6 +143,23 @@ public sealed class NativeGameHost : IDisposable
         if(_process is null)return;
         try
         {
+            if(_nativeGamePid>0 && _nativeGamePid!=_process.Id)
+            {
+                // Only a PID learned through this launch's native session
+                // mapping can be stopped independently of cmd.exe.
+                try
+                {
+                    using Process native=Process.GetProcessById(_nativeGamePid);
+                    if(!native.HasExited)
+                    {
+                        native.CloseMainWindow();
+                        if(!native.WaitForExit(1200))
+                            native.Kill(entireProcessTree:true);
+                    }
+                }
+                catch(ArgumentException){}
+                catch(InvalidOperationException){}
+            }
             if(!_process.HasExited)
             {
                 _process.CloseMainWindow();
@@ -113,6 +171,7 @@ public sealed class NativeGameHost : IDisposable
         finally
         {
             _process.Dispose();_process=null;
+            _nativeGamePid=0;_batchLauncher=false;
             _window=IntPtr.Zero;Session="";
         }
     }
