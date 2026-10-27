@@ -76,7 +76,7 @@ static inline int cviii_wide_runtime_tick_0826(
         const int32_t prior=a->state==CVIII_INSTANCE_LIVE_0826 ?
                               a->world_x:a->source_x;
         if(px-prior>32 || prior-px>32)continue;
-        if(a->state==CVIII_INSTANCE_LIVE && a->guest_slot!=x)
+        if(a->state==CVIII_INSTANCE_LIVE_0826 && a->guest_slot!=x)
             continue;
         if(linked){linked=0;break;} /* ambiguous duplicate parent */
         linked=x;
