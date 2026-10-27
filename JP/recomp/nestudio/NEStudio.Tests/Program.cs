@@ -14,6 +14,15 @@ project.SpriteGroups.Add(new StudioSpriteGroup{Name="Torch Flame",
     Layer="Above Game",Room=0x2601});
 project.SpriteGroups.Add(new StudioSpriteGroup
 {
+    Name="Original Actor Lifetimes",Room=0x2601,
+    OriginalObjects=new()
+    {
+        new StudioOriginalObjectRef{Room=0x2601,ObjectSlot=1,Generation=2},
+        new StudioOriginalObjectRef{Room=0x2601,ObjectSlot=4,Generation=1}
+    }
+});
+project.SpriteGroups.Add(new StudioSpriteGroup
+{
     Name="Paused OAM Body Parts",Room=0x2601,Layer="World",
     CapturedFrame=120,
     Members=new()
@@ -55,7 +64,11 @@ try
 {
     StudioProjectFile.Save(project,file);
     StudioProject returned=StudioProjectFile.Load(file);
-    Check(returned.SpriteGroups.Count==6,"sprite grouping persistence");
+    Check(returned.SpriteGroups.Count==7,"sprite grouping persistence");
+    Check(returned.SpriteGroups[^2].OriginalObjects.Count==2 &&
+          returned.SpriteGroups[^2].OriginalObjects[0].ObjectSlot==1 &&
+          returned.SpriteGroups[^2].OriginalObjects[0].Generation==2,
+          "original CPU object lifetime references persist separately from rotating OAM");
     Check(returned.SpriteGroups[^1].Members.Count==2 &&
           returned.SpriteGroups[^1].Members[0].OamSlot==3 &&
           returned.SpriteGroups[^1].Members[1].Tile==0x25 &&
@@ -83,6 +96,11 @@ try
     try{_ = StudioProjectFile.Load(file);}
     catch(InvalidDataException){rejected=true;}
     Check(rejected,"invalid OAM member index rejected");
+    File.WriteAllText(file,"""{"SchemaVersion":1,"SpriteGroups":[{"OriginalObjects":[{"ObjectSlot":28,"Generation":1}]}]}""");
+    rejected=false;
+    try{_ = StudioProjectFile.Load(file);}
+    catch(InvalidDataException){rejected=true;}
+    Check(rejected,"source object slot limit enforced");
     File.WriteAllText(file,"""{"SchemaVersion":1,"Dialogues":[{"HasViewportRegion":true,"ViewX":999}]}""");
     rejected=false;
     try{_ = StudioProjectFile.Load(file);}
