@@ -107,14 +107,20 @@ the `$8001` call and after its exact instruction
 trace returned through `$8036 RTS`.
 
 The independently compiled native source CPU VM,
-started from the **same private Mesen RAM snapshot**
-and using original authenticated physical raw0B
-ROM bytes, matched all compared source states:
-`$00=$44`, `$01=$FF`,
-`$0439=$9F`, `$0471=$44`,
-`$04C5=$A0`, `$04DC=$00`,
-`$041D=$50`. The RAM in the actual Mesen process
-was not changed by the native comparison.
+started from **the identical private Mesen CPU-RAM
+snapshots** and original authenticated physical raw0B
+ROM bytes, matched **both source-born type3D actors**:
+
+| Original source actor | Scratch $00/$01 | Integer X / page flags | Fraction X/Y | Integer Y |
+|---|---|---|---|---|
+| X=1, parent source3 | $44/$FF | $0439=$9F, $0471=$44 | $04C5=$A0, $04DC=$00 | $041D=$50 |
+| X=2, parent source4 | $44/$FF | $043A=$BF, $0472=$44 | $04C6=$A0, $04DD=$00 | $041E=$B0 |
+
+Both stopped at original **$8036 RTS**.
+Original Mesen RAM was never modified by either
+private native comparator. These controller-reached
+per-frame witnesses support movement for two original
+actors, not full AI, hits or defeat.
 
 A second **4,096-case** original ROM differential
 confirmed signed velocity, 9-bit page carry,
