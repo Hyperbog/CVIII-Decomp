@@ -517,6 +517,25 @@ int cviii_nestudio_copy_oam(uint8_t out[256])
     memcpy(out,oam,256);
     return 1;
 }
+/* Original JP PRG26 renderer source tables: 28 original object slots.
+ * These are authenticated CPU RAM read-only observations, not OAM guesses.
+ * Host-side generations are assigned by NEStudio's bridge per room/lifetime.
+ * Table order: frame, Y, X, attribute, flags, selector, mirror, script.
+ */
+int cviii_nestudio_copy_original_objects(uint8_t out[8][28],uint8_t *phase)
+{
+    static const unsigned offsets[8]={
+        0x0400u,0x041Cu,0x0438u,0x0454u,
+        0x0470u,0x048Cu,0x04A8u,0x05EFu
+    };
+    const uint8_t *ram=cyc_cpu_ram();
+    if(!ram || !out || !phase)return 0;
+    for(unsigned table=0;table<8u;++table)
+        memcpy(out[table],ram+offsets[table],28u);
+    *phase=ram[0x22u];
+    return 1;
+}
+
 static const uint32_t *present_game(void *context, int *width, int *height)
 {
     CviiiEdition *settings = (CviiiEdition *)context;
