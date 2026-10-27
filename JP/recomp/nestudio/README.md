@@ -134,6 +134,47 @@ labels, with custom dark ComboBox dropdowns, visible focus borders and
 contrast-preserving selected items. The formerly dark-on-dark ComboBox
 foreground is no longer inherited from the Windows system template.
 
+## Original sprite-emission ownership and text-source discovery
+
+NEStudio **v3** observes the original PRG26 sprite renderer, rather
+than inferring sprite identity from color, proximity, or static OAM
+indices. The pinned NESRecomp RAM-read policy provides the actual CPU
+instruction PC. The observer accepts the bank-qualified `$8070`
+`LDY $048C,X` read only when its mapped bytes match the original JP
+opcode sequence `BC 8C 04`, recording current source object `$05`,
+OAM cursor `$04` and free-slot counter `$07`.
+
+The observer then requires an original renderer terminal read:
+`$8038: A6 04` for a normal object pass or original
+`$80ED: 68 68 60` at the 64-sprite non-local return. A missing
+source call, invalid owner, conflicting physical slot, or unverified
+terminal rejects ownership for that frame. Emitted OAM slot addresses
+follow the original +`$C4` byte stride. The live bridge exposes
+owner-by-OAM index, source-call and rejection counts. It never writes
+CPU RAM, OAM, mapper, save states, or source ROM data.
+
+In the **Sprites** tab, clicking a source-attributed visible sprite
+selects its original CPU object. The viewport outlines all pieces
+attributed to selected original objects in **gold**. Manually selected
+OAM entries remain **cyan**. The Original Objects list, Ctrl/Shift
+multiselection and Ctrl+G grouping follow the observed source identities.
+If the hook cannot verify attribution for a particular frame, NEStudio
+shows **Unattributed** rather than attaching the sprite to an invented
+actor. The v3 bridge extends v2; both editor and private native game
+must be rebuilt together.
+
+**Original text printer research:** the private recomp now uses the
+upstream passive PPU write callback to observe original writes to
+nametable addresses `$2000-$2FFF`. The Dialogue inspector displays
+the last observed source PC, PPU address, tile value, and total writes.
+These are **source-side PPU access observations, NOT confirmed dialogue
+events**. The address and tile alone do not identify the rendering
+routine or originating script bank, and not all tile writes are text.
+The original dialogue event ABI remains reserved and unpopulated until
+actual text-printer control flow is authenticated. To help identify
+that path, run a repeatable real-game dialogue scene and save the local
+NEStudio acceptance log together with the scene location/timing.
+
 ## Original game-object identity and source-trigger milestone
 
 The v2 bridge appends **28 actual original Japanese PRG26 object slots**
