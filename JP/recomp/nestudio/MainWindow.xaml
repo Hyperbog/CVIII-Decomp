@@ -179,7 +179,15 @@
             <TabItem x:Name="SpritesTab" Header="Sprites">
               <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel Margin="10,8">
-                  <TextBlock Text="LIVE PPU SPRITES" FontWeight="Bold" Foreground="#B0DCF2"/>
+                  <TextBlock Text="ORIGINAL GAME OBJECTS (28-slot CPU table)" FontWeight="Bold" Foreground="#B0DCF2"/>
+                  <TextBlock Text="True game object index and active-lifetime generation, not a rotating PPU sprite slot. Ctrl-click to select multiple."
+                             Foreground="#CAD9E7" FontSize="11" TextWrapping="Wrap" Margin="0,5,0,0"/>
+                  <ListBox x:Name="OriginalObjectsList" Height="142" Margin="0,8"
+                           SelectionMode="Extended" DisplayMemberPath="Label"
+                           SelectionChanged="OriginalObjects_SelectionChanged"/>
+                  <Button Content="Group Original Objects (Ctrl+G)" Click="GroupOriginalObjects_Click"/>
+                  <Separator Margin="0,12"/>
+                  <TextBlock Text="LIVE PPU SPRITES — emission-index decoded" FontWeight="Bold" Foreground="#B0DCF2"/>
                   <TextBlock Text="Actual OAM slots (read-only; original rotation changes slot identity)" Foreground="#CAD9E7" FontSize="11" TextWrapping="Wrap" Margin="0,5,0,0"/>
                   <TextBlock Text="Click a sprite in the paused viewport. Ctrl/Shift+click to multiselect; Ctrl+G groups OAM snapshots."
                              Foreground="#E1F1FA" TextWrapping="Wrap" Margin="0,5,0,4"/>
@@ -202,7 +210,7 @@
                     <Button Content="+ Group" Click="AddSpriteGroup_Click"/>
                     <Button Content="Remove" Click="RemoveSpriteGroup_Click"/>
                   </StackPanel>
-                  <TextBlock Text="Groups capture room, frame and OAM slot/tile snapshots; original OAM slot rotation prevents stable character identity without future source mapping." Foreground="#CAD9E7" FontSize="11" TextWrapping="Wrap" Margin="0,14,0,0"/>
+                  <TextBlock Text="Groups can now store source-observed object lifetimes (room + original slot + generation). OAM click selections remain sprite-emission snapshots; assigning individual sprite pieces to actors requires the source renderer provenance hook." Foreground="#CAD9E7" FontSize="11" TextWrapping="Wrap" Margin="0,14,0,0"/>
                 </StackPanel>
               </ScrollViewer>
             </TabItem>
@@ -210,7 +218,7 @@
               <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel Margin="10,8">
                   <TextBlock Text="DIALOGUE &amp; TRANSLATIONS" FontWeight="Bold" Foreground="#B0DCF2"/>
-                  <TextBlock Text="Dialogue view is separate from sprite picking. Original text-click selection requires authenticated dialogue IDs and screen bounds not yet exposed by the native recomp."
+                  <TextBlock Text="Bound screen regions are editor annotations only. Original script/dialogue source event ABI is reserved but reports no authentic triggers until a bank/PC-qualified interpreter hook is verified."
                              Foreground="#CDD9E6" TextWrapping="Wrap" Margin="0,4,0,10"/>
                   <StackPanel Orientation="Horizontal" Margin="0,5,0,4">
                     <Button Content="Bind region: click viewport" Click="BindDialogueRegion_Click"/>
