@@ -51,6 +51,12 @@ project.Dialogues.Add(new StudioDialogue
     Trigger="original-room-message",SourceMessageStage=2,
     SourceMessageByte=0x34
 });
+project.Dialogues.Add(new StudioDialogue
+{
+    Id="jp.original.ec47.formatter",Room=0x2601,
+    Trigger="original-ec47-formatter",SourceMessageStage=2,
+    SourceMessageByte=0x32
+});
 project.Events.Add(new StudioEvent
 {
     Room=0x2601,Frame=120,Kind="dialogue",
@@ -82,7 +88,7 @@ try
           returned.SpriteGroups[^1].Members[1].Tile==0x25 &&
           returned.SpriteGroups[^1].CapturedFrame==120,
           "snapshot group OAM membership roundtrip");
-    Check(returned.Dialogues.Count==2 &&
+    Check(returned.Dialogues.Count==3 &&
           returned.Dialogues[0].Languages["ja"]=="こんばんは",
           "Unicode localization roundtrip");
     Check(returned.Dialogues[0].HasViewportRegion &&
@@ -98,6 +104,10 @@ try
           returned.Dialogues[1].SourceMessageStage==2 &&
           returned.Dialogues[1].SourceMessageByte==0x34,
           "authenticated original room-message source byte roundtrip");
+    Check(returned.Dialogues[2].Trigger=="original-ec47-formatter" &&
+          returned.Dialogues[2].SourceMessageStage==2 &&
+          returned.Dialogues[2].SourceMessageByte==0x32,
+          "authenticated EC47 original formatter binding roundtrip");
     Check(returned.Events[0].Frame==120,"timeline preservation");
     Check(returned.Assets[0].RelativePath.EndsWith("trevor.png"),
           "external image reference");
@@ -128,6 +138,11 @@ try
     try{_ = StudioProjectFile.Load(file);}
     catch(InvalidDataException){rejected=true;}
     Check(rejected,"invalid source room-message selector rejected");
+    File.WriteAllText(file,"""{"SchemaVersion":1,"Dialogues":[{"Trigger":"original-ec47-formatter","SourceMessageStage":-1,"SourceMessageByte":50}]}""");
+    rejected=false;
+    try{_ = StudioProjectFile.Load(file);}
+    catch(InvalidDataException){rejected=true;}
+    Check(rejected,"unbound EC47 source-stage rejected");
     File.WriteAllText(file,"""{"SchemaVersion":1,"Dialogues":[{"HasViewportRegion":true,"ViewX":999}]}""");
     rejected=false;
     try{_ = StudioProjectFile.Load(file);}
