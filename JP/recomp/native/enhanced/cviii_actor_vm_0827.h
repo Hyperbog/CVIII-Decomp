@@ -34,7 +34,11 @@ typedef struct {
  uint32_t instructions,ram_writes;
 } CviiiActorVM0827;
 static inline int cviii_vm_allowed_0827(uint16_t pc){
- return (pc>=0xb486u && pc<=0xb4d6u) ||
+ /* The ORIGINAL $FE51 per-actor movement JSR selects raw PRG0B
+  * at $8000 and enters $8001. Only its $8001-$804A instructions
+  * may execute here; other actor dispatches still stop closed. */
+ return (pc>=0x8001u && pc<=0x804au) ||
+        (pc>=0xb486u && pc<=0xb4d6u) ||
         (pc>=0xb525u && pc<=0xb53eu);
 }
 static inline void cviii_vm_zn_0827(CviiiActorVM0827 *v,uint8_t x){
@@ -97,7 +101,7 @@ static inline int cviii_vm_init_0827(CviiiActorVM0827 *v,
  const uint8_t original_ram[2048],unsigned x,uint16_t entry)
 {
  if(!v || !original_ram || x<1u || x>18u ||
-    (entry!=0xb486u && entry!=0xb525u))return 0;
+    (entry!=0x8001u && entry!=0xb486u && entry!=0xb525u))return 0;
  memset(v,0,sizeof *v);
  memcpy(v->ram,original_ram,2048u);
  v->pc=entry;v->entry_pc=entry;v->x=(uint8_t)x;
@@ -133,6 +137,48 @@ static inline int cviii_vm_step_0827(
       if(!cviii_vm_read_0827(v,bank,address,&n))goto bus;
       if(op==0xbdu)v->a=n;else v->y=n;
       cviii_vm_zn_0827(v,n);
+    }break;
+  case 0x7du: /* ADC absolute,X (2A03 binary) */
+    if(!cviii_vm_word_0827(v,bank,&address))goto bus;
+    address=(uint16_t)(address+v->x);
+    if(!cviii_vm_read_0827(v,bank,address,&n))goto bus;
+    {
+      const uint8_t old=v->a;
+      const uint16_t sum=(uint16_t)old+(uint16_t)n+
+                  (unsigned)((v->p&CVIII_VM_FLAG_C_0827)!=0u);
+      v->a=(uint8_t)sum;
+      v->p=(uint8_t)((v->p&~(CVIII_VM_FLAG_C_0827|
+                     CVIII_VM_FLAG_V_0827)) |
+                   (sum>255u?CVIII_VM_FLAG_C_0827:0u) |
+                   ((~(old^n)&(old^v->a)&0x80u)?
+                       CVIII_VM_FLAG_V_0827:0u));
+      cviii_vm_zn_0827(v,v->a);
+    }break;
+  case 0xa0u: /* LDY immediate */
+    if(!cviii_vm_fetch_0827(v,bank,&imm))goto bus;
+    v->y=imm;cviii_vm_zn_0827(v,v->y);break;
+  case 0x88u: /* DEY */
+    v->y--;cviii_vm_zn_0827(v,v->y);break;
+  case 0x84u: /* STY zero page */
+    if(!cviii_vm_fetch_0827(v,bank,&imm) ||
+       !cviii_vm_write_0827(v,imm,v->y))goto bus;
+    break;
+  case 0x05u: /* ORA zero page */
+  case 0x65u: /* ADC zero page (2A03 binary) */
+    if(!cviii_vm_fetch_0827(v,bank,&imm))goto bus;
+    n=v->ram[imm];
+    if(op==0x05u){v->a|=n;cviii_vm_zn_0827(v,v->a);}
+    else{
+       const uint8_t old=v->a;
+       const uint16_t sum=(uint16_t)old+(uint16_t)n+
+                 (unsigned)((v->p&CVIII_VM_FLAG_C_0827)!=0u);
+       v->a=(uint8_t)sum;
+       v->p=(uint8_t)((v->p&~(CVIII_VM_FLAG_C_0827|
+                      CVIII_VM_FLAG_V_0827)) |
+                    (sum>255u?CVIII_VM_FLAG_C_0827:0u) |
+                    ((~(old^n)&(old^v->a)&0x80u)?
+                      CVIII_VM_FLAG_V_0827:0u));
+       cviii_vm_zn_0827(v,v->a);
     }break;
   case 0x85u: /* STA zero page */
     if(!cviii_vm_fetch_0827(v,bank,&imm) ||
