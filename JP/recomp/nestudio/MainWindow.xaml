@@ -184,7 +184,7 @@
                   <TextBlock Text="Click a sprite in the paused viewport. Ctrl/Shift+click to multiselect; Ctrl+G groups OAM snapshots."
                              Foreground="#E1F1FA" TextWrapping="Wrap" Margin="0,5,0,4"/>
                   <ListBox x:Name="LiveSpritesList" Height="135" Margin="0,8"
-                           SelectionMode="Extended" SelectionChanged="LiveSprites_SelectionChanged"/>
+                           SelectionMode="Extended" DisplayMemberPath="Label" SelectionChanged="LiveSprites_SelectionChanged"/>
                   <Button Content="Group Selected Sprites (Ctrl+G)" Click="GroupSelectedSprites_Click"/>
                   <Separator Margin="0,12"/>
                   <TextBlock Text="SPRITE LAYER GROUPS" FontWeight="Bold" Foreground="#B0DCF2"/>
