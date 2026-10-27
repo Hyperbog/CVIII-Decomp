@@ -20,15 +20,20 @@ typedef struct {
     LONG used,room,x,y,radius,energy,red,green,blue,shape,muted,flicker;
     char name[32];
 } NestStudioLight; /* exactly 80 bytes */
+typedef struct {LONG used,slot,x,y,tile,attributes;} NestStudioSprite; /* 24 bytes */
+extern int cviii_nestudio_copy_oam(uint8_t out[256]);
 typedef struct {
     volatile LONG magic,version,request,response;
     volatile LONG op,a,b,c,result;
     volatile LONG revision,room,selected,editing,renderer,count,camera,frame,enabled;
     volatile LONG reserved[14]; /* 128 byte header */
     NestStudioLight lights[NEST_MAX_LIGHTS];
+    NestStudioSprite sprites[64];
 } NestStudioMapping;
 typedef char nest_layout_1[(sizeof(NestStudioLight)==80)?1:-1];
 typedef char nest_layout_2[(offsetof(NestStudioMapping,lights)==128)?1:-1];
+typedef char nest_layout_3[(sizeof(NestStudioSprite)==24)?1:-1];
+typedef char nest_layout_4[(offsetof(NestStudioMapping,sprites)==10368)?1:-1];
 static HANDLE nest_mapping_handle;
 static NestStudioMapping *nest_shared;
 static int nest_checked;
@@ -129,6 +134,16 @@ static void nest_tick(void){
         if(l->used && l->room==(uint32_t)nest_shared->room)++count;
     }
     nest_shared->count=count;
+    uint8_t oam[256];
+    if(cviii_nestudio_copy_oam(oam)){
+        for(int slot=0;slot<64;++slot){
+            NestStudioSprite *p=&nest_shared->sprites[slot];
+            int at=slot*4;
+            p->used=oam[at]<239?1:0;
+            p->slot=slot;p->y=oam[at];p->tile=oam[at+1];
+            p->attributes=oam[at+2];p->x=oam[at+3];
+        }
+    }else memset(nest_shared->sprites,0,sizeof nest_shared->sprites);
     MemoryBarrier();
     InterlockedIncrement(&nest_shared->revision); /* even: stable snapshot */
 }
