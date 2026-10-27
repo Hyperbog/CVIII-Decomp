@@ -92,6 +92,38 @@ static int load(CviiiStage1Host0725 *h)
         }
         if(!room_ok)
             fprintf(stderr,"CVIII JP0811: original stage source hierarchy not authenticated; no inferred world connections\n");
+        /* JP0827: independent original physical raw0B actor code.
+         * The combined ROM loader already checked the complete
+         * cartridge. Refuse mixed physical PRG revisions with a second
+         * SHA256 check, and keep the 16KiB owner-private code solely
+         * in process memory for sandbox opcode reads. */
+        static const uint8_t expected_actor_bank_sha[32]={
+          0x17,0xb2,0x16,0x08,0x8d,0x12,0xac,0x7b,
+          0x6a,0x4a,0x68,0xbb,0xea,0x34,0x34,0xdb,
+          0xdb,0xa3,0x17,0x86,0x5b,0xd6,0xcf,0x4d,
+          0x11,0x64,0x6a,0x3d,0x4e,0xfa,0xf6,0x4a
+        };
+        uint8_t code_digest[32];
+        FILE *actor_code=fopen(h->rom_path,"rb");
+        int actor_bank_ok=room_ok && actor_code &&
+            fseek(actor_code,16L+11L*16384L,SEEK_SET)==0 &&
+            fread(h->actor_vm_bank0b_0827,1,
+                  sizeof h->actor_vm_bank0b_0827,actor_code)==
+                  sizeof h->actor_vm_bank0b_0827;
+        if(actor_code)fclose(actor_code);
+        if(actor_bank_ok){
+            cviii_sha256_0727(h->actor_vm_bank0b_0827,
+                             sizeof h->actor_vm_bank0b_0827,
+                             code_digest);
+            actor_bank_ok=memcmp(expected_actor_bank_sha,
+                                 code_digest,sizeof code_digest)==0;
+        }
+        h->actor_vm_bank_valid_0827=actor_bank_ok;
+        if(!actor_bank_ok){
+            memset(h->actor_vm_bank0b_0827,0,
+                   sizeof h->actor_vm_bank0b_0827);
+            fprintf(stderr,"CVIII JP0827: original raw0B actor VM bank not authenticated; replay disabled\n");
+        }
         return 1;
     }
     fprintf(stderr,"CVIII JP0727: runtime Stage 1 resource load rejected (status %d); stock presentation retained\\n",
@@ -132,6 +164,9 @@ int cviii_stage1_host_rom_0725(CviiiStage1Host0725 *h,const char *path)
     h->attempted=0;
     h->atlas.loaded=0;
     h->sprite_bank_valid_0807=0;
+    h->actor_vm_bank_valid_0827=0;
+    memset(h->actor_vm_bank0b_0827,0,
+           sizeof h->actor_vm_bank0b_0827);
     return 1;
 }
 int cviii_stage1_host_cache_0729(CviiiStage1Host0725 *h,const char *path)
@@ -426,6 +461,12 @@ const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
                  * infer another actor or extend guest AI lifetime. */
                 (void)cviii_world_observe_children_0818(
                     &h->world,selector,ram);
+                /* Real 6502 opcodes in isolated native RAM: compare
+                 * B486/B525 would-call outcomes on ORIGINAL children.
+                 * This never injects guest CPU damage or acts as an AI. */
+                if(h->actor_vm_bank_valid_0827)
+                    (void)cviii_world_probe_vm_0827(
+                        &h->world,ram,h->actor_vm_bank0b_0827);
             }
             /* JP0813: follow the genuine vertical chapel camera with
              * resident source identities. CPU actor state stays authoritative;
