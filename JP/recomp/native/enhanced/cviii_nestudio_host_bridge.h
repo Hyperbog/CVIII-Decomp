@@ -43,7 +43,7 @@ static unsigned nest_keyboard_bits(void)
 {
     if(!nest_shared || !nest_shared->magic)return 0;
     if(!InterlockedCompareExchange(&nest_shared->reserved[2],0,0))return 0;
-    return (unsigned)InterlockedCompareExchange(&nest_shared->reserved[1],0,0)&127u;
+    return (unsigned)InterlockedCompareExchange(&nest_shared->reserved[1],0,0)&255u;
 }
 static int nest_keyboard_owned(void)
 {
