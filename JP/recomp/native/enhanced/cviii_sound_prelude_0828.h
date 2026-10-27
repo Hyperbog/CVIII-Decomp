@@ -11,6 +11,7 @@
 #ifndef CVIII_SOUND_PRELUDE_0828_H
 #define CVIII_SOUND_PRELUDE_0828_H
 #include <stdint.h>
+#include <stddef.h>
 typedef struct {
  uint8_t original_bank, pending_sound, original_26;
  uint8_t proposed_25, proposed_26, proposed_prg_bank;
