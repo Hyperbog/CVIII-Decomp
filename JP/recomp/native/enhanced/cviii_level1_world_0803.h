@@ -14,6 +14,7 @@
 #include "cviii_horizontal_lineage_0819.h"
 #include "cviii_contact_effects_0821.h"
 #include "cviii_extended_actor_0824.h"
+#include "cviii_wide_source_admission_0825.h"
 #include <stdint.h>
 #include <stddef.h>
 enum { CVIII_WORLD_ROOMS_0803=8, CVIII_WORLD_ACTORS_0803=28,
@@ -141,6 +142,9 @@ typedef struct {
     CviiiEffect23Witness0821 effect23;
     uint32_t effect23_observations, effect23_entries;
     uint8_t effect23_room;
+    /* JP0825: persistent native source definitions; CPU-ownership
+     * is separately witnessed. Never use READY sources as hitboxes. */
+    CviiiWideSources0825 wide_sources_0825;
 } CviiiLevel1World0803;
 
 /* All eight source rooms are resident on success. One known horizontal
