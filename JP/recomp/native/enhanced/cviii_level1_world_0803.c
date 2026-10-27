@@ -357,6 +357,14 @@ int cviii_world_probe_vm_0827(CviiiLevel1World0803 *w,
             match=vm.stop_kind==CVIII_VM_STOP_BOUNDARY_0827;
         w->actor_vm_stop_pc_0827[i]=vm.stop_pc;
         w->actor_vm_last_status_0827[i]=vm.stop_kind;
+        /* $B525 can enter fixed-bank $E249 with original A=sound.
+         * Its first bank-switch stage is source-verified; the
+         * $8850 bank0C sound/APU callback is NOT implemented.
+         * Record only a proposed private call context. */
+        if(vm.stop_kind==CVIII_VM_STOP_EXTERNAL_0827 &&
+           vm.external_target==0xe249u)
+            (void)cviii_e249_prelude_0828(
+                vm.ram,vm.a,&w->actor_sound_prelude_0828[i]);
         if(w->actor_vm_probes_0827!=UINT32_MAX)w->actor_vm_probes_0827++;
         if(match){
             passed++;
@@ -642,6 +650,8 @@ void cviii_world_clear_live_0805(CviiiLevel1World0803 *w){
     w->actor_vm_deferred_0827=0u;
     memset(w->actor_vm_stop_pc_0827,0,
            sizeof w->actor_vm_stop_pc_0827);
+    memset(w->actor_sound_prelude_0828,0,
+           sizeof w->actor_sound_prelude_0828);
     memset(w->actor_vm_last_status_0827,0,
            sizeof w->actor_vm_last_status_0827);
     /* Restoring a guest state invalidates all live native source
