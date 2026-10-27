@@ -112,6 +112,10 @@ public static class OriginalGlyphCodec
         for(int i=0;i<lines.Length;++i)
         {
             OriginalTileRow row=source.Rows[i];
+            if(row.Tiles.Any(t=>t!=0 && (t<0xC0 || t>0xD9)))
+                return ReplacementPreview.Block(
+                    $"Row {i+1} contains original unmapped or control tiles. " +
+                    "Cannot safely replace this command without verified glyph/control semantics.");
             if(lines[i].Length>row.Tiles.Length)
                 return ReplacementPreview.Block(
                     $"Row {i+1}: {lines[i].Length} characters exceed original {row.Tiles.Length} cells.");
