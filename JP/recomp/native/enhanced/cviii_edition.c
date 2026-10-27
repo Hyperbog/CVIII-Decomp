@@ -93,6 +93,10 @@ static CviiiNestOwnerTrace cviii_nest_owner;
 static int cviii_nest_observe;
 typedef struct {unsigned pc,address,tile,writes;} CviiiNestPpuSource;
 static CviiiNestPpuSource cviii_nest_ppu;
+typedef struct {
+    unsigned sequence,source_pc,stage,byte_value,room,frame,kind;
+} CviiiNestRoomMessage;
+static CviiiNestRoomMessage cviii_nest_room_message;
 static uint8_t cviii_nest_ram_observer(uint16_t pc,uint16_t addr,uint8_t value)
 {
     if(!cviii_nest_observe)return value;
@@ -120,6 +124,35 @@ static uint8_t cviii_nest_ram_observer(uint16_t pc,uint16_t addr,uint8_t value)
            b0==0x68u && b1==0x68u && b2==0x60u)
             cviii_owner_end(&cviii_nest_owner,0);
         else ++cviii_nest_owner.invalid;
+        return value;
+    }
+    /* Original JP raw0A $B8F4 LDY $07A5 after pointer selection.
+     * The next LDA ($0A),Y checks $FF, else JSR $EC47 at $B8FF.
+     * This observes original room-message source bytes, NOT proven glyphs.
+     * Original code bytes and pointer bounds must match the mapped bank. */
+    if(pc==0xB8F4u && addr==0x07A5u){
+        uint8_t b0=0,b1=0,b2=0,token=0;
+        unsigned ptr=(unsigned)ram[0x0Au]|((unsigned)ram[0x0Bu]<<8u);
+        unsigned src=ptr+(unsigned)value;
+        if(cyc_debug_peek(0xB8F4u,&b0) &&
+           cyc_debug_peek(0xB8F5u,&b1) &&
+           cyc_debug_peek(0xB8F6u,&b2) &&
+           b0==0xACu && b1==0xA5u && b2==0x07u &&
+           ptr>=0xB921u && ptr<=0xB935u &&
+           value<=2u && src>=0xB921u && src<0xB937u &&
+           cyc_debug_peek((uint16_t)src,&token)){
+            unsigned room=((unsigned)ram[0x34u]<<24)|
+                          ((unsigned)ram[0x35u]<<16)|
+                          ((unsigned)ram[0x36u]<<8)|
+                           (unsigned)ram[0x07A0u];
+            ++cviii_nest_room_message.sequence;
+            cviii_nest_room_message.source_pc=pc;
+            cviii_nest_room_message.stage=ram[0x07A0u];
+            cviii_nest_room_message.byte_value=token;
+            cviii_nest_room_message.room=room;
+            cviii_nest_room_message.frame=(unsigned)cviii.lighting_frame;
+            cviii_nest_room_message.kind=token==0xFFu?2u:1u;
+        }
         return value;
     }
     if(pc!=0x8070u)return value;
@@ -459,6 +492,7 @@ static void power_on(void *context)
     settings->lighting_frame=0;
     cviii_owner_reset(&cviii_nest_owner);
     memset(&cviii_nest_ppu,0,sizeof cviii_nest_ppu);
+    memset(&cviii_nest_room_message,0,sizeof cviii_nest_room_message);
 #if defined(_WIN32)
     char session[72]={0};
     DWORD len=GetEnvironmentVariableA("CVIII_NESTUDIO_SESSION",session,sizeof session);
@@ -502,6 +536,7 @@ static void state_loaded(void *context)
     settings->lighting_frame=0;
     cviii_owner_reset(&cviii_nest_owner);
     memset(&cviii_nest_ppu,0,sizeof cviii_nest_ppu);
+    memset(&cviii_nest_room_message,0,sizeof cviii_nest_room_message);
     cviii_audio_menu_state_close(&settings->audio_ui); /* loaded gameplay never owns a stale modal */
     cviii_start_close(&settings->start_menu);
     cviii_slot_cancel(&settings->slot_menu);
@@ -604,6 +639,18 @@ int cviii_nestudio_copy_original_ownership(uint8_t owners[64],
     *observed=cviii_nest_owner.observed;
     *invalid=cviii_nest_owner.invalid;
     return cviii_owner_ready(&cviii_nest_owner);
+}
+int cviii_nestudio_room_message(unsigned out[7])
+{
+    if(!out)return 0;
+    out[0]=cviii_nest_room_message.sequence;
+    out[1]=0x0Au; /* bank-authenticated original selector */
+    out[2]=cviii_nest_room_message.source_pc;
+    out[3]=cviii_nest_room_message.stage;
+    out[4]=cviii_nest_room_message.byte_value;
+    out[5]=cviii_nest_room_message.room;
+    out[6]=cviii_nest_room_message.kind;
+    return out[0]!=0;
 }
 int cviii_nestudio_ppu_source(unsigned *pc,unsigned *address,
                               unsigned *value,unsigned *writes)
