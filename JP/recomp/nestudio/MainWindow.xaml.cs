@@ -41,6 +41,7 @@ public partial class MainWindow : Window
     private bool _frameDelayLogged;
     private bool _snapshotLogged;
     private bool _lightEditLogged;
+    private bool _bridgeWaitLogged;
     public MainWindow()
     {
         InitializeComponent();
@@ -188,7 +189,16 @@ public partial class MainWindow : Window
                         }
                     }
                 }
-                ConnectionLabel.Text=_bridge is null?
+                if(_bridge is null && _game.StartupElapsed>TimeSpan.FromSeconds(20))
+                {
+                    ConnectionLabel.Text="BRIDGE WAITING · Check game launcher";
+                    if(!_bridgeWaitLogged)
+                    {
+                        _bridgeWaitLogged=true;
+                        Log("No NEStudio native bridge after 20 seconds. If the game window is already open separately, an older Alpha build may have been reused. Run the private NEStudio builder, then select NEStudio-Preview\\AlphaCandidate\\Launch-NEStudio-Game.bat.");
+                    }
+                }
+                else ConnectionLabel.Text=_bridge is null?
                     "GAME RUNNING · Bridge connecting":
                     _scene?.Editing==true?"LIVE · EDIT MODE / PAUSED":"LIVE · PLAYING";
                 return;
@@ -345,6 +355,7 @@ public partial class MainWindow : Window
             _lastNativePid=0;_lastNativeFrame=-1;_lastAck=0;
             _lastSentOperation=0;_frameProgressLogged=false;
             _frameDelayLogged=false;_snapshotLogged=false;_lightEditLogged=false;
+            _bridgeWaitLogged=false;
             _lastFrameAdvanceUtc=DateTime.UtcNow;
             _fingerprint="";
             Status("Launching game in embedded viewport.");
