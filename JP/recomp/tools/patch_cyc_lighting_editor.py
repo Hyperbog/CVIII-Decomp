@@ -136,6 +136,71 @@ static bool nest_studio_pointer_event(const SDL_Event *ev)
     return true;
 }
 #endif
+#if defined(_WIN32)
+/* Visual OAM picker: scene-specific frame snapshot, not stable game-object
+ * identity. The guest's rotating OAM slot order is left untouched. */
+static bool nest_sprite_sdl_event(const SDL_Event *ev)
+{
+    if(!nest_shared || nest_shared->magic!=NEST_MAGIC ||
+       nest_shared->reserved[3]!=1)return false;
+    if(ev->type!=SDL_MOUSEBUTTONDOWN)return false;
+    if(ev->button.button!=SDL_BUTTON_LEFT)return true;
+    int wx=0,wy=0,x=-1,y=-1;
+    cviii_imgui_window_point(s_ren,ev->button.x,ev->button.y,&wx,&wy);
+    zapper_window_point(wx,wy,&x,&y,NULL,NULL);
+    if(x<0 || x>=256 || y<0 || y>=240)return true;
+    uint8_t oam[256];
+    if(!cviii_nestudio_copy_oam(oam))return true;
+    int chosen=-1;
+    for(int i=0;i<64;++i){
+        int k=i*4,sy=(int)oam[k]+1,sx=oam[k+3];
+        if(oam[k]>=239)continue;
+        /* 8x8 hit boxes are conservative. An 8x16 NES sprite still
+         * resolves via its upper eight pixels, never via invented data. */
+        if(x>=sx && x<sx+8 && y>=sy && y<sy+8){
+            chosen=i;break; /* lower OAM index has higher priority */
+        }
+    }
+    LONG lo=nest_shared->reserved[4],hi=nest_shared->reserved[5];
+    bool multi=(SDL_GetModState()&(KMOD_CTRL|KMOD_SHIFT))!=0 ||
+               (GetAsyncKeyState(VK_CONTROL)&0x8000)!=0 ||
+               (GetAsyncKeyState(VK_SHIFT)&0x8000)!=0;
+    if(!multi){lo=0;hi=0;}
+    if(chosen>=0){
+        LONG bit=(LONG)(1u<<(chosen%32));
+        if(chosen<32)lo=multi?(lo^bit):(lo|bit);
+        else hi=multi?(hi^bit):(hi|bit);
+    }
+    InterlockedIncrement(&nest_shared->reserved[8]);
+    MemoryBarrier();
+    nest_shared->reserved[4]=lo;
+    nest_shared->reserved[5]=hi;
+    MemoryBarrier();
+    InterlockedIncrement(&nest_shared->reserved[8]);
+    return true;
+}
+static void nest_sprite_draw_selection(SDL_Renderer *renderer)
+{
+    if(!nest_shared || nest_shared->magic!=NEST_MAGIC ||
+       nest_shared->reserved[3]!=1 || !renderer)return;
+    uint8_t oam[256];
+    if(!cviii_nestudio_copy_oam(oam))return;
+    unsigned lo=(unsigned)nest_shared->reserved[4];
+    unsigned hi=(unsigned)nest_shared->reserved[5];
+    Uint8 r=0,g=0,b=0,a=0;
+    SDL_GetRenderDrawColor(renderer,&r,&g,&b,&a);
+    SDL_SetRenderDrawColor(renderer,91,222,255,255);
+    for(int i=0;i<64;++i){
+        bool selected=i<32?((lo>>i)&1u)!=0:((hi>>(i-32))&1u)!=0;
+        if(!selected || oam[4*i]>=239)continue;
+        SDL_Rect box={(int)oam[4*i+3]-1,(int)oam[4*i]+0,10,10};
+        SDL_RenderDrawRect(renderer,&box);
+        SDL_Rect inner={box.x-1,box.y-1,12,12};
+        SDL_RenderDrawRect(renderer,&inner);
+    }
+    SDL_SetRenderDrawColor(renderer,r,g,b,a);
+}
+#endif
 static bool cviii_light_rebinding;
 static SDL_Scancode cviii_light_bind_pending=SDL_SCANCODE_UNKNOWN;
 static SDL_Scancode cviii_light_key(void)
@@ -340,7 +405,10 @@ def generate(text: str) -> str:
         raise ValueError("JP0662 requires one unmodified JP0626 private SDL source")
     text=once(text,"static bool cviii_stage_open;",SHELL+"\nstatic bool cviii_stage_open;")
     text=once(text,KEY_ANCHOR,
-        '''            if(cviii_light_sdl_event(&ev,open)){
+        '''#if defined(_WIN32)
+            if(nest_sprite_sdl_event(&ev))continue;
+#endif
+            if(cviii_light_sdl_event(&ev,open)){
                 open=menu_open() || cviii_stage_open || cviii_audio_menu_active() ||
                      cviii_pause_active() || cviii_lighting_editor_active() ||
                      cviii_light_rebinding;
@@ -374,7 +442,7 @@ def generate(text: str) -> str:
         "        ;")
     text=once(text,"    if (s_ui_shot_id >= 0) {",
         "    if(cviii_imgui_render(s_win,s_ren))save_settings();\n"
-        "#if defined(_WIN32)\n    nest_tick();\n#endif\n"
+        "#if defined(_WIN32)\n    nest_tick();\n    nest_sprite_draw_selection(s_ren);\n#endif\n"
         "    if (s_ui_shot_id >= 0) {")
     text=once(text,"    SDL_DestroyRenderer(s_ren);",
         "#if defined(_WIN32)\n    nest_close();\n#endif\n"
@@ -411,6 +479,9 @@ def smoke() -> None:
     assert "SDL_CaptureMouse(SDL_TRUE)" in product
     assert "nest_keyboard_bits()" in product and "SDL_SCANCODE_RIGHT" in product
     assert "nest_keyboard_owned()" in product
+    assert "nest_sprite_sdl_event(&ev)" in product
+    assert "nest_sprite_draw_selection(s_ren);" in product
+    assert "GetAsyncKeyState(VK_CONTROL)" in product
     assert "nest_tick();" in product and "nest_close();" in product
     assert "cviii_light_place_window(int window_x,int window_y)" in product
     assert "cviii_light_place_kit_window(int kind,int id,int window_x,int window_y)" in product
