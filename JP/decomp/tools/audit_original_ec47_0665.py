@@ -53,7 +53,7 @@ def smoke()->None:
 
 def verify(rom:Path)->None:
     data=rom.read_bytes()
-    if len(data)!=393232 or data[:4]!=b"NES\\x1a":
+    if len(data)!=393232 or data[:4]!=b"NES\x1a":
         raise ValueError("original Japanese iNES geometry is required")
     digest=hashlib.sha256(data).hexdigest()
     if digest!=HASH:raise ValueError("original Japanese ROM SHA-256 differs")
