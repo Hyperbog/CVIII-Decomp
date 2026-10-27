@@ -19,6 +19,8 @@ int main(void)
            offsetof(NestStudioMapping,owner_for_oam)==13176 &&
            offsetof(NestStudioMapping,selected_original_mask)==13448 &&
            offsetof(NestStudioMapping,ec47_trace)==13468 &&
-           sizeof(NestStudioMapping)==13528 &&
-           NEST_VERSION==4 ?0:1;
+           offsetof(NestStudioMapping,ec47_queue_length)==13528 &&
+           offsetof(NestStudioMapping,ec47_queue_bytes)==13536 &&
+           sizeof(NestStudioMapping)==13792 &&
+           NEST_VERSION==5 ?0:1;
 }
