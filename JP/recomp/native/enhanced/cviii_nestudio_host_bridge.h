@@ -25,9 +25,10 @@ typedef struct {LONG used,slot,x,y,tile,attributes;} NestStudioSprite; /* 24 byt
 typedef struct {
     LONG active,slot,generation,room,x,y,frame,selector,mirror,flags,script;
 } NestStudioOriginalObject; /* 44 bytes */
-/* Reserved ABI for future bank+PC authenticated original dialogue events.
- * sequence == 0 until a validated original interpreter hook exists.
- * Authored viewport annotations MUST NOT feed this structure. */
+/* v3 source-verified raw0A room-message selector observations.
+ * Kind 1 = nonterminal source byte leads to original JSR $EC47.
+ * Kind 2 = $FF termination. Neither proves text rendering at $EC47.
+ * Authored viewport annotations never feed this structure. */
 typedef struct {
     volatile LONG sequence;
     LONG bank,cpu_pc,script_id,event_id,room,frame,kind;
@@ -36,6 +37,7 @@ extern int cviii_nestudio_copy_oam(uint8_t out[256]);
 extern int cviii_nestudio_copy_original_objects(uint8_t out[8][28],uint8_t *phase);
 extern int cviii_nestudio_copy_original_ownership(uint8_t owners[64],
     unsigned *attributed,unsigned *observed,unsigned *invalid);
+extern int cviii_nestudio_room_message(unsigned out[7]);
 extern int cviii_nestudio_ppu_source(unsigned *pc,unsigned *address,
                                    unsigned *tile,unsigned *writes);
 typedef struct {
@@ -270,6 +272,17 @@ static void nest_tick(void){
     nest_shared->ppu_source_addr=(LONG)addr;
     nest_shared->ppu_source_tile=(LONG)tile;
     nest_shared->ppu_write_count=(LONG)writes;
+    unsigned msg[7]={0};
+    if(cviii_nestudio_room_message(msg)){
+        nest_shared->original_dialogue.bank=(LONG)msg[1];
+        nest_shared->original_dialogue.cpu_pc=(LONG)msg[2];
+        nest_shared->original_dialogue.script_id=(LONG)msg[3];
+        nest_shared->original_dialogue.event_id=(LONG)msg[4];
+        nest_shared->original_dialogue.room=(LONG)msg[5];
+        nest_shared->original_dialogue.frame=nest_shared->frame;
+        nest_shared->original_dialogue.kind=(LONG)msg[6];
+        nest_shared->original_dialogue.sequence=(LONG)msg[0];
+    }else nest_shared->original_dialogue.sequence=0;
     MemoryBarrier();
     InterlockedIncrement(&nest_shared->revision); /* even: stable snapshot */
 }
