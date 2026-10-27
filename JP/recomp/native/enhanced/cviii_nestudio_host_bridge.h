@@ -133,6 +133,10 @@ static void nest_tick(void){
                 nest_shared->reserved[3]=a;
                 nest_shared->reserved[4]=0;
                 nest_shared->reserved[5]=0;
+                nest_shared->reserved[6]=0;
+                nest_shared->reserved[7]=0;
+                nest_shared->reserved[8]=0;
+                nest_shared->reserved[13]=0;
                 if(a!=0)(void)cviii_lighting_editor_external_session(0);
                 done=1;
                 break;
