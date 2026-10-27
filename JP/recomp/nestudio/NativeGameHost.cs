@@ -29,6 +29,7 @@ public sealed class NativeGameHost : IDisposable
         NativeProcessAlive(_nativeGamePid)?_nativeGamePid:
         (_process is { HasExited: false }?_process.Id:null);
     public bool IsBatchLauncher => _batchLauncher;
+    public TimeSpan StartupElapsed => string.IsNullOrEmpty(Session)?TimeSpan.Zero:DateTime.UtcNow-_launchTimeUtc;
     private static bool NativeProcessAlive(int pid)
     {
         if(pid<=0)return false;
