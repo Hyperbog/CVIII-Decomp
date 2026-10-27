@@ -229,6 +229,11 @@ public partial class MainWindow : Window
     private void UpdateScene(StudioScene scene)
     {
         _scene=scene;
+        // A native viewport handle click changes the authoritative game
+        // selection. Follow it unless the editor has already queued a new
+        // scene-tree selection that has not yet reached the native thread.
+        if(!_commands.Any(cmd=>cmd.Op==3))
+            _selectedLight=scene.Selected;
         var spriteFingerprint=string.Join("|",scene.Sprites.Select(sp=>
             $"{sp.Slot}:{sp.X}:{sp.Y}:{sp.Tile}:{sp.Attribute}"));
         if(spriteFingerprint!=_spriteFingerprint)
@@ -237,7 +242,7 @@ public partial class MainWindow : Window
             LiveSpritesList.ItemsSource=scene.Sprites.Select(sp=>sp.Label).ToList();
         }
         RoomLabel.Text=$"Room 0x{scene.Room:X8} · {scene.Lights.Count} live light(s)";
-        var fingerprint=scene.Room+"|"+
+        var fingerprint=scene.Room+"|"+_selectedLight+"|"+
             string.Join("|",scene.Lights.Select(l=>
                 $"{l.Slot}:{l.Name}:{l.X}:{l.Y}"));
         if(fingerprint!=_fingerprint)
@@ -245,7 +250,6 @@ public partial class MainWindow : Window
             _fingerprint=fingerprint;
             RebuildSceneTree();
         }
-        if(_selectedLight<0)_selectedLight=scene.Selected;
         StudioLight? selected=scene.Lights.FirstOrDefault(l=>l.Slot==_selectedLight);
         _changing=true;
         if(selected is not null)
@@ -259,7 +263,11 @@ public partial class MainWindow : Window
             FlickerCombo.SelectedIndex=Math.Clamp(selected.Flicker,0,4);
             SelectionLabel.Text=selected.Label;
         }
-        else LightName.Text="Select a light in Scene Outliner";
+        else
+        {
+            LightName.Text="Select or drag a light in the game viewport";
+            SelectionLabel.Text="No light selected";
+        }
         RendererCombo.SelectedIndex=Math.Clamp(scene.Renderer,0,2);
         _changing=false;
     }
@@ -275,7 +283,10 @@ public partial class MainWindow : Window
         var lights=new TreeViewItem{Header="Lighting",IsExpanded=true};
         if(_scene is not null)
             foreach(StudioLight light in _scene.Lights)
-                lights.Items.Add(new TreeViewItem{Header=light.Label,Tag=light});
+                lights.Items.Add(new TreeViewItem{
+                    Header=light.Label,Tag=light,
+                    IsSelected=light.Slot==_selectedLight
+                });
         root.Items.Add(lights);
         var sprites=new TreeViewItem{Header="Sprite Groups",IsExpanded=false};
         foreach(StudioSpriteGroup group in _project.SpriteGroups)
