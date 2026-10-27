@@ -77,6 +77,10 @@
                 <TextBlock Text="256 × 240 NES · Native SDL2 recomp" Foreground="#8AA2BA" FontSize="11" HorizontalAlignment="Right" DockPanel.Dock="Right"/>
               </DockPanel>
             </Border>
+            <Border DockPanel.Dock="Top" Padding="9,5" Background="#14202E" BorderBrush="#324358" BorderThickness="0,0,0,1">
+              <TextBlock Text="PLAY: Focus Game for keyboard input   |   EDIT: click and drag a light handle; release to save"
+                         FontSize="11" Foreground="#B5D7E8" TextWrapping="Wrap"/>
+            </Border>
             <Grid Background="#090D13">
               <wfi:WindowsFormsHost x:Name="ViewportHost" Margin="8"/>
               <TextBlock x:Name="ViewportHint" Text="Start the native Enhanced game with Run / Attach.&#10;The running SDL2 window will be embedded here."
@@ -135,6 +139,8 @@
                     <Button Content="Undo" Click="Undo_Click"/>
                     <Button Content="Redo" Click="Redo_Click"/>
                   </StackPanel>
+                  <TextBlock Text="Move tool: Edit / Pause, then drag the white light handle in the game viewport. Undo reverses the drag."
+                             TextWrapping="Wrap" Foreground="#9BBBD0" FontSize="11" Margin="0,9,0,0"/>
                   <TextBlock Text="Selected Light" FontWeight="SemiBold" Margin="0,8,0,4"/>
                   <TextBlock x:Name="LightName" Text="No light selected" Foreground="#99D9FF" TextWrapping="Wrap"/>
                   <TextBlock Text="Radius" Margin="0,11,0,0"/>
