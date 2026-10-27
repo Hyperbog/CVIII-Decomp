@@ -100,6 +100,28 @@ NEStudio.exe (.NET 8/WPF editor)
 
 The fixed-layout bridge has compile-time C size assertions and is never created when the game is launched normally without `CVIII_NESTUDIO_SESSION`. The session token prevents accidentally talking to a different game window. The bridge exposes **presentation/light authoring only**, not game memory, mapper/PPU state or save-state serialization.
 
+## Native game keyboard and lighting gizmo controls
+
+**Play:** after attaching a game, click **Play** or **Focus Game** to
+transfer Windows keyboard focus to the embedded SDL child HWND. Arrows
+move the player; Z/X are A/B, Enter is Start, and Backslash is Select.
+The editor attaches input threads only while setting cross-process focus,
+then immediately detaches. Gamepad input remains native SDL2.
+
+**Edit / Pause:** use **+ Torch** or **+ Candle** to place a light, then
+click and hold the white light handle visible in the native game viewport,
+drag it to the desired location, and release to commit/persist the move.
+The engine uses the real room scroll and mouse mapping, creates one undo
+checkpoint at drag start, and never adds a light when clicking empty
+space. **Undo** reverses the change. Mouse editing is enabled only when
+the authenticated session's editor is paused; normal gameplay uses the
+original SDL event path. The native renderer supplies the ring/handle
+visuals directly, not a WPF overlay across Win32 airspace.
+
+These changes require **both** the updated NEStudio Windows editor and
+a newly compiled owner-private game from the latest feature branch.
+Prior native executables will not have the new editor drag router.
+
 ## Windows launcher and live viewport acceptance
 
 Open the **Acceptance Log** button after starting the game. It opens a
