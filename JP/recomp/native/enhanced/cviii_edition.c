@@ -99,6 +99,11 @@ typedef struct {
 } CviiiNestRoomMessage;
 static CviiiNestRoomMessage cviii_nest_room_message;
 static CviiiNestEc47Trace cviii_nest_ec47;
+/* Read-only snapshot of the original $0300 command bytes appended by
+ * the most recently verified EC47 call. Never writes to emulated RAM. */
+static uint8_t cviii_nest_ec47_queue[256];
+static unsigned cviii_nest_ec47_queue_length;
+static unsigned cviii_nest_ec47_queue_sequence;
 static uint8_t cviii_nest_ram_observer(uint16_t pc,uint16_t addr,uint8_t value)
 {
     if(!cviii_nest_observe)return value;
@@ -168,7 +173,19 @@ static uint8_t cviii_nest_ram_observer(uint16_t pc,uint16_t addr,uint8_t value)
         cyc_mod_regs(&regs);
         trusted &= value==0x0Au &&
                    cviii_ec47_return_matches(ram,regs.s);
-        if(trusted)cviii_ec47_finish(&cviii_nest_ec47,ram[0x1Eu]);
+        if(trusted){
+            unsigned first=cviii_nest_ec47.queue_start;
+            unsigned last=ram[0x1Eu];
+            cviii_nest_ec47_queue_length=0;
+            cviii_nest_ec47_queue_sequence=0;
+            /* A wraparound or empty cursor interval is ambiguous. */
+            if(last>first && last<=256u && first<256u){
+                memcpy(cviii_nest_ec47_queue,ram+0x300u+first,last-first);
+                cviii_nest_ec47_queue_length=last-first;
+                cviii_nest_ec47_queue_sequence=cviii_nest_ec47.sequence;
+            }
+            cviii_ec47_finish(&cviii_nest_ec47,last);
+        }
         return value;
     }
     /* Original $8038 LDX $04 is reached after every ordinary object
@@ -583,6 +600,8 @@ static void power_on(void *context)
     memset(&cviii_nest_ppu,0,sizeof cviii_nest_ppu);
     memset(&cviii_nest_room_message,0,sizeof cviii_nest_room_message);
     cviii_ec47_reset(&cviii_nest_ec47);
+    cviii_nest_ec47_queue_length=0;
+    cviii_nest_ec47_queue_sequence=0;
 #if defined(_WIN32)
     char session[72]={0};
     DWORD len=GetEnvironmentVariableA("CVIII_NESTUDIO_SESSION",session,sizeof session);
@@ -628,6 +647,8 @@ static void state_loaded(void *context)
     memset(&cviii_nest_ppu,0,sizeof cviii_nest_ppu);
     memset(&cviii_nest_room_message,0,sizeof cviii_nest_room_message);
     cviii_ec47_reset(&cviii_nest_ec47);
+    cviii_nest_ec47_queue_length=0;
+    cviii_nest_ec47_queue_sequence=0;
     cviii_audio_menu_state_close(&settings->audio_ui); /* loaded gameplay never owns a stale modal */
     cviii_start_close(&settings->start_menu);
     cviii_slot_cancel(&settings->slot_menu);
@@ -730,6 +751,17 @@ int cviii_nestudio_copy_original_ownership(uint8_t owners[64],
     *observed=cviii_nest_owner.observed;
     *invalid=cviii_nest_owner.invalid;
     return cviii_owner_ready(&cviii_nest_owner);
+}
+int cviii_nestudio_ec47_queue(uint8_t out[256],unsigned *size)
+{
+    if(!out || !size)return 0;
+    *size=0;
+    if(!cviii_nest_ec47.completed ||
+       cviii_nest_ec47.sequence!=cviii_nest_ec47_queue_sequence ||
+       cviii_nest_ec47_queue_length==0)return 0;
+    memcpy(out,cviii_nest_ec47_queue,cviii_nest_ec47_queue_length);
+    *size=cviii_nest_ec47_queue_length;
+    return 1;
 }
 int cviii_nestudio_ec47_trace(unsigned out[15])
 {
