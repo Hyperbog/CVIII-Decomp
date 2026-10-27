@@ -22,6 +22,9 @@ SHELL=r'''
 #include "cviii_lighting_host.h"
 static void zapper_window_point(int,int,int*,int*,int*,int*);
 #include "cviii_imgui_editor.h"
+#if defined(_WIN32)
+#include "cviii_nestudio_host_bridge.h"
+#endif
 /* Called by optional genuine ReShade add-on through host C export. */
 #if defined(_WIN32)
 __declspec(dllexport)
@@ -271,8 +274,10 @@ def generate(text: str) -> str:
     text=once(text,FINAL,FINAL[:-1]+" || cviii_lighting_editor_active() || cviii_light_rebinding;")
     text=once(text,"    if (s_ui_shot_id >= 0) {",
         "    if(cviii_imgui_render(s_win,s_ren))save_settings();\n"
+        "#if defined(_WIN32)\n    nest_tick();\n#endif\n"
         "    if (s_ui_shot_id >= 0) {")
     text=once(text,"    SDL_DestroyRenderer(s_ren);",
+        "#if defined(_WIN32)\n    nest_close();\n#endif\n"
         "    cviii_imgui_shutdown();\n    SDL_DestroyRenderer(s_ren);")
     return text
 
@@ -297,6 +302,7 @@ def smoke() -> None:
     assert "cviii_imgui_window_point(s_ren,ev->button.x,ev->button.y,&mx,&my)" in product
     assert "cviii_imgui_scene_click(code,x,y)" in product
     assert "cviii_imgui_shutdown();" in product
+    assert "nest_tick();" in product and "nest_close();" in product
     assert "cviii_light_place_window(int window_x,int window_y)" in product
     assert "cviii_light_place_kit_window(int kind,int id,int window_x,int window_y)" in product
     assert "cviii_light_mask_window_rect(int ax,int ay,int bx,int by)" in product
