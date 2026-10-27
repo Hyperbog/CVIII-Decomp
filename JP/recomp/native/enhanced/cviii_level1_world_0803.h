@@ -18,6 +18,7 @@
 #include "cviii_wide_instance_0826.h"
 #include "cviii_actor_vm_0827.h"
 #include "cviii_virtual_collision_0828.h"
+#include "cviii_sound_prelude_0828.h"
 #include <stdint.h>
 #include <stddef.h>
 enum { CVIII_WORLD_ROOMS_0803=8, CVIII_WORLD_ACTORS_0803=28,
@@ -160,6 +161,10 @@ typedef struct {
     uint32_t actor_vm_probes_0827,actor_vm_matched_0827;
     uint32_t actor_vm_mismatched_0827,actor_vm_deferred_0827;
     uint16_t actor_vm_stop_pc_0827[CVIII_WIDE_SOURCE_COUNT_0825];
+    /* Original E249 fixed-bank first-hop sound request ONLY. External
+     * bank0C:$8850/APU effects are still unsupported and never fired. */
+    CviiiE249Prelude0828 actor_sound_prelude_0828[
+         CVIII_WIDE_SOURCE_COUNT_0825];
     uint8_t actor_vm_last_status_0827[CVIII_WIDE_SOURCE_COUNT_0825];
 } CviiiLevel1World0803;
 
