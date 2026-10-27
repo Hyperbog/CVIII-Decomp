@@ -782,14 +782,6 @@ unsigned cviii_world_capture_live_0803(CviiiLevel1World0803 *w,
     for(unsigned i=0;i<CVIII_WORLD_ACTORS_0803;i++){
         CviiiWorldActor0803 *actor=&w->actors[i];
         uint8_t frame=ram[0x400u+i],flags=ram[0x470u+i];
-        const CviiiGuestPageActor0824 adjacent=
-            cviii_guest_page_actor_0824(ram,i);
-        if(!frame || ((flags&0x80u) && !adjacent.eligible)){
-            actor->active=0;
-            actor->source_cpu_0814=0;
-            actor->source_generation_0814=0;
-            continue;
-        }
         const uint8_t selector=ram[0x48cu+i];
         const uint8_t type=ram[0x54eu+i];
         const int same_identity=actor->active &&
@@ -797,6 +789,23 @@ unsigned cviii_world_capture_live_0803(CviiiLevel1World0803 *w,
              actor->local_coords_0824==!w->rooms[idx].placed &&
              actor->slot==(uint8_t)i &&
              actor->selector==selector && actor->original_type==type;
+        CviiiGuestPageActor0824 adjacent=
+            cviii_guest_page_actor_0824(ram,i);
+        /* Existing original CPU actors of other types may be retained
+         * only if their exact original slot, type, ROM sprite selector
+         * and room remain consistent and this page crossing moves at
+         * most 32 physical world pixels per original frame. This is
+         * NOT a new spawn; no unsupported type-specific AI is run. */
+        if(!adjacent.eligible && same_identity)
+            adjacent=cviii_guest_page_continue_0824(
+                ram,i,actor->x-
+                    (w->rooms[idx].placed?w->rooms[idx].x:0),cx);
+        if(!frame || ((flags&0x80u) && !adjacent.eligible)){
+            actor->active=0;
+            actor->source_cpu_0814=0;
+            actor->source_generation_0814=0;
+            continue;
+        }
         /* Original PRG26 sprite base coordinates are 8-bit local X.
          * When an original actor crosses native X0, the source byte
          * wraps to $FF but its physical WORLD position remains near its
