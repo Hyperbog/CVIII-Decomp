@@ -16,7 +16,7 @@ public partial class MainWindow : Window
     private readonly NativeGameHost _game=new();
     private StudioBridge? _bridge;
     private StudioScene? _scene;
-    private readonly DispatcherTimer _poll=new(){ Interval=TimeSpan.FromMilliseconds(125) };
+    private readonly DispatcherTimer _poll=new(){ Interval=TimeSpan.FromMilliseconds(33) };
     private readonly Queue<(int Op,int A,int B,int C)> _commands=new();
     private bool _changing;
     private bool _dirty;
@@ -213,6 +213,25 @@ public partial class MainWindow : Window
         if(!_game.IsRunning)
         {
             Status("Start the game to use live editor controls.");
+            return;
+        }
+        /* Continuous editor sliders must stay live, not accumulate hundreds
+         * of stale property commands during a drag. Preserve non-property
+         * operations in order and collapse superseded values. */
+        if(op==1 && (_scene?.Editing==true || _commands.Any(x=>x.Op==1)))
+            return;
+        if(op==3 && _scene?.Selected==a &&
+           !_commands.Any(x=>x.Op==3 && x.A!=a))
+            return;
+        if(op==4)
+        {
+            var pending=_commands.Where(x=>!(x.Op==4 && x.A==a)).ToArray();
+            _commands.Clear();
+            foreach(var item in pending)_commands.Enqueue(item);
+        }
+        if(_commands.Count>=128)
+        {
+            Status("Editor command queue is full; retry the change.");
             return;
         }
         _commands.Enqueue((op,a,b,c));
