@@ -474,8 +474,7 @@ def generate(text: str) -> str:
         "        ;")
     text=once(text,"    if (s_ui_shot_id >= 0) {",
         "    if(cviii_imgui_render(s_win,s_ren))save_settings();\n"
-        "#if defined(_WIN32)\n    nest_tick();\n    nest_sprite_draw_selection(s_ren);
-    nest_dialog_draw_selection(s_ren);\n#endif\n"
+        "#if defined(_WIN32)\n    nest_tick();\n    nest_sprite_draw_selection(s_ren);\n    nest_dialog_draw_selection(s_ren);\n#endif\n"
         "    if (s_ui_shot_id >= 0) {")
     text=once(text,"    SDL_DestroyRenderer(s_ren);",
         "#if defined(_WIN32)\n    nest_close();\n#endif\n"
