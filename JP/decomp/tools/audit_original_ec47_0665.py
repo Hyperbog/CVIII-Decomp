@@ -34,6 +34,9 @@ SITES=(
  (0,0x9675,"0aa8b9b9968500b9"),
  (0,0x9689,"a9012072ec2061ec2074ec"),
  (15,0xEC72,"a61e9d0003e8"),
+ (15,0xEC99,"8d0720"),   # original $0300 command flush STA $2007
+ (15,0xECB1,"8d0720"),
+ (15,0xECC9,"8d0720"),
 )
 
 def stack_matches(ram:bytes,sp:int,token:int)->bool:
