@@ -10,5 +10,6 @@
     <Compile Include="../StudioBridge.cs" Link="StudioBridge.cs" />
     <Compile Include="../OriginalGlyphCodec.cs" Link="OriginalGlyphCodec.cs" />
     <Compile Include="../OriginalDialogueSafetyGate.cs" Link="OriginalDialogueSafetyGate.cs" />
+    <Compile Include="../GameLaunchResolver.cs" Link="GameLaunchResolver.cs" />
   </ItemGroup>
 </Project>
