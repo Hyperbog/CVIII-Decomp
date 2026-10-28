@@ -10,6 +10,9 @@ public sealed record StudioLight(int Slot,uint Room,int X,int Y,int Radius,
     string Name)
 {
     public string Label => $"{Slot+1:00}  {(string.IsNullOrWhiteSpace(Name)?"Light":Name)}  ({X},{Y})";
+    // Stable labels for scene tools: dragging must not rebuild a virtual list
+    // on every game frame simply because the world position changed.
+    public string ShortLabel => $"{Slot+1:00}  {(string.IsNullOrWhiteSpace(Name)?"Light":Name)}";
 }
 public sealed record StudioSprite(int Slot,int X,int Y,int Tile,int Attribute,
     int EmissionIndex=-1,int SourceOwner=-1)
