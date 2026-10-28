@@ -1,5 +1,26 @@
 # CVIII Japanese Castlevania III — Enhanced Alpha 0.2
 
+## Correct widescreen Enhanced build (this branch)
+
+**Start with `Build-And-Play.bat` from the current widescreen builder kit.**
+This kit retrieves `jp0723-ppu-queue-decoder`, compiles the native Enhanced
+runtime with the original Japanese ROM, and uses a separate private directory:
+
+`%USERPROFILE%\\CVIII-Widescreen-Alpha\\AlphaCandidate`
+
+Do not launch an earlier `CVIII-Alpha\\AlphaCandidate` executable: that
+older release is the original-looking Alpha and lacks the Stage 1
+426×240 ROM-backed widescreen host. This builder validates its source
+branch and adds `enhanced_stage1_widescreen_available` to
+`ALPHA_BUILD.json`; an old candidate is never silently accepted.
+
+Current scope: the authenticated Stage 1 area has the widescreen
+presentation; other areas retain the original-width fallback when the
+existing world atlas cannot safely furnish scenery. Neither a wider
+collision world nor full-game widescreen completion is claimed.
+All private game files and saved settings stay local, and the original
+`CVIII-Alpha` directory is not changed.
+
 Version 0.2.0-alpha.1. The original C11 Windows Alpha 0.1 was
 owner-tested through Stage 4-0A, including Sypha and character switching.
 The NEW experimental extra-sprite Enhanced renderer requires owner QA.
