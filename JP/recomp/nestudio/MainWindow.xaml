@@ -52,7 +52,7 @@
         <ColumnDefinition Width="6"/>
         <ColumnDefinition Width="*" MinWidth="450"/>
         <ColumnDefinition Width="6"/>
-        <ColumnDefinition Width="340" MinWidth="270"/>
+        <ColumnDefinition Width="420" MinWidth="330"/>
       </Grid.ColumnDefinitions>
       <Border Grid.Column="0" Background="#141A22" CornerRadius="6" BorderBrush="#3A5063" BorderThickness="1">
         <DockPanel>
