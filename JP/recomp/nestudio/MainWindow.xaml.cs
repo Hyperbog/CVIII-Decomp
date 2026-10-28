@@ -51,6 +51,7 @@ public partial class MainWindow : Window
     private bool _lightEditLogged;
     private bool _bridgeWaitLogged;
     private bool _captureGameKeys;
+    private bool _autoPlayCaptureAttempted;
     private int _gameKeyBits;
     private readonly HashSet<int> _selectedSpriteSlots=new();
     private bool _placingDialogueRegion;
@@ -170,6 +171,13 @@ public partial class MainWindow : Window
                     {
                         ViewportHint.Visibility=Visibility.Collapsed;
                         Log($"Embedded native SDL2 viewport (PID {_game.ProcessId}, Win32 parent verified; panel {ViewportHost.ActualWidth:0}x{ViewportHost.ActualHeight:0}).");
+                        if(!_autoPlayCaptureAttempted && LightingTab.IsSelected &&
+                           _scene?.Editing!=true)
+                        {
+                            _autoPlayCaptureAttempted=true;
+                            CaptureGameKeys();
+                            Log("Initial Play input capture enabled after SDL child HWND attachment.");
+                        }
                     }
                 }
                 // Never embed an unverified external SDL window. A matching
@@ -552,6 +560,7 @@ public partial class MainWindow : Window
             _bridgeWaitLogged=false;
             _lastFrameAdvanceUtc=DateTime.UtcNow;
             _fingerprint="";
+            _autoPlayCaptureAttempted=false;
             // An old project can still contain a Build-And-Play or dedicated
             // launch BAT. Migrate it to the resolved direct EXE so Save
             // persists the safe runtime path and not a console script.
