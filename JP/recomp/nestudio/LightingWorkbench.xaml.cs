@@ -137,6 +137,8 @@ public partial class LightingWorkbench : UserControl
             }
             else SelectedName.Text="Select a light in the viewport or list";
             EnableLighting.IsChecked=lighting.Enabled;
+            RendererChoice.SelectedIndex=Math.Clamp(scene.Renderer,0,2);
+            UpdateSlider(CascadeQuality,lighting.CascadeQuality);
             UpdateSlider(Ambient,lighting.SceneStrength);
             UpdateSlider(AmbientRed,lighting.SceneRed);
             UpdateSlider(AmbientGreen,lighting.SceneGreen);
@@ -243,6 +245,16 @@ public partial class LightingWorkbench : UserControl
     {
         if(_refreshing)return;
         Post(31,FxEnabled.IsChecked==true?1:0);
+    }
+    private void Renderer_Changed(object sender,SelectionChangedEventArgs e)
+    {
+        if(_refreshing || RendererChoice.SelectedIndex<0)return;
+        Post(10,RendererChoice.SelectedIndex);
+    }
+    private void Cascade_Changed(object sender,RoutedPropertyChangedEventArgs<double> e)
+    {
+        if(_refreshing || _scene is null)return;
+        Post(11,(int)Math.Round(CascadeQuality.Value));
     }
     private void SkyDirection_Changed(object sender,SelectionChangedEventArgs e)
     {
