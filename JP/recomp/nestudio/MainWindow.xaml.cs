@@ -102,7 +102,9 @@ public partial class MainWindow : Window
         string[] guesses={
             Path.Combine(basePath,"jp_akumajou_densetsu.exe"),
             Path.GetFullPath(Path.Combine(basePath,"..","jp_akumajou_densetsu.exe")),
-            Path.GetFullPath(Path.Combine(basePath,"..","AlphaCandidate","jp_akumajou_densetsu.exe"))
+            Path.GetFullPath(Path.Combine(basePath,"..","AlphaCandidate","jp_akumajou_densetsu.exe")),
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+                "NEStudio-Preview","AlphaCandidate","jp_akumajou_densetsu.exe")
         };
         return guesses.FirstOrDefault(File.Exists)??"";
     }
@@ -242,7 +244,7 @@ public partial class MainWindow : Window
                     if(!_bridgeWaitLogged)
                     {
                         _bridgeWaitLogged=true;
-                        Log("No NEStudio native bridge after 20 seconds. If the game window is already open separately, an older Alpha build may have been reused. Run the private NEStudio builder, then select NEStudio-Preview\\AlphaCandidate\\Launch-NEStudio-Game.bat.");
+                        Log("Native session handshake missing after 20 seconds. The original game process was started directly, not through cmd.exe. Ensure the private Enhanced EXE matches this editor version. Rebuild with Build-Private-Game.bat; the project should reference NEStudio-Preview\\AlphaCandidate\\jp_akumajou_densetsu.exe.");
                     }
                 }
                 else ConnectionLabel.Text=_bridge is null?
@@ -549,8 +551,18 @@ public partial class MainWindow : Window
             _bridgeWaitLogged=false;
             _lastFrameAdvanceUtc=DateTime.UtcNow;
             _fingerprint="";
-            Status("Launching game in embedded viewport.");
-            Log($"Launched {Path.GetFileName(path)} (owner-local {(_game.IsBatchLauncher?"BAT/CMD launcher":"native executable")}).");
+            // An old project can still contain a Build-And-Play or dedicated
+            // launch BAT. Migrate it to the resolved direct EXE so Save
+            // persists the safe runtime path and not a console script.
+            if(!Path.GetFullPath(path).Equals(_game.RuntimeExecutable,
+                StringComparison.OrdinalIgnoreCase))
+            {
+                _project.GameExecutable=_game.RuntimeExecutable;
+                Dirty();
+                Log("Legacy launcher replaced in project with the authenticated native game EXE.");
+            }
+            Status("Native Enhanced game launched directly; attaching SDL viewport.");
+            Log($"Started private game EXE directly (PID {_game.ProcessId}): {_game.RuntimeExecutable}. No BAT/CMD window.");
         }
         catch(Exception ex){Error("Starting game",ex);}
     }
@@ -735,9 +747,9 @@ public partial class MainWindow : Window
     {
         var dlg=new Microsoft.Win32.OpenFileDialog
         {
-            Filter="Game executable or launcher (*.exe;*.bat;*.cmd)|*.exe;*.bat;*.cmd|Native game (*.exe)|*.exe|Windows launcher (*.bat;*.cmd)|*.bat;*.cmd",
+            Filter="Private native Enhanced game (*.exe)|*.exe|Legacy launcher (auto-resolved to game EXE)|*.bat;*.cmd",
             CheckFileExists=true,
-            Title="Select the native Enhanced game .exe or the .bat/.cmd that launches it"
+            Title="Select the privately built jp_akumajou_densetsu.exe (legacy BATs resolve automatically)"
         };
         if(dlg.ShowDialog()==true)
         {
