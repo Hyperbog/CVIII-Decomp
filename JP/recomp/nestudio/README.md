@@ -123,6 +123,69 @@ labels, with custom dark ComboBox dropdowns, visible focus borders and
 contrast-preserving selected items. The formerly dark-on-dark ComboBox
 foreground is no longer inherited from the Windows system template.
 
+## Professional live-modification workstation UX
+
+NEStudio is **not a game-building engine**. Its fundamental workflow
+is **attach the owner-private game, inspect the running room, select an
+original game element or host-side effect, make a reversible change, and
+preview it immediately**. The presentation now follows familiar
+professional scene-editor conventions without attempting to create
+new levels, scenes, game objects, or ROM assets.
+
+- **Top command/transport:** local project New/Open/Save and private
+  game attach, edit/pause, play, keyboard capture, stop
+- **Mode row:** Lighting, Sprites/Objects, Dialogue and References,
+  with one active context at a time (**Ctrl+1/2/3**)
+- **Left scene outliner:** searchable (**Ctrl+F**) live lighting grouped
+  by emitter group; source-observed original actor lifetimes; authored
+  sprite groups and text annotations; live native masks and pixel FX;
+  private asset references. **+ Add** creates the appropriate entity
+  for the current workspace
+- **Center native viewport:** one actual SDL window; native light
+  gizmo dragging, original sprite/OAM ownership picking and dialogue
+  region selection follow the active workspace
+- **Right details:** a single context-sensitive inspector controlled
+  by the active workspace and outliner selection, with lighting scene,
+  rigs, styles, masks, pixel FX and weather in a compact local page bar
+- **Bottom drawer:** Events and Console panels are closed by default
+  to maximize view height; open/close from the tool row or use
+  **Ctrl+`** for diagnostics
+- **Focus View (F11):** collapse both side docks and bottom drawer to
+  maximize the embedded running game; restore without losing game,
+  inspector selections, project data or edits
+- **Performance:** emitter and scene-outliner identities are stable
+  across animation and light-handle dragging; no full WPF TreeView or
+  light-list reconstruction on every 30 Hz native state snapshot
+
+Original observed sprite ownership is still **read-only** source
+evidence, and authored dialogue-region annotations are project-local
+until original glyph/control-word parity is proven. Live lighting,
+light rigs and host pixel effects are native, reversible presentation
+modifications and are not modifications to guest CPU or PPU memory.
+Do not label authored sprite groups as live replacements or advertise
+original dialogue rewriting before it is implemented.
+
+### Operator acceptance walkthrough
+
+1. Open the private project, **Attach**, then **Edit**.
+2. **Ctrl+1**: in Lighting use the outliner's **+ Add**, select the
+   emitted light and drag its white native handle. Confirm both the
+   WPF detail coordinates and viewport update without list flicker.
+3. Select another light via the left outliner; check the right
+   inspector follows it. Filter with **Ctrl+F**; clear filter.
+4. **Ctrl+2**: click a native sprite, Ctrl/Shift+click another, use
+   Ctrl+G to capture a group; verify original owners are source-backed.
+5. **Ctrl+3**: add an authored dialogue, bind a region by viewport click.
+   Confirm safe draft validation never writes guest state.
+6. Open **Events** and **Console**, close the drawer, then toggle
+   **F11** to inspect the game's visual output at larger size.
+7. Save; exit; reopen the local project and private native game.
+   Verify no ROM-derived assets were embedded in the project package.
+
+**Automated checks** compile the real WPF desktop and C11 bridge,
+run native regressions and contract tests. The live viewport UX
+remains a separate acceptance test on the owner's Windows machine.
+
 ## WPF Lighting Studio — all authoring controls are in NEStudio
 
 The integrated desktop now uses an independent
