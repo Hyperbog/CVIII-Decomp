@@ -72,7 +72,7 @@
               <Button Content="Paste" Tag="paste" Click="Action_Click"/>
             </WrapPanel>
             <TextBox x:Name="Search" TextChanged="Search_Changed" ToolTip="Filter by name/group; type to search"/>
-            <ListBox x:Name="LightList" Height="130" DisplayMemberPath="Label" SelectionChanged="Light_SelectionChanged"/>
+            <ListBox x:Name="LightList" Height="130" DisplayMemberPath="ShortLabel" SelectionChanged="Light_SelectionChanged"/>
             <TextBlock x:Name="SelectedName" Text="Select a light" FontWeight="Bold" Foreground="#99D6FF" TextWrapping="Wrap"/>
             <TextBlock Text="Name / group" Margin="0,8,0,0"/>
             <TextBox x:Name="NameBox" MaxLength="47"/>
