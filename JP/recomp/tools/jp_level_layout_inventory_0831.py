@@ -82,7 +82,7 @@ def longest_chains(source: bytes, before: int, after: int,
 def validate_original(data: bytes) -> None:
     if len(data) != ROM_SIZE or hashlib.sha256(data).hexdigest() != ROM_SHA256:
         raise ValueError("owner Japanese ROM SHA-256/length mismatch")
-    if data[:4] != b"NES\\x1a" or data[4:6] != bytes((16,16)):
+    if data[:4] != b"NES\x1a" or data[4:6] != bytes((16,16)):
         raise ValueError("iNES size/header mismatch")
     if data[6] >> 4 | (data[7] & 0xF0) != 24:
         raise ValueError("not Japanese Mapper24")
@@ -164,7 +164,7 @@ def main():
         return
     if not args.rom: p.error("--rom required unless --self-test")
     result=inventory(args.rom.read_bytes())
-    encoded=json.dumps(result,indent=2)+"\\n"
+    encoded=json.dumps(result,indent=2)+"\n"
     if args.out:
         args.out.parent.mkdir(parents=True,exist_ok=True)
         args.out.write_text(encoded,encoding="utf-8")
