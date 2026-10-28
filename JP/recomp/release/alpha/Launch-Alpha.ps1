@@ -40,7 +40,7 @@ if (-not (Test-Path -LiteralPath $game) -or -not (Test-Path -LiteralPath $dll)) 
  throw ('The folder contains the ROM-free build kit, not the compiled private game. '+
         'Run Build-And-Play.bat from the extracted kit to compile with your original JP ROM. '+
         'The game EXE and SDL2.dll will be created together under '+
-        (Join-Path $env:USERPROFILE 'CVIII-Alpha\AlphaCandidate')+
+        (Join-Path $env:USERPROFILE 'CVIII-Widescreen-Alpha\AlphaCandidate')+
         '. Do not download an unrelated SDL2.dll.')
 }
 # JP0752: Enhanced always enables the sprite stabilizer by default.
