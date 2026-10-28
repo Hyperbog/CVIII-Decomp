@@ -5,6 +5,7 @@
 #include "cviii_stage1_join_0751.h"
 #include "cviii_level1_world_0803.h"
 #include "cviii_world_sprites_0807.h"
+#include "cviii_level_preload_0829.h"
 #include <stdint.h>
 /* Game-owned read-only Enhanced presentation, no guest CPU/PPU mutations.
  * ROM identity is verified by JP_ORIGINAL_JP_ROM at CMake configuration.
@@ -21,6 +22,7 @@ typedef struct {
     char resource_cache_path[1024]; /* optional user-private JP0729 cache */
     CviiiStage1Join0751 join; /* original previous-room presentation */
     CviiiLevel1World0803 world; /* persistent coordinate graph and actor registry */
+    CviiiLevelPreload0829 level_assets; /* all 15 stage groups, read-only */
     uint8_t sprite_bank_0807[CVIII_SPRITE_BANK_BYTES_0807];
     int sprite_bank_valid_0807; /* owner-private PRG26/27 SHA-verified */
     uint8_t last_verified_selector[3];
