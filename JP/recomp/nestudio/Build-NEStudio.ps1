@@ -30,7 +30,14 @@ if ($GameFolder) {
     if (-not (Test-Path -LiteralPath $nativeLauncher -PathType Leaf)) {
         throw 'GameFolder needs Launch-NEStudio-Game.bat from the bridge-compatible private preview build. Run Preview-NEStudio.bat first.'
     }
-    $game=$nativeLauncher
+    # Store the actual game EXE in the project. Run / Attach launches
+    # this binary directly using NEStudio-RomPath.txt and its private
+    # CHR index: it must never execute a .bat/cmd launcher.
+    $game=Join-Path $folder 'jp_akumajou_densetsu.exe'
+    $hint=Join-Path $folder 'NEStudio-RomPath.txt'
+    if (-not (Test-Path -LiteralPath $hint -PathType Leaf)) {
+        throw 'Private game is missing NEStudio-RomPath.txt. Re-run Build-Private-Game.bat.'
+    }
     $starter=Join-Path $target 'EnhancedProject.nestudio'
     $payload=[ordered]@{
        SchemaVersion=1
@@ -46,7 +53,7 @@ if ($GameFolder) {
        Assets=@()
     }
     $payload | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $starter -Encoding utf8
-    Write-Host ('Linked bridge-compatible owner-private Enhanced launcher: '+$game)
+    Write-Host ('Linked private Enhanced executable for direct embedded viewport: '+$game)
 }
 Write-Host ('NEStudio ready: '+$exe)
 if ($Launch) {
