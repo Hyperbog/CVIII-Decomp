@@ -17,6 +17,7 @@ public partial class LightingWorkbench : UserControl
     private StudioScene? _scene;
     private int _selected=-1;
     private bool _refreshing;
+    private bool _pendingEdit;
     private int _selectedKit=-1,_selectedStyle=-1,_selectedMask=-1;
     private int _selectedFx=-1,_selectedWeather=-1;
     private readonly Dictionary<string,string> _fingerprints=new();
@@ -36,7 +37,11 @@ public partial class LightingWorkbench : UserControl
             WorkStatus.Text="Attach a private native game before editing.";
             return;
         }
-        EditRequested?.Invoke();
+        if(!_scene.Editing && !_pendingEdit)
+        {
+            _pendingEdit=true;
+            EditRequested?.Invoke();
+        }
         Send?.Invoke(op,a,b,c,label);
         WorkStatus.Text="Editing live room 0x"+_scene.Room.ToString("X8")+
             " · Changes are undoable and saved by native engine";
@@ -69,7 +74,7 @@ public partial class LightingWorkbench : UserControl
         Func<T,int> slot)
     {
         var items=source.ToList();
-        string fingerprint=string.Join("|",items.Select(x=>x?.ToString()));
+        string fingerprint=string.Join("|",items.Select(x=>x is null?"":x.ToString()));
         if(fingerprints.TryGetValue(key,out string? prev) && prev==fingerprint)
             return;
         fingerprints[key]=fingerprint;
@@ -97,6 +102,7 @@ public partial class LightingWorkbench : UserControl
     {
         bool switched=_selected!=selectedLight;
         _scene=scene;_selected=selectedLight;
+        if(scene.Editing)_pendingEdit=false;
         var lighting=scene.Lighting;
         _refreshing=true;
         try
@@ -333,7 +339,10 @@ public partial class LightingWorkbench : UserControl
             case "builtin":Post(13,Math.Max(0,Builtins.SelectedIndex),128,120);break;
             case "capture-kit":TextCommand(24,kit,KitName.Text,48);break;
             case "apply-kit":Post(25,kit);break;
-            case "rename-kit":TextCommand(39,1,KitName.Text,48);break;
+            case "rename-kit":
+                if(GoodName(KitName.Text,48))Post(39,1,kit,0,KitName.Text);
+                else WorkStatus.Text="Kit name requires printable ASCII (1–47 characters).";
+                break;
             case "clone-kit":
                 {
                     int empty=Enumerable.Range(0,12)
