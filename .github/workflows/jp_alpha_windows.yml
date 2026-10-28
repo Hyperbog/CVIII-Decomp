@@ -259,7 +259,7 @@ jobs:
           $builder = Get-Content -LiteralPath 'JP/recomp/release/alpha/Build-Alpha.ps1' -Raw
           if ($builder -notmatch 'Import-PowerShellDataFile' -or
               $builder -notmatch 'foreach \(\$bundleSource in \$bundleSources\)' -or
-              $builder -match "'JP/decomp/tools/'\+\$name") {
+              $builder.Contains("('JP/decomp/tools/'+`$name)")) {
             throw 'Private release builder is not consuming the current manifest'
           }
           $entry = Get-Content -LiteralPath 'JP/recomp/release/alpha/Build-And-Play.ps1' -Raw
