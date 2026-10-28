@@ -1154,6 +1154,12 @@ public partial class MainWindow : Window
             }
         }
         if((Keyboard.Modifiers&ModifierKeys.Control)==0)return;
+        if(Keyboard.FocusedElement is not System.Windows.Controls.TextBox)
+        {
+            if(e.Key==Key.D1){InspectorTabs.SelectedItem=LightingTab;e.Handled=true;return;}
+            if(e.Key==Key.D2){InspectorTabs.SelectedItem=SpritesTab;e.Handled=true;return;}
+            if(e.Key==Key.D3){InspectorTabs.SelectedItem=DialogueTab;e.Handled=true;return;}
+        }
         if(LightingTab.IsSelected && Keyboard.FocusedElement is not System.Windows.Controls.TextBox &&
            LightingStudio.TryShortcut(e.Key))
         {
