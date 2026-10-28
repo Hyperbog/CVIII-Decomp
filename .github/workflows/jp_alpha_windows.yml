@@ -302,6 +302,29 @@ jobs:
           if ($source -notmatch 'Get-FileHash' -or $source -notmatch 'Test-PrivateGame' -or $source -notmatch 'Build-Alpha.ps1' -or $source -notmatch 'LastRomPath.txt') {
             throw "Missing first-run original-ROM authentication and build fallback"
           }
+      - name: Verify player-facing widescreen Enhanced kit cannot clone or reuse original Alpha
+        shell: pwsh
+        run: |
+          $builder=Get-Content -LiteralPath 'JP/recomp/release/alpha/Build-Alpha.ps1' -Raw
+          $entry=Get-Content -LiteralPath 'JP/recomp/release/alpha/Build-And-Play.ps1' -Raw
+          $launch=Get-Content -LiteralPath 'JP/recomp/release/alpha/Launch-Alpha.ps1' -Raw
+          if (-not $builder.Contains("'clone','--branch','jp0723-ppu-queue-decoder','--single-branch'") -or
+              -not $builder.Contains("'pull','--ff-only','origin','jp0723-ppu-queue-decoder'") -or
+              -not $builder.Contains('enhanced_stage1_widescreen_available=$true') -or
+              -not $builder.Contains('cviii_stage1_host_0725.c')) {
+            throw 'Private builder would not compile verified widescreen source'
+          }
+          if (-not $entry.Contains("'CVIII-Widescreen-Alpha'") -or
+              -not $entry.Contains('enhanced_stage1_widescreen_available') -or
+              -not $entry.Contains('ALPHA_BUILD.json')) {
+            throw 'First-run launcher could reuse an old original-looking private game'
+          }
+          if (-not $launch.Contains('--stage1-world-rom')) {
+            throw 'Enhanced runtime does not receive its authenticated Stage 1 world source'
+          }
+          python JP/recomp/tools/package_alpha_builder_0580.py --smoke
+          if ($LASTEXITCODE -ne 0) { throw 'Widescreen Enhanced first-run ZIP is incomplete' }
+          Write-Host 'PASS: actual widescreen build branch and fresh-candidate enforcement'
       - name: Verify JP0604 real Git clone/pull argument forwarding
         shell: pwsh
         run: |
