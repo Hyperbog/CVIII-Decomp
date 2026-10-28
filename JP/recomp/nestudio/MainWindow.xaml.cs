@@ -172,12 +172,11 @@ public partial class MainWindow : Window
                         Log($"Embedded native SDL2 viewport (PID {_game.ProcessId}, Win32 parent verified; panel {ViewportHost.ActualWidth:0}x{ViewportHost.ActualHeight:0}).");
                     }
                 }
-                if(!_game.IsEmbedded && !_game.IsBatchLauncher &&
-                   _game.TryEmbed())
-                {
-                    ViewportHint.Visibility=Visibility.Collapsed;
-                    Log("Embedded native SDL2 game viewport.");
-                }
+                // Never embed an unverified external SDL window. A matching
+                // per-launch C11 session must exist first; direct launches
+                // must never be mistaken for an unrelated emulator.
+                if(_bridge is not null && !_game.IsEmbedded)
+                    ViewportHint.Visibility=Visibility.Visible;
                 if(_bridge is not null)
                 {
                     // Read the previous acknowledgement before dispatching the
@@ -248,8 +247,10 @@ public partial class MainWindow : Window
                     }
                 }
                 else ConnectionLabel.Text=_bridge is null?
-                    "GAME RUNNING · Bridge connecting":
-                    _scene?.Editing==true?"LIVE · EDIT MODE / PAUSED":"LIVE · PLAYING";
+                    "PRIVATE GAME STARTING · Bridge connecting":
+                    !_game.IsEmbedded?"GAME CONNECTED · Embedding SDL window":
+                    _scene?.Editing==true?"LIVE · EDIT MODE / PAUSED":
+                    "LIVE · PLAYING · VIEWPORT EMBEDDED";
                 return;
             }
             // Session is the definitive launch marker, including an EXE
