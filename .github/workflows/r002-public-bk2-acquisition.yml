@@ -24,6 +24,15 @@ jobs:
             rm -f output/movie.bk2
           done
           test -f output/movie.bk2
+          mv output/movie.bk2 output/tasvideos_outer.zip
+          python3 - <<'PY'
+          import zipfile,pathlib
+          with zipfile.ZipFile("output/tasvideos_outer.zip") as z:
+              names=[n for n in z.namelist() if n.lower().endswith(".bk2")]
+              assert len(names)==1, f"expected one nested .bk2, got {names}"
+              pathlib.Path("output/movie.bk2").write_bytes(z.read(names[0]))
+          pathlib.Path("output/tasvideos_outer.zip").unlink()
+          PY
           python3 - <<'PY'
           import zipfile,hashlib,json,pathlib
           p=pathlib.Path("output/movie.bk2")
