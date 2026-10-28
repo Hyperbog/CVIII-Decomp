@@ -463,9 +463,9 @@ def generate(text: str) -> str:
     # Ordinary stand-alone native launches remain visible.
     text=once(text,
         "SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI | (s_hidden ? SDL_WINDOW_HIDDEN : 0));",
-        "SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI |\\n"
-        "  ((s_hidden || getenv(\\\"CVIII_NESTUDIO_SESSION\\\")!=NULL) ? SDL_WINDOW_HIDDEN : 0));")
-    text=once(text,"static bool cviii_stage_open;",SHELL+"\\nstatic bool cviii_stage_open;")
+        "SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI |\n"
+        "  ((s_hidden || getenv(\"CVIII_NESTUDIO_SESSION\")!=NULL) ? SDL_WINDOW_HIDDEN : 0));")
+    text=once(text,"static bool cviii_stage_open;",SHELL+"\nstatic bool cviii_stage_open;")
     text=once(text,KEY_ANCHOR,
         '''#if defined(_WIN32)
             if(nest_sprite_sdl_event(&ev))continue;
