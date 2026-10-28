@@ -1154,7 +1154,7 @@ public partial class MainWindow : Window
             }
         }
         if((Keyboard.Modifiers&ModifierKeys.Control)==0)return;
-        if(LightingTab.IsSelected && Keyboard.FocusedElement is not TextBox &&
+        if(LightingTab.IsSelected && Keyboard.FocusedElement is not System.Windows.Controls.TextBox &&
            LightingStudio.TryShortcut(e.Key))
         {
             e.Handled=true;return;
