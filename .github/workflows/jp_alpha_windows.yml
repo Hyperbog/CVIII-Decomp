@@ -221,6 +221,52 @@ jobs:
           if ($source -notmatch 'Get-FileHash' -or $source -notmatch 'Test-PrivateGame' -or $source -notmatch 'Build-Alpha.ps1' -or $source -notmatch 'LastRomPath.txt') {
             throw "Missing first-run original-ROM authentication and build fallback"
           }
+      - name: Verify complete private Windows release payload after JP0663 relocation
+        shell: pwsh
+        run: |
+          $manifestFile = 'JP/recomp/release/alpha/Private-Release-Manifest.psd1'
+          $manifest = Import-PowerShellDataFile -LiteralPath $manifestFile
+          $groupPaths = @{
+            launchers = 'JP/recomp/release/alpha'
+            native_tools = 'JP/recomp/tools'
+            support_tools = 'JP/decomp/tools'
+          }
+          $seen = @{}
+          $stage = Join-Path $env:RUNNER_TEMP 'cviii-release-manifest-smoke'
+          New-Item -Path $stage -ItemType Directory -Force | Out-Null
+          foreach ($group in @('launchers','native_tools','support_tools')) {
+            if (-not $manifest.ContainsKey($group) -or $manifest[$group].Count -eq 0) {
+              throw "Empty private release manifest group: $group"
+            }
+            foreach ($name in $manifest[$group]) {
+              if ($name -notmatch '^[A-Za-z0-9_.-]+$' -or
+                  [IO.Path]::GetExtension($name) -notin @('.ps1','.bat','.py','.lua')) {
+                throw "Unsafe bundle entry: $name"
+              }
+              if ($seen.ContainsKey($name)) { throw "Duplicate bundle name: $name" }
+              $seen[$name] = $true
+              $source = Join-Path $groupPaths[$group] $name
+              if (-not (Test-Path -LiteralPath $source -PathType Leaf)) {
+                throw "Missing bundle source: $source"
+              }
+              Copy-Item -LiteralPath $source -Destination (Join-Path $stage $name)
+            }
+          }
+          if ($seen.Count -ne 29) { throw "Bundle manifest unexpectedly contains $($seen.Count) files" }
+          if (@(Get-ChildItem -LiteralPath $stage -File).Count -ne $seen.Count) {
+            throw 'Private release fixture staging lost or duplicated files'
+          }
+          $builder = Get-Content -LiteralPath 'JP/recomp/release/alpha/Build-Alpha.ps1' -Raw
+          if ($builder -notmatch 'Import-PowerShellDataFile' -or
+              $builder -notmatch 'foreach \(\$bundleSource in \$bundleSources\)' -or
+              $builder -match "'JP/decomp/tools/'\+\$name") {
+            throw 'Private release builder is not consuming the current manifest'
+          }
+          $entry = Get-Content -LiteralPath 'JP/recomp/release/alpha/Build-And-Play.ps1' -Raw
+          if ($entry -notmatch 'JP\\recomp\\release\\alpha\\Build-Alpha.ps1') {
+            throw 'First-run builder fallback still points at an obsolete directory'
+          }
+          Write-Host "PASS: $($seen.Count) private release sources found and staged, no ROM used"
       - name: Verify JP0604 real Git clone/pull argument forwarding
         shell: pwsh
         run: |
