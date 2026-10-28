@@ -114,6 +114,17 @@ jobs:
         run: |
           python JP/recomp/tools/test_verify_enhanced_save_roundtrip.py
           if ($LASTEXITCODE -ne 0) { throw 'Enhanced full-machine state acceptance contract failed' }
+      - name: Validate source-backed level layout inventory (no ROM in CI)
+        shell: pwsh
+        run: |
+          python JP/recomp/tools/jp_level_layout_inventory_0831.py --self-test
+          if ($LASTEXITCODE -ne 0) { throw 'ROM layout chain self test failed' }
+          $fake = Join-Path $env:RUNNER_TEMP 'invalid-japanese-cart.nes'
+          [IO.File]::WriteAllBytes($fake, (New-Object byte[] 393232))
+          python JP/recomp/tools/jp_level_layout_inventory_0831.py --rom $fake *> $null
+          if ($LASTEXITCODE -eq 0) { throw 'Unauthenticated cartridge accepted for level inventory' }
+          $global:LASTEXITCODE=0 # rejecting an invented cartridge is a successful test
+          Write-Host 'PASS: ROM-free layout chain tests; invalid game cartridge rejected'
       - name: JP0725 verify real Windows 426x240 native framebuffer (synthetic layout)
         shell: pwsh
         run: |
