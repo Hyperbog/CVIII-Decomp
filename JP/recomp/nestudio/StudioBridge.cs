@@ -39,16 +39,17 @@ public sealed record StudioScene(uint Room,int Selected,bool Editing,int Rendere
     StudioOriginalDialogueEvent? OriginalDialogue,
     int AttributionCount,int SourceCallCount,int AttributionErrors,
     StudioPpuSourceWrite? PpuSourceWrite,StudioEc47Trace? FormatterTrace,
-    OriginalCommandPreview? FormatterCommand,string FormatterDecodeStatus);
+    OriginalCommandPreview? FormatterCommand,string FormatterDecodeStatus,
+    StudioLightingSnapshot Lighting);
 /// <summary>
 /// Fixed-layout in-process companion to cviii_nestudio_host_bridge.h.
 /// The native recomp creates a session-isolated pagefile mapping. Only the
 /// game's SDL thread executes commands. NEStudio never reads game RAM.
 /// </summary>
-public sealed class StudioBridge : IDisposable
+public sealed partial class StudioBridge : IDisposable
 {
     public const int Magic=unchecked((int)0x5453454E);
-    private const int Capacity=13792; // v5 appends read-only $0300 command bytes
+    private const int Capacity=29944; // v6 full native Lighting Studio + serialized text
     private readonly MemoryMappedFile _file;
     private readonly MemoryMappedViewAccessor _view;
     private int _pendingSequence;
@@ -153,7 +154,7 @@ public sealed class StudioBridge : IDisposable
                 @"Local\NEStudio-"+session,MemoryMappedFileRights.ReadWrite);
             var bridge=new StudioBridge(map);
             if(bridge._view.ReadInt32(0)!=Magic ||
-               bridge._view.ReadInt32(4)!=5)
+               bridge._view.ReadInt32(4)!=6)
             {
                 bridge.Dispose();return null;
             }
@@ -174,7 +175,8 @@ public sealed class StudioBridge : IDisposable
         _view.Write(80,capture?1:0);
         return true;
     }
-    public bool TryCommand(int operation,int arg0=0,int arg1=0,int arg2=0)
+    public bool TryCommand(int operation,int arg0=0,int arg1=0,int arg2=0,
+                           string? commandText=null)
     {
         if(_view.ReadInt32(0)!=Magic)return false;
         int request=_view.ReadInt32(8);
@@ -182,6 +184,15 @@ public sealed class StudioBridge : IDisposable
         if(request!=ack)return false;
         int seq=request+1;
         if(seq==0)seq=1;
+        // UI commands serialize one at a time. Commit name payload first.
+        byte[] encoded=new byte[48];
+        if(commandText is not null)
+        {
+            if(commandText.Length>47 || commandText.Any(c=>c<32 || c>126))
+                throw new InvalidDataException("Native names require printable ASCII (max 47 characters).");
+            Encoding.ASCII.GetBytes(commandText).CopyTo(encoded,0);
+        }
+        _view.WriteArray(29896L,encoded,0,48);
         _view.Write(16,operation);
         _view.Write(20,arg0);
         _view.Write(24,arg1);
@@ -303,6 +314,7 @@ public sealed class StudioBridge : IDisposable
                     _view.ReadInt32(13176L+4L*i) is >=0 and <28
                        ? _view.ReadInt32(13176L+4L*i) : -1));
             }
+            StudioLightingSnapshot lighting=ReadLightingSnapshot();
             Thread.MemoryBarrier();
             int after=_view.ReadInt32(36);
             if(before==after && (after&1)==0)
@@ -310,7 +322,8 @@ public sealed class StudioBridge : IDisposable
                                        enabled,lights,sprites,after,
                                        originalObjects,phase,originalDialogue,
                                        attributed,sourceCalls,sourceErrors,
-                                       ppuWrite,formatter,formatterCommand,decodeStatus);
+                                       ppuWrite,formatter,formatterCommand,decodeStatus,
+                                       lighting);
         }
         return null;
     }
