@@ -2,6 +2,7 @@
  * Enhanced Edition. Original CPU, PPU, sprite pipeline and savestates
  * remain authoritative. Never include game resources in public source. */
 #include "cviii_stage1_host_0725.h"
+#include "cviii_ppu_wide_0830.h"
 #include "cyc_core.h"
 #include "cyc_render.h"
 #include "cyc_video.h"
@@ -470,6 +471,24 @@ const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
                             cyc_render_chr,cyc_render_color);
             }
         }
+    }
+    /* Cross-stage native widescreen fallback: where the PPU really has
+     * adjacent scenery and its current tile data agrees with the original
+     * on-screen picture, paint only the unused 85px side columns. Original
+     * center, entity state, audio, IRQ and screen transitions are untouched.
+     * Never use Stage 1's source atlas as a guessed map of another level. */
+    if(!valid_camera && ram && ram[0x18u]==4u &&
+       ram[0x34u]>0u && ram[0x34u]<15u &&
+       h->level_assets.loaded &&
+       h->level_assets.active_stage==ram[0x34u]) {
+        CviiiPpuWideSource0830 live={
+            cyc_render_nametable,cyc_render_chr,cyc_render_color,
+            cyc_render_line_scroll_x,cyc_render_line_scroll_y,
+            cyc_render_line_bg_table,cyc_render_line_mask,
+            cyc_render_oam()
+        };
+        (void)cviii_ppu_wide_paint_0830(&live,frame,h->pixels,
+            CVIII_STAGE1_WIDE_0725,240,CVIII_STAGE1_ORIGIN_0725);
     }
     /* Project only authentic, still-active PRG26 actor descriptors
      * into the extra world margins. The native 256px original picture
