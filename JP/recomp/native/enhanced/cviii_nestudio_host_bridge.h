@@ -128,6 +128,10 @@ static uint32_t nest_object_room=UINT32_MAX;
 static HANDLE nest_mapping_handle;
 static NestStudioMapping *nest_shared;
 static int nest_checked;
+/* Native lighting source remains authoritative. Batched slider edits
+ * are persisted once per quiet period, not once per pixel of dragging. */
+static uint32_t nest_last_edit_ms;
+static int nest_save_pending;
 /* Reserved v1 header slots 1 and 2 belong to the editor's transient
  * keyboard capture. Nothing touches emulated NES controller or CPU RAM. */
 static unsigned nest_keyboard_bits(void)
@@ -170,6 +174,7 @@ static void nest_init(void){
     InterlockedExchange(&nest_shared->magic,NEST_MAGIC);
 }
 static void nest_close(void){
+    if(nest_save_pending){save_settings();nest_save_pending=0;}
     if(nest_shared){
         InterlockedExchange(&nest_shared->magic,0);
         UnmapViewOfFile(nest_shared);
@@ -263,9 +268,19 @@ static void nest_tick(void){
             case 43: done=cviii_lighting_editor_paste();save=done;break;
             default: done=0;break;
         }
-        if(save)save_settings();
+        if(save){
+            if(op==14){
+                save_settings();nest_save_pending=0;
+            }else{
+                nest_save_pending=1;
+                nest_last_edit_ms=SDL_GetTicks();
+            }
+        }
         nest_shared->result=done?1:0;
         InterlockedExchange(&nest_shared->response,request);
+    }
+    if(nest_save_pending && SDL_GetTicks()-nest_last_edit_ms>=350u){
+        save_settings();nest_save_pending=0;
     }
     const CviiiLighting *model=cviii_lighting_editor_model();
     if(!model)return;
