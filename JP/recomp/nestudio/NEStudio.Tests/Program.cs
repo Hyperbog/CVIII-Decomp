@@ -44,7 +44,7 @@ Check(OriginalGlyphCodec.TryParse(unknownCommand,out var unknown,out _)
 string launchRoot=Path.Combine(Path.GetTempPath(),"nestudio-launch-"+Guid.NewGuid().ToString("N"));
 try
 {
-    string alpha=Path.Combine(launchRoot,"AlphaCandidate");
+    string alpha=Path.Combine(launchRoot,"NEStudio-Preview","AlphaCandidate");
     Directory.CreateDirectory(alpha);
     string native=Path.Combine(alpha,"jp_akumajou_densetsu.exe");
     string dedicated=Path.Combine(alpha,"Launch-NEStudio-Game.bat");
@@ -53,7 +53,7 @@ try
     File.WriteAllText(dedicated,"@echo off\\r\\n");
     Check(GameLaunchResolver.Resolve(dedicated,launchRoot)==native,
           "dedicated BAT resolves directly to native EXE");
-    string buildBat=Path.Combine(launchRoot,"Build-Private-Game.bat");
+    string buildBat=Path.Combine(launchRoot,"NEStudio-Preview","Build-Private-Game.bat");
     File.WriteAllText(buildBat,"@echo off\\r\\n");
     Check(GameLaunchResolver.Resolve(buildBat,launchRoot)==native,
           "build BAT selection never runs a console or script");
