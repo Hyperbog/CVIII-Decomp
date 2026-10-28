@@ -39,6 +39,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python JP/decomp/tools/audit_original_ec47_0665.py --smoke
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python JP/decomp/tools/audit_original_chr_glyphs_0666.py --smoke
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Compile actual Win64 C11 SDL bridge ABI (no ROM)
         shell: cmd
         run: |
