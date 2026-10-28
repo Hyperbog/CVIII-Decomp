@@ -24,6 +24,15 @@ function Select-OwnerRom {
  return $picker.FileName
 }
 function Test-PrivateGame([string]$Directory) {
+ # Do not reuse an older Original-looking AlphaCandidate merely because
+ # jp_akumajou_densetsu.exe and SDL2.dll already exist.
+ $metadata=Join-Path $Directory 'ALPHA_BUILD.json'
+ if (-not (Test-Path -LiteralPath $metadata -PathType Leaf)) { return $false }
+ try {
+  $build=Get-Content -LiteralPath $metadata -Raw | ConvertFrom-Json
+  if ($build.native_source_branch -ne 'jp0723-ppu-queue-decoder' -or
+      $build.enhanced_stage1_widescreen_available -ne $true) { return $false }
+ } catch { return $false }
  $main=Join-Path $Directory 'jp_akumajou_densetsu.exe'
  $legacy=Join-Path $Directory 'CVIII_Alpha.exe'
  return ((Test-Path -LiteralPath $main -PathType Leaf) -or
@@ -32,14 +41,25 @@ function Test-PrivateGame([string]$Directory) {
          (Test-Path -LiteralPath (Join-Path $Directory 'Launch-Alpha.ps1') -PathType Leaf)
 }
 
-Write-Host 'CVIII — private Windows build and play'
-$homeBuild=Join-Path $env:USERPROFILE 'CVIII-Alpha'
+Write-Host 'CVIII — Stage 1 widescreen Enhanced private Windows build and play'
+$homeBuild=Join-Path $env:USERPROFILE 'CVIII-Widescreen-Alpha'
 $romLocationFile=Join-Path $homeBuild 'LastRomPath.txt'
 if (-not $Rom -and (Test-Path -LiteralPath $romLocationFile -PathType Leaf)) {
  $candidate=(Get-Content -LiteralPath $romLocationFile -Raw).Trim()
  if ($candidate -and (Test-Path -LiteralPath $candidate -PathType Leaf)) {
   $Rom=$candidate
   Write-Host 'Using previous original-JP cartridge location.'
+ }
+}
+if (-not $Rom) {
+ # A previously selected owner ROM may be reused by path only; the SHA256
+ # authentication below still applies. Never copy ROM bytes or native saves.
+ $legacyHint=Join-Path (Join-Path $env:USERPROFILE 'CVIII-Alpha') 'LastRomPath.txt'
+ if (Test-Path -LiteralPath $legacyHint -PathType Leaf) {
+  $legacy=(Get-Content -LiteralPath $legacyHint -Raw).Trim()
+  if ($legacy -and (Test-Path -LiteralPath $legacy -PathType Leaf)) {
+   $Rom=$legacy
+  }
  }
 }
 if (-not $Rom) { $Rom=Select-OwnerRom }
@@ -80,7 +100,7 @@ if ((Test-PrivateGame $localCandidate) -and -not $Rebuild) {
  }
  $builder=Join-Path $PSScriptRoot 'Build-Alpha.ps1'
  if (-not (Test-Path -LiteralPath $builder)) {
-  $builder=Join-Path $homeBuild '_cviisource\JP\release\alpha\Build-Alpha.ps1'
+  $builder=Join-Path $homeBuild '_cviisource\JP\recomp\release\alpha\Build-Alpha.ps1'
  }
  if (-not (Test-Path -LiteralPath $builder)) {
   throw ('Missing Build-Alpha.ps1. Extract the complete ROM-free Builder Kit, then retry.')

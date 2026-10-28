@@ -2,7 +2,7 @@
 [CmdletBinding()]
 param(
  [Parameter(Mandatory=$true)][string]$Rom,
- [string]$OutDir=(Join-Path $env:USERPROFILE 'CVIII-Alpha'),
+ [string]$OutDir=(Join-Path $env:USERPROFILE 'CVIII-Widescreen-Alpha'),
  [string]$ProjectRoot='',
  [string]$CycleSeedFile='',
  [switch]$PlayAfterBuild
@@ -54,14 +54,30 @@ if ($ProjectRoot) {
 } else {
  $repoPath=Join-Path $outPath '_cviisource'
  if (-not (Test-Path -LiteralPath $repoPath)) {
-  Invoke-Checked -Program 'git' -CommandArguments @('clone','--branch','decompilation','--single-branch',
+  Invoke-Checked -Program 'git' -CommandArguments @('clone','--branch','jp0723-ppu-queue-decoder','--single-branch',
       'https://github.com/Hyperbog/CVIII-Decomp.git',$repoPath)
  } else {
   # This directory is managed by this builder; do not silently compile
   # a stale branch when new asset/gameplay tooling has been committed.
-  Invoke-Checked -Program 'git' -CommandArguments @('-C',$repoPath,'pull','--ff-only','origin','decompilation')
+  Invoke-Checked -Program 'git' -CommandArguments @('-C',$repoPath,'pull','--ff-only','origin','jp0723-ppu-queue-decoder')
  }
 }
+# The private widescreen kit must never silently compile the older baseline.
+$worldHost=Join-Path $repoPath 'JP/recomp/native/enhanced/cviii_stage1_host_0725.c'
+if (-not (Test-Path -LiteralPath $worldHost -PathType Leaf)) {
+ throw 'Wrong source checkout: the Stage 1 widescreen host is missing.'
+}
+if (-not $ProjectRoot) {
+ $sourceBranch=(& git -C $repoPath branch --show-current).Trim()
+ if ($LASTEXITCODE -ne 0 -or $sourceBranch -ne 'jp0723-ppu-queue-decoder') {
+  throw ('Wrong native source branch: '+$sourceBranch+'. Expected jp0723-ppu-queue-decoder.')
+ }
+}
+$sourceRevision=(& git -C $repoPath rev-parse HEAD).Trim()
+if ($LASTEXITCODE -ne 0 -or $sourceRevision -notmatch '^[0-9a-f]{40}$') {
+ throw 'Cannot verify native widescreen source revision.'
+}
+Write-Host ('Widescreen Enhanced native source revision: '+$sourceRevision)
 # Fail before compiling if the kit would be impossible to stage.
 $companionSources=@(Get-CviiiAlphaCompanionSources -RepoPath $repoPath)
 if ($companionSources.Count -ne 29) {
@@ -175,6 +191,10 @@ $manifest=[ordered]@{
  version='0.2.0-alpha.1'
  runtime='generated native C11 2A03/VRC6 cycle backend'
  original_rom_sha256='958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28'
+ native_source_revision=$sourceRevision
+ native_source_branch='jp0723-ppu-queue-decoder'
+ enhanced_stage1_widescreen_available=$true
+ enhanced_widescreen_scope='Stage 1 authenticated atlas; other stages retain original viewport'
  game_exe_sha256=(Get-FileHash -LiteralPath (Join-Path $stage 'jp_akumajou_densetsu.exe') -Algorithm SHA256).Hash.ToLowerInvariant()
  gameplay_verified=$false
  playable_alpha_qualified=$false
