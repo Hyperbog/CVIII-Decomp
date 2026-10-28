@@ -217,6 +217,24 @@
             <Slider x:Name="StyleRed" Minimum="0" Maximum="255" Tag="4" ValueChanged="StyleSlider_Changed"/>
             <Slider x:Name="StyleGreen" Minimum="0" Maximum="255" Tag="5" ValueChanged="StyleSlider_Changed"/>
             <Slider x:Name="StyleBlue" Minimum="0" Maximum="255" Tag="6" ValueChanged="StyleSlider_Changed"/>
+            <TextBlock Text="Shape" Margin="0,6,0,0"/>
+            <ComboBox x:Name="StyleShape" SelectionChanged="StyleShape_Changed">
+              <ComboBoxItem Content="Radial"/><ComboBoxItem Content="Cone"/>
+              <ComboBoxItem Content="Shaft"/>
+            </ComboBox>
+            <TextBlock Text="Direction / beam angle / shaft width"/>
+            <Slider x:Name="StyleAngle" Minimum="0" Maximum="359" Tag="8" ValueChanged="StyleSlider_Changed"/>
+            <Slider x:Name="StyleSpread" Minimum="5" Maximum="85" Tag="9" ValueChanged="StyleSlider_Changed"/>
+            <Slider x:Name="StyleWidth" Minimum="4" Maximum="160" Tag="10" ValueChanged="StyleSlider_Changed"/>
+            <TextBlock Text="Shared animation" Margin="0,7,0,0"/>
+            <ComboBox x:Name="StyleFlicker" SelectionChanged="StyleFlicker_Changed">
+              <ComboBoxItem Content="Candle"/><ComboBoxItem Content="Steady"/>
+              <ComboBoxItem Content="Torch"/><ComboBoxItem Content="Pulse"/>
+              <ComboBoxItem Content="Ember"/>
+            </ComboBox>
+            <TextBlock Text="Animation speed / strength"/>
+            <Slider x:Name="StyleSpeed" Minimum="0" Maximum="400" Tag="15" ValueChanged="StyleSlider_Changed"/>
+            <Slider x:Name="StyleStrength" Minimum="0" Maximum="100" Tag="16" ValueChanged="StyleSlider_Changed"/>
             <TextBlock Text="Linked lights update across rooms; positions stay independent." TextWrapping="Wrap" Margin="0,8"/>
           </StackPanel>
         </ScrollViewer>
@@ -227,6 +245,12 @@
             <TextBlock Text="WORLD-SPACE SHADOW MASKS" Foreground="#91D9FF" FontWeight="Bold"/>
             <Button Content="+ Mask near view center" Tag="new-mask" Click="Action_Click"/>
             <ListBox x:Name="MaskList" Height="130" DisplayMemberPath="Label" SelectionChanged="Mask_SelectionChanged"/>
+            <TextBlock Text="Mask world X / Y"/>
+            <WrapPanel>
+              <TextBox x:Name="MaskX" Width="75"/>
+              <TextBox x:Name="MaskY" Width="75"/>
+              <Button Content="Move" Tag="move-mask" Click="Action_Click"/>
+            </WrapPanel>
             <TextBlock Text="Opacity / softness"/>
             <Slider x:Name="MaskOpacity" Minimum="0" Maximum="100" Tag="5" ValueChanged="MaskSlider_Changed"/>
             <Slider x:Name="MaskSoftness" Minimum="0" Maximum="32" Tag="6" ValueChanged="MaskSlider_Changed"/>
@@ -263,6 +287,23 @@
             <Slider x:Name="FxOpacity" Minimum="0" Maximum="100" Tag="9" ValueChanged="FxSlider_Changed"/>
             <Slider x:Name="FxSize" Minimum="1" Maximum="4" Tag="10" ValueChanged="FxSlider_Changed"/>
             <Slider x:Name="FxGlow" Minimum="0" Maximum="100" Tag="15" ValueChanged="FxSlider_Changed"/>
+            <TextBlock Text="World X / Y · Width / Height" Margin="0,5,0,0"/>
+            <WrapPanel>
+              <TextBox x:Name="FxWorldX" Width="76"/>
+              <TextBox x:Name="FxWorldY" Width="76"/>
+              <Button Content="Move" Tag="move-fx" Click="Action_Click"/>
+            </WrapPanel>
+            <Slider x:Name="FxWidth" Minimum="1" Maximum="256" Tag="4" ValueChanged="FxSlider_Changed"/>
+            <Slider x:Name="FxHeight" Minimum="1" Maximum="240" Tag="5" ValueChanged="FxSlider_Changed"/>
+            <TextBlock Text="FX color RGB"/>
+            <Slider x:Name="FxRed" Minimum="0" Maximum="255" Tag="11" ValueChanged="FxSlider_Changed"/>
+            <Slider x:Name="FxGreen" Minimum="0" Maximum="255" Tag="12" ValueChanged="FxSlider_Changed"/>
+            <Slider x:Name="FxBlue" Minimum="0" Maximum="255" Tag="13" ValueChanged="FxSlider_Changed"/>
+            <TextBlock Text="FX layering"/>
+            <ComboBox x:Name="FxLayer" SelectionChanged="FxLayer_Changed">
+              <ComboBoxItem Content="In front of sprites"/>
+              <ComboBoxItem Content="Behind sprites"/>
+            </ComboBox>
             <WrapPanel>
               <Button Content="Attach to light" Tag="attach-fx" Click="Action_Click"/>
               <Button Content="Detach" Tag="detach-fx" Click="Action_Click"/>
@@ -298,6 +339,26 @@
             <Slider x:Name="WeatherOpacity" Minimum="0" Maximum="100" Tag="5" ValueChanged="WeatherSlider_Changed"/>
             <Slider x:Name="WeatherChance" Minimum="0" Maximum="100" Tag="7" ValueChanged="WeatherSlider_Changed"/>
             <Slider x:Name="WeatherPeriod" Minimum="1" Maximum="120" Tag="8" ValueChanged="WeatherSlider_Changed"/>
+            <TextBlock Text="Weather particle type" Margin="0,7,0,0"/>
+            <ComboBox x:Name="WeatherKind" SelectionChanged="WeatherKind_Changed">
+              <ComboBoxItem Content="Dust"/><ComboBoxItem Content="Embers"/>
+              <ComboBoxItem Content="Fog"/><ComboBoxItem Content="Ash"/>
+              <ComboBoxItem Content="Snow"/><ComboBoxItem Content="Rain"/>
+              <ComboBoxItem Content="Fireflies"/>
+            </ComboBox>
+            <TextBlock Text="Particle size" Margin="0,7,0,0"/>
+            <Slider x:Name="WeatherSize" Minimum="1" Maximum="4" Tag="6" ValueChanged="WeatherSlider_Changed"/>
+            <TextBlock Text="Deterministic seed (0–65535)" Margin="0,7,0,0"/>
+            <TextBox x:Name="WeatherSeed"/>
+            <Button Content="Set weather seed" Tag="set-weather-seed" Click="Action_Click"/>
+            <TextBlock Text="Weather RGB"/>
+            <Slider x:Name="WeatherRed" Minimum="0" Maximum="255" Tag="11" ValueChanged="WeatherSlider_Changed"/>
+            <Slider x:Name="WeatherGreen" Minimum="0" Maximum="255" Tag="12" ValueChanged="WeatherSlider_Changed"/>
+            <Slider x:Name="WeatherBlue" Minimum="0" Maximum="255" Tag="13" ValueChanged="WeatherSlider_Changed"/>
+            <TextBlock Text="Weather layering"/>
+            <ComboBox x:Name="WeatherLayer" SelectionChanged="WeatherLayer_Changed">
+              <ComboBoxItem Content="Foreground"/><ComboBoxItem Content="Behind sprites"/>
+            </ComboBox>
           </StackPanel>
         </ScrollViewer>
       </TabItem>
