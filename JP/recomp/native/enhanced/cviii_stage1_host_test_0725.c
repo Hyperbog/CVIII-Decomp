@@ -9,6 +9,8 @@
 #include <stdlib.h>
 #include <string.h>
 static uint8_t test_ram[2048];
+static uint8_t test_ppu_oam[256];
+const uint8_t *cyc_render_oam(void) {return test_ppu_oam;}
 static uint32_t original[256*240];
 static CviiiStage1Host0725 host;
 static uint32_t isolated_room[426*240]; /* invented ROM test pixels */

@@ -8,6 +8,7 @@ add_executable(jp_stage1_host_test_0725
  ../cviii_stage1_rom_0724.c
  ../cviii_stage1_atlas_0724.c
  ../cviii_stage1_host_0725.c
+ ../cviii_ppu_wide_0830.c
  ../cviii_level_preload_0829.c
  ../cviii_rom_tsa_catalog_0730.c
  ../cviii_stage1_join_0751.c
@@ -68,3 +69,10 @@ set_property(TARGET jp_all_level_preload_test_0829 PROPERTY C_STANDARD 11)
 target_compile_definitions(jp_all_level_preload_test_0829 PRIVATE
  CVIII_LEVEL_PRELOAD_TEST_SYNTHETIC=1 CVIII_RESOURCE_TEST_SYNTHETIC_0727=1)
 add_test(NAME jp0829_all_stage_preload COMMAND jp_all_level_preload_test_0829)
+
+# Standalone synthetic horizontal-PPU proof and strict native center preservation.
+add_executable(jp_ppu_wide_test_0830
+ ../cviii_ppu_wide_0830.c
+ ../cviii_ppu_wide_test_0830.c)
+set_property(TARGET jp_ppu_wide_test_0830 PROPERTY C_STANDARD 11)
+add_test(NAME jp0830_native_ppu_wide_parity COMMAND jp_ppu_wide_test_0830)

@@ -83,3 +83,36 @@ Stage 1 is the only area with a source-backed wide world painter. The user
 request for fully drawn offscreen geometry and preidentified NPC/items in
 every level is **not yet complete**. This must remain explicit in every
 release description until proven by the native game.
+
+## JP0830 — PPU-qualified cross-stage side painting
+
+The optional read-only wide presenter now has two distinct paths:
+
+- **Stage 1:** full original-ROM layout atlas and original active actor
+  presentation in confirmed side areas, unchanged from the established build.
+- **Other gameplay stages:** the native PPU may have a second populated
+  nametable available during horizontal scrolling. The presenter reconstructs
+  the unused 85-pixel side columns from those *currently mapped* original
+  PPU nametable, attribute, CHR, scroll and palette bytes. It refuses to
+  paint if mirrored pages, uncertain/blank adjacent geometry, IRQ pattern
+  switches, invalid scroll, or sampled native-background parity fail.
+
+The original 256x240 NES picture, original object slots, pickup timing,
+enemy/companion AI, sprite/OAM logic, audio and save state are never changed
+by this painter. The side tiles are a visual read-only extension; they
+do **not** constitute a full persistent background map or offscreen spawn
+simulation.
+
+**Actual Japanese ROM smoke check:** the ROM-independent Linux interpreter
+host built from this branch played 1,050 controller-only frames into Stage
+1-01 in Enhanced mode and output a 426x240 presented PNG. Comparing it to
+the native 256x240 screenshot at horizontal offset 85 showed an exact
+61,440/61,440 RGB pixel match, including the 48-line HUD. This demonstrates
+the unchanged Stage 1 gameplay frame. It is not a completed Stage 2+
+widescreen or full-game gameplay test.
+
+**Remaining release blockers:** all-stage ROM-backed tilemap positions,
+multi-room topology and offscreen NPC/items/objects remain unknown or
+unvalidated outside the currently sourced Stage 1 paths. A source-data
+preload and visually matched PPU neighbor are valuable primitives, but
+neither should be described as a fully reconstructed world.

@@ -225,6 +225,7 @@ if(JP0732_ENHANCED)
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_stage1_rom_0724.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_stage1_atlas_0724.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_stage1_host_0725.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_ppu_wide_0830.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_level_preload_0829.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_stage1_join_0751.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_level1_world_0803.c"
