@@ -1,0 +1,47 @@
+name: R002 public TAS input acquisition (isolated branch)
+on:
+  push:
+    branches: [r002-public-bk2-acquisition-20261027]
+jobs:
+  acquire:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Download published movie only (no licensed ROM or emulator media)
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p output
+          for url in             'https://tasvideos.org/10138S?handler=Download'             'https://tasvideos.org/6942M?handler=Download'             'https://tasvideos.org/10138S?handler=DownloadMovie'             'https://tasvideos.org/6942M?handler=DownloadMovie'; do
+            if curl -fsSL --retry 2 --retry-delay 2 --connect-timeout 12 --max-time 70 -A 'CVIII-Decomp R002 public TAS movie retrieval' "$url" -o output/movie.bk2; then
+              if python3 -c 'import sys,zipfile;sys.exit(0 if zipfile.is_zipfile("output/movie.bk2") else 1)'; then
+                echo "retrieved valid movie zip at $url"
+                break
+              fi
+            fi
+            rm -f output/movie.bk2
+          done
+          test -f output/movie.bk2
+          python3 - <<'PY'
+          import zipfile,hashlib,json,pathlib
+          p=pathlib.Path("output/movie.bk2")
+          with zipfile.ZipFile(p) as z:
+              names=z.namelist()
+              assert "Header.txt" in names and "Input Log.txt" in names, names
+              header=z.read("Header.txt").decode("utf-8-sig")
+              log=z.read("Input Log.txt").decode("utf-8-sig")
+              assert "a0f3b31d4e3b0d2ca2e8a34f91f14ad99a5ad11f" in header.lower(), "ROM SHA1 mismatch"
+              count=sum(1 for line in log.splitlines() if line.startswith("|"))
+              print("movie input frames",count,"expected 86519")
+              assert count>=80000, "incomplete movie"
+          print("public BK2 sha256",hashlib.sha256(p.read_bytes()).hexdigest())
+          pathlib.Path("output/provenance.json").write_text(json.dumps({"source":"https://tasvideos.org/10138S","source_publication":6942,"source_submission":10138,"authors":["zggzdydp","scrimpeh"],"rom_sha1_expected":"a0f3b31d4e3b0d2ca2e8a34f91f14ad99a5ad11f","input_lines":count,"bk2_sha256":hashlib.sha256(p.read_bytes()).hexdigest(),"includes_rom":False},indent=2)+"\n")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r002-public-jp-tas-6942-bk2
+          path: output/
+          retention-days: 1
+          if-no-files-found: error
