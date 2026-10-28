@@ -100,7 +100,7 @@ public partial class LightingWorkbench : UserControl
                 l.Name.Contains(term,StringComparison.OrdinalIgnoreCase) ||
                 (_scene.Lighting.LightDetails.TryGetValue(l.Slot,out var d) &&
                  d.Group.Contains(term,StringComparison.OrdinalIgnoreCase)));
-        RefreshList(LightList,matches,"lights:"+term,_fingerprints,_selected,l=>l.Slot);
+        RefreshList(LightList,matches,"lights",_fingerprints,_selected,l=>l.Slot);
     }
     public void UpdateScene(StudioScene scene,int selectedLight)
     {
