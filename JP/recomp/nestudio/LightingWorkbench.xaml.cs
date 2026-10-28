@@ -78,9 +78,18 @@ public partial class LightingWorkbench : UserControl
         Func<T,int> slot)
     {
         var items=source.ToList();
-        string fingerprint=string.Join("|",items.Select(x=>x is null?"":x.ToString()));
+        // Light rows describe identities, not per-frame world coordinates.
+        // Keep selection and scroll while the user drags a native gizmo.
+        string fingerprint=key=="lights"?
+            string.Join("|",items.OfType<StudioLight>()
+                .Select(l=>$"{l.Slot}:{l.Name}")):
+            string.Join("|",items.Select(x=>x is null?"":x.ToString()));
         if(fingerprints.TryGetValue(key,out string? prev) && prev==fingerprint)
+        {
+            if(list.SelectedItem is not T active || slot(active)!=selectedSlot)
+                list.SelectedItem=items.FirstOrDefault(x=>slot(x)==selectedSlot);
             return;
+        }
         fingerprints[key]=fingerprint;
         list.ItemsSource=items;
         list.SelectedItem=items.FirstOrDefault(x=>slot(x)==selectedSlot);
