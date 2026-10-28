@@ -136,3 +136,21 @@ const uint8_t *cviii_level_preload_room_0829(
     }
     return NULL;
 }
+
+const uint8_t *cviii_level_preload_record_0829(
+    const CviiiLevelPreload0829 *cache,unsigned stage,
+    unsigned subarea,unsigned room,unsigned ordinal,
+    unsigned *record_bytes)
+{
+    if(record_bytes)*record_bytes=0;
+    size_t source_length=0;
+    unsigned width=0,records=0;
+    const uint8_t *source=cviii_level_preload_room_0829(cache,
+        stage,subarea,room,&source_length,&width,&records);
+    if(!source || ordinal>=records ||
+       (width!=4u && width!=7u) ||
+       (size_t)ordinal*width+width>source_length)
+        return NULL;
+    if(record_bytes)*record_bytes=width;
+    return source+(size_t)ordinal*width;
+}
