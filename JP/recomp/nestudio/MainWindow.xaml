@@ -14,76 +14,121 @@
       <RowDefinition Height="*"/>
       <RowDefinition Height="Auto"/>
     </Grid.RowDefinitions>
-    <Border Grid.Row="0" Background="#10151C" BorderBrush="#3A5063" BorderThickness="0,0,0,1" Padding="12,9">
+    <!-- Project actions + transport are distinct from the tool workspaces. -->
+    <Border Grid.Row="0" Background="#141B25" BorderBrush="#2F4050"
+            BorderThickness="0,0,0,1" Padding="15,6">
       <DockPanel LastChildFill="True">
         <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
-          <TextBlock Text="NE" Foreground="#62BCE8" FontSize="23" FontWeight="Bold" VerticalAlignment="Center"/>
-          <TextBlock Text="Studio" FontSize="21" FontWeight="SemiBold" Margin="0,0,18,0" VerticalAlignment="Center"/>
-          <Button Content="New Project" Click="NewProject_Click"/>
-          <Button Content="Open" Click="OpenProject_Click"/>
-          <Button Content="Save" Click="SaveProject_Click"/>
-          <Button Content="Save As" Click="SaveAs_Click"/>
-          <Button Content="Set Private Game" Click="ChooseGame_Click" ToolTip="Choose jp_akumajou_densetsu.exe. Legacy BATs are resolved to the private EXE and never run as consoles."/>
-          <Button Content="Acceptance Log" Click="OpenAcceptanceLog_Click" ToolTip="Open the user-local Windows viewport and bridge acceptance log"/>
+          <TextBlock Text="NE" Foreground="#7BD7F4" FontSize="22" FontWeight="Bold" VerticalAlignment="Center"/>
+          <TextBlock Text="STUDIO" Foreground="#F1F5F9" FontSize="18" FontWeight="SemiBold"
+                     Margin="2,0,17,0" VerticalAlignment="Center"/>
+          <Border Background="#223344" Padding="8,3" CornerRadius="4" VerticalAlignment="Center">
+            <TextBlock Text="LIVE MODIFICATION" Foreground="#A7C6DB" FontSize="10" FontWeight="SemiBold"/>
+          </Border>
         </StackPanel>
-        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
-          <Button Content="Run / Attach" Click="Run_Click" Background="#246450"/>
-          <Button Content="Edit / Pause" Click="Pause_Click"/>
-          <Button Content="Play" Click="Play_Click"/>
-          <Button x:Name="GameInputButton" Content="Capture Keys" Click="FocusGame_Click" ToolTip="Capture arrows, Z, X, Enter, Backslash for the game. Escape releases."/>
-          <Button Content="Stop" Click="Stop_Click" Background="#773C4C"/>
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+          <Button Content="New" ToolTip="New local authoring project" Click="NewProject_Click"/>
+          <Button Content="Open" ToolTip="Open .nestudio project (Ctrl+O)" Click="OpenProject_Click"/>
+          <Button Content="Save" ToolTip="Save project and native effects (Ctrl+S)" Click="SaveProject_Click"/>
+          <Button Content="Game..." ToolTip="Choose your privately compiled game executable" Click="ChooseGame_Click"/>
+          <Button Content="Attach" Click="Run_Click" Background="#226655"
+                  ToolTip="Launch privately compiled Enhanced game and attach SDL viewport"/>
+          <Button Content="Edit" Click="Pause_Click" ToolTip="Pause runtime and activate viewport editing"/>
+          <Button Content="Play" Click="Play_Click" ToolTip="Resume runtime with keyboard capture"/>
+          <Button x:Name="GameInputButton" Content="Keys" Click="FocusGame_Click"
+                  ToolTip="Capture controller keys; Escape releases input"/>
+          <Button Content="Stop" Click="Stop_Click" Background="#543440" ToolTip="Stop only the attached native game"/>
         </StackPanel>
       </DockPanel>
     </Border>
-    <Border Grid.Row="1" Background="#131A22" BorderBrush="#41566A" BorderThickness="0,0,0,1" Padding="13,5">
-      <DockPanel>
-        <TextBlock Text="PROJECT" Foreground="#D4E2EE" FontSize="11" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,8,0"/>
-        <TextBlock x:Name="ProjectLabel" Text="Untitled Project" FontSize="12" VerticalAlignment="Center"/>
-        <TextBlock Text="  /  SCENE" Foreground="#D4E2EE" FontSize="11" VerticalAlignment="Center" Margin="16,0,8,0"/>
-        <TextBlock x:Name="RoomLabel" Text="No active scene" VerticalAlignment="Center" FontSize="12"/>
-        <TextBlock x:Name="ConnectionLabel" DockPanel.Dock="Right"
-                   HorizontalAlignment="Right" Foreground="#E2EBF5"
-                   VerticalAlignment="Center" Text="OFFLINE · Game not started"/>
+    <!-- Modes change which live object the viewport selects and which inspector appears. -->
+    <Border Grid.Row="1" Background="#111821" BorderBrush="#2F4050"
+            BorderThickness="0,0,0,1" Padding="13,5">
+      <DockPanel LastChildFill="True">
+        <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
+          <Button x:Name="WorkspaceLighting" Content="Lighting" Tag="lighting" Click="Workspace_Click"
+                  ToolTip="Ctrl+1 · live lighting and pixel FX" Padding="15,6"/>
+          <Button x:Name="WorkspaceSprites" Content="Sprites / Objects" Tag="sprites" Click="Workspace_Click"
+                  ToolTip="Ctrl+2 · native sprite picker and stable original objects" Padding="15,6"/>
+          <Button x:Name="WorkspaceDialogue" Content="Dialogue" Tag="dialogue" Click="Workspace_Click"
+                  ToolTip="Ctrl+3 · text events, safe offline preview and region picking" Padding="15,6"/>
+          <Button x:Name="WorkspaceAssets" Content="References" Tag="assets" Click="Workspace_Click"
+                  ToolTip="Owner-local references, not ROM assets" Padding="15,6"/>
+        </StackPanel>
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+          <Button x:Name="FocusLayoutButton" Content="Focus View" Click="FocusLayout_Click"
+                  ToolTip="F11 · hide docks and concentrate on live game preview"/>
+          <Button Content="Console" Tag="console" Click="BottomDrawer_Click"
+                  ToolTip="Show or hide diagnostics; Ctrl+`"/>
+          <Button Content="Events" Tag="events" Click="BottomDrawer_Click"
+                  ToolTip="Open authored event timeline"/>
+          <Button Content="Log" Click="OpenAcceptanceLog_Click"
+                  ToolTip="Open live Windows acceptance log"/>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="15,0,0,0">
+          <TextBlock x:Name="ProjectLabel" Text="Untitled Project" FontSize="11" VerticalAlignment="Center"
+                     Foreground="#CBD9E6"/>
+          <TextBlock Text="  /  " VerticalAlignment="Center" Foreground="#7891A4"/>
+          <TextBlock x:Name="RoomLabel" Text="No active room" FontSize="11" VerticalAlignment="Center"
+                     Foreground="#99BBD1"/>
+          <TextBlock x:Name="ConnectionLabel" Text=" · OFFLINE" Foreground="#D6C28A"
+                     FontSize="11" VerticalAlignment="Center" Margin="10,0,0,0"/>
+        </StackPanel>
       </DockPanel>
     </Border>
     <Grid Grid.Row="2" Margin="10,10,10,6">
       <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="238" MinWidth="175"/>
-        <ColumnDefinition Width="6"/>
-        <ColumnDefinition Width="*" MinWidth="450"/>
-        <ColumnDefinition Width="6"/>
-        <ColumnDefinition Width="420" MinWidth="330"/>
+        <ColumnDefinition x:Name="OutlinerColumn" Width="240"/>
+        <ColumnDefinition x:Name="OutlinerSplitterColumn" Width="6"/>
+        <ColumnDefinition Width="*" MinWidth="430"/>
+        <ColumnDefinition x:Name="InspectorSplitterColumn" Width="6"/>
+        <ColumnDefinition x:Name="InspectorColumn" Width="390"/>
       </Grid.ColumnDefinitions>
-      <Border Grid.Column="0" Background="#141A22" CornerRadius="6" BorderBrush="#3A5063" BorderThickness="1">
+      <Border x:Name="OutlinerPanel" Grid.Column="0" Background="#141D27" CornerRadius="5"
+              BorderBrush="#304558" BorderThickness="1">
         <DockPanel>
-          <StackPanel DockPanel.Dock="Top" Margin="10,10,10,6">
-            <TextBlock Text="SCENE OUTLINER" FontWeight="SemiBold" Foreground="#ACD7F3" FontSize="12"/>
-            <TextBlock Text="Live game lights and authored project layers" FontSize="11" Foreground="#D5E2EE" Margin="0,5,0,0" TextWrapping="Wrap"/>
+          <StackPanel DockPanel.Dock="Top" Margin="11,10,11,4">
+            <DockPanel>
+              <TextBlock Text="SCENE OUTLINER" FontSize="11" FontWeight="Bold" Foreground="#9BBAD0"
+                         VerticalAlignment="Center"/>
+              <Button Content="+ Add" DockPanel.Dock="Right" Padding="8,3"
+                      Click="QuickAdd_Click"
+                      ToolTip="Create an object appropriate for the active workspace"/>
+            </DockPanel>
+            <TextBox x:Name="SceneSearch" Margin="0,8,0,0"
+                     ToolTip="Filter lights, dialogue, groups and reference nodes (Ctrl+F)"
+                     TextChanged="SceneSearch_Changed"/>
+            <TextBlock x:Name="SceneCountLabel" Text="Waiting for live scene"
+                       Foreground="#899EB2" FontSize="11" Margin="0,5,0,2"/>
           </StackPanel>
-          <TreeView x:Name="SceneTree" Margin="8" SelectedItemChanged="SceneTree_SelectedItemChanged"/>
+          <TreeView x:Name="SceneTree" Margin="7" SelectedItemChanged="SceneTree_SelectedItemChanged"/>
         </DockPanel>
       </Border>
-      <GridSplitter Grid.Column="1" Width="6" HorizontalAlignment="Stretch" Background="Transparent"/>
+      <GridSplitter x:Name="OutlinerSplitter" Grid.Column="1" Width="6" HorizontalAlignment="Stretch" Background="Transparent"/>
       <Grid Grid.Column="2">
         <Grid.RowDefinitions>
-          <RowDefinition Height="*" MinHeight="320"/>
+          <RowDefinition Height="*" MinHeight="300"/>
           <RowDefinition Height="6"/>
-          <RowDefinition Height="195" MinHeight="120"/>
+          <RowDefinition x:Name="BottomRow" Height="0"/>
         </Grid.RowDefinitions>
         <Border Grid.Row="0" CornerRadius="6" BorderBrush="#3A5063" BorderThickness="1" Background="#080C11">
           <DockPanel>
-            <Border DockPanel.Dock="Top" Background="#141A22" BorderBrush="#3A5063" BorderThickness="0,0,0,1" Padding="9,8">
+            <Border DockPanel.Dock="Top" Background="#151F2B"
+                    BorderBrush="#304558" BorderThickness="0,0,0,1" Padding="11,7">
               <DockPanel>
-                <TextBlock Text="GAME VIEWPORT" FontWeight="SemiBold" FontSize="12" Foreground="#A7D9F7"/>
-                <TextBlock Text="256 × 240 NES · Native SDL2 recomp" Foreground="#C6DBEA" FontSize="11" HorizontalAlignment="Right" DockPanel.Dock="Right"/>
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                  <TextBlock Text="LIVE VIEW" FontWeight="Bold" Foreground="#D8EDF8"
+                             FontSize="12" VerticalAlignment="Center" Margin="0,0,13,0"/>
+                  <TextBlock x:Name="ViewportToolLabel" Text="SELECT · Lighting" Foreground="#80CBEF"
+                             FontSize="11" VerticalAlignment="Center"/>
+                </StackPanel>
+                <TextBlock DockPanel.Dock="Right" Text="256 × 240  ·  Native SDL"
+                           Foreground="#94AABC" FontSize="11" VerticalAlignment="Center"
+                           HorizontalAlignment="Right"/>
               </DockPanel>
             </Border>
-            <Border DockPanel.Dock="Top" Padding="9,5" Background="#151E27" BorderBrush="#3A5063" BorderThickness="0,0,0,1">
-              <TextBlock Text="PLAY: click Play or Capture Keys; Esc releases input   |   EDIT: drag light handles"
-                         FontSize="11" Foreground="#E1F1FA" TextWrapping="Wrap"/>
-            </Border>
             <Grid Background="#070A0F">
-              <wfi:WindowsFormsHost x:Name="ViewportHost" Margin="8"/>
+              <wfi:WindowsFormsHost x:Name="ViewportHost" Margin="6"/>
               <TextBlock x:Name="ViewportHint" Text="Click Run / Attach to launch the private Enhanced EXE directly.&#10;The native SDL viewport will appear here after the session handshake."
                          TextAlignment="Center" VerticalAlignment="Center"
                          HorizontalAlignment="Center" Foreground="#D6E4F0"
@@ -91,10 +136,10 @@
             </Grid>
           </DockPanel>
         </Border>
-        <GridSplitter Grid.Row="1" Height="6" HorizontalAlignment="Stretch" Background="Transparent"/>
-        <Border Grid.Row="2" Background="#141A22" CornerRadius="6" BorderBrush="#3A5063" BorderThickness="1">
-          <TabControl>
-            <TabItem Header="Timeline">
+        <GridSplitter x:Name="BottomSplitter" Grid.Row="1" Height="6" Visibility="Collapsed" HorizontalAlignment="Stretch" Background="Transparent"/>
+        <Border x:Name="BottomPanel" Grid.Row="2" Visibility="Collapsed" Background="#141A22" CornerRadius="6" BorderBrush="#3A5063" BorderThickness="1">
+          <TabControl x:Name="BottomTabs">
+            <TabItem Header="Events">
               <Grid Margin="10">
                 <Grid.RowDefinitions>
                   <RowDefinition Height="Auto"/>
@@ -117,15 +162,25 @@
           </TabControl>
         </Border>
       </Grid>
-      <GridSplitter Grid.Column="3" Width="6" HorizontalAlignment="Stretch" Background="Transparent"/>
-      <Border Grid.Column="4" Background="#141A22" CornerRadius="6" BorderBrush="#3A5063" BorderThickness="1">
+      <GridSplitter x:Name="InspectorSplitter" Grid.Column="3" Width="6" HorizontalAlignment="Stretch" Background="Transparent"/>
+      <Border x:Name="InspectorPanel" Grid.Column="4" Background="#141D27" CornerRadius="5"
+              BorderBrush="#304558" BorderThickness="1">
         <DockPanel>
-          <StackPanel DockPanel.Dock="Top" Margin="12,10,12,5">
-            <TextBlock Text="INSPECTOR" FontWeight="SemiBold" FontSize="12" Foreground="#ACD7F3"/>
-            <TextBlock x:Name="SelectionLabel" Text="Select an object in the scene tree" TextWrapping="Wrap"
-                       Foreground="#D0DEEA" FontSize="11" Margin="0,5,0,0"/>
+          <StackPanel DockPanel.Dock="Top" Margin="12,10,12,7">
+            <TextBlock x:Name="InspectorTitle" Text="LIGHTING · DETAILS"
+                       FontWeight="Bold" FontSize="12" Foreground="#A4D9F6"/>
+            <TextBlock x:Name="SelectionLabel" Text="Select something in the viewport or outliner"
+                       TextWrapping="Wrap" Foreground="#BFCFDE" FontSize="11" Margin="0,5,0,0"/>
           </StackPanel>
-          <TabControl x:Name="InspectorTabs" Margin="6,0,6,8" SelectionChanged="InspectorTabs_SelectionChanged">
+          <!-- Workspace header buttons are the only top-level mode tabs. -->
+          <TabControl x:Name="InspectorTabs" Margin="3,0,3,5" SelectionChanged="InspectorTabs_SelectionChanged">
+            <TabControl.Template>
+              <ControlTemplate TargetType="{x:Type TabControl}">
+                <Border Background="#111923" BorderBrush="#324657" BorderThickness="0">
+                  <ContentPresenter x:Name="PART_SelectedContentHost" ContentSource="SelectedContent"/>
+                </Border>
+              </ControlTemplate>
+            </TabControl.Template>
             <TabItem x:Name="LightingTab" Header="Lighting">
               <local:LightingWorkbench x:Name="LightingStudio"/>
             </TabItem>
@@ -240,10 +295,13 @@
         </DockPanel>
       </Border>
     </Grid>
-    <Border Grid.Row="3" Background="#0E1724" BorderBrush="#41566A" BorderThickness="0,1,0,0" Padding="12,6">
+    <Border Grid.Row="3" Background="#101720" BorderBrush="#35485A"
+            BorderThickness="0,1,0,0" Padding="13,7">
       <DockPanel>
-        <TextBlock x:Name="StatusText" Text="Ready — New project" Foreground="#A5BED0" FontSize="11"/>
-        <TextBlock DockPanel.Dock="Right" Text="NEStudio Foundation · Project schema v1" Foreground="#738DA4" FontSize="11"/>
+        <TextBlock x:Name="StatusText" Text="Ready · Open a project or attach a game"
+                   Foreground="#D6E2EC" FontSize="11" VerticalAlignment="Center"/>
+        <TextBlock DockPanel.Dock="Right" Text="Ctrl+1/2/3  Workspaces    Ctrl+F  Find    F11  Focus    Ctrl+S  Save"
+                   Foreground="#899FB1" FontSize="11" VerticalAlignment="Center"/>
       </DockPanel>
     </Border>
   </Grid>
