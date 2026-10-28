@@ -249,6 +249,7 @@ public sealed class NativeGameHost : IDisposable
         if(_process is null)
         {
             _nativeGamePid=0;_batchLauncher=false;
+            _runtimeExecutable="";
             _window=IntPtr.Zero;Session="";
             return;
         }
@@ -283,6 +284,7 @@ public sealed class NativeGameHost : IDisposable
         {
             _process.Dispose();_process=null;
             _nativeGamePid=0;_batchLauncher=false;
+            _runtimeExecutable="";
             _window=IntPtr.Zero;Session="";
         }
     }
@@ -314,7 +316,7 @@ public sealed class NativeGameHost : IDisposable
         IntPtr hwnd,IntPtr after,int x,int y,int w,int h,uint flags);
     [DllImport("user32.dll")] private static extern IntPtr SetFocus(IntPtr hwnd);
     [DllImport("user32.dll")] private static extern IntPtr GetFocus();
-    [DllImport("user32.dll")] private static extern uint GetCurrentThreadId();
+    [DllImport("kernel32.dll")] private static extern uint GetCurrentThreadId();
     [DllImport("user32.dll",SetLastError=true)] private static extern bool AttachThreadInput(
         uint sourceThread,uint targetThread,bool attach);
     [DllImport("user32.dll")] private static extern IntPtr GetAncestor(IntPtr hwnd,uint flags);
