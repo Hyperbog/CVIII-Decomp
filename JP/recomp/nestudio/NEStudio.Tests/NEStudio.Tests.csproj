@@ -8,6 +8,8 @@
   <ItemGroup>
     <Compile Include="../StudioProject.cs" Link="StudioProject.cs" />
     <Compile Include="../StudioBridge.cs" Link="StudioBridge.cs" />
+    <Compile Include="../StudioLightingBridge.cs" Link="StudioLightingBridge.cs" />
+    <Compile Include="../StudioLightingModels.cs" Link="StudioLightingModels.cs" />
     <Compile Include="../OriginalGlyphCodec.cs" Link="OriginalGlyphCodec.cs" />
     <Compile Include="../OriginalDialogueSafetyGate.cs" Link="OriginalDialogueSafetyGate.cs" />
     <Compile Include="../GameLaunchResolver.cs" Link="GameLaunchResolver.cs" />
