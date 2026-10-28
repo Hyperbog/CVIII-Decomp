@@ -187,11 +187,13 @@
             <TabItem x:Name="SpritesTab" Header="Sprites">
               <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel Margin="10,8">
-                  <TextBlock Text="ORIGINAL GAME OBJECTS (28-slot CPU table)" FontWeight="Bold" Foreground="#B0DCF2"/>
+                  <TextBlock Text="SCENE ACTORS · ORIGINAL OWNERSHIP" FontWeight="Bold" Foreground="#AEDCF5" FontSize="13"/>
                   <TextBlock Text="True game object index and active-lifetime generation, not a rotating PPU sprite slot. Ctrl-click to select multiple."
                              Foreground="#CAD9E7" FontSize="11" TextWrapping="Wrap" Margin="0,5,0,0"/>
-                  <TextBlock x:Name="SpriteSourceStatus" Text="Original source OAM ownership: waiting for native frames"
-                             Foreground="#F6D18B" TextWrapping="Wrap" Margin="0,5,0,2"/>
+                  <Expander Header="Original sprite ownership diagnostics" IsExpanded="False" Margin="0,5,0,2">
+                    <TextBlock x:Name="SpriteSourceStatus" Text="Original source OAM ownership: waiting for native frames"
+                               Foreground="#E9CD97" TextWrapping="Wrap" Margin="8,5"/>
+                  </Expander>
                   <ListBox x:Name="OriginalObjectsList" Height="142" Margin="0,8"
                            SelectionMode="Extended" DisplayMemberPath="Label"
                            SelectionChanged="OriginalObjects_SelectionChanged"/>
@@ -220,33 +222,21 @@
                     <Button Content="+ Group" Click="AddSpriteGroup_Click"/>
                     <Button Content="Remove" Click="RemoveSpriteGroup_Click"/>
                   </StackPanel>
-                  <TextBlock Text="Exact source-observed sprite owners highlight in gold; manually chosen sprite slots highlight in cyan. Any frame with missing or inconsistent PRG26 source evidence stays unattributed." Foreground="#CAD9E7" FontSize="11" TextWrapping="Wrap" Margin="0,14,0,0"/>
+                  <Expander Header="Selection and source attribution notes" IsExpanded="False" Margin="0,9">
+                    <TextBlock Text="Gold outlines indicate source-observed original actor ownership. Cyan outlines indicate selected OAM pieces. Frame-local OAM slots rotate and are not stable actor identities; no ownership is guessed without original source evidence."
+                               Foreground="#C4D8E8" FontSize="11" TextWrapping="Wrap" Margin="8"/>
+                  </Expander>
                 </StackPanel>
               </ScrollViewer>
             </TabItem>
             <TabItem x:Name="DialogueTab" Header="Dialogue">
               <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel Margin="10,8">
-                  <TextBlock Text="DIALOGUE &amp; TRANSLATIONS" FontWeight="Bold" Foreground="#B0DCF2"/>
-                  <TextBlock Text="Authentic raw0A:$B8FF calls to fixed $EC47 are validated against the original stack, bank switch and $E62D return. Formatter events can trigger authored entries. The $0300 commands and later PPU writes are observed without assuming that every byte is a glyph."
-                             Foreground="#CDD9E6" TextWrapping="Wrap" Margin="0,3,0,8"/>
-                  <Button Content="Bind selected original actor script" Click="BindActorScript_Click"/>
-                  <Button Content="Bind verified $EC47 formatter call" Click="BindFormatter_Click"
-                          ToolTip="Requires authenticated B8FF to EC47 to bank00:966A path and completed E62D bank return."/>
-                  <Button Content="Bind last original room-message byte" Click="BindRoomMessage_Click"
-                          ToolTip="Source event at JP raw0A:B8F4; original JSR $EC47 follows nonterminal bytes."/>
-                  <TextBlock x:Name="OriginalScriptStatus" Text="Original dialogue-printer hook: unavailable"
-                             Foreground="#B6CFE4" TextWrapping="Wrap" Margin="0,3,0,8"/>
-                  <TextBlock x:Name="GlyphDecodeStatus" Text="Original $0300 tile decoder: waiting for verified command data"
-                             Foreground="#BFE8D7" TextWrapping="Wrap" Margin="0,4,0,6"/>
-                  <Button Content="Validate Replacement Draft (offline only)" Click="ValidateReplacement_Click"
-                          ToolTip="Preserve original VRAM rows and byte counts; no changes to ROM, guest memory, PPU or live text."/>
-                  <TextBlock x:Name="ReplacementSafetyStatus" Text="Live text replacement is disabled. Only validated source hashes and draft previews are saved."
-                             Foreground="#F6D18B" TextWrapping="Wrap" Margin="0,4,0,8"/>
-                  <TextBlock x:Name="FormatterStatus" Text="Original $EC47 formatter: no authenticated call yet"
-                             Foreground="#D7E9F3" TextWrapping="Wrap" Margin="0,4,0,6"/>
-                  <TextBlock x:Name="PpuSourceStatus" Text="Original PPU nametable-write source recorder: waiting for game"
-                             Foreground="#F6D18B" TextWrapping="Wrap" Margin="0,4,0,10"/>
+                  <TextBlock Text="DIALOGUE · LOCALIZATION" FontWeight="Bold" FontSize="13" Foreground="#A7D9F5"/>
+                  <TextBlock Text="Author and preview text here. Pick a box in the live view to associate its location. Original text replacement stays safely offline until verified."
+                             TextWrapping="Wrap" Foreground="#BDCDDB" FontSize="11" Margin="0,5,0,10"/>
+                  <TextBlock Text="Text objects and bindings" FontWeight="SemiBold"
+                             Foreground="#94B2C8" Margin="0,3,0,1"/>
                   <StackPanel Orientation="Horizontal" Margin="0,5,0,4">
                     <Button Content="Bind region: click viewport" Click="BindDialogueRegion_Click"/>
                     <Button Content="Clear region" Click="ClearDialogueRegion_Click"/>
@@ -279,7 +269,34 @@
                   <Border Background="#0C111A" BorderBrush="#4E6378" BorderThickness="2" Padding="12" MinHeight="70">
                     <TextBlock x:Name="DialoguePreview" TextWrapping="Wrap" Foreground="#FAFCFF" FontFamily="Consolas" FontSize="12"/>
                   </Border>
-                  <TextBlock Text="Dialogue records and translations persist in the project. Original-script hook integration is not yet enabled." Foreground="#CAD9E7" TextWrapping="Wrap" FontSize="11" Margin="0,12,0,0"/>
+                  <Expander Header="Original game printer · advanced evidence" IsExpanded="False"
+                            Margin="0,12,0,2" Foreground="#D9E8F5">
+                    <StackPanel Margin="8,9">
+                  <TextBlock Text="Authentic raw0A:$B8FF calls to fixed $EC47 are validated against the original stack, bank switch and $E62D return. Formatter events can trigger authored entries. The $0300 commands and later PPU writes are observed without assuming that every byte is a glyph."
+                             Foreground="#CDD9E6" TextWrapping="Wrap" Margin="0,3,0,8"/>
+                  <Button Content="Bind selected original actor script" Click="BindActorScript_Click"/>
+                  <Button Content="Bind verified $EC47 formatter call" Click="BindFormatter_Click"
+                          ToolTip="Requires authenticated B8FF to EC47 to bank00:966A path and completed E62D bank return."/>
+                  <Button Content="Bind last original room-message byte" Click="BindRoomMessage_Click"
+                          ToolTip="Source event at JP raw0A:B8F4; original JSR $EC47 follows nonterminal bytes."/>
+                  <TextBlock x:Name="OriginalScriptStatus" Text="Original dialogue-printer hook: unavailable"
+                             Foreground="#B6CFE4" TextWrapping="Wrap" Margin="0,3,0,8"/>
+                  <TextBlock x:Name="GlyphDecodeStatus" Text="Original $0300 tile decoder: waiting for verified command data"
+                             Foreground="#BFE8D7" TextWrapping="Wrap" Margin="0,4,0,6"/>
+                  <Button Content="Validate Replacement Draft (offline only)" Click="ValidateReplacement_Click"
+                          ToolTip="Preserve original VRAM rows and byte counts; no changes to ROM, guest memory, PPU or live text."/>
+                  <TextBlock x:Name="ReplacementSafetyStatus" Text="Live text replacement is disabled. Only validated source hashes and draft previews are saved."
+                             Foreground="#F6D18B" TextWrapping="Wrap" Margin="0,4,0,8"/>
+                  <TextBlock x:Name="FormatterStatus" Text="Original $EC47 formatter: no authenticated call yet"
+                             Foreground="#D7E9F3" TextWrapping="Wrap" Margin="0,4,0,6"/>
+                  <TextBlock x:Name="PpuSourceStatus" Text="Original PPU nametable-write source recorder: waiting for game"
+                             Foreground="#F6D18B" TextWrapping="Wrap" Margin="0,4,0,10"/>
+
+                    </StackPanel>
+                  </Expander>
+                  <TextBlock Text="SAFETY: Authored text is project-only. Live replacement is not enabled."
+                             Foreground="#F2D58D" TextWrapping="Wrap" FontSize="11"
+                             Margin="0,8,0,2"/>
                 </StackPanel>
               </ScrollViewer>
             </TabItem>
