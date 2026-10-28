@@ -28,10 +28,11 @@ function Test-PrivateGame([string]$Directory) {
  # jp_akumajou_densetsu.exe and SDL2.dll already exist.
  $metadata=Join-Path $Directory 'ALPHA_BUILD.json'
  if (-not (Test-Path -LiteralPath $metadata -PathType Leaf)) { return $false }
- try { $build=Get-Content -LiteralPath $metadata -Raw | ConvertFrom-Json }
- catch { return $false }
- if ($build.native_source_branch -ne 'jp0723-ppu-queue-decoder' -or
-     $build.enhanced_stage1_widescreen_available -ne $true) { return $false }
+ try {
+  $build=Get-Content -LiteralPath $metadata -Raw | ConvertFrom-Json
+  if ($build.native_source_branch -ne 'jp0723-ppu-queue-decoder' -or
+      $build.enhanced_stage1_widescreen_available -ne $true) { return $false }
+ } catch { return $false }
  $main=Join-Path $Directory 'jp_akumajou_densetsu.exe'
  $legacy=Join-Path $Directory 'CVIII_Alpha.exe'
  return ((Test-Path -LiteralPath $main -PathType Leaf) -or
