@@ -81,7 +81,7 @@ Japanese NES ROM. No proprietary assets ship with the repository.
 NEStudio.exe (.NET 8/WPF editor)
     ├── WinFormsHost parent HWND ── real SDL2 native game child window
     ├── NEStudio v1 project (sprite groups, localizations, timeline, assets)
-    └── Local\NEStudio-<session> memory map (bounded v1 commands/snapshots)
+    └── Local\NEStudio-<session> memory map (bounded v5 commands/snapshots)
             └── owner-private SDL show() tick
                   └── existing cviii_lighting_editor_* host APIs
                          └── existing C11/SDL2 NESRecomp Enhanced runtime
