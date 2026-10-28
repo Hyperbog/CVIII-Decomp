@@ -216,6 +216,37 @@ public partial class LightingWorkbench : UserControl
         }
         finally {_refreshing=false;}
     }
+    public void QuickCreateLight()=>Post(5,128,120);
+
+    // Outliner selection and toolbar actions converge on the same inspector.
+    // No separate in-game modal, project surrogate or duplicated model.
+    public void FocusTool(string tool,int slot)
+    {
+        Pages.SelectedIndex=tool switch
+        {
+            "masks"=>4,"fx"=>5,"weather"=>6,
+            "kits"=>2,"styles"=>3,_=>0
+        };
+        if(tool=="masks")
+        {
+            _selectedMask=slot;
+            MaskList.SelectedItem=MaskList.Items.OfType<StudioLightMask>()
+                .FirstOrDefault(x=>x.Slot==slot);
+        }
+        else if(tool=="fx")
+        {
+            _selectedFx=slot;
+            FxList.SelectedItem=FxList.Items.OfType<StudioParticle>()
+                .FirstOrDefault(x=>x.Slot==slot);
+        }
+        else if(tool=="weather")
+        {
+            _selectedWeather=slot;
+            WeatherList.SelectedItem=WeatherList.Items.OfType<StudioWeather>()
+                .FirstOrDefault(x=>x.Slot==slot);
+        }
+    }
+
     private void Edit_Click(object sender,RoutedEventArgs e)=>EditRequested?.Invoke();
     private void Play_Click(object sender,RoutedEventArgs e)=>PlayRequested?.Invoke();
     private void Undo_Click(object sender,RoutedEventArgs e)=>Post(8);
