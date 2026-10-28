@@ -107,6 +107,17 @@ int main(void)
             assert(p && n==r->length && width==r->record_width &&
                    count==r->record_count);
             assert(!memcmp(p,rom+BANK_START+r->source_cpu-0x8000u,n));
+            for(unsigned ordinal=0;ordinal<count;ordinal++) {
+                unsigned actual_width=0;
+                const uint8_t *row=cviii_level_preload_record_0829(
+                    state,stage,r->subarea,r->room,ordinal,&actual_width);
+                assert(row==p+(size_t)ordinal*width &&
+                       actual_width==width);
+            }
+            unsigned invalid_width=99;
+            assert(!cviii_level_preload_record_0829(state,
+                stage,r->subarea,r->room,count,&invalid_width));
+            assert(invalid_width==0u);
             indexed++;
         }
     }
