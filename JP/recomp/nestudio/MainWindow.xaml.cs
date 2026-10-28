@@ -553,9 +553,13 @@ public partial class MainWindow : Window
                 SelectionLabel.Text=$"{_selectedSpriteSlots.Count} visible OAM sprites selected";
         }
         RoomLabel.Text=$"Room 0x{scene.Room:X8} · {scene.Lights.Count} live light(s)";
+        // Topology fingerprint, never mouse position: rebuilding a WPF
+        // TreeView at 30Hz while dragging breaks pointer and keyboard focus.
         var fingerprint=scene.Room+"|"+_selectedLight+"|"+
             string.Join("|",scene.Lights.Select(l=>
-                $"{l.Slot}:{l.Name}:{l.X}:{l.Y}"));
+                $"{l.Slot}:{l.Name}"))+"|"+
+            string.Join("|",scene.Lighting.Masks.Select(m=>m.Slot))+"|"+
+            string.Join("|",scene.Lighting.Particles.Select(p=>p.Slot));
         if(fingerprint!=_fingerprint)
         {
             _fingerprint=fingerprint;
@@ -573,33 +577,106 @@ public partial class MainWindow : Window
     }
     private void RebuildSceneTree()
     {
+        if(!IsLoaded)return;
         _changing=true;
-        SceneTree.Items.Clear();
-        var root=new TreeViewItem
+        try
         {
-            Header=_scene is null?"Project Scene":$"Live Room 0x{_scene.Room:X8}",
-            IsExpanded=true
-        };
-        var lights=new TreeViewItem{Header="Lighting",IsExpanded=true};
-        if(_scene is not null)
-            foreach(StudioLight light in _scene.Lights)
-                lights.Items.Add(new TreeViewItem{
-                    Header=light.Label,Tag=light,
-                    IsSelected=light.Slot==_selectedLight
+            SceneTree.Items.Clear();
+            var root=Folder(_scene is null?"PROJECT / LOCAL":
+                $"LIVE ROOM 0x{_scene.Room:X8}");
+            int visible=0;
+            var lights=Folder("LIGHTS · LIVE");
+            if(_scene is not null)
+            {
+                // Semantic groups, not a separate list of ad-hoc controls.
+                var byGroup=_scene.Lights.GroupBy(l=>
+                {
+                    string group=_scene.Lighting.LightDetails.TryGetValue(
+                        l.Slot,out var detail)?detail.Group:"";
+                    return string.IsNullOrWhiteSpace(group)?"Ungrouped":group;
                 });
-        root.Items.Add(lights);
-        var sprites=new TreeViewItem{Header="Sprite Groups",IsExpanded=false};
-        foreach(StudioSpriteGroup group in _project.SpriteGroups)
-            sprites.Items.Add(new TreeViewItem{Header=group.Name,Tag=group});
-        root.Items.Add(sprites);
-        var dialogue=new TreeViewItem{Header="Dialogue / Localization",IsExpanded=false};
-        foreach(StudioDialogue entry in _project.Dialogues)
-            dialogue.Items.Add(new TreeViewItem{Header=entry.Id,Tag=entry});
-        root.Items.Add(dialogue);
-        root.Items.Add(new TreeViewItem{Header="Lighting Studio · Pixel FX / Weather in inspector"});
-        root.Items.Add(new TreeViewItem{Header="Scene Events / Timeline"});
-        SceneTree.Items.Add(root);
-        _changing=false;
+                foreach(var group in byGroup.OrderBy(g=>g.Key))
+                {
+                    var folder=Folder(group.Key);
+                    foreach(StudioLight light in group.OrderBy(l=>l.Slot))
+                    {
+                        if(!SearchMatch(light.Name) && !SearchMatch(group.Key) &&
+                           !SearchMatch(light.Label))continue;
+                        folder.Items.Add(new TreeViewItem
+                        {
+                            Header=SafeCaption(light.Name.Length==0?
+                                $"Light {light.Slot+1:00}":light.Name),
+                            Tag=light,
+                            IsSelected=light.Slot==_selectedLight
+                        });
+                        visible++;
+                    }
+                    if(folder.Items.Count>0)lights.Items.Add(folder);
+                }
+                var actors=Folder("ORIGINAL ACTORS · OBSERVED",false);
+                foreach(StudioOriginalObject actor in _scene.OriginalObjects)
+                {
+                    if(!SearchMatch(actor.Label))continue;
+                    actors.Items.Add(new TreeViewItem{
+                        Header=$"Actor {actor.Slot:00} · life {actor.Generation}",
+                        Tag=actor});
+                    visible++;
+                }
+                if(actors.Items.Count>0)root.Items.Add(actors);
+                var effects=Folder("PIXEL FX & MASKS · LIVE",false);
+                foreach(var m in _scene.Lighting.Masks)
+                    if(SearchMatch(m.Label))
+                    {
+                        effects.Items.Add(new TreeViewItem{Header=m.Label,Tag=m});
+                        visible++;
+                    }
+                foreach(var p in _scene.Lighting.Particles)
+                    if(SearchMatch(p.Label))
+                    {
+                        effects.Items.Add(new TreeViewItem{Header=p.Label,Tag=p});
+                        visible++;
+                    }
+                if(effects.Items.Count>0)root.Items.Add(effects);
+            }
+            if(lights.Items.Count>0)root.Items.Insert(0,lights);
+            var groups=Folder("SPRITE GROUPS · AUTHORED",false);
+            foreach(var group in _project.SpriteGroups)
+                if(SearchMatch(group.Name))
+                {
+                    groups.Items.Add(new TreeViewItem{
+                        Header=SafeCaption(group.Name),Tag=group});
+                    visible++;
+                }
+            if(groups.Items.Count>0)root.Items.Add(groups);
+            var dialogs=Folder("DIALOGUE · AUTHORED",false);
+            foreach(var dialog in _project.Dialogues)
+                if(SearchMatch(dialog.Id))
+                {
+                    dialogs.Items.Add(new TreeViewItem{
+                        Header=SafeCaption(dialog.Id),Tag=dialog});
+                    visible++;
+                }
+            if(dialogs.Items.Count>0)root.Items.Add(dialogs);
+            var assets=Folder("LOCAL REFERENCES",false);
+            foreach(var asset in _project.Assets)
+                if(SearchMatch(asset.RelativePath) || SearchMatch(asset.Id))
+                {
+                    assets.Items.Add(new TreeViewItem{
+                        Header=SafeCaption(asset.RelativePath.Length>0?
+                            asset.RelativePath:asset.Id),Tag=asset});
+                    visible++;
+                }
+            if(assets.Items.Count>0)root.Items.Add(assets);
+            if(root.Items.Count==0)
+                root.Items.Add(new TreeViewItem{
+                    Header=string.IsNullOrWhiteSpace(SceneSearch.Text)?
+                        "No objects or annotations in this scene.":
+                        "No matches. Clear the search to see all objects."});
+            SceneTree.Items.Add(root);
+            SceneCountLabel.Text=$"{visible} matching item(s) · "+
+                (_scene is null?"offline":$"{_scene.Lights.Count} live lights");
+        }
+        finally{_changing=false;}
     }
     private void SceneTree_SelectedItemChanged(object sender,
                                                RoutedPropertyChangedEventArgs<object> e)
@@ -608,19 +685,47 @@ public partial class MainWindow : Window
         switch(item.Tag)
         {
             case StudioLight light:
+                InspectorTabs.SelectedItem=LightingTab;
                 _selectedLight=light.Slot;
-                Queue(3,light.Slot);
+                Queue(1);Queue(3,light.Slot);
+                LightingStudio.FocusTool("lights",light.Slot);
                 SelectionLabel.Text=light.Label;
                 break;
-            case StudioSpriteGroup sprite:
-                SpriteList.SelectedItem=sprite;
-                SelectionLabel.Text=sprite.Name;
+            case StudioOriginalObject actor:
+                InspectorTabs.SelectedItem=SpritesTab;
+                var target=OriginalObjectsList.Items.OfType<StudioOriginalObject>()
+                    .FirstOrDefault(x=>x.Slot==actor.Slot &&
+                                       x.Generation==actor.Generation);
+                if(target is not null)OriginalObjectsList.SelectedItem=target;
+                SelectionLabel.Text=actor.Label;
+                break;
+            case StudioSpriteGroup group:
+                InspectorTabs.SelectedItem=SpritesTab;
+                SpriteList.SelectedItem=group;
+                SelectionLabel.Text=group.Name;
                 break;
             case StudioDialogue dialogue:
+                InspectorTabs.SelectedItem=DialogueTab;
                 DialogueList.SelectedItem=dialogue;
                 SelectionLabel.Text=dialogue.Id;
                 break;
+            case StudioLightMask mask:
+                InspectorTabs.SelectedItem=LightingTab;
+                LightingStudio.FocusTool("masks",mask.Slot);
+                SelectionLabel.Text=mask.Label;
+                break;
+            case StudioParticle fx:
+                InspectorTabs.SelectedItem=LightingTab;
+                LightingStudio.FocusTool("fx",fx.Slot);
+                SelectionLabel.Text=fx.Label;
+                break;
+            case StudioAsset asset:
+                InspectorTabs.SelectedItem=AssetsTab;
+                AssetList.SelectedItem=asset;
+                SelectionLabel.Text=asset.RelativePath;
+                break;
         }
+        SetWorkspaceVisual();
     }
     private void Queue(int op,int a=0,int b=0,int c=0,string? label=null)
     {
