@@ -53,7 +53,8 @@ public sealed partial class StudioBridge
             if(_view.ReadInt32(o)==0)continue;
             masks.Add(new StudioLightMask(i,_view.ReadInt32(o+4),
                 _view.ReadInt32(o+8),_view.ReadInt32(o+12),
-                _view.ReadInt32(o+16),_view.ReadInt32(o+20)));
+                _view.ReadInt32(o+16),_view.ReadInt32(o+20),
+                _view.ReadInt32(o+24)));
         }
         var particles=new List<StudioParticle>();
         for(int i=0;i<32;++i)
