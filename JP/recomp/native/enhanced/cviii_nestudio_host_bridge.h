@@ -14,7 +14,7 @@
 #include <stdio.h>
 #include "cviii_lighting_host.h"
 #define NEST_MAGIC 0x5453454eL /* little-endian "NEST" */
-#define NEST_VERSION 5
+#define NEST_VERSION 6
 #define NEST_MAX_LIGHTS 128
 typedef struct {
     LONG used,room,x,y,radius,energy,red,green,blue,shape,muted,flicker;
@@ -33,6 +33,30 @@ typedef struct {
     volatile LONG sequence;
     LONG bank,cpu_pc,script_id,event_id,room,frame,kind;
 } NestStudioOriginalDialogueEvent; /* 32 bytes */
+/* v6: editor-owned UI uses read-only snapshots; native model owns truth. */
+typedef struct {
+    LONG angle,spread,width,anim_speed,anim_strength,style_link;
+    char group[32];
+} NestStudioLightExtra; /* 56 */
+typedef struct {LONG used,count;char name[48];} NestStudioKitBrief; /* 56 */
+typedef struct {
+    LONG used,radius,energy,red,green,blue,shape,angle,spread,width,
+         flicker,anim_speed,anim_strength;
+    char name[48];
+} NestStudioStyleBrief; /* 100 */
+typedef struct {
+    LONG used,x,y,w,h,opacity,softness,room;
+} NestStudioMaskBrief; /* 32 */
+typedef struct {
+    LONG used,kind,x,y,w,h,density,speed,wind,opacity,size,
+         red,green,blue,light_link,layer,glow;
+    char name[48];
+} NestStudioParticleBrief; /* 116 */
+typedef struct {
+    LONG used,kind,density,speed,wind,opacity,size,chance,period,
+         seed,layer,red,green,blue;
+    char name[48];
+} NestStudioWeatherBrief; /* 104 */
 extern int cviii_nestudio_copy_oam(uint8_t out[256]);
 extern int cviii_nestudio_copy_original_objects(uint8_t out[8][28],uint8_t *phase);
 extern int cviii_nestudio_copy_original_ownership(uint8_t owners[64],
@@ -66,6 +90,15 @@ typedef struct {
      * Only the original EC47 producer may populate this snapshot. */
     volatile LONG ec47_queue_length,ec47_queue_sequence;
     uint8_t ec47_queue_bytes[256];
+    /* v6 extension, preserving every original v1-v5 field offset. */
+    volatile LONG lighting_scene[18]; /* ambient, sky, grade, weather etc */
+    NestStudioLightExtra light_extra[NEST_MAX_LIGHTS];
+    NestStudioKitBrief kits[CVIII_KIT_MAX];
+    NestStudioStyleBrief styles[CVIII_GLOBAL_STYLE_MAX];
+    NestStudioMaskBrief masks[CVIII_OCCLUDER_MAX];
+    NestStudioParticleBrief particles[CVIII_PARTICLE_EMITTER_MAX];
+    NestStudioWeatherBrief weather[CVIII_WEATHER_PROFILE_MAX];
+    char command_text[48]; /* sent only with serialized UI command */
 } NestStudioMapping;
 typedef char nest_layout_1[(sizeof(NestStudioLight)==80)?1:-1];
 typedef char nest_layout_2[(offsetof(NestStudioMapping,lights)==128)?1:-1];
@@ -80,7 +113,15 @@ typedef char nest_layout_10[(offsetof(NestStudioMapping,selected_original_mask)=
 typedef char nest_layout_11[(offsetof(NestStudioMapping,ec47_trace)==13468)?1:-1];
 typedef char nest_layout_12[(offsetof(NestStudioMapping,ec47_queue_length)==13528)?1:-1];
 typedef char nest_layout_13[(offsetof(NestStudioMapping,ec47_queue_bytes)==13536)?1:-1];
-typedef char nest_layout_14[(sizeof(NestStudioMapping)==13792)?1:-1];
+typedef char nest_layout_14[(offsetof(NestStudioMapping,lighting_scene)==13792)?1:-1];
+typedef char nest_layout_15[(sizeof(NestStudioLightExtra)==56)?1:-1];
+typedef char nest_layout_16[(sizeof(NestStudioKitBrief)==56)?1:-1];
+typedef char nest_layout_17[(sizeof(NestStudioStyleBrief)==100)?1:-1];
+typedef char nest_layout_18[(sizeof(NestStudioMaskBrief)==32)?1:-1];
+typedef char nest_layout_19[(sizeof(NestStudioParticleBrief)==116)?1:-1];
+typedef char nest_layout_20[(sizeof(NestStudioWeatherBrief)==104)?1:-1];
+typedef char nest_layout_21[(offsetof(NestStudioMapping,command_text)==29896)?1:-1];
+typedef char nest_layout_22[(sizeof(NestStudioMapping)==29944)?1:-1];
 static LONG nest_object_generation[28];
 static uint8_t nest_object_was_active[28];
 static uint32_t nest_object_room=UINT32_MAX;
@@ -168,12 +209,9 @@ static void nest_tick(void){
                      save=done;break;
             case 14: done=1;save=1;break;
             case 15: done=cviii_lighting_editor_checkpoint();break;
-            /* Bring back the original full ImGui Lighting Studio. The
-             * game's native SDL renderer retains every existing feature. */
-            case 16:
-                (void)cviii_lighting_editor_external_session(0);
-                done=cviii_lighting_editor_input(1,-1,-1);
-                break;
+            /* Legacy full ImGui modal is intentionally unavailable in a
+             * NEStudio session: all authoring lives in WPF inspector. */
+            case 16: done=0;break;
             /* Resume NEStudio's compact external inspector. */
             case 17: done=cviii_lighting_editor_external_session(1);break;
             /* Workbench input mode: 0 lighting, 1 snapshot OAM sprites,
@@ -190,6 +228,39 @@ static void nest_tick(void){
                 if(a!=0)(void)cviii_lighting_editor_external_session(0);
                 done=1;
                 break;
+            /* WPF lighting workbench: edits are applied on this SDL thread,
+             * using the existing validated, undoable native authoring APIs. */
+            case 19: done=cviii_lighting_editor_name(nest_shared->command_text);save=done;break;
+            case 20: done=cviii_lighting_editor_group(nest_shared->command_text);save=done;break;
+            case 21: done=cviii_lighting_editor_scene((int)a,(int)b);save=done;break;
+            case 22: done=cviii_lighting_editor_sky((int)a,(int)b);save=done;break;
+            case 23: done=cviii_lighting_editor_grade((int)a,(int)b);save=done;break;
+            case 24: done=cviii_lighting_editor_capture_kit((int)a,nest_shared->command_text);save=done;break;
+            case 25: done=cviii_lighting_editor_apply_kit((int)a,128,120);save=done;break;
+            case 26: done=cviii_lighting_editor_global_capture((int)a,nest_shared->command_text);save=done;break;
+            case 27: done=cviii_lighting_editor_global_link((int)a,(int)b);save=done;break;
+            case 28: done=cviii_lighting_editor_global_property((int)a,(int)b,(int)c);save=done;break;
+            case 29: {
+                int wx=0,wy=0;
+                if(cviii_lighting_editor_world_point(128,120,&wx,&wy))
+                    done=cviii_lighting_editor_mask_add(wx,wy,48,32)>=0;
+                save=done;break;
+            }
+            case 30: done=cviii_lighting_editor_mask_property((int)a,(int)b,(int)c);save=done;break;
+            case 31: done=cviii_lighting_editor_particle_enabled((int)a);save=done;break;
+            case 32: done=cviii_lighting_editor_particle_add((int)a,128,120)>=0;save=done;break;
+            case 33: done=cviii_lighting_editor_particle_property((int)a,(int)b,(int)c);save=done;break;
+            case 34: done=cviii_lighting_editor_particle_clone((int)a)>=0;save=done;break;
+            case 35: done=cviii_lighting_editor_particle_attach((int)a,(int)b);save=done;break;
+            case 36: done=cviii_lighting_editor_weather_template((int)a,(int)b);save=done;break;
+            case 37: done=cviii_lighting_editor_weather_link((int)a);save=done;break;
+            case 38: done=cviii_lighting_editor_weather_property((int)a,(int)b,(int)c);save=done;break;
+            case 39: done=cviii_lighting_editor_kit_manage((int)a,(int)b,(int)c,
+                                                            nest_shared->command_text);save=done;break;
+            case 40: done=cviii_lighting_editor_weather_name((int)a,nest_shared->command_text);save=done;break;
+            case 41: done=cviii_lighting_editor_particle_name((int)a,nest_shared->command_text);save=done;break;
+            case 42: done=cviii_lighting_editor_copy();break;
+            case 43: done=cviii_lighting_editor_paste();save=done;break;
             default: done=0;break;
         }
         if(save)save_settings();
@@ -221,6 +292,78 @@ static void nest_tick(void){
             sizeof out->name-1<sizeof l->name?
                 sizeof out->name-1:sizeof l->name);
         if(l->used && l->room==(uint32_t)nest_shared->room)++count;
+    }
+    /* Mirror the real source lighting model in a stable, versioned v6
+     * snapshot for native-feeling WPF controls. Never store a shadow copy. */
+    int level=0,ambient_rgb[3]={255,255,255};
+    int sky=0,sky_rgb[3]={255,255,255},facing=-1;
+    int ev=0,temp=0,sat=100;
+    uint32_t room=(uint32_t)nest_shared->room;
+    cviii_light_scene_get(model,room,&level,ambient_rgb);
+    cviii_light_sky_get(model,room,&sky,sky_rgb,&facing);
+    cviii_light_grade_get(model,room,&ev,&temp,&sat);
+    LONG params[18]={model->ambient,level,ambient_rgb[0],ambient_rgb[1],
+        ambient_rgb[2],sky,sky_rgb[0],sky_rgb[1],sky_rgb[2],facing,
+        ev,temp,sat,model->particles_enabled,
+        cviii_weather_scene_profile(model,room),
+        cviii_lighting_editor_cascade_quality(),model->enabled,
+        (LONG)cviii_lighting_editor_raw_room()};
+    memcpy((void*)nest_shared->lighting_scene,params,sizeof params);
+    for(int i=0;i<NEST_MAX_LIGHTS;++i){
+        const CviiiLight *l=&model->light[i];
+        NestStudioLightExtra *x=&nest_shared->light_extra[i];
+        x->angle=l->angle;x->spread=l->spread;x->width=l->width;
+        x->anim_speed=l->anim_speed;x->anim_strength=l->anim_strength;
+        x->style_link=l->style_link;
+        memset(x->group,0,sizeof x->group);
+        memcpy(x->group,l->group,sizeof x->group-1);
+    }
+    for(int i=0;i<CVIII_KIT_MAX;++i){
+        const CviiiLightKit *k=&model->kits[i];
+        NestStudioKitBrief *o=&nest_shared->kits[i];
+        o->used=k->used;o->count=k->count;
+        memset(o->name,0,sizeof o->name);
+        memcpy(o->name,k->name,sizeof o->name-1);
+    }
+    for(int i=0;i<CVIII_GLOBAL_STYLE_MAX;++i){
+        const CviiiGlobalStyle *g=&model->styles[i];
+        NestStudioStyleBrief *o=&nest_shared->styles[i];
+        o->used=g->used;
+        o->radius=g->light.radius;o->energy=g->light.energy;
+        o->red=g->light.red;o->green=g->light.green;o->blue=g->light.blue;
+        o->shape=g->light.shape;o->angle=g->light.angle;
+        o->spread=g->light.spread;o->width=g->light.width;
+        o->flicker=g->light.flicker;o->anim_speed=g->light.anim_speed;
+        o->anim_strength=g->light.anim_strength;
+        memset(o->name,0,sizeof o->name);memcpy(o->name,g->name,sizeof o->name-1);
+    }
+    for(int i=0;i<CVIII_OCCLUDER_MAX;++i){
+        const CviiiOccluder *m=&model->masks[i];
+        NestStudioMaskBrief *o=&nest_shared->masks[i];
+        o->used=m->used && m->room==room;
+        o->room=(LONG)m->room;o->x=m->x;o->y=m->y;o->w=m->w;o->h=m->h;
+        o->opacity=m->opacity;o->softness=m->softness;
+    }
+    for(int i=0;i<CVIII_PARTICLE_EMITTER_MAX;++i){
+        const CviiiParticleEmitter *p=&model->particles[i];
+        NestStudioParticleBrief *o=&nest_shared->particles[i];
+        o->used=p->used && p->room==room;
+        o->kind=p->kind;o->x=p->x;o->y=p->y;o->w=p->w;o->h=p->h;
+        o->density=p->density;o->speed=p->speed;o->wind=p->wind;
+        o->opacity=p->opacity;o->size=p->size;
+        o->red=p->red;o->green=p->green;o->blue=p->blue;
+        o->light_link=p->light_link;o->layer=p->layer;o->glow=p->glow;
+        memset(o->name,0,sizeof o->name);memcpy(o->name,p->name,sizeof o->name-1);
+    }
+    for(int i=0;i<CVIII_WEATHER_PROFILE_MAX;++i){
+        const CviiiWeatherProfile *w=&model->weather[i];
+        NestStudioWeatherBrief *o=&nest_shared->weather[i];
+        o->used=w->used;o->kind=w->kind;o->density=w->density;
+        o->speed=w->speed;o->wind=w->wind;o->opacity=w->opacity;
+        o->size=w->size;o->chance=w->chance;o->period=w->period;
+        o->seed=w->seed;o->layer=w->layer;
+        o->red=w->red;o->green=w->green;o->blue=w->blue;
+        memset(o->name,0,sizeof o->name);memcpy(o->name,w->name,sizeof o->name-1);
     }
     nest_shared->count=count;
     uint8_t oam[256];
