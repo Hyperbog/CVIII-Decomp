@@ -159,7 +159,8 @@ Lighting inspector pages:
 For fastest authoring, enter **Edit / Pause** from the Lighting ribbon,
 select a light by click or list, drag its handle in the viewport, and
 adjust WPF sliders with the game as live visual feedback. Switch to
-**Preview / Play** when finished. Use **Ctrl+Z/Y** for native undo/redo,
+**Preview / Play** when finished. Use **Ctrl+1/2/3** to switch Lighting/Sprites/Dialogue, and
+**Ctrl+Z/Y** for native undo/redo,
 **Ctrl+C/V** to copy/paste a light and **Ctrl+D** to duplicate when
 not editing text. Viewport and inspector show one native authoritative
 model; scene effects continue to persist to the game-local `config.ini`
@@ -347,10 +348,10 @@ types/shapes, range, intensity, direction, color, animation, global
 styles, library presets and saved kits, ambient tint, independent
 sky/hemisphere fill, exposure/temperature/saturation grading, particle
 regions, weather and light-occlusion masks. The native game still
-controls `config.ini` persistence, undo/redo and frame lighting. The
-**Compact Lighting Inspector** button restores the simpler NEStudio
-controls without resetting authored lighting data. The full panel draws
-inside the SDL viewport, not as a separate operating-system window.
+controls `config.ini` persistence, undo/redo and frame lighting. There
+is no in-game lighting panel during NEStudio sessions: the WPF
+workbench owns authoring controls, and the SDL viewport displays the
+scene plus lightweight light-selection/drag handles.
 
 **Sprites:** Selecting the **Sprites** tab activates native OAM picker
 mode and freezes the visible game frame through the existing host editor
