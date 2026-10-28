@@ -80,7 +80,7 @@ if ((Test-PrivateGame $localCandidate) -and -not $Rebuild) {
  }
  $builder=Join-Path $PSScriptRoot 'Build-Alpha.ps1'
  if (-not (Test-Path -LiteralPath $builder)) {
-  $builder=Join-Path $homeBuild '_cviisource\JP\release\alpha\Build-Alpha.ps1'
+  $builder=Join-Path $homeBuild '_cviisource\JP\recomp\release\alpha\Build-Alpha.ps1'
  }
  if (-not (Test-Path -LiteralPath $builder)) {
   throw ('Missing Build-Alpha.ps1. Extract the complete ROM-free Builder Kit, then retry.')
