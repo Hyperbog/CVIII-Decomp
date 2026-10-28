@@ -122,6 +122,15 @@
         <ScrollViewer VerticalScrollBarVisibility="Auto">
           <StackPanel Margin="9">
             <CheckBox x:Name="EnableLighting" Content="Enable lighting" Checked="EnableLighting_Changed" Unchecked="EnableLighting_Changed"/>
+            <TextBlock Text="Renderer" Margin="0,6,0,0"/>
+            <ComboBox x:Name="RendererChoice" SelectionChanged="Renderer_Changed">
+              <ComboBoxItem Content="Standard CPU"/>
+              <ComboBoxItem Content="GPU one-bounce"/>
+              <ComboBoxItem Content="Radiance Cascades"/>
+            </ComboBox>
+            <TextBlock Text="Radiance cascade quality (2–4)" Margin="0,5,0,0"/>
+            <Slider x:Name="CascadeQuality" Minimum="2" Maximum="4"
+                    TickFrequency="1" IsSnapToTickEnabled="True" ValueChanged="Cascade_Changed"/>
             <TextBlock Text="Ambient brightness"/>
             <Slider x:Name="Ambient" Minimum="0" Maximum="100" Tag="21:0" ValueChanged="SceneSlider_Changed"/>
             <TextBlock Text="Ambient color RGB"/>
