@@ -53,4 +53,12 @@ const uint8_t *cviii_level_preload_room_0829(
     const CviiiLevelPreload0829 *preload,unsigned stage,
     unsigned subarea,unsigned room,
     size_t *source_length,unsigned *record_width,unsigned *record_count);
+/* Indexed source row lookup from the stage-start resident payload.
+ * Rows remain untyped: NPC/item/enemy identity is determined only by a
+ * separately validated original game decoder, never by ordinal position.
+ */
+const uint8_t *cviii_level_preload_record_0829(
+    const CviiiLevelPreload0829 *preload,unsigned stage,
+    unsigned subarea,unsigned room,unsigned ordinal,
+    unsigned *record_bytes);
 #endif
