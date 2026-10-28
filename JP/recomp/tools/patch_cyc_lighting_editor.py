@@ -330,6 +330,9 @@ static bool cviii_light_sdl_event(const SDL_Event *ev, bool other_open)
     }
     if(ev->type==SDL_KEYDOWN &&
        ev->key.keysym.scancode==cviii_light_key() &&
+       getenv("CVIII_NESTUDIO_SESSION")!=NULL)return true;
+    if(ev->type==SDL_KEYDOWN &&
+       ev->key.keysym.scancode==cviii_light_key() &&
        !(SDL_GetModState()&(KMOD_CTRL|KMOD_ALT))){
         if(!ev->key.repeat && (cviii_lighting_editor_active() || !other_open)){
 #ifdef NESRECOMP_NET
@@ -367,7 +370,10 @@ static bool cviii_light_sdl_event(const SDL_Event *ev, bool other_open)
 #endif
         return true;
     }
-    if(cviii_imgui_event(ev,s_win,s_ren))return true;
+    /* The full native in-game ImGui editor is for standalone builds.
+     * WPF owns every authoring panel in a NEStudio session. */
+    if(getenv("CVIII_NESTUDIO_SESSION")==NULL &&
+       cviii_imgui_event(ev,s_win,s_ren))return true;
     if(ev->type==SDL_KEYDOWN){
         const SDL_Scancode sc=ev->key.keysym.scancode;
         if(ev->key.repeat)return true;
@@ -504,7 +510,8 @@ def generate(text: str) -> str:
         "#endif\n"
         "        ;")
     text=once(text,"    if (s_ui_shot_id >= 0) {",
-        "    if(cviii_imgui_render(s_win,s_ren))save_settings();\n"
+        "    if(getenv(\"CVIII_NESTUDIO_SESSION\")==NULL &&\n"
+        "       cviii_imgui_render(s_win,s_ren))save_settings();\n"
         "#if defined(_WIN32)\n    nest_tick();\n    nest_sprite_draw_selection(s_ren);\n    nest_dialog_draw_selection(s_ren);\n#endif\n"
         "    if (s_ui_shot_id >= 0) {")
     text=once(text,"    SDL_DestroyRenderer(s_ren);",
@@ -533,6 +540,8 @@ def smoke() -> None:
     assert "SDL_MOUSEMOTION" in product and "SDL_MOUSEWHEEL" in product
     assert '#include "cviii_imgui_editor.h"' in product
     assert "cviii_imgui_render(s_win,s_ren)" in product
+    assert 'if(getenv("CVIII_NESTUDIO_SESSION")==NULL' in product
+    assert 'cviii_imgui_event(ev,s_win,s_ren))return true;' in product
     assert "cviii_imgui_event(ev,s_win,s_ren)" in product
     assert "cviii_imgui_window_point(s_ren,ev->motion.x,ev->motion.y,&mx,&my)" in product
     assert "cviii_imgui_window_point(s_ren,ev->button.x,ev->button.y,&mx,&my)" in product
