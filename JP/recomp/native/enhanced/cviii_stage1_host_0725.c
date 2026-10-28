@@ -29,6 +29,13 @@ static int load(CviiiStage1Host0725 *h)
         h->rom_path,h->resource_cache_path,&h->atlas,assets);
     if(result==CVIII_RESOURCE_READY_0727) {
         if(!cviii_world_build_0803(&h->world,&h->atlas))return 0;
+        /* Preload all original stage-group source spans at game start.
+         * CPU-owned NPC spawn, item collection and room-entry timing remain
+         * untouched: these records are resident presentation data only. */
+        if(!h->level_assets.loaded &&
+           !cviii_level_preload_open_0829(h->rom_path,&h->level_assets))
+            fprintf(stderr,
+                "CVIII: all-stage source preload unavailable; original gameplay unaffected\n");
         /* The original file was authenticated by the combined resource
          * importer. Load the small, independently hashed raw0E object
          * window once at stage initialization, even on atlas cache hits.
@@ -124,6 +131,7 @@ int cviii_stage1_host_rom_0725(CviiiStage1Host0725 *h,const char *path)
     /* Only selecting a different ROM invalidates learnt world geometry. */
     cviii_stage1_join_reset_0751(&h->join);
     memset(&h->world,0,sizeof h->world);
+    memset(&h->level_assets,0,sizeof h->level_assets);
     cviii_stage1_host_reset_0751(h);
     h->attempted=0;
     h->atlas.loaded=0;
@@ -317,6 +325,10 @@ const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
     uint8_t selector[3]={0}; int camera_x=0,camera_y=0;
     int valid_camera=camera(h,selector,&camera_x,&camera_y);
     const uint8_t *ram=cyc_cpu_ram();
+    /* Bind the already resident stage on its first native gameplay frame.
+     * This does not execute actor loaders or change 6502/PPU state. */
+    if(ram && ram[0x18u]==4u)
+        (void)cviii_level_preload_stage_0829(&h->level_assets,ram[0x34u]);
     const int horizontal_play=ram && ram[0x18u]==4u &&
         ram[0x34u]==0u && !(ram[0x65u]&0x80u) &&
         (cyc_render_line_mask(120)&0x08u);
