@@ -38,6 +38,41 @@ Check(OriginalGlyphCodec.TryParse(unknownCommand,out var unknown,out _)
            authored,0x2601,sourceTrace,unknown,"A").Allowed,
       "unmapped original tile or stale hash blocked");
 
+// Reject the previous external-window regression: selecting a BAT must only
+// resolve a previously built private EXE, NEVER run CMD/PowerShell or create
+// any process. Explicit native EXE paths remain unchanged.
+string launchRoot=Path.Combine(Path.GetTempPath(),"nestudio-launch-"+Guid.NewGuid().ToString("N"));
+try
+{
+    string alpha=Path.Combine(launchRoot,"AlphaCandidate");
+    Directory.CreateDirectory(alpha);
+    string native=Path.Combine(alpha,"jp_akumajou_densetsu.exe");
+    string dedicated=Path.Combine(alpha,"Launch-NEStudio-Game.bat");
+    File.WriteAllBytes(native,new byte[]{0x4D,0x5A});
+    File.WriteAllText(Path.Combine(alpha,"NEStudio-RomPath.txt"),"C:\\owner\\original.nes");
+    File.WriteAllText(dedicated,"@echo off\\r\\n");
+    Check(GameLaunchResolver.Resolve(dedicated,launchRoot)==native,
+          "dedicated BAT resolves directly to native EXE");
+    string buildBat=Path.Combine(launchRoot,"Build-Private-Game.bat");
+    File.WriteAllText(buildBat,"@echo off\\r\\n");
+    Check(GameLaunchResolver.Resolve(buildBat,launchRoot)==native,
+          "build BAT selection never runs a console or script");
+    string nested=Path.Combine(launchRoot,"foreign");
+    Directory.CreateDirectory(nested);
+    string foreign=Path.Combine(nested,"Play-CVIII.bat");
+    File.WriteAllText(foreign,"@echo off\\r\\n");
+    Check(GameLaunchResolver.Resolve(foreign,launchRoot)==native,
+          "legacy Alpha BAT resolves owner-private build, not stale external game");
+    Check(GameLaunchResolver.Resolve(native,launchRoot)==native,
+          "direct private EXE path is preserved");
+    File.Delete(Path.Combine(alpha,"NEStudio-RomPath.txt"));
+    bool rejectsExternal=false;
+    try { _=GameLaunchResolver.Resolve(foreign,launchRoot); }
+    catch(FileNotFoundException) { rejectsExternal=true; }
+    Check(rejectsExternal,"absent private game fails instead of launching external BAT");
+}
+finally { Directory.Delete(launchRoot,true); }
+
 var project=StudioProject.Create();
 Check(project.SchemaVersion==1,"schema v1");
 Check(project.SpriteGroups.Count>=3,"initial sprite groups");
