@@ -18,7 +18,7 @@ public partial class MainWindow : Window
     private StudioBridge? _bridge;
     private StudioScene? _scene;
     private readonly DispatcherTimer _poll=new(){ Interval=TimeSpan.FromMilliseconds(33) };
-    private readonly Queue<(int Op,int A,int B,int C)> _commands=new();
+    private readonly Queue<(int Op,int A,int B,int C,string? Text)> _commands=new();
     private bool _changing;
     private bool _dirty;
     private int _selectedLight=-1;
@@ -78,12 +78,16 @@ public partial class MainWindow : Window
         var panel=new WinForms.Panel{Dock=WinForms.DockStyle.Fill};
         ViewportHost.Child=panel;
         _game.AttachPanel(panel);
+        LightingStudio.Send=(op,a,b,c,label)=>Queue(op,a,b,c,label);
+        LightingStudio.EditRequested=()=>{ReleaseGameKeys();Queue(18,0);Queue(17);Queue(1);};
+        LightingStudio.PlayRequested=()=>{Queue(2);CaptureGameKeys();};
+        LightingStudio.LightSelected=slot=>{_selectedLight=slot;Queue(3,slot);};
         _project.GameExecutable=FindGame();
         _changing=true;
         LanguageCombo.SelectedIndex=0;
         SpriteLayerCombo.SelectedIndex=1;
-        RendererCombo.SelectedIndex=0;
-        FlickerCombo.SelectedIndex=0;
+
+
         _changing=false;
         string[] args=Environment.GetCommandLineArgs();
         if(args.Length>1 && File.Exists(args[1]))
@@ -238,7 +242,7 @@ public partial class MainWindow : Window
                     if(_commands.Count>0)
                     {
                         var cmd=_commands.Peek();
-                        if(_bridge.TryCommand(cmd.Op,cmd.A,cmd.B,cmd.C))
+                        if(_bridge.TryCommand(cmd.Op,cmd.A,cmd.B,cmd.C,cmd.Text))
                         {
                             _lastSentOperation=cmd.Op;
                             _commands.Dequeue();
@@ -431,30 +435,14 @@ public partial class MainWindow : Window
             RebuildSceneTree();
         }
         StudioLight? selected=scene.Lights.FirstOrDefault(l=>l.Slot==_selectedLight);
-        _changing=true;
-        if(selected is not null)
-        {
-            LightName.Text=$"{selected.Name} · world ({selected.X},{selected.Y})";
-            LightRadius.Value=selected.Radius;
-            LightPower.Value=selected.Power;
-            LightRed.Value=selected.Red;
-            LightGreen.Value=selected.Green;
-            LightBlue.Value=selected.Blue;
-            FlickerCombo.SelectedIndex=Math.Clamp(selected.Flicker,0,4);
-            if(LightingTab.IsSelected)SelectionLabel.Text=selected.Label;
-        }
-        else
-        {
-            LightName.Text="Select or drag a light in the game viewport";
-            if(LightingTab.IsSelected)SelectionLabel.Text="No light selected";
-        }
-        if(SpritesTab.IsSelected)
+        if(LightingTab.IsSelected)
+            SelectionLabel.Text=selected?.Label??"Select a light in the viewport or inspector";
+        else if(SpritesTab.IsSelected)
             SelectionLabel.Text=$"{_selectedSpriteSlots.Count} visible OAM sprites selected";
-        if(DialogueTab.IsSelected)
+        else if(DialogueTab.IsSelected)
             SelectionLabel.Text=_dialogue is null?"No authored dialogue selected":
                 _dialogue.Id+(_dialogue.HasViewportRegion?" — bound to viewport":" — region unbound");
-        RendererCombo.SelectedIndex=Math.Clamp(scene.Renderer,0,2);
-        _changing=false;
+        LightingStudio.UpdateScene(scene,_selectedLight);
     }
     private void RebuildSceneTree()
     {
@@ -481,7 +469,7 @@ public partial class MainWindow : Window
         foreach(StudioDialogue entry in _project.Dialogues)
             dialogue.Items.Add(new TreeViewItem{Header=entry.Id,Tag=entry});
         root.Items.Add(dialogue);
-        root.Items.Add(new TreeViewItem{Header="Particle FX / Weather (native Lighting Studio)"});
+        root.Items.Add(new TreeViewItem{Header="Lighting Studio · Pixel FX / Weather in inspector"});
         root.Items.Add(new TreeViewItem{Header="Scene Events / Timeline"});
         SceneTree.Items.Add(root);
         _changing=false;
@@ -507,7 +495,7 @@ public partial class MainWindow : Window
                 break;
         }
     }
-    private void Queue(int op,int a=0,int b=0,int c=0)
+    private void Queue(int op,int a=0,int b=0,int c=0,string? label=null)
     {
         if(!_game.IsRunning)
         {
@@ -522,9 +510,13 @@ public partial class MainWindow : Window
         if(op==3 && _scene?.Selected==a &&
            !_commands.Any(x=>x.Op==3 && x.A!=a))
             return;
-        if(op==4)
+        if(op==4 || op is 21 or 22 or 23 or 28 or 30 or 33 or 38)
         {
-            var pending=_commands.Where(x=>!(x.Op==4 && x.A==a)).ToArray();
+            // Collapse superseded slider values by semantic target. Never
+            // discard scene/kit edits queued for a different property.
+            var pending=_commands.Where(x=>
+                !(x.Op==op && x.A==a && (op is 4 or 21 or 22 or 23 || x.B==b)))
+                .ToArray();
             _commands.Clear();
             foreach(var item in pending)_commands.Enqueue(item);
         }
@@ -533,7 +525,7 @@ public partial class MainWindow : Window
             Status("Editor command queue is full; retry the change.");
             return;
         }
-        _commands.Enqueue((op,a,b,c));
+        _commands.Enqueue((op,a,b,c,label));
     }
     private void Run_Click(object sender,RoutedEventArgs e)
     {
@@ -668,24 +660,6 @@ public partial class MainWindow : Window
     }
     private void Undo_Click(object sender,RoutedEventArgs e){Queue(8);}
     private void Redo_Click(object sender,RoutedEventArgs e){Queue(9);}
-    private void LightSlider_Changed(object sender,RoutedPropertyChangedEventArgs<double> e)
-    {
-        if(_changing || sender is not Slider slider || _selectedLight<0 ||
-           slider.Tag is not string field || !int.TryParse(field,out int property))
-            return;
-        Queue(1);Queue(3,_selectedLight);
-        Queue(4,property,(int)Math.Round(slider.Value));
-    }
-    private void FlickerCombo_Changed(object sender,SelectionChangedEventArgs e)
-    {
-        if(_changing || _selectedLight<0 || FlickerCombo.SelectedIndex<0)return;
-        Queue(1);Queue(3,_selectedLight);Queue(4,12,FlickerCombo.SelectedIndex);
-    }
-    private void RendererCombo_Changed(object sender,SelectionChangedEventArgs e)
-    {
-        if(_changing || RendererCombo.SelectedIndex<0)return;
-        Queue(10,RendererCombo.SelectedIndex);
-    }
     private void NewProject_Click(object sender,RoutedEventArgs e)
     {
         if(!ConfirmDiscard())return;
@@ -797,7 +771,7 @@ public partial class MainWindow : Window
         if(LightingTab.IsSelected)
         {
             Queue(18,0);Queue(17);
-            Status("Lighting mode — compact editor; Full Lighting Studio restores the original native workbench.");
+            Status("Lighting mode — all lighting, scene and effects tools are in NEStudio's WPF inspector.");
         }
         else if(SpritesTab.IsSelected)
         {
