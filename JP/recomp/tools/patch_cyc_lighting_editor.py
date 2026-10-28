@@ -458,7 +458,14 @@ def once(text: str, old: str, replacement: str) -> str:
 def generate(text: str) -> str:
     if MARKER in text or text.count(PREV)!=1:
         raise ValueError("JP0662 requires one unmodified JP0626 private SDL source")
-    text=once(text,"static bool cviii_stage_open;",SHELL+"\nstatic bool cviii_stage_open;")
+    # An editor-launched game must never display a separate SDL window:
+    # create it hidden and let NativeGameHost attach/show its real HWND.
+    # Ordinary stand-alone native launches remain visible.
+    text=once(text,
+        "SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI | (s_hidden ? SDL_WINDOW_HIDDEN : 0));",
+        "SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI |\\n"
+        "  ((s_hidden || getenv(\\\"CVIII_NESTUDIO_SESSION\\\")!=NULL) ? SDL_WINDOW_HIDDEN : 0));")
+    text=once(text,"static bool cviii_stage_open;",SHELL+"\\nstatic bool cviii_stage_open;")
     text=once(text,KEY_ANCHOR,
         '''#if defined(_WIN32)
             if(nest_sprite_sdl_event(&ev))continue;
@@ -507,6 +514,7 @@ def generate(text: str) -> str:
 
 def smoke() -> None:
     fixture="\n".join(("/* "+PREV+" */","static bool cviii_stage_open;",
+                       "SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI | (s_hidden ? SDL_WINDOW_HIDDEN : 0));",
                        KEY_ANCHOR,START,FINAL,
                        "static void read_frame(CycInputFrame *f)\n{",
                        "    f->keys = keys;",
@@ -535,6 +543,8 @@ def smoke() -> None:
     assert "SDL_CaptureMouse(SDL_TRUE)" in product
     assert "nest_keyboard_bits()" in product and "SDL_SCANCODE_RIGHT" in product
     assert "nest_keyboard_owned()" in product
+    assert 'getenv("CVIII_NESTUDIO_SESSION")!=NULL' in product
+    assert "SDL_WINDOW_HIDDEN" in product
     assert "nest_sprite_sdl_event(&ev)" in product
     assert "nest_sprite_draw_selection(s_ren);" in product
     assert "owner_for_oam[chosen]" in product
