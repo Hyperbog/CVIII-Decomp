@@ -382,6 +382,22 @@ public partial class LightingWorkbench : UserControl
             case "rename-weather":TextCommand(40,weather,WeatherName.Text,48);break;
         }
     }
+    public bool TryShortcut(Key key)
+    {
+        switch(key)
+        {
+            case Key.Z:Post(8);return true;
+            case Key.Y:Post(9);return true;
+            case Key.D:
+                if(_selected>=0){Post(3,_selected);Post(6);}
+                return true;
+            case Key.C:
+                if(_selected>=0){Post(3,_selected);Post(42);}
+                return true;
+            case Key.V:Post(43);return true;
+            default:return false;
+        }
+    }
     private void Color(int r,int g,int b)
     {
         if(_selected<0)return;
