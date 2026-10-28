@@ -557,9 +557,14 @@ public partial class MainWindow : Window
         // TreeView at 30Hz while dragging breaks pointer and keyboard focus.
         var fingerprint=scene.Room+"|"+_selectedLight+"|"+
             string.Join("|",scene.Lights.Select(l=>
-                $"{l.Slot}:{l.Name}"))+"|"+
+                $"{l.Slot}:{l.Name}:"+
+                (scene.Lighting.LightDetails.TryGetValue(l.Slot,out var d)?
+                    d.Group:"")))+"|"+
+            string.Join("|",scene.OriginalObjects.Select(o=>
+                $"{o.Slot}:{o.Generation}"))+"|"+
             string.Join("|",scene.Lighting.Masks.Select(m=>m.Slot))+"|"+
-            string.Join("|",scene.Lighting.Particles.Select(p=>p.Slot));
+            string.Join("|",scene.Lighting.Particles.Select(p=>
+                $"{p.Slot}:{p.Name}"));
         if(fingerprint!=_fingerprint)
         {
             _fingerprint=fingerprint;
