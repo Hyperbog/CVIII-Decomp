@@ -60,37 +60,6 @@ public sealed class NativeGameHost : IDisposable
     private const string OriginalJpSha256=
         "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28";
 
-    private static string ResolveNativeExe(string requested)
-    {
-        string path=Path.GetFullPath(requested);
-        string extension=Path.GetExtension(path).ToLowerInvariant();
-        if(extension==".exe")return path;
-        if(extension is not (".bat" or ".cmd"))
-            throw new InvalidDataException("Select a private Enhanced game EXE or its launcher.");
-        // Run/Attach must NEVER execute a build/launcher BAT, cmd.exe,
-        // Start-Process or another emulator. Instead resolve the actual
-        // session-enabled native program built by our private builder.
-        string folder=Path.GetDirectoryName(path)!;
-        var candidates=new[]
-        {
-            Path.Combine(folder,"jp_akumajou_densetsu.exe"),
-            Path.Combine(folder,"AlphaCandidate","jp_akumajou_densetsu.exe"),
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-                "NEStudio-Preview","AlphaCandidate","jp_akumajou_densetsu.exe")
-        };
-        foreach(string candidate in candidates)
-        {
-            if(File.Exists(candidate) &&
-               File.Exists(Path.Combine(Path.GetDirectoryName(candidate)!,"NEStudio-RomPath.txt")))
-                return candidate;
-        }
-        throw new FileNotFoundException(
-            "This BAT is not a game viewport. Build the owner-private NEStudio game first " +
-            "with Build-Private-Game.bat, then choose " +
-            @"%USERPROFILE%\NEStudio-Preview\AlphaCandidate\jp_akumajou_densetsu.exe" +
-            " in Set Game / Launcher. No external console was opened.",path);
-    }
-
     private static string ValidatePrivateGame(string executable)
     {
         string directory=Path.GetDirectoryName(executable)!;
@@ -126,7 +95,7 @@ public sealed class NativeGameHost : IDisposable
         if(_process is not null)Stop();
         if(!File.Exists(path))
             throw new FileNotFoundException("Game launcher does not exist.",path);
-        string full=ResolveNativeExe(path);
+        string full=GameLaunchResolver.Resolve(path);
         string rom=ValidatePrivateGame(full);
         string directory=Path.GetDirectoryName(full)!;
         Session=Guid.NewGuid().ToString("N");
