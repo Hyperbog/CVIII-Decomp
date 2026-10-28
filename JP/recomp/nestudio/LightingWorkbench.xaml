@@ -1,0 +1,297 @@
+<UserControl x:Class="NEStudio.LightingWorkbench"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="#141A22" Foreground="#ECF2F8">
+  <UserControl.Resources>
+    <Style TargetType="TextBlock">
+      <Setter Property="Foreground" Value="#E1ECF6"/>
+    </Style>
+    <Style TargetType="TextBox">
+      <Setter Property="Background" Value="#202D39"/>
+      <Setter Property="Foreground" Value="#FFFFFF"/>
+      <Setter Property="BorderBrush" Value="#526B80"/>
+      <Setter Property="Padding" Value="6,5"/>
+      <Setter Property="Margin" Value="0,4,0,5"/>
+    </Style>
+    <Style TargetType="Button">
+      <Setter Property="Background" Value="#25415A"/>
+      <Setter Property="Foreground" Value="#FFFFFF"/>
+      <Setter Property="BorderBrush" Value="#547693"/>
+      <Setter Property="Padding" Value="8,6"/>
+      <Setter Property="Margin" Value="2,2"/>
+      <Setter Property="MinHeight" Value="30"/>
+    </Style>
+    <Style TargetType="ComboBox">
+      <Setter Property="Background" Value="#202D39"/>
+      <Setter Property="Foreground" Value="#FFFFFF"/>
+      <Setter Property="Margin" Value="0,5"/>
+    </Style>
+    <Style TargetType="Slider">
+      <Setter Property="Margin" Value="0,0,0,4"/>
+      <Setter Property="AutoToolTipPlacement" Value="TopLeft"/>
+    </Style>
+    <Style TargetType="ListBox">
+      <Setter Property="Background" Value="#111C27"/>
+      <Setter Property="Foreground" Value="#F1F7FC"/>
+      <Setter Property="BorderBrush" Value="#40586E"/>
+      <Setter Property="Margin" Value="0,6"/>
+    </Style>
+    <Style TargetType="CheckBox">
+      <Setter Property="Foreground" Value="#EAF5FD"/>
+      <Setter Property="Margin" Value="0,5"/>
+    </Style>
+  </UserControl.Resources>
+  <DockPanel>
+    <StackPanel DockPanel.Dock="Top" Margin="8,8,8,5">
+      <TextBlock Text="LIGHTING STUDIO" FontSize="14" FontWeight="Bold" Foreground="#91D9FF"/>
+      <TextBlock Text="All effects are authored in NEStudio; the viewport is your preview and drag canvas."
+                 TextWrapping="Wrap" FontSize="11" Margin="0,5,0,4"/>
+      <WrapPanel>
+        <Button Content="Edit / Pause" Click="Edit_Click" ToolTip="Pause gameplay and activate native viewport handles"/>
+        <Button Content="Preview / Play" Click="Play_Click" ToolTip="Resume game rendering"/>
+        <Button Content="Undo" Click="Undo_Click"/>
+        <Button Content="Redo" Click="Redo_Click"/>
+      </WrapPanel>
+      <TextBlock x:Name="WorkStatus" Text="Attach the private game to begin editing."
+                 Foreground="#F3D18A" TextWrapping="Wrap" FontSize="11" Margin="3,4,0,0"/>
+    </StackPanel>
+    <TabControl x:Name="Pages" Margin="3,2,3,4" Background="#141A22">
+      <TabItem Header="Lights">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+          <StackPanel Margin="9">
+            <WrapPanel>
+              <Button Content="+ Light" Tag="new-light" Click="Action_Click"/>
+              <Button Content="Duplicate" Tag="duplicate" Click="Action_Click"/>
+              <Button Content="Delete" Tag="delete-light" Click="Action_Click"/>
+              <Button Content="Copy" Tag="copy" Click="Action_Click"/>
+              <Button Content="Paste" Tag="paste" Click="Action_Click"/>
+            </WrapPanel>
+            <TextBox x:Name="Search" TextChanged="Search_Changed" ToolTip="Filter by name/group; type to search"/>
+            <ListBox x:Name="LightList" Height="130" DisplayMemberPath="Label" SelectionChanged="Light_SelectionChanged"/>
+            <TextBlock x:Name="SelectedName" Text="Select a light" FontWeight="Bold" Foreground="#99D6FF" TextWrapping="Wrap"/>
+            <TextBlock Text="Name / group" Margin="0,8,0,0"/>
+            <TextBox x:Name="NameBox" MaxLength="47"/>
+            <TextBox x:Name="GroupBox" MaxLength="31"/>
+            <Button Content="Save name &amp; group" Tag="identity" Click="Action_Click"/>
+            <TextBlock Text="Light shape" Margin="0,9,0,0"/>
+            <ComboBox x:Name="ShapeBox" SelectionChanged="Shape_Changed">
+              <ComboBoxItem Content="Radial"/>
+              <ComboBoxItem Content="Spot cone"/>
+              <ComboBoxItem Content="Parallel shaft"/>
+            </ComboBox>
+            <CheckBox x:Name="MuteBox" Content="Mute selected light" Checked="Mute_Changed" Unchecked="Mute_Changed"/>
+            <TextBlock Text="Range · 12–160"/>
+            <Slider x:Name="Radius" Minimum="12" Maximum="160" Tag="2" ValueChanged="LightSlider_Changed"/>
+            <TextBlock Text="Intensity · 5–160"/>
+            <Slider x:Name="Power" Minimum="5" Maximum="160" Tag="3" ValueChanged="LightSlider_Changed"/>
+            <TextBlock Text="Color · red / green / blue"/>
+            <Slider x:Name="Red" Minimum="0" Maximum="255" Tag="4" ValueChanged="LightSlider_Changed"/>
+            <Slider x:Name="Green" Minimum="0" Maximum="255" Tag="5" ValueChanged="LightSlider_Changed"/>
+            <Slider x:Name="Blue" Minimum="0" Maximum="255" Tag="6" ValueChanged="LightSlider_Changed"/>
+            <WrapPanel>
+              <Button Content="Candle warm" Tag="warm" Click="Action_Click"/>
+              <Button Content="Moon cool" Tag="cool" Click="Action_Click"/>
+              <Button Content="White" Tag="white" Click="Action_Click"/>
+            </WrapPanel>
+            <TextBlock Text="Direction · degrees"/>
+            <Slider x:Name="Angle" Minimum="0" Maximum="359" Tag="8" ValueChanged="LightSlider_Changed"/>
+            <TextBlock Text="Cone half-angle"/>
+            <Slider x:Name="Spread" Minimum="5" Maximum="85" Tag="9" ValueChanged="LightSlider_Changed"/>
+            <TextBlock Text="Shaft width"/>
+            <Slider x:Name="ShaftWidth" Minimum="4" Maximum="160" Tag="10" ValueChanged="LightSlider_Changed"/>
+            <TextBlock Text="Flicker"/>
+            <ComboBox x:Name="Flicker" SelectionChanged="Flicker_Changed">
+              <ComboBoxItem Content="Candle"/><ComboBoxItem Content="Steady"/>
+              <ComboBoxItem Content="Torch"/><ComboBoxItem Content="Pulse"/>
+              <ComboBoxItem Content="Ember"/>
+            </ComboBox>
+            <TextBlock Text="Animation speed · 0 = auto"/>
+            <Slider x:Name="Speed" Minimum="0" Maximum="400" Tag="15" ValueChanged="LightSlider_Changed"/>
+            <TextBlock Text="Animation strength · 0 = auto"/>
+            <Slider x:Name="Strength" Minimum="0" Maximum="100" Tag="16" ValueChanged="LightSlider_Changed"/>
+            <TextBlock Text="World position X / Y (or drag in viewport)"/>
+            <WrapPanel>
+              <TextBox x:Name="WorldX" Width="75"/>
+              <TextBox x:Name="WorldY" Width="75"/>
+              <Button Content="Move" Tag="move" Click="Action_Click"/>
+            </WrapPanel>
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+      <TabItem Header="Scene">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+          <StackPanel Margin="9">
+            <CheckBox x:Name="EnableLighting" Content="Enable lighting" Checked="EnableLighting_Changed" Unchecked="EnableLighting_Changed"/>
+            <TextBlock Text="Ambient brightness"/>
+            <Slider x:Name="Ambient" Minimum="0" Maximum="100" Tag="21:0" ValueChanged="SceneSlider_Changed"/>
+            <TextBlock Text="Ambient color RGB"/>
+            <Slider x:Name="AmbientRed" Minimum="0" Maximum="255" Tag="21:1" ValueChanged="SceneSlider_Changed"/>
+            <Slider x:Name="AmbientGreen" Minimum="0" Maximum="255" Tag="21:2" ValueChanged="SceneSlider_Changed"/>
+            <Slider x:Name="AmbientBlue" Minimum="0" Maximum="255" Tag="21:3" ValueChanged="SceneSlider_Changed"/>
+            <Button Content="Neutral ambient" Tag="neutral-ambient" Click="Action_Click"/>
+            <Separator Margin="0,10"/>
+            <TextBlock Text="SKY / HEMISPHERE" Foreground="#91D9FF" FontWeight="Bold"/>
+            <TextBlock Text="Sky brightness"/>
+            <Slider x:Name="SkyPower" Minimum="0" Maximum="100" Tag="22:0" ValueChanged="SceneSlider_Changed"/>
+            <TextBlock Text="Sky fill RGB"/>
+            <Slider x:Name="SkyR" Minimum="0" Maximum="255" Tag="22:1" ValueChanged="SceneSlider_Changed"/>
+            <Slider x:Name="SkyG" Minimum="0" Maximum="255" Tag="22:2" ValueChanged="SceneSlider_Changed"/>
+            <Slider x:Name="SkyB" Minimum="0" Maximum="255" Tag="22:3" ValueChanged="SceneSlider_Changed"/>
+            <ComboBox x:Name="SkyDirection" SelectionChanged="SkyDirection_Changed">
+              <ComboBoxItem Content="Upper sky"/><ComboBoxItem Content="Uniform"/>
+              <ComboBoxItem Content="Lower bounce"/>
+            </ComboBox>
+            <WrapPanel>
+              <Button Content="Daylight" Tag="daylight" Click="Action_Click"/>
+              <Button Content="Moonlight" Tag="moonlight" Click="Action_Click"/>
+              <Button Content="No sky" Tag="no-sky" Click="Action_Click"/>
+            </WrapPanel>
+            <Separator Margin="0,10"/>
+            <TextBlock Text="COLOR GRADING" Foreground="#91D9FF" FontWeight="Bold"/>
+            <TextBlock Text="Exposure · EV x100"/>
+            <Slider x:Name="Exposure" Minimum="-200" Maximum="200" Tag="23:0" ValueChanged="SceneSlider_Changed"/>
+            <TextBlock Text="Temperature"/>
+            <Slider x:Name="Temperature" Minimum="-100" Maximum="100" Tag="23:1" ValueChanged="SceneSlider_Changed"/>
+            <TextBlock Text="Saturation"/>
+            <Slider x:Name="Saturation" Minimum="0" Maximum="200" Tag="23:2" ValueChanged="SceneSlider_Changed"/>
+            <Button Content="Neutral grade" Tag="neutral-grade" Click="Action_Click"/>
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+      <TabItem Header="Rigs">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+          <StackPanel Margin="9">
+            <TextBlock Text="BUILT-IN MULTI-EMITTER RIGS" Foreground="#91D9FF" FontWeight="Bold"/>
+            <ComboBox x:Name="Builtins">
+              <ComboBoxItem Content="Candle"/><ComboBoxItem Content="Torch"/>
+              <ComboBoxItem Content="Lantern"/><ComboBoxItem Content="Window"/>
+              <ComboBoxItem Content="Moonlight"/><ComboBoxItem Content="Sunbeam"/>
+              <ComboBoxItem Content="Magic"/>
+            </ComboBox>
+            <Button Content="Apply rig at viewport center" Tag="builtin" Click="Action_Click"/>
+            <Separator Margin="0,10"/>
+            <TextBlock Text="USER SAVED KITS" Foreground="#91D9FF" FontWeight="Bold"/>
+            <ListBox x:Name="KitList" DisplayMemberPath="Label" Height="115" SelectionChanged="Kit_SelectionChanged"/>
+            <TextBlock Text="Slot 0–11 / Kit name"/>
+            <TextBox x:Name="KitSlot" Text="0"/>
+            <TextBox x:Name="KitName" Text="My Rig" MaxLength="47"/>
+            <WrapPanel>
+              <Button Content="Capture group" Tag="capture-kit" Click="Action_Click"/>
+              <Button Content="Apply kit" Tag="apply-kit" Click="Action_Click"/>
+              <Button Content="Rename" Tag="rename-kit" Click="Action_Click"/>
+              <Button Content="Clone kit" Tag="clone-kit" Click="Action_Click"/>
+              <Button Content="Delete kit" Tag="delete-kit" Click="Action_Click"/>
+            </WrapPanel>
+            <TextBlock Text="Captures up to eight emitters from the selected light's named group. Rigs are available in every room."
+                       TextWrapping="Wrap" Margin="0,8"/>
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+      <TabItem Header="Styles">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+          <StackPanel Margin="9">
+            <TextBlock Text="SHARED GLOBAL STYLES" Foreground="#91D9FF" FontWeight="Bold"/>
+            <ListBox x:Name="StyleList" Height="105" DisplayMemberPath="Label" SelectionChanged="Style_SelectionChanged"/>
+            <TextBlock Text="Style slot 0–15 / Name"/>
+            <TextBox x:Name="StyleSlot" Text="0"/>
+            <TextBox x:Name="StyleName" Text="Shared Torch" MaxLength="47"/>
+            <Button Content="Capture selected light as style" Tag="capture-style" Click="Action_Click"/>
+            <WrapPanel>
+              <Button Content="Link selected" Tag="link-style" Click="Action_Click"/>
+              <Button Content="Link group" Tag="link-group" Click="Action_Click"/>
+              <Button Content="Unlink" Tag="unlink-style" Click="Action_Click"/>
+            </WrapPanel>
+            <TextBlock Text="Shared range / intensity"/>
+            <Slider x:Name="StyleRadius" Minimum="12" Maximum="160" Tag="2" ValueChanged="StyleSlider_Changed"/>
+            <Slider x:Name="StylePower" Minimum="5" Maximum="160" Tag="3" ValueChanged="StyleSlider_Changed"/>
+            <TextBlock Text="Shared red / green / blue"/>
+            <Slider x:Name="StyleRed" Minimum="0" Maximum="255" Tag="4" ValueChanged="StyleSlider_Changed"/>
+            <Slider x:Name="StyleGreen" Minimum="0" Maximum="255" Tag="5" ValueChanged="StyleSlider_Changed"/>
+            <Slider x:Name="StyleBlue" Minimum="0" Maximum="255" Tag="6" ValueChanged="StyleSlider_Changed"/>
+            <TextBlock Text="Linked lights update across rooms; positions stay independent." TextWrapping="Wrap" Margin="0,8"/>
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+      <TabItem Header="Masks">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+          <StackPanel Margin="9">
+            <TextBlock Text="WORLD-SPACE SHADOW MASKS" Foreground="#91D9FF" FontWeight="Bold"/>
+            <Button Content="+ Mask near view center" Tag="new-mask" Click="Action_Click"/>
+            <ListBox x:Name="MaskList" Height="130" DisplayMemberPath="Label" SelectionChanged="Mask_SelectionChanged"/>
+            <TextBlock Text="Opacity / softness"/>
+            <Slider x:Name="MaskOpacity" Minimum="0" Maximum="100" Tag="5" ValueChanged="MaskSlider_Changed"/>
+            <Slider x:Name="MaskSoftness" Minimum="0" Maximum="32" Tag="6" ValueChanged="MaskSlider_Changed"/>
+            <TextBlock Text="Width / height"/>
+            <Slider x:Name="MaskWidth" Minimum="1" Maximum="256" Tag="3" ValueChanged="MaskSlider_Changed"/>
+            <Slider x:Name="MaskHeight" Minimum="1" Maximum="240" Tag="4" ValueChanged="MaskSlider_Changed"/>
+            <Button Content="Delete mask" Tag="delete-mask" Click="Action_Click"/>
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+      <TabItem Header="Pixel FX">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+          <StackPanel Margin="9">
+            <CheckBox x:Name="FxEnabled" Content="Enable Pixel FX" Checked="FxEnabled_Changed" Unchecked="FxEnabled_Changed"/>
+            <ComboBox x:Name="FxKind">
+              <ComboBoxItem Content="Floating Dust"/><ComboBoxItem Content="Embers"/>
+              <ComboBoxItem Content="Pixel Fog"/><ComboBoxItem Content="Ash"/>
+              <ComboBoxItem Content="Snow"/><ComboBoxItem Content="Rain"/>
+              <ComboBoxItem Content="Fireflies"/>
+            </ComboBox>
+            <WrapPanel>
+              <Button Content="+ FX region" Tag="new-fx" Click="Action_Click"/>
+              <Button Content="Clone" Tag="clone-fx" Click="Action_Click"/>
+              <Button Content="Delete" Tag="delete-fx" Click="Action_Click"/>
+            </WrapPanel>
+            <ListBox x:Name="FxList" Height="122" DisplayMemberPath="Label" SelectionChanged="Fx_SelectionChanged"/>
+            <TextBox x:Name="FxName" MaxLength="47"/>
+            <Button Content="Rename region" Tag="rename-fx" Click="Action_Click"/>
+            <TextBlock Text="Density / speed / wind"/>
+            <Slider x:Name="FxDensity" Minimum="1" Maximum="96" Tag="6" ValueChanged="FxSlider_Changed"/>
+            <Slider x:Name="FxSpeed" Minimum="0" Maximum="300" Tag="7" ValueChanged="FxSlider_Changed"/>
+            <Slider x:Name="FxWind" Minimum="-100" Maximum="100" Tag="8" ValueChanged="FxSlider_Changed"/>
+            <TextBlock Text="Opacity / size / glow"/>
+            <Slider x:Name="FxOpacity" Minimum="0" Maximum="100" Tag="9" ValueChanged="FxSlider_Changed"/>
+            <Slider x:Name="FxSize" Minimum="1" Maximum="4" Tag="10" ValueChanged="FxSlider_Changed"/>
+            <Slider x:Name="FxGlow" Minimum="0" Maximum="100" Tag="15" ValueChanged="FxSlider_Changed"/>
+            <WrapPanel>
+              <Button Content="Attach to light" Tag="attach-fx" Click="Action_Click"/>
+              <Button Content="Detach" Tag="detach-fx" Click="Action_Click"/>
+            </WrapPanel>
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+      <TabItem Header="Weather">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+          <StackPanel Margin="9">
+            <TextBlock Text="SHARED WEATHER PROFILES" Foreground="#91D9FF" FontWeight="Bold"/>
+            <ComboBox x:Name="WeatherTemplate">
+              <ComboBoxItem Content="Rain Showers"/><ComboBoxItem Content="Thunderstorm"/>
+              <ComboBoxItem Content="Winter Snow"/><ComboBoxItem Content="Drifting Mist"/>
+              <ComboBoxItem Content="Volcanic Ash"/><ComboBoxItem Content="Night Fireflies"/>
+            </ComboBox>
+            <TextBlock Text="Slot 0–7"/>
+            <TextBox x:Name="WeatherSlot" Text="0"/>
+            <WrapPanel>
+              <Button Content="Create preset" Tag="create-weather" Click="Action_Click"/>
+              <Button Content="Apply to room" Tag="apply-weather" Click="Action_Click"/>
+              <Button Content="Unlink" Tag="unlink-weather" Click="Action_Click"/>
+            </WrapPanel>
+            <TextBlock x:Name="WeatherStatus" Text="No room weather linked" Foreground="#F2CE83"/>
+            <ListBox x:Name="WeatherList" Height="118" DisplayMemberPath="Label" SelectionChanged="Weather_SelectionChanged"/>
+            <TextBox x:Name="WeatherName" MaxLength="47"/>
+            <Button Content="Rename weather" Tag="rename-weather" Click="Action_Click"/>
+            <TextBlock Text="Density / speed / wind"/>
+            <Slider x:Name="WeatherDensity" Minimum="1" Maximum="96" Tag="2" ValueChanged="WeatherSlider_Changed"/>
+            <Slider x:Name="WeatherSpeed" Minimum="0" Maximum="300" Tag="3" ValueChanged="WeatherSlider_Changed"/>
+            <Slider x:Name="WeatherWind" Minimum="-100" Maximum="100" Tag="4" ValueChanged="WeatherSlider_Changed"/>
+            <TextBlock Text="Opacity / chance / period"/>
+            <Slider x:Name="WeatherOpacity" Minimum="0" Maximum="100" Tag="5" ValueChanged="WeatherSlider_Changed"/>
+            <Slider x:Name="WeatherChance" Minimum="0" Maximum="100" Tag="7" ValueChanged="WeatherSlider_Changed"/>
+            <Slider x:Name="WeatherPeriod" Minimum="1" Maximum="120" Tag="8" ValueChanged="WeatherSlider_Changed"/>
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+    </TabControl>
+  </DockPanel>
+</UserControl>
