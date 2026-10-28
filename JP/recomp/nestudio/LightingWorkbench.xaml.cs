@@ -163,17 +163,32 @@ public partial class LightingWorkbench : UserControl
                 UpdateSlider(StyleRadius,gs.Radius);UpdateSlider(StylePower,gs.Energy);
                 UpdateSlider(StyleRed,gs.Red);UpdateSlider(StyleGreen,gs.Green);
                 UpdateSlider(StyleBlue,gs.Blue);
+                StyleShape.SelectedIndex=Math.Clamp(gs.Shape,0,2);
+                StyleFlicker.SelectedIndex=Math.Clamp(gs.Flicker,0,4);
+                UpdateSlider(StyleAngle,gs.Angle);
+                UpdateSlider(StyleSpread,gs.Spread==0?30:gs.Spread);
+                UpdateSlider(StyleWidth,gs.Width==0?32:gs.Width);
+                UpdateSlider(StyleSpeed,gs.AnimationSpeed);
+                UpdateSlider(StyleStrength,gs.AnimationStrength);
             }
             if(lighting.Masks.FirstOrDefault(m=>m.Slot==_selectedMask) is { } mask)
             {
                 UpdateSlider(MaskOpacity,mask.Opacity);UpdateSlider(MaskSoftness,mask.Softness);
                 UpdateSlider(MaskWidth,mask.Width);UpdateSlider(MaskHeight,mask.Height);
+                if(!MaskX.IsKeyboardFocusWithin)MaskX.Text=mask.X.ToString();
+                if(!MaskY.IsKeyboardFocusWithin)MaskY.Text=mask.Y.ToString();
             }
             if(lighting.Particles.FirstOrDefault(p=>p.Slot==_selectedFx) is { } fx)
             {
                 UpdateSlider(FxDensity,fx.Density);UpdateSlider(FxSpeed,fx.Speed);
                 UpdateSlider(FxWind,fx.Wind);UpdateSlider(FxOpacity,fx.Opacity);
                 UpdateSlider(FxSize,fx.Size);UpdateSlider(FxGlow,fx.Glow);
+                UpdateSlider(FxWidth,fx.Width);UpdateSlider(FxHeight,fx.Height);
+                UpdateSlider(FxRed,fx.Red);UpdateSlider(FxGreen,fx.Green);
+                UpdateSlider(FxBlue,fx.Blue);
+                FxLayer.SelectedIndex=Math.Clamp(fx.Layer,0,1);
+                if(!FxWorldX.IsKeyboardFocusWithin)FxWorldX.Text=fx.X.ToString();
+                if(!FxWorldY.IsKeyboardFocusWithin)FxWorldY.Text=fx.Y.ToString();
             }
             if(lighting.Weather.FirstOrDefault(w=>w.Slot==_selectedWeather) is { } weather)
             {
@@ -183,6 +198,13 @@ public partial class LightingWorkbench : UserControl
                 UpdateSlider(WeatherOpacity,weather.Opacity);
                 UpdateSlider(WeatherChance,weather.Chance);
                 UpdateSlider(WeatherPeriod,weather.Period);
+                UpdateSlider(WeatherSize,weather.Size);
+                UpdateSlider(WeatherRed,weather.Red);
+                UpdateSlider(WeatherGreen,weather.Green);
+                UpdateSlider(WeatherBlue,weather.Blue);
+                WeatherKind.SelectedIndex=Math.Clamp(weather.Kind,0,6);
+                WeatherLayer.SelectedIndex=Math.Clamp(weather.Layer,0,1);
+                if(!WeatherSeed.IsKeyboardFocusWithin)WeatherSeed.Text=weather.Seed.ToString();
             }
             WorkStatus.Text=scene.Editing?
                 $"EDIT · room 0x{scene.Room:X8} · {scene.Lights.Count} lights · drag handles in viewport":
@@ -303,6 +325,31 @@ public partial class LightingWorkbench : UserControl
         if(int.TryParse(slider.Tag?.ToString(),out int property))
             Post(33,_selectedFx,property,(int)Math.Round(slider.Value));
     }
+    private void StyleShape_Changed(object sender,SelectionChangedEventArgs e)
+    {
+        if(!_refreshing && _selectedStyle>=0 && StyleShape.SelectedIndex>=0)
+            Post(28,_selectedStyle,7,StyleShape.SelectedIndex);
+    }
+    private void StyleFlicker_Changed(object sender,SelectionChangedEventArgs e)
+    {
+        if(!_refreshing && _selectedStyle>=0 && StyleFlicker.SelectedIndex>=0)
+            Post(28,_selectedStyle,12,StyleFlicker.SelectedIndex);
+    }
+    private void FxLayer_Changed(object sender,SelectionChangedEventArgs e)
+    {
+        if(!_refreshing && _selectedFx>=0 && FxLayer.SelectedIndex>=0)
+            Post(33,_selectedFx,14,FxLayer.SelectedIndex);
+    }
+    private void WeatherKind_Changed(object sender,SelectionChangedEventArgs e)
+    {
+        if(!_refreshing && _selectedWeather>=0 && WeatherKind.SelectedIndex>=0)
+            Post(38,_selectedWeather,1,WeatherKind.SelectedIndex);
+    }
+    private void WeatherLayer_Changed(object sender,SelectionChangedEventArgs e)
+    {
+        if(!_refreshing && _selectedWeather>=0 && WeatherLayer.SelectedIndex>=0)
+            Post(38,_selectedWeather,10,WeatherLayer.SelectedIndex);
+    }
     private void WeatherSlider_Changed(object sender,RoutedPropertyChangedEventArgs<double> e)
     {
         if(_refreshing || _selectedWeather<0 || sender is not Slider slider)return;
@@ -370,7 +417,23 @@ public partial class LightingWorkbench : UserControl
             case "unlink-style":if(_selected>=0){Post(3,_selected);Post(27,-1,0);}break;
             case "new-mask":Post(29);break;
             case "delete-mask":if(_selectedMask>=0)Post(30,_selectedMask,0,0);break;
+            case "move-mask":
+                if(_selectedMask>=0)
+                {
+                    int x=Field(MaskX,0,65535,-1),y=Field(MaskY,0,479,-1);
+                    if(x<0 || y<0){WorkStatus.Text="Mask coordinates must be valid world X/Y.";break;}
+                    Post(30,_selectedMask,1,x);Post(30,_selectedMask,2,y);
+                }
+                break;
             case "new-fx":Post(32,Math.Max(0,FxKind.SelectedIndex));break;
+            case "move-fx":
+                if(_selectedFx>=0)
+                {
+                    int x=Field(FxWorldX,0,65535,-1),y=Field(FxWorldY,0,479,-1);
+                    if(x<0 || y<0){WorkStatus.Text="FX coordinates must be valid world X/Y.";break;}
+                    Post(33,_selectedFx,2,x);Post(33,_selectedFx,3,y);
+                }
+                break;
             case "clone-fx":if(_selectedFx>=0)Post(34,_selectedFx);break;
             case "delete-fx":if(_selectedFx>=0)Post(33,_selectedFx,0,0);break;
             case "rename-fx":if(_selectedFx>=0)TextCommand(41,_selectedFx,FxName.Text,48);break;
@@ -380,6 +443,14 @@ public partial class LightingWorkbench : UserControl
             case "apply-weather":Post(37,weather);break;
             case "unlink-weather":Post(37,-1);break;
             case "rename-weather":TextCommand(40,weather,WeatherName.Text,48);break;
+            case "set-weather-seed":
+                if(_selectedWeather>=0)
+                {
+                    int seed=Field(WeatherSeed,0,65535,-1);
+                    if(seed<0){WorkStatus.Text="Seed must be 0–65535.";break;}
+                    Post(38,_selectedWeather,9,seed);
+                }
+                break;
         }
     }
     public bool TryShortcut(Key key)
