@@ -136,17 +136,31 @@ public sealed class NativeGameHost : IDisposable
         // Wait for the game to publish its PID in the session handshake.
         int pid=_nativeGamePid;
         if(pid<=0 || !NativeProcessAlive(pid))return false;
+        // Reparent the existing SDL handle if the engine detached it after
+        // resizing/fullscreen, rather than accidentally attaching a second
+        // top-level window. Otherwise enumerate only this authenticated PID.
         IntPtr found=IntPtr.Zero;
-        EnumWindows((hwnd,param)=>
+        if(_window!=IntPtr.Zero && IsWindow(_window))
         {
-            GetWindowThreadProcessId(hwnd,out uint process);
-            if(process!=(uint)pid || !IsWindowVisible(hwnd))return true;
-            var className=new System.Text.StringBuilder(128);
-            GetClassName(hwnd,className,className.Capacity);
-            if(!className.ToString().Contains("SDL",StringComparison.OrdinalIgnoreCase))
-                return true;
-            found=hwnd;return false;
-        },IntPtr.Zero);
+            GetWindowThreadProcessId(_window,out uint oldPid);
+            if(oldPid==(uint)pid)found=_window;
+        }
+        if(found==IntPtr.Zero)
+            EnumWindows((hwnd,param)=>
+            {
+                GetWindowThreadProcessId(hwnd,out uint process);
+                if(process!=(uint)pid)return true;
+                var className=new System.Text.StringBuilder(128);
+                GetClassName(hwnd,className,className.Capacity);
+                if(!className.ToString().Contains("SDL",StringComparison.OrdinalIgnoreCase))
+                    return true;
+                // An SDL-created hidden window may already exist before
+                // it first becomes visible. Attach early to avoid a
+                // visible external-window flash.
+                if(found==IntPtr.Zero || IsWindowVisible(hwnd))
+                    found=hwnd;
+                return !IsWindowVisible(hwnd);
+            },IntPtr.Zero);
         if(found==IntPtr.Zero)return false;
         // The game is a genuine resizable Win32 CHILD window of our panel.
         // It owns its SDL input and graphics context. SetWindowPos resizes
