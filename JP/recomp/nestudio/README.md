@@ -16,64 +16,53 @@ The script checks the authentic owner-supplied JP ROM, checks out **feature/nest
 %USERPROFILE%\NEStudio-Preview\NEStudio\NEStudio.exe
 ```
 
-Its initial `EnhancedProject.nestudio` points to the privately generated
-`NEStudio-Preview\AlphaCandidate\Launch-NEStudio-Game.bat`.
-The wrapper supplies the required Japanese ROM path, inherits NEStudio's
-session token and starts the freshly built bridge-enabled native game.
-The private `NEStudio-RomPath.txt` contains only the local ROM pathname,
-not ROM data.
+The generated `EnhancedProject.nestudio` points directly to the freshly
+compiled **`%USERPROFILE%\NEStudio-Preview\AlphaCandidate\jp_akumajou_densetsu.exe`**,
+not a BAT file. The same folder contains `NEStudio-RomPath.txt`, the
+private `SDL2.dll` and optional `CVIII-CHR-Index.dat`.
+NEStudio SHA-verifies the owner-private Japanese ROM and validates that
+the game executable includes the NEStudio session bridge, then launches
+the native executable directly with the positional ROM argument,
+Enhanced settings and asset-index path. The Windows game has its own
+SDL HWND; NEStudio moves that actual HWND into its WinForms viewport.
 
-You can also build the editor independently without a ROM or running game:
+**Run / Attach never executes BAT/CMD/PowerShell and never creates a
+`cmd.exe` window.** Older projects pointing to `Launch-NEStudio-Game.bat`,
+`Build-And-Play.bat` or `Build-Private-Game.bat` resolve to a previously
+compiled private native EXE without executing the script. Save the
+project once to preserve that migrated EXE path. If the native game is
+missing, the editor rejects Run/Attach with instructions to use the
+builder, instead of launching a second external game.
+
+To compile the game, first run `Build-Private-Game.bat` **outside
+Run / Attach**. This builder may show a console while compiling.
+After it finishes, open `Open-Private-Project.bat` or start NEStudio.
+**Do not select a stale `CVIII-Alpha` EXE**; it lacks the current
+versioned session bridge and will be rejected before starting.
+
+The actual SDL parent is rechecked during every poll. A detached HWND
+is reattached rather than being reported as embedded simply because
+the Win32 handle exists. The status distinguishes **Bridge connecting**,
+**Embedding SDL window**, and **Live / viewport embedded**.
+Keyboard input uses NEStudio's session-scoped **Capture Keys** control
+in Play, while mouse picking and lighting gizmos run natively inside
+the real SDL viewport during Edit/Pause. The editor does not mirror
+screenshots or replace the game renderer.
+
+You can also build the ROM-free editor without a running game:
 
 ```powershell
 ./JP/recomp/nestudio/Build-NEStudio.ps1 -Launch
 ```
 
-Pass `-GameFolder "C:\path\to\AlphaCandidate"` to generate a starter
-project referencing a compatible private native game plus its dedicated
-`Launch-NEStudio-Game.bat`. **An old game build without the new NEStudio session bridge will embed the viewport but cannot provide live scene edits**; the recommended private builder rebuilds both halves.
+Pass `-GameFolder "C:\path\to\AlphaCandidate"` only after building
+the authenticated native game to create a starter project linked to
+the **native EXE**. An editor-only artifact cannot include the
+owner-private ROM or native game.
 
-Prerequisites: Windows x64, .NET **8 SDK** to build, and a private original-Japanese-ROM-authenticated native Enhanced build with SDL2.dll. The WPF published build targets the .NET 8 desktop runtime (not included in the editor-only GitHub artifact). No proprietary assets ship in the repository or CI artifact.
-
-## Fixing a separate game window and "Bridge connecting"
-
-The generic Alpha `Play-CVIII.bat` and `Build-And-Play.bat` launchers can
-reuse an old `%USERPROFILE%\CVIII-Alpha\AlphaCandidate` executable
-which has no NEStudio session bridge. This produces a separate game window
-and leaves the editor at **Bridge connecting**. Selecting the bare native
-EXE can also omit the mandatory positional Japanese ROM argument.
-
-Use the private preview build and choose
-`%USERPROFILE%\NEStudio-Preview\AlphaCandidate\Launch-NEStudio-Game.bat`
-in **Set Game / Launcher**. The preview builder verifies that its fresh
-native EXE contains the session bridge symbol before linking the project.
-Do not use old alpha builds for live editor acceptance.
-
-## Using an existing game .bat or .cmd launcher
-
-NEStudio now accepts both an actual native `jp_akumajou_densetsu.exe`
-and a Windows **.bat/.cmd game launcher**.
-
-1. Open a project. Choose **Set Game .exe** (the file selector supports
-   .exe/.bat/.cmd), point it at the existing launcher, then save the project.
-2. Select **Run / Attach**. NEStudio starts that launcher under `cmd.exe`
-   with an inherited private `CVIII_NESTUDIO_SESSION`.
-3. When the actual Enhanced recomp process starts, its C11 bridge publishes
-   **its native Windows process ID**. NEStudio embeds that process's SDL2
-   window in the viewport, rather than trying to embed `cmd.exe`.
-4. **Stop** terminates only NEStudio's own game/session.
-
-A launcher script is **not** itself a game binary. If it only builds the
-program and exits, then the native game still needs to compile and launch
-successfully; this is not a workaround for errors in the private NESRecomp
-build. An unmodified emulator or an older recomp lacking the unique
-NEStudio native bridge will not publish the session/PID handshake and
-therefore cannot supply live editor controls.
-
-This update is available in new NEStudio Windows CI builds. A previously
-downloaded `NEStudio.exe` from an older bundle must be **replaced with the
-new editor binary**; changing only the starter project's JSON path cannot
-retrofit BAT support into the original executable.
+Prerequisites: Windows x64, .NET 8 Desktop runtime (SDK for building),
+Git, CMake, Python, MSVC x64 compiler, SDL2 and the authentic original
+Japanese NES ROM. No proprietary assets ship with the repository.
 
 ## Integrated workstation
 
