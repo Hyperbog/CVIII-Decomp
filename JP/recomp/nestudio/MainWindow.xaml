@@ -2,6 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:wfi="clr-namespace:System.Windows.Forms.Integration;assembly=WindowsFormsIntegration"
+        xmlns:local="clr-namespace:NEStudio"
         Title="NEStudio — Enhanced NES Development Environment"
         Width="1600" Height="970" MinWidth="1140" MinHeight="700"
         WindowStartupLocation="CenterScreen" Background="#0B0D11" Focusable="True"
@@ -126,55 +127,7 @@
           </StackPanel>
           <TabControl x:Name="InspectorTabs" Margin="6,0,6,8" SelectionChanged="InspectorTabs_SelectionChanged">
             <TabItem x:Name="LightingTab" Header="Lighting">
-              <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <StackPanel Margin="10,8,10,12">
-                  <TextBlock Text="LIVE LIGHTING" Foreground="#B0DCF2" FontWeight="Bold" Margin="0,0,0,7"/>
-                  <Button Content="Full Lighting Studio — all features" Click="FullLighting_Click" HorizontalAlignment="Stretch"/>
-                  <Button Content="Compact Lighting Inspector" Click="CompactLighting_Click" HorizontalAlignment="Stretch"/>
-                  <TextBlock Text="Full Studio restores the original native editor: kits, global styles, sky, grading, masks, particles, weather and presets."
-                             Foreground="#CDD9E6" TextWrapping="Wrap" Margin="0,5,0,10"/>
-                  <StackPanel Orientation="Horizontal">
-                    <Button Content="+ Candle" Click="Candle_Click"/>
-                    <Button Content="+ Torch" Click="Torch_Click"/>
-                    <Button Content="Duplicate" Click="Duplicate_Click"/>
-                  </StackPanel>
-                  <StackPanel Orientation="Horizontal">
-                    <Button Content="Delete" Click="DeleteLight_Click"/>
-                    <Button Content="Undo" Click="Undo_Click"/>
-                    <Button Content="Redo" Click="Redo_Click"/>
-                  </StackPanel>
-                  <TextBlock Text="Move tool: Edit / Pause, then drag the white light handle in the game viewport. Undo reverses the drag."
-                             TextWrapping="Wrap" Foreground="#D3E8F6" FontSize="11" Margin="0,9,0,0"/>
-                  <TextBlock Text="Selected Light" FontWeight="SemiBold" Margin="0,8,0,4"/>
-                  <TextBlock x:Name="LightName" Text="No light selected" Foreground="#99D9FF" TextWrapping="Wrap"/>
-                  <TextBlock Text="Radius" Margin="0,11,0,0"/>
-                  <Slider x:Name="LightRadius" Minimum="12" Maximum="160" Tag="2" ValueChanged="LightSlider_Changed"/>
-                  <TextBlock Text="Intensity" Margin="0,9,0,0"/>
-                  <Slider x:Name="LightPower" Minimum="5" Maximum="160" Tag="3" ValueChanged="LightSlider_Changed"/>
-                  <TextBlock Text="Red" Margin="0,9,0,0"/>
-                  <Slider x:Name="LightRed" Minimum="0" Maximum="255" Tag="4" ValueChanged="LightSlider_Changed"/>
-                  <TextBlock Text="Green" Margin="0,9,0,0"/>
-                  <Slider x:Name="LightGreen" Minimum="0" Maximum="255" Tag="5" ValueChanged="LightSlider_Changed"/>
-                  <TextBlock Text="Blue" Margin="0,9,0,0"/>
-                  <Slider x:Name="LightBlue" Minimum="0" Maximum="255" Tag="6" ValueChanged="LightSlider_Changed"/>
-                  <TextBlock Text="Flicker" Margin="0,10,0,0"/>
-                  <ComboBox x:Name="FlickerCombo" SelectionChanged="FlickerCombo_Changed">
-                    <ComboBoxItem Content="Candle"/>
-                    <ComboBoxItem Content="Steady"/>
-                    <ComboBoxItem Content="Torch"/>
-                    <ComboBoxItem Content="Soft Pulse"/>
-                    <ComboBoxItem Content="Ember Dips"/>
-                  </ComboBox>
-                  <Separator Margin="0,15"/>
-                  <TextBlock Text="RENDERER" Foreground="#B0DCF2" FontWeight="Bold"/>
-                  <ComboBox x:Name="RendererCombo" Margin="0,8" SelectionChanged="RendererCombo_Changed">
-                    <ComboBoxItem Content="Standard CPU"/>
-                    <ComboBoxItem Content="GPU One-Bounce"/>
-                    <ComboBoxItem Content="Radiance Cascades"/>
-                  </ComboBox>
-                  <TextBlock Text="Native game is authoritative for live lighting. Other authoring panels save versioned NEStudio project assets." FontSize="11" Foreground="#CDD9E6" TextWrapping="Wrap" Margin="0,10,0,0"/>
-                </StackPanel>
-              </ScrollViewer>
+              <local:LightingWorkbench x:Name="LightingStudio"/>
             </TabItem>
             <TabItem x:Name="SpritesTab" Header="Sprites">
               <ScrollViewer VerticalScrollBarVisibility="Auto">
