@@ -22,6 +22,15 @@ public partial class MainWindow : Window
     private bool _changing;
     private bool _dirty;
     private int _selectedLight=-1;
+    private bool _focusLayout;
+    private bool _drawerOpen;
+    private readonly System.Windows.Media.Brush _selectedWorkspaceBrush=
+        new System.Windows.Media.SolidColorBrush(
+            System.Windows.Media.Color.FromRgb(38,80,105));
+    private readonly System.Windows.Media.Brush _idleWorkspaceBrush=
+        new System.Windows.Media.SolidColorBrush(
+            System.Windows.Media.Color.FromRgb(26,39,52));
+    private int _sceneTreeRevision;
     private string _fingerprint="";
     private string _spriteFingerprint="";
     private string _originalObjectFingerprint="";
@@ -82,6 +91,10 @@ public partial class MainWindow : Window
         LightingStudio.EditRequested=()=>{ReleaseGameKeys();Queue(1);};
         LightingStudio.PlayRequested=()=>{Queue(2);CaptureGameKeys();};
         LightingStudio.LightSelected=slot=>{_selectedLight=slot;Queue(3,slot);};
+        SetWorkspaceVisual();
+        SceneCountLabel.Text="Scene not connected";
+        InspectorTitle.Text="LIGHTING · PROPERTIES";
+        ViewportToolLabel.Text="LIGHT SELECT / DRAG";
         _project.GameExecutable=FindGame();
         _changing=true;
         LanguageCombo.SelectedIndex=0;
@@ -101,6 +114,120 @@ public partial class MainWindow : Window
         Log("Runtime is a separate native recomp process; no ROM assets enter project files.");
         Log("Acceptance log: "+_acceptanceLogPath);
     }
+    private void Workspace_Click(object sender,RoutedEventArgs e)
+    {
+        if(sender is not System.Windows.Controls.Button button)return;
+        InspectorTabs.SelectedItem=button.Tag?.ToString() switch
+        {
+            "lighting"=>LightingTab,
+            "sprites"=>SpritesTab,
+            "dialogue"=>DialogueTab,
+            "assets"=>AssetsTab,
+            _=>LightingTab
+        };
+        SetWorkspaceVisual();
+    }
+
+    private void SetWorkspaceVisual()
+    {
+        if(!IsLoaded)return;
+        (System.Windows.Controls.Button Button,bool Active)[] buttons=
+        {
+            (WorkspaceLighting,LightingTab.IsSelected),
+            (WorkspaceSprites,SpritesTab.IsSelected),
+            (WorkspaceDialogue,DialogueTab.IsSelected),
+            (WorkspaceAssets,AssetsTab.IsSelected)
+        };
+        foreach(var pair in buttons)
+        {
+            pair.Button.Background=pair.Active?
+                _selectedWorkspaceBrush:_idleWorkspaceBrush;
+            pair.Button.BorderBrush=pair.Active?
+                System.Windows.Media.Brushes.LightSkyBlue:
+                new System.Windows.Media.SolidColorBrush(
+                    System.Windows.Media.Color.FromRgb(50,67,82));
+            pair.Button.FontWeight=pair.Active?FontWeights.SemiBold:FontWeights.Normal;
+        }
+        if(LightingTab.IsSelected)
+        {
+            InspectorTitle.Text="LIGHTING · PROPERTIES";
+            ViewportToolLabel.Text="LIGHT SELECT / MOVE";
+        }
+        else if(SpritesTab.IsSelected)
+        {
+            InspectorTitle.Text="SPRITES · ORIGINAL OBJECTS";
+            ViewportToolLabel.Text="PICK SPRITE · CTRL/SHIFT MULTISELECT";
+        }
+        else if(DialogueTab.IsSelected)
+        {
+            InspectorTitle.Text="DIALOGUE · ANNOTATIONS";
+            ViewportToolLabel.Text="TEXT REGION PICKER · AUTHORING ONLY";
+        }
+        else
+        {
+            InspectorTitle.Text="LOCAL REFERENCES";
+            ViewportToolLabel.Text="GAME PREVIEW · READ ONLY";
+        }
+    }
+    private void SceneSearch_Changed(object sender,TextChangedEventArgs e)
+    {
+        if(!IsLoaded)return;
+        RebuildSceneTree();
+    }
+    private void QuickAdd_Click(object sender,RoutedEventArgs e)
+    {
+        if(LightingTab.IsSelected)
+        {
+            LightingStudio.QuickCreateLight();
+            Status("New live light at viewport center; drag its handle to position.");
+        }
+        else if(SpritesTab.IsSelected)
+            AddSpriteGroup_Click(sender,e);
+        else if(DialogueTab.IsSelected)
+            AddDialogue_Click(sender,e);
+        else
+            AddAsset_Click(sender,e);
+    }
+    private void BottomDrawer_Click(object sender,RoutedEventArgs e)
+    {
+        if(sender is not System.Windows.Controls.Button button)return;
+        int index=button.Tag?.ToString()=="events"?0:1;
+        bool same=_drawerOpen && BottomTabs.SelectedIndex==index;
+        _drawerOpen=!same;
+        BottomTabs.SelectedIndex=index;
+        ApplyLayout();
+    }
+    private void FocusLayout_Click(object sender,RoutedEventArgs e)
+    {
+        _focusLayout=!_focusLayout;
+        ApplyLayout();
+    }
+    private void ApplyLayout()
+    {
+        bool docks=!_focusLayout;
+        OutlinerColumn.Width=new GridLength(docks?240:0);
+        InspectorColumn.Width=new GridLength(docks?390:0);
+        OutlinerSplitterColumn.Width=new GridLength(docks?6:0);
+        InspectorSplitterColumn.Width=new GridLength(docks?6:0);
+        OutlinerPanel.Visibility=docks?Visibility.Visible:Visibility.Collapsed;
+        InspectorPanel.Visibility=docks?Visibility.Visible:Visibility.Collapsed;
+        OutlinerSplitter.Visibility=docks?Visibility.Visible:Visibility.Collapsed;
+        InspectorSplitter.Visibility=docks?Visibility.Visible:Visibility.Collapsed;
+        FocusLayoutButton.Content=docks?"Focus View":"Restore Docks";
+        bool bottom=docks && _drawerOpen;
+        BottomRow.Height=new GridLength(bottom?220:0);
+        BottomPanel.Visibility=bottom?Visibility.Visible:Visibility.Collapsed;
+        BottomSplitter.Visibility=bottom?Visibility.Visible:Visibility.Collapsed;
+    }
+
+    private static string SafeCaption(string text)=>text.Length>52?text[..49]+"...":text;
+
+    private static TreeViewItem Folder(string name,bool expanded=true)=>
+        new TreeViewItem{Header=name,IsExpanded=expanded};
+    private bool SearchMatch(string label)=>
+        string.IsNullOrWhiteSpace(SceneSearch.Text) ||
+        label.Contains(SceneSearch.Text.Trim(),StringComparison.OrdinalIgnoreCase);
+
     private static string FindGame()
     {
         string basePath=AppContext.BaseDirectory;
@@ -766,6 +893,7 @@ public partial class MainWindow : Window
     private void InspectorTabs_SelectionChanged(object sender,SelectionChangedEventArgs e)
     {
         if(!IsLoaded || !ReferenceEquals(e.Source,InspectorTabs))return;
+        SetWorkspaceVisual();
         ReleaseGameKeys();
         _placingDialogueRegion=false;
         if(LightingTab.IsSelected)
@@ -1153,7 +1281,24 @@ public partial class MainWindow : Window
                 return;
             }
         }
+        if(e.Key==Key.F11)
+        {
+            FocusLayout_Click(sender,new RoutedEventArgs());
+            e.Handled=true;return;
+        }
         if((Keyboard.Modifiers&ModifierKeys.Control)==0)return;
+        if(e.Key==Key.F && Keyboard.FocusedElement is not System.Windows.Controls.TextBox)
+        {
+            if(_focusLayout){_focusLayout=false;ApplyLayout();}
+            SceneSearch.Focus();SceneSearch.SelectAll();
+            e.Handled=true;return;
+        }
+        if(e.Key==Key.Oem3 && Keyboard.FocusedElement is not System.Windows.Controls.TextBox)
+        {
+            _drawerOpen=!_drawerOpen;
+            BottomTabs.SelectedIndex=1;ApplyLayout();
+            e.Handled=true;return;
+        }
         if(Keyboard.FocusedElement is not System.Windows.Controls.TextBox)
         {
             if(e.Key==Key.D1){InspectorTabs.SelectedItem=LightingTab;e.Handled=true;return;}
