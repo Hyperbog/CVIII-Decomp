@@ -123,6 +123,59 @@ labels, with custom dark ComboBox dropdowns, visible focus borders and
 contrast-preserving selected items. The formerly dark-on-dark ComboBox
 foreground is no longer inherited from the Windows system template.
 
+## WPF Lighting Studio — all authoring controls are in NEStudio
+
+The integrated desktop now uses an independent
+`LightingWorkbench.xaml`/`LightingWorkbench.xaml.cs` in the **Lighting**
+inspector. **No in-game ImGui lighting panel is opened or drawn** while
+`CVIII_NESTUDIO_SESSION` is set. The native SDL game remains a real,
+embedded 256×240 view for presentation, selecting and dragging white
+light handles, and gameplay preview. Standalone native games without
+a NEStudio session retain the original in-game editor.
+
+Lighting inspector pages:
+
+- **Lights:** searchable light/group list, add, copy/paste, duplicate,
+  mute/delete, rename/group, world X/Y, range, strength, RGB presets,
+  cone/shaft shape geometry, angle, flicker, animation speed/depth
+- **Scene:** enabled, ambient color/level, independent sky and hemisphere,
+  facing, one-click Daylight/Moonlight, exposure, temperature, saturation,
+  Standard/GPU/Radiance Cascades renderer and cascade quality
+- **Rigs:** seven original multi-emitter rigs, capture a selected named
+  group as a saved kit, apply/rename/duplicate/delete saved kits
+- **Styles:** capture global styles, link individual lights or whole
+  groups, edit shared color, range, shape, direction and animation
+  across rooms without linking their positions
+- **Masks:** create world-space occlusion rectangles and edit position,
+  size, opacity, softness and deletion
+- **Pixel FX:** enable/disable NES-pixel regions, choose dust, embers,
+  fog, ash, snow, rain, fireflies; edit world region size and position,
+  density, speed, wind, opacity, color, layers, light attachment, and
+  glow; clone and rename
+- **Weather:** six shared templates, room linking/unlinking, profile
+  editing with deterministic seed, particle type, depth, color,
+  chance, period, wind, and opacity
+
+For fastest authoring, enter **Edit / Pause** from the Lighting ribbon,
+select a light by click or list, drag its handle in the viewport, and
+adjust WPF sliders with the game as live visual feedback. Switch to
+**Preview / Play** when finished. Use **Ctrl+Z/Y** for native undo/redo,
+**Ctrl+C/V** to copy/paste a light and **Ctrl+D** to duplicate when
+not editing text. Viewport and inspector show one native authoritative
+model; scene effects continue to persist to the game-local `config.ini`
+and NEStudio project metadata stays separate.
+
+Bridge **v6** appends the original lighting source model snapshots
+and validated authoring operations to the previous v5 mapping without
+moving old fields. Command text is stored in per-command 48-byte
+staging, published before the request sequence. UI sliders collapse
+superseded commands; native `config.ini` saves are deferred until a
+350 ms quiet period (or explicit Save/exit) to avoid disk write bursts.
+The source and original ROM/PPU state are never altered by editor
+lighting. **Both native game and editor must be rebuilt from this
+revision**. Live Windows visual/gizmo parity remains an owner acceptance
+test, not a claim from ROM-free CI.
+
 ## JP0666 — original CHR evidence and safe dialogue replacement proof
 
 **No live guest-text replacement is enabled.** The current v5 bridge
@@ -287,10 +340,9 @@ not semantic decompilation completeness claims.
 
 ## Restored full lighting and viewport tools
 
-**Full Lighting Studio:** In the Lighting inspector, select **Full
-Lighting Studio — all features**. This switches from NEStudio's compact
-inspector to the existing game-owned Dear ImGui lighting editor. The
-original implementation remains authoritative and includes emitter
+**Lighting Studio:** All authoring now lives in the WPF inspector,
+not in the game-owned Dear ImGui lighting editor. The source-native
+implementation remains authoritative and includes emitter
 types/shapes, range, intensity, direction, color, animation, global
 styles, library presets and saved kits, ambient tint, independent
 sky/hemisphere fill, exposure/temperature/saturation grading, particle
