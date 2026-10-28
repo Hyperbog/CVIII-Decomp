@@ -840,7 +840,8 @@ public partial class MainWindow : Window
             ReplacementSafetyStatus.Text="Select an authored dialogue entry in Dialogue mode.";
             return;
         }
-        ReplacementPreview preview=OriginalGlyphCodec.PreviewReplacement(
+        ReplacementPreview preview=OriginalDialogueSafetyGate.Validate(
+            _dialogue,_scene.Room,_scene.FormatterTrace,
             _scene.FormatterCommand,DialogueText.Text);
         ReplacementSafetyStatus.Text=preview.Allowed?
             $"PASS: {preview.OriginalBytes} source bytes = {preview.CandidateBytes} draft bytes; hash {preview.SourceSha256[..12]}. PREVIEW ONLY, never applied to the game.":
