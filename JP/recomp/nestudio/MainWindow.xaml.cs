@@ -1396,8 +1396,19 @@ public partial class MainWindow : Window
             FocusLayout_Click(sender,new RoutedEventArgs());
             e.Handled=true;return;
         }
+        if(e.Key==Key.F5)
+        {
+            if((Keyboard.Modifiers&ModifierKeys.Shift)!=0)
+                Stop_Click(sender,new RoutedEventArgs());
+            else if(!_game.IsRunning)
+                Run_Click(sender,new RoutedEventArgs());
+            else if(_scene?.Editing==true)
+                Play_Click(sender,new RoutedEventArgs());
+            else Pause_Click(sender,new RoutedEventArgs());
+            e.Handled=true;return;
+        }
         if((Keyboard.Modifiers&ModifierKeys.Control)==0)return;
-        if(e.Key==Key.F && Keyboard.FocusedElement is not System.Windows.Controls.TextBox)
+        if(e.Key==Key.F)
         {
             if(_focusLayout){_focusLayout=false;ApplyLayout();}
             SceneSearch.Focus();SceneSearch.SelectAll();
@@ -1428,7 +1439,11 @@ public partial class MainWindow : Window
             e.Handled=true;
             return;
         }
-        if(e.Key==Key.S){Save(false);e.Handled=true;}
+        if(e.Key==Key.S)
+        {
+            Save((Keyboard.Modifiers&ModifierKeys.Shift)!=0);
+            e.Handled=true;
+        }
         else if(e.Key==Key.O){OpenProject_Click(sender,new RoutedEventArgs());e.Handled=true;}
     }
     private void OpenAcceptanceLog_Click(object sender,RoutedEventArgs e)
