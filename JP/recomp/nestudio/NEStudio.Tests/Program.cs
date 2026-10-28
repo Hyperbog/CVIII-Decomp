@@ -5,6 +5,39 @@ static void Check(bool ok,string reason)
 {
     if(!ok)throw new Exception("NEStudio contract failure: "+reason);
 }
+// Original message command geometry and source-coupled dry-run constraints.
+byte[] sourceCommand={0x01,0x20,0x20,0xC0,0xC1,0x00,0xFF};
+Check(OriginalGlyphCodec.TryParse(sourceCommand,out var original,out _)
+      && original is not null && original.Rows.Count==1,
+      "original bounded nametable tile command parsed");
+var sourceTrace=new StudioEc47Trace(1,0x0A,0xEC47,0xB8FF,
+    2,0x32,10,17,3,0,0,0,0,true,120);
+var authored=new StudioDialogue{Trigger="original-ec47-formatter",
+    Room=0x2601,SourceMessageStage=2,SourceMessageByte=0x32};
+var draft=OriginalDialogueSafetyGate.Validate(authored,0x2601,
+    sourceTrace,original,"AZ");
+Check(draft.Allowed && draft.CandidateBytes==sourceCommand.Length,
+      "source-attested exact-geometry A-Z offline candidate");
+Check(!OriginalDialogueSafetyGate.Validate(authored,0x2602,
+      sourceTrace,original,"AZ").Allowed,"wrong room blocked");
+authored.SourceCommandSha256=new string('0',64);
+Check(!OriginalDialogueSafetyGate.Validate(authored,0x2601,
+      sourceTrace,original,"AZ").Allowed,"stale original source hash blocked");
+authored.SourceCommandSha256=original!.SourceSha256;
+Check(!OriginalDialogueSafetyGate.Validate(authored,0x2601,
+      sourceTrace with { Returned=false },original,"AZ").Allowed,
+      "unreturned EC47 invocation blocked");
+Check(!OriginalDialogueSafetyGate.Validate(authored,0x2601,
+      sourceTrace,original,"日本語").Allowed,"unverified glyphs blocked");
+Check(!OriginalDialogueSafetyGate.Validate(authored,0x2601,
+      sourceTrace with { QueueEnd=18 },original,"AZ").Allowed,
+      "changed original command extent blocked");
+byte[] unknownCommand={0x01,0x20,0x20,0xE2,0xFF};
+Check(OriginalGlyphCodec.TryParse(unknownCommand,out var unknown,out _)
+      && !OriginalDialogueSafetyGate.Validate(
+           authored,0x2601,sourceTrace,unknown,"A").Allowed,
+      "unmapped original tile or stale hash blocked");
+
 var project=StudioProject.Create();
 Check(project.SchemaVersion==1,"schema v1");
 Check(project.SpriteGroups.Count>=3,"initial sprite groups");
