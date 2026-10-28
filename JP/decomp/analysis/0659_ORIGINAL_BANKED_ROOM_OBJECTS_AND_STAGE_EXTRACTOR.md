@@ -115,6 +115,32 @@ $B7F7 game-frame source event. This is independently original
 *opcode fetched* reference versus native postcondition parity,
 **not independent Mesen gameplay liveness or 6502 cycle parity**.
 
+## Stage-selector correction — Part 17
+
+The five JP0659 streams are **not evidence for Stage 1 spawn definitions**.
+The original raw0A loader writes the high nibble of each first header byte
+to RAM `$34`; the other header outputs are `$35`, `$36`,
+`$54`, `$72`, `$07A1`, and `$054E`. The authenticated original
+raw0E headers, in `$07A0` selector order 0–4, produce RAM `$34`
+values **`$04, $01, $08, $02, $0B`** respectively.
+**None** produces RAM `$34=$00`. Calling the 30 decoded records
+Level 1 candle/enemy spawns was incorrect.
+
+The private JP0659 exporter now emits derived `header_ram_effects`
+with the exact original 6502 destination registers, plus a
+`ram_0034_zero_stream_count` summary. The packer rejects contradictory
+metadata (without breaking earlier version-one exports that lack it).
+The synthetic smoke includes negative checks for both metadata
+classifications. This is a classification/safety fix, **not** a wider
+camera, gameplay activation implementation, new source-PRG certificate,
+or proof that every `$34=0` object comes from a particular bank.
+
+For a verified Stage 1 actor path, see
+[`0509_MESEN_ACTOR_LIVE_FINDINGS.md`](0509_MESEN_ACTOR_LIVE_FINDINGS.md):
+original raw0A `$84F3 → $8501 → $8B2C` creates two type-`$3D`
+actors under the recorded Stage 1-02 state. That witness is not a
+complete list of Level 1 enemy/candle placements or offscreen schedules.
+
 ## 3. Actual reversible stage resource tooling
 
 `JP/decomp/tools/jp_room_resources_0659.py` provides a **fully
