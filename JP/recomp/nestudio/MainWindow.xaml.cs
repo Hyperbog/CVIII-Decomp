@@ -79,7 +79,7 @@ public partial class MainWindow : Window
         ViewportHost.Child=panel;
         _game.AttachPanel(panel);
         LightingStudio.Send=(op,a,b,c,label)=>Queue(op,a,b,c,label);
-        LightingStudio.EditRequested=()=>{ReleaseGameKeys();Queue(18,0);Queue(17);Queue(1);};
+        LightingStudio.EditRequested=()=>{ReleaseGameKeys();Queue(1);};
         LightingStudio.PlayRequested=()=>{Queue(2);CaptureGameKeys();};
         LightingStudio.LightSelected=slot=>{_selectedLight=slot;Queue(3,slot);};
         _project.GameExecutable=FindGame();
@@ -785,18 +785,6 @@ public partial class MainWindow : Window
             Status("Dialogue authoring mode — runtime text region picking awaits original event/box mappings.");
         }
         else Queue(18,0);
-    }
-    private void FullLighting_Click(object sender,RoutedEventArgs e)
-    {
-        ReleaseGameKeys();
-        Queue(18,0);
-        Queue(16);
-        Status("Full native Lighting Studio enabled — all legacy lighting tools are in the viewport.");
-    }
-    private void CompactLighting_Click(object sender,RoutedEventArgs e)
-    {
-        Queue(17);
-        Status("Compact lighting inspector enabled.");
     }
     private void ObserveOriginalScriptTransitions(StudioScene scene)
     {
