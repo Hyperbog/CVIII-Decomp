@@ -134,6 +134,38 @@ labels, with custom dark ComboBox dropdowns, visible focus borders and
 contrast-preserving selected items. The formerly dark-on-dark ComboBox
 foreground is no longer inherited from the Windows system template.
 
+## JP0666 — original CHR evidence and safe dialogue replacement proof
+
+**No live guest-text replacement is enabled.** The current v5 bridge
+already exports a read-only original $0300 command fragment from an
+authenticated completed $EC47 call. The decoder only maps previously
+source-audited $C0-$D9 Latin tile IDs and literal $00 blank cells.
+All remaining Japanese and punctuation tile IDs display as raw
+hexadecimal until source CHR banking and font semantics are proven.
+
+`JP/decomp/tools/audit_original_chr_glyphs_0666.py --rom <JP NES>`
+SHA-verifies the owner-private cartridge and inventories the 26 tile
+indices across all 16 original 8 KiB CHR banks. Its output is
+non-graphic metadata; it never exports ROM/CHR assets. Different banks
+contain different artwork at identical tile indices, so rendering
+correct Japanese glyphs will require authoritative VRC6 CHR bank and
+palette observations for the actual display frame.
+
+In Dialogue, **Validate Replacement Draft** now requires the authored
+entry to match the *same* completed source-verified bank0A $B8FF to
+fixed $EC47 call, source room/stage/message byte, original $0300
+command extent, and SHA-256 commitment. A stale bound source hash,
+unknown tile/control command, changed row geometry, unverified glyph
+or mismatched event blocks the offline preview. The project persists
+only the source hash and `dry-run` marker, never the source or
+candidate machine bytes. No native runtime overwrite command exists.
+
+Technical proof and remaining parity gates:
+`JP/decomp/analysis/0666_GLYPH_PROVENANCE_REPLACEMENT_SAFETY.md`.
+Next required original-ROM trace: VRC6 CHR register selection and
+producer/consumer ownership of $0300 commands through the PPU flush,
+with Mesen visual parity before any live original text changes.
+
 ## JP0665 — authenticated original `$EC47` formatter and PPU consumer
 
 This is a **v4 native-bridge change**. Rebuild both the editor and the
