@@ -1,6 +1,8 @@
 using System.IO;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
+using System.Text;
 using WinForms = System.Windows.Forms;
 
 namespace NEStudio;
@@ -17,18 +19,20 @@ public sealed class NativeGameHost : IDisposable
     private int _nativeGamePid;
     private bool _batchLauncher;
     private DateTime _launchTimeUtc;
+    private string _runtimeExecutable="";
     private WinForms.Panel? _panel;
     public string Session { get; private set; } = "";
-    public bool IsRunning =>
-        (_process is { HasExited: false }) ||
-        NativeProcessAlive(_nativeGamePid) ||
-        (_batchLauncher && _process is not null &&
-         DateTime.UtcNow-_launchTimeUtc<TimeSpan.FromSeconds(25));
-    public bool IsEmbedded => _window!=IntPtr.Zero && IsWindow(_window);
+    public bool IsRunning => (_process is { HasExited:false }) ||
+        NativeProcessAlive(_nativeGamePid);
+    // A valid HWND is not proof of embedding. SDL may detach/recreate a
+    // top-level window after a mode or display change.
+    public bool IsEmbedded => _window!=IntPtr.Zero && IsWindow(_window) &&
+        _panel is not null && GetParent(_window)==_panel.Handle;
     public int? ProcessId =>
         NativeProcessAlive(_nativeGamePid)?_nativeGamePid:
         (_process is { HasExited: false }?_process.Id:null);
     public bool IsBatchLauncher => _batchLauncher;
+    public string RuntimeExecutable => _runtimeExecutable;
     public TimeSpan StartupElapsed => string.IsNullOrEmpty(Session)?TimeSpan.Zero:DateTime.UtcNow-_launchTimeUtc;
     private static bool NativeProcessAlive(int pid)
     {
@@ -53,38 +57,105 @@ public sealed class NativeGameHost : IDisposable
         panel.BackColor=System.Drawing.Color.FromArgb(8,13,21);
         panel.Resize+=(sender,args)=>Resize();
     }
+    private const string OriginalJpSha256=
+        "958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28";
+
+    private static string ResolveNativeExe(string requested)
+    {
+        string path=Path.GetFullPath(requested);
+        string extension=Path.GetExtension(path).ToLowerInvariant();
+        if(extension==".exe")return path;
+        if(extension is not (".bat" or ".cmd"))
+            throw new InvalidDataException("Select a private Enhanced game EXE or its launcher.");
+        // Run/Attach must NEVER execute a build/launcher BAT, cmd.exe,
+        // Start-Process or another emulator. Instead resolve the actual
+        // session-enabled native program built by our private builder.
+        string folder=Path.GetDirectoryName(path)!;
+        var candidates=new[]
+        {
+            Path.Combine(folder,"jp_akumajou_densetsu.exe"),
+            Path.Combine(folder,"AlphaCandidate","jp_akumajou_densetsu.exe"),
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+                "NEStudio-Preview","AlphaCandidate","jp_akumajou_densetsu.exe")
+        };
+        foreach(string candidate in candidates)
+        {
+            if(File.Exists(candidate) &&
+               File.Exists(Path.Combine(Path.GetDirectoryName(candidate)!,"NEStudio-RomPath.txt")))
+                return candidate;
+        }
+        throw new FileNotFoundException(
+            "This BAT is not a game viewport. Build the owner-private NEStudio game first " +
+            "with Build-Private-Game.bat, then choose " +
+            @"%USERPROFILE%\NEStudio-Preview\AlphaCandidate\jp_akumajou_densetsu.exe" +
+            " in Set Game / Launcher. No external console was opened.",path);
+    }
+
+    private static string ValidatePrivateGame(string executable)
+    {
+        string directory=Path.GetDirectoryName(executable)!;
+        if(!File.Exists(Path.Combine(directory,"SDL2.dll")))
+            throw new FileNotFoundException("Private native game needs SDL2.dll beside its executable.");
+        string hint=Path.Combine(directory,"NEStudio-RomPath.txt");
+        if(!File.Exists(hint))
+            throw new FileNotFoundException(
+                "No authenticated original JP ROM hint. Run Build-Private-Game.bat " +
+                "before attaching the private game.",hint);
+        string rom=File.ReadAllText(hint).Trim().Trim('"');
+        if(!File.Exists(rom))
+            throw new FileNotFoundException("Saved original Japanese ROM location does not exist.",rom);
+        using(var stream=File.OpenRead(rom))
+        {
+            string hash=Convert.ToHexString(SHA256.HashData(stream));
+            if(!hash.Equals(OriginalJpSha256,StringComparison.OrdinalIgnoreCase))
+                throw new InvalidDataException("Saved ROM is not the authenticated original Japanese cartridge.");
+        }
+        // Prevent attaching a stale generic Alpha EXE that opens a separate
+        // window without NEStudio IPC, even when it shares the same filename.
+        string native=Encoding.ASCII.GetString(File.ReadAllBytes(executable));
+        if(!native.Contains("CVIII_NESTUDIO_SESSION",StringComparison.Ordinal))
+            throw new InvalidDataException(
+                "The native game lacks the NEStudio bridge. Rebuild via " +
+                "Build-Private-Game.bat; do not use an older CVIII Alpha executable.");
+        return rom;
+    }
+
     public void Start(string path)
     {
         if(IsRunning)return;
-        // Reclaim an exited previous launch before starting another session.
         if(_process is not null)Stop();
         if(!File.Exists(path))
             throw new FileNotFoundException("Game launcher does not exist.",path);
-        string full=Path.GetFullPath(path);
+        string full=ResolveNativeExe(path);
+        string rom=ValidatePrivateGame(full);
         string directory=Path.GetDirectoryName(full)!;
-        string extension=Path.GetExtension(full).ToLowerInvariant();
-        if(extension is not (".exe" or ".bat" or ".cmd"))
-            throw new InvalidDataException("Select an Enhanced game .exe, .bat, or .cmd launcher.");
-        _batchLauncher=extension is ".bat" or ".cmd";
-        if(!_batchLauncher && !File.Exists(Path.Combine(directory,"SDL2.dll")))
-            throw new FileNotFoundException("Native game directory must contain SDL2.dll.");
         Session=Guid.NewGuid().ToString("N");
         var start=new ProcessStartInfo
         {
-            FileName=_batchLauncher?
-                Path.Combine(Environment.SystemDirectory,"cmd.exe"):full,
+            FileName=full,
             WorkingDirectory=directory,
-            Arguments=_batchLauncher?
-                "/d /s /c \"\""+full+"\"\"":"--edition Enhanced",
             UseShellExecute=false,
-            CreateNoWindow=false // Keep a build/launcher console visible for errors
+            CreateNoWindow=true // never display a BAT/CMD build console
         };
-        // The environment variable is inherited by the real game started
-        // inside cmd.exe. The game advertises its TRUE PID via the bridge.
+        start.ArgumentList.Add(rom);
+        start.ArgumentList.Add("--edition");
+        start.ArgumentList.Add("enhanced");
+        start.ArgumentList.Add("--unlimited-sprites");
+        start.ArgumentList.Add("0");
+        start.ArgumentList.Add("--stable-sprites");
+        start.ArgumentList.Add("0");
+        string assets=Path.Combine(directory,"CVIII-CHR-Index.dat");
+        if(File.Exists(assets))
+        {
+            start.ArgumentList.Add("--asset-index");
+            start.ArgumentList.Add(assets);
+        }
         start.Environment["CVIII_NESTUDIO_SESSION"]=Session;
         _process=Process.Start(start) ??
-            throw new IOException("Could not launch the Enhanced game.");
-        _nativeGamePid=_batchLauncher?0:_process.Id;
+            throw new IOException("Could not launch the private native game.");
+        _nativeGamePid=_process.Id;
+        _runtimeExecutable=full;
+        _batchLauncher=false;
         _launchTimeUtc=DateTime.UtcNow;
         _window=IntPtr.Zero;
     }
@@ -112,17 +183,21 @@ public sealed class NativeGameHost : IDisposable
         // It owns its SDL input and graphics context. SetWindowPos resizes
         // the real SDL drawable, so its mouse mapping remains correct.
         IntPtr originalStyle=GetWindowLongPtr(found,-16);
+        IntPtr originalExtended=GetWindowLongPtr(found,-20);
         long style=originalStyle.ToInt64();
         style&=~(WS_CAPTION|WS_THICKFRAME|WS_MINIMIZEBOX|
                  WS_MAXIMIZEBOX|WS_SYSMENU|WS_POPUP);
         style|=WS_CHILD|WS_VISIBLE;
         SetWindowLongPtr(found,-16,new IntPtr(style));
+        SetWindowLongPtr(found,-20,
+            new IntPtr(originalExtended.ToInt64() & ~WS_EX_APPWINDOW));
         SetParent(found,_panel.Handle);
         int parentError=Marshal.GetLastWin32Error();
         if(GetParent(found)!=_panel.Handle)
         {
             // Do not leave a detached floating SDL window styled as a child.
             SetWindowLongPtr(found,-16,originalStyle);
+            SetWindowLongPtr(found,-20,originalExtended);
             throw new InvalidOperationException(
                 $"Could not embed SDL2 window: Win32 {parentError}");
         }
@@ -215,7 +290,8 @@ public sealed class NativeGameHost : IDisposable
     private const long WS_CAPTION=0x00C00000,WS_THICKFRAME=0x00040000,
        WS_MINIMIZEBOX=0x00020000,WS_MAXIMIZEBOX=0x00010000,
        WS_SYSMENU=0x00080000,WS_POPUP=unchecked((long)0x80000000),
-       WS_CHILD=0x40000000,WS_VISIBLE=0x10000000;
+       WS_CHILD=0x40000000,WS_VISIBLE=0x10000000,
+       WS_EX_APPWINDOW=0x00040000;
     private const uint SWP_NOZORDER=4,SWP_NOACTIVATE=0x10,
                        SWP_FRAMECHANGED=0x20,SWP_SHOWWINDOW=0x40;
     private delegate bool EnumWindowsDelegate(IntPtr hwnd,IntPtr parameter);
