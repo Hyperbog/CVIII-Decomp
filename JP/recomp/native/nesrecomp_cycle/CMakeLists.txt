@@ -50,6 +50,10 @@ if(JP_EDITION_HOST_EXTRAS)
  list(APPEND JP_HOST_SOURCES HOST_EXTRAS
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_edition.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_chr_index_0598.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_whole_room.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_room_gfx.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_room_renderer.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_room_preview.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_chr_audit_0599.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_chr_fetch_0600.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_frame_evidence_0601.c"

@@ -7,6 +7,9 @@
 #include "cyc_core.h"
 #include "cyc_render.h"
 #include "cviii_chr_index_0598.h"
+#include "cviii_whole_room.h"
+#include "cviii_room_gfx.h"
+#include "cviii_room_preview.h"
 #include "cviii_chr_audit_0599.h"
 #include "cviii_chr_fetch_0600.h"
 #include "cviii_frame_evidence_0601.h"
@@ -59,6 +62,13 @@ typedef struct {
     char audio_session_id[33]; /* launcher-supplied private session GUID */
     uint8_t layer_masks[CVIII_LAYER_H];
     CviiiChrIndex assets; /* read-only imported physical CHR; presentation only */
+    CviiiWholeRoomPack rooms; /* immutable owner-local preloaded room resources */
+    CviiiRoomGfx gfx; /* native pattern quads and palette attributes */
+    const CviiiGfxGroup *active_tileset;
+    int room_preview; /* opt-in; original game remains unchanged */
+    uint32_t room_preview_pixels[CVIII_ROOM_PREVIEW_W * CVIII_ROOM_PREVIEW_H];
+    CviiiWholeRoomView active_room;
+    int active_room_valid;
     CviiiChrAudit audit; /* opt-in read-only per-frame bank audit */
     CviiiChrFetchAudit fetch; /* opt-in actual PPU pattern-read observation */
     CviiiFrameEvidence frame_evidence; /* opt-in correlated PPU evidence */
@@ -290,6 +300,24 @@ static bool option(void *context, const char *name, const char *value)
         printf("CVIII: loaded authenticated read-only JP CHR index (8192 tiles); PPU remains authoritative\n");
         return true;
     }
+    if (!strcmp(name, "--room-resources")) {
+        if (!value || !cviii_whole_room_open(&cviii.rooms, value)) {
+            fprintf(stderr,"CVIII: invalid owner-local JP room pack\n");
+            return false;
+        }
+        cviii.active_room_valid=0;
+        return true;
+    }
+    if (!strcmp(name, "--room-preview"))
+        return value && parse_boolean(value,&cviii.room_preview);
+    if (!strcmp(name, "--room-graphics")) {
+        if (!value || !cviii_room_gfx_open(&cviii.gfx,value)) {
+            fprintf(stderr,"CVIII: invalid Japanese metatile pack\n");
+            return false;
+        }
+        cviii.active_tileset=NULL;
+        return true;
+    }
     if (!strcmp(name, "--chr-audit")) {
         if (!value || !cviii_chr_audit_open(&cviii.audit, value)) {
             fprintf(stderr, "CVIII: cannot open requested CHR audit output\n");
@@ -328,6 +356,8 @@ static bool option(void *context, const char *name, const char *value)
 static void power_on(void *context)
 {
     CviiiEdition *settings = (CviiiEdition *)context;
+    settings->active_room_valid=0;
+    settings->active_tileset=NULL;
     /* Both editions must serialize the SAME optional presentation-state
      * schema. NESRecomp registers the 'cyc.background' savestate hook ONLY
      * while capture is enabled. Disabling it in Original makes Original
@@ -368,6 +398,8 @@ static const CviiiLayerFns layer_functions = {layer_read_chr, layer_color, NULL}
 static void state_loaded(void *context)
 {
     CviiiEdition *settings = (CviiiEdition *)context;
+    settings->active_room_valid=0;
+    settings->active_tileset=NULL;
     cviii_layers_reset(&settings->sprite_layers);
     cviii_audio_menu_state_close(&settings->audio_ui); /* loaded gameplay never owns a stale modal */
     cviii_start_close(&settings->start_menu);
@@ -393,6 +425,16 @@ static void frame_begin(void *context)
 static void frame_end(void *context)
 {
     CviiiEdition *settings = (CviiiEdition *)context;
+    /* Read-only lookup; original Japanese RAM selects the active room. */
+    settings->active_room_valid=0;
+    if (settings->rooms.allocation) {
+        const uint8_t *ram=cyc_cpu_ram();
+        if (ram) settings->active_room_valid=cviii_whole_room_find(
+            &settings->rooms,ram[0x34],ram[0x35],ram[0x36],
+            &settings->active_room);
+    }
+    settings->active_tileset=settings->active_room_valid ?
+        cviii_room_gfx_group(&settings->gfx,&settings->active_room) : NULL;
     if (settings->object_trace.out)
         cviii_object_oam_trace_frame(&settings->object_trace,
                                     cyc_cpu_ram(), cyc_ppu_oam());
@@ -596,6 +638,36 @@ static const uint32_t *present(void *context,int *width,int *height)
         return frame;
     return settings->presentation;
 }
+static const uint32_t *present_room_comparison(void *context,int *width,int *height)
+{
+    CviiiEdition *settings=(CviiiEdition *)context;
+    const uint32_t *original=present(context,width,height);
+    if(!settings->enhanced || !settings->room_preview || !original ||
+       *width!=256 || *height!=240 || !settings->active_room_valid ||
+       !settings->active_tileset || !settings->assets.pixels)
+        return original;
+    CviiiRoomRenderSource source={0};
+    source.graphics=&settings->gfx;
+    source.room=&settings->active_room;
+    source.chr=&settings->assets;
+    source.bg_bank_1k[0]=0x40; /* room initialization defaults only */
+    source.bg_bank_1k[1]=settings->active_room.bg_r5;
+    source.bg_bank_1k[2]=settings->active_room.bg_r6;
+    source.bg_bank_1k[3]=0x43;
+    for(unsigned i=0;i<16u;i++) source.palette_argb[i]=cyc_render_color((int)i);
+    unsigned camera=0;
+    const uint8_t *ram=cyc_cpu_ram();
+    if(ram) camera=((unsigned)ram[0x57]<<8)|ram[0x56];
+    unsigned camera_x=(settings->active_room.metadata&0x80u)?0u:camera;
+    unsigned camera_y=(settings->active_room.metadata&0x80u)?camera:0u;
+    if(!cviii_room_preview_compose(&source,original,camera_x,camera_y,
+                                   settings->room_preview_pixels))
+        return original;
+    *width=(int)CVIII_ROOM_PREVIEW_W;
+    *height=(int)CVIII_ROOM_PREVIEW_H;
+    return settings->room_preview_pixels;
+}
+
 static void audio_mix(void *context,int16_t *samples,size_t count)
 {
     const CviiiEdition *settings=(const CviiiEdition *)context;
@@ -627,6 +699,9 @@ static const CycHostOption cviii_options[] = {
     {"--audio-epoch-trace", true, "Owner-local power-on/load epoch row boundaries"},
     {"--asset-index", true,
      "Private read-only 655368-byte JP CHR index (no renderer substitution)"},
+    {"--room-resources", true, "Private Japanese whole-room data pack"},
+    {"--room-graphics", true, "Private Japanese metatile/attribute pack"},
+    {"--room-preview", true, "Experimental original/ROM-derived whole-room comparison (0/1)"},
     {"--chr-audit", true,
      "Developer CSV for sampled VRC6 CHR pages and palette (requires asset index)"},
     {"--chr-fetch-audit", true,
@@ -639,7 +714,7 @@ static const CycHostOption cviii_options[] = {
 
 static CycHostExtras cviii_extra = {
     .ctx = &cviii,
-    .present = present,
+    .present = present_room_comparison,
     .load_setting = load_setting,
     .save_settings = save_settings,
     .power_on = power_on,

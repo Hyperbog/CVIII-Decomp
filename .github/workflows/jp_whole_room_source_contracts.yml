@@ -1,0 +1,34 @@
+name: JP Whole-Room Native Source Contracts
+on:
+  push:
+    paths:
+      - 'JP/recomp/native/enhanced/cviii_whole_room.*'
+      - 'JP/recomp/native/enhanced/cviii_room_gfx.*'
+      - 'JP/recomp/native/enhanced/cviii_room_renderer.*'
+      - 'JP/recomp/native/enhanced/cviii_room_preview.*'
+      - 'JP/recomp/native/enhanced/cviii_edition.c'
+      - 'JP/recomp/tests/whole_room/**'
+      - '.github/workflows/jp_whole_room_source_contracts.yml'
+  pull_request:
+    paths:
+      - 'JP/recomp/native/enhanced/cviii_whole_room.*'
+      - 'JP/recomp/native/enhanced/cviii_room_gfx.*'
+      - 'JP/recomp/native/enhanced/cviii_room_renderer.*'
+      - 'JP/recomp/native/enhanced/cviii_room_preview.*'
+      - 'JP/recomp/native/enhanced/cviii_edition.c'
+      - 'JP/recomp/tests/whole_room/**'
+      - '.github/workflows/jp_whole_room_source_contracts.yml'
+jobs:
+  isolated-contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify exact native host comparison wrapper
+        run: python3 JP/recomp/tests/whole_room/check_host_wrapper.py
+      - name: Build and exercise ROM-free metatile and palette decoder
+        run: |
+          cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic -I JP/recomp/native/enhanced \
+            JP/recomp/native/enhanced/cviii_whole_room.c \
+            JP/recomp/native/enhanced/cviii_room_gfx.c \
+            JP/recomp/tests/whole_room/test_gfx_synthetic.c -o /tmp/cviii-room-contract
+          /tmp/cviii-room-contract
