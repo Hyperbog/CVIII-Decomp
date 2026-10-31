@@ -78,10 +78,11 @@ int main(void) {
     assert(e && e->options && e->option && e->present);
     /* JP0646: all diagnostic CLI options must be advertised to the host,
      * rather than silently unreachable despite an implemented callback. */
-    assert(e->option_count == 19);
+    assert(e->option_count == 22);
     const char *const required[]={
         "--sound-request-trace","--sound-decision-trace",
-        "--dmc-dma-trace","--audio-session-id","--audio-epoch-trace"
+        "--dmc-dma-trace","--audio-session-id","--audio-epoch-trace",
+        "--room-resources","--room-graphics","--room-preview"
     };
     for(size_t i=0;i<sizeof required/sizeof required[0];++i) {
         size_t seen=0;
@@ -98,6 +99,10 @@ int main(void) {
     cviii_audio_menu_close();
     assert(e->audio_mix != NULL);
     assert(!e->option(e->ctx,"--asset-index",(const char *)0));
+    assert(!e->option(e->ctx,"--room-resources",NULL));
+    assert(!e->option(e->ctx,"--room-graphics",NULL));
+    assert(!e->option(e->ctx,"--room-preview","invalid"));
+    assert(e->option(e->ctx,"--room-preview","0"));
     assert(!e->option(e->ctx,"--audio-ui-preview","nonboolean"));
     assert(e->option(e->ctx,"--audio-ui-preview","1"));
     int w=0,h=0;
