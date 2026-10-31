@@ -73,3 +73,6 @@ actual game-owned observer with real NESRecomp headers.
 frame or cycle/interrupt parity, original graphics parity, or authorization to
 bypass the 6502 routine. No TAS or emulator trace data is part of the
 permanent ROM-only reference CSV.
+## JP0660 diagnostic counters (Stage 1 investigation)
+
+After an owner played four Stage 1 areas, the initial bridge reported no completed comparison. This is inconclusive. The opt-in adapter now announces `attached` and prints a `[CVIII native bridge summary]` on **normal process exit**: `operand_reads` (hook alive), `site_reads` (PC $B7F7 / RAM $07A0), `wrong_bank`, `pending_interrupt`, `wrong_context` (RAM $23), `wrong_opcode`, `unsupported`, `entries`, `rts_checked`, `unmatched_rts`, `matched`, `mismatched`, `incomplete_or_untraced`, and `active`. No guest state changes. A forced kill may skip the summary. An interrupt flag set by the last operand read may reflect polling for the *next* instruction; this counter does not imply that the LDA was interrupted.

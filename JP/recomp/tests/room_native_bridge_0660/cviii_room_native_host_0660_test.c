@@ -50,12 +50,35 @@ int main(void) {
  assert(cyc_cpu_ram_read_policy(0xb7f7,0x7a0,ram[0x7a0])==0);
  assert(!bridge.active);
  bank4=0x2b;
+ assert(cyc_cpu_ram_read_policy(0xb7f7,0x200,0x77)==0x77);
  bytecode[0]=0x00;
  assert(cyc_cpu_ram_read_policy(0xb7f7,0x7a0,ram[0x7a0])==0);
  assert(!bridge.active);
  bytecode[0]=0xad;
+ cpu.do_irq=1;
+ assert(cyc_cpu_ram_read_policy(0xb7f7,0x7a0,ram[0x7a0])==0);
+ assert(!bridge.active);
+ cpu.do_irq=0;
+ ram[0x23]=0x0b;
+ assert(cyc_cpu_ram_read_policy(0xb7f7,0x7a0,ram[0x7a0])==0);
+ assert(!bridge.active);
+ ram[0x23]=0x0a;
+ ram[0x7a0]=0xff;
+ assert(cyc_cpu_ram_read_policy(0xb7f7,0x7a0,ram[0x7a0])==0xff);
+ assert(!bridge.active && bridge.skipped==1);
+ ram[0x7a0]=0;
  assert(cyc_cpu_ram_read_policy(0xb7f7,0x7a0,ram[0x7a0])==0);
  assert(bridge.active && bridge.observed_entries==1);
+ CviiiRoomNativeHostDiagnostics0660 stats={0};
+ cviii_bridge0660_diagnostics(&stats);
+ assert(stats.operand_reads==7 && stats.site_reads==6);
+ assert(stats.wrong_bank==1 && stats.wrong_opcode==1);
+ assert(stats.pending_interrupt==1 && stats.wrong_context==1);
+ cpu.pc=0x9999;
+ cyc_cpu_rts_observer();
+ cviii_bridge0660_diagnostics(&stats);
+ assert(stats.rts_while_active==1 && stats.unmatched_rts==1);
+ assert(bridge.active);
  for(unsigned i=0;i<bridge.predicted.mapper_events;i++) {
   CycTraceCycle ev={0};ev.addr=0x8000;ev.kind='W';ev.value=bridge.predicted.mapper_values[i];
   cyc_trace_cycle_hook(&ev);
@@ -67,6 +90,8 @@ int main(void) {
  tick=1112;
  cyc_cpu_rts_observer();
  assert(bridge.passed==1 && bridge.mismatched==0 && !bridge.active);
+ cviii_bridge0660_diagnostics(&stats);
+ assert(stats.rts_while_active==2 && stats.unmatched_rts==1);
  printf("PASS hooked entry at original RAM operand, bank-qualified, RTS compare, CPU/mapper unchanged\n");
  return 0;
 }
