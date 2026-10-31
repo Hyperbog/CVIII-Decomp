@@ -2,6 +2,8 @@
 #include "cyc_host_extras.h"
 #include "cyc_core.h"
 #include "cyc_render.h"
+#include "cpu6502.h"
+#include "cyc_trace.h"
 #include "cviii_chr_fetch_0600.h"
 #include "cviii_nt_trace_0606.h"
 #include "cviii_audio_menu_0620.h"
@@ -13,6 +15,16 @@
  * The isolated ROM-free host test links no guest CPU, so it supplies an
  * explicitly inert counter; this must not be linked into the game binary. */
 uint64_t cyc_cycle_count(void) { return UINT64_C(0); }
+/* JP0660 strict isolated host mock. Production always links the genuine core. */
+Cpu6502 cpu;
+void (*cyc_cpu_rts_observer)(void);
+uint8_t (*cyc_cpu_ram_read_policy)(uint16_t,uint16_t,uint8_t);
+bool cyc_trace_enabled;
+void (*cyc_trace_cycle_hook)(const CycTraceCycle *);
+unsigned hw_prg_bank4(uint16_t addr) { (void)addr; return 0; }
+bool cyc_debug_peek(uint16_t addr,uint8_t *v) {
+    (void)addr; (void)v; return false;
+}
 /* Read-only JP0599 debug interface mocks for isolated host extension test. */
 const uint8_t *cyc_ppu_palette(void) {
     static uint8_t palette[32];
@@ -78,11 +90,12 @@ int main(void) {
     assert(e && e->options && e->option && e->present);
     /* JP0646: all diagnostic CLI options must be advertised to the host,
      * rather than silently unreachable despite an implemented callback. */
-    assert(e->option_count == 22);
+    assert(e->option_count == 23);
     const char *const required[]={
         "--sound-request-trace","--sound-decision-trace",
         "--dmc-dma-trace","--audio-session-id","--audio-epoch-trace",
-        "--room-resources","--room-graphics","--room-preview"
+        "--room-resources","--room-graphics","--room-preview",
+        "--native-room-verify"
     };
     for(size_t i=0;i<sizeof required/sizeof required[0];++i) {
         size_t seen=0;
@@ -99,6 +112,7 @@ int main(void) {
     cviii_audio_menu_close();
     assert(e->audio_mix != NULL);
     assert(!e->option(e->ctx,"--asset-index",(const char *)0));
+    assert(!e->option(e->ctx,"--native-room-verify",NULL));
     assert(!e->option(e->ctx,"--room-resources",NULL));
     assert(!e->option(e->ctx,"--room-graphics",NULL));
     assert(!e->option(e->ctx,"--room-preview","invalid"));

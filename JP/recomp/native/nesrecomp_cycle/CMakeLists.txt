@@ -74,6 +74,8 @@ if(JP_EDITION_HOST_EXTRAS)
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_room_ppu_stream_0658.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_room_state0_0658.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_room_stream_0659.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_room_native_bridge_0660.c"
+  "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_room_native_host_0660.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_session_0614.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_audio_levels_0618.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_virtual_audio_0647.c"

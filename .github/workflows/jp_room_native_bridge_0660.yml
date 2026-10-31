@@ -1,0 +1,44 @@
+name: JP Original Native Room Bridge Contracts
+on:
+  push:
+    branches: [decompilation]
+    paths:
+      - 'JP/recomp/native/enhanced/cviii_room_native_*'
+      - 'JP/recomp/native/enhanced/cviii_room_stream_0659.*'
+      - 'JP/recomp/tests/room_native_bridge_0660/**'
+      - 'JP/recomp/tools/build_room_native_bridge_0660.py'
+      - '.github/workflows/jp_room_native_bridge_0660.yml'
+  pull_request:
+    paths:
+      - 'JP/recomp/native/enhanced/cviii_room_native_*'
+      - 'JP/recomp/native/enhanced/cviii_room_stream_0659.*'
+      - 'JP/recomp/tests/room_native_bridge_0660/**'
+      - 'JP/recomp/tools/build_room_native_bridge_0660.py'
+      - '.github/workflows/jp_room_native_bridge_0660.yml'
+jobs:
+  original-native-c11-bridge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: ROM-free pure original/native postcondition contract
+        run: |
+          cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
+            -I JP/recomp/native/enhanced \
+            JP/recomp/native/enhanced/cviii_room_stream_0659.c \
+            JP/recomp/native/enhanced/cviii_room_native_bridge_0660.c \
+            JP/recomp/tests/room_native_bridge_0660/cviii_room_native_bridge_0660_test.c \
+            -o /tmp/cviii_native_bridge_0660
+          /tmp/cviii_native_bridge_0660
+      - name: ROM-free actual NESRecomp observer boundary contract
+        run: |
+          cc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
+            -I JP/recomp/tests/room_native_bridge_0660/stubs \
+            -I JP/recomp/native/enhanced \
+            JP/recomp/native/enhanced/cviii_room_stream_0659.c \
+            JP/recomp/native/enhanced/cviii_room_native_bridge_0660.c \
+            JP/recomp/native/enhanced/cviii_room_native_host_0660.c \
+            JP/recomp/tests/room_native_bridge_0660/cviii_room_native_host_0660_test.c \
+            -o /tmp/cviii_native_host_0660
+          /tmp/cviii_native_host_0660
+      - name: Importer syntax guard
+        run: python3 -m py_compile JP/recomp/tools/build_room_native_bridge_0660.py

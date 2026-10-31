@@ -10,6 +10,7 @@
 #include "cviii_whole_room.h"
 #include "cviii_room_gfx.h"
 #include "cviii_room_preview.h"
+#include "cviii_room_native_host_0660.h"
 #include "cviii_chr_audit_0599.h"
 #include "cviii_chr_fetch_0600.h"
 #include "cviii_frame_evidence_0601.h"
@@ -64,6 +65,7 @@ typedef struct {
     CviiiChrIndex assets; /* read-only imported physical CHR; presentation only */
     CviiiWholeRoomPack rooms; /* immutable owner-local preloaded room resources */
     CviiiRoomGfx gfx; /* native pattern quads and palette attributes */
+    CviiiRoomNativeBridge0660 room_native_bridge; /* original 6502 execution observer only */
     const CviiiGfxGroup *active_tileset;
     int room_preview; /* opt-in; original game remains unchanged */
     uint32_t room_preview_pixels[CVIII_ROOM_PREVIEW_W * CVIII_ROOM_PREVIEW_H];
@@ -310,6 +312,14 @@ static bool option(void *context, const char *name, const char *value)
     }
     if (!strcmp(name, "--room-preview"))
         return value && parse_boolean(value,&cviii.room_preview);
+    if (!strcmp(name, "--native-room-verify")) {
+        if (!value || !cviii_bridge0660_load(&cviii.room_native_bridge,value) ||
+            !cviii_bridge0660_attach(&cviii.room_native_bridge)) {
+            fprintf(stderr,"CVIII: refused unauthenticated native-room verification pack or occupied CPU observer\n");
+            return false;
+        }
+        return true;
+    }
     if (!strcmp(name, "--room-graphics")) {
         if (!value || !cviii_room_gfx_open(&cviii.gfx,value)) {
             fprintf(stderr,"CVIII: invalid Japanese metatile pack\n");
@@ -358,6 +368,7 @@ static void power_on(void *context)
     CviiiEdition *settings = (CviiiEdition *)context;
     settings->active_room_valid=0;
     settings->active_tileset=NULL;
+    cviii_bridge0660_boundary(&settings->room_native_bridge);
     /* Both editions must serialize the SAME optional presentation-state
      * schema. NESRecomp registers the 'cyc.background' savestate hook ONLY
      * while capture is enabled. Disabling it in Original makes Original
@@ -400,6 +411,7 @@ static void state_loaded(void *context)
     CviiiEdition *settings = (CviiiEdition *)context;
     settings->active_room_valid=0;
     settings->active_tileset=NULL;
+    cviii_bridge0660_boundary(&settings->room_native_bridge);
     cviii_layers_reset(&settings->sprite_layers);
     cviii_audio_menu_state_close(&settings->audio_ui); /* loaded gameplay never owns a stale modal */
     cviii_start_close(&settings->start_menu);
@@ -701,6 +713,7 @@ static const CycHostOption cviii_options[] = {
      "Private read-only 655368-byte JP CHR index (no renderer substitution)"},
     {"--room-resources", true, "Private Japanese whole-room data pack"},
     {"--room-graphics", true, "Private Japanese metatile/attribute pack"},
+    {"--native-room-verify", true, "Opt-in private original $0A:$B7F7 native postcondition observer"},
     {"--room-preview", true, "Experimental original/ROM-derived whole-room comparison (0/1)"},
     {"--chr-audit", true,
      "Developer CSV for sampled VRC6 CHR pages and palette (requires asset index)"},
