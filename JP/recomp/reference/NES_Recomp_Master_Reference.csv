@@ -1,5 +1,6 @@
 Domain,Rows,Canonical_Export,Workbook_Sheet,CSV_SHA256,Verification_Scope,Availability,Last_Indexed_UTC
 CHR,135,CHR.csv,CHR,773c9ce3b84c11246f4d28ea502cc9f60db497634acb885ae037f45f5fcfefd9,Japanese ROM room bank tables; conditional default banks,owner-local,2026-10-31
 LEVELS,130,LEVELS.csv,LEVELS,74a1ce9dd4ab81045740f6959a0b16bef789158df84d8f185ff25c20e46024e8,"Japanese ROM layout headers, metadata and metatile grids",owner-local,2026-10-31
+METATILES,1563,METATILES.csv,METATILES,c1dd89c39cb59b3e0cc51718d0064ff0821e2826e30797a3f2e6bb7d76abd76d,Japanese ROM metatile 4x4 pattern definitions and packed palette attributes,owner-local,2026-10-31
 PRG,135,PRG.csv,PRG,bf98a0b799a3eef0186dd6a63cd464cfc8a42cb98a8aa24f3ee1c3907fdab38b,Japanese ROM selector-code and stage/area/room pointer tables,owner-local,2026-10-31
 VRC6,12,VRC6.csv,VRC6,92c46a8d92f5841222f1784b86dba8bfb1ea969b3902978746ad756d01552367,Japanese ROM-defined IRQ CHR bank profiles; no runtime trace,owner-local,2026-10-31

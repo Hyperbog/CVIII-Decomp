@@ -10,6 +10,7 @@ The sole permanent Git catalog is **`JP/recomp/reference/NES_Recomp_Master_Refer
 | LEVELS | 130 | Room dimensions, orientation metadata and metatile spans |
 | CHR | 135 | ROM-defined room CHR bank selectors and conditional baseline |
 | VRC6 | 12 | ROM-defined IRQ CHR profiles, excluding observed runtime writes |
+| METATILES | 1,563 | Japanese ROM metatile 4x4 tile definitions and packed palette attributes |
 
 Canonical cartridge: *Akumajou Densetsu* (Japan), VRC6 mapper 24, SHA-256 `958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28`.
 
