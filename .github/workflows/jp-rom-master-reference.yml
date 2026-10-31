@@ -1,0 +1,17 @@
+name: JP ROM-only Master Reference
+on:
+  push:
+    paths:
+      - 'JP/recomp/reference/**'
+      - '.github/workflows/jp-rom-master-reference.yml'
+  pull_request:
+    paths:
+      - 'JP/recomp/reference/**'
+      - '.github/workflows/jp-rom-master-reference.yml'
+jobs:
+  validate-master-reference:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate permanent ROM-only master
+        run: python3 JP/recomp/reference/check_master_reference.py

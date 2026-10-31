@@ -1,21 +1,27 @@
-# NES Recomp — stable reference catalog
+# NES Recomp — permanent Japanese ROM-only reference index
 
-This directory contains the **stable Git catalog** of the Japanese ROM technical reference. The canonical master data workbook remains `NES_Recomp_Master_Reference.xlsx` in the **owner-local** `NES_Recomp_Organized/` package, together with one owner-local CSV export per subsystem (`tables/PRG.csv`, `tables/CHR.csv`, etc.).
+The sole permanent Git catalog is **`JP/recomp/reference/NES_Recomp_Master_Reference.csv`**. Update it **at this existing path**; never create a second master or competing version.
 
-## Non-replacement rule
+## Scope: Japanese VRC6 ROM-derived material only
 
-- **Do not delete, rename, recreate from an empty template, or supersede** `NES_Recomp_Master_Reference.csv` with `v2`, `latest`, or another master catalog.
-- Update **the same tracked CSV path** whenever a verified dataset changes. Preserve existing domain records and data provenance; change a row's count, SHA-256, verification scope, and index date only when its corresponding canonical owner-local CSV actually changes.
-- Keep the XLSX workbook at its established owner-local path, editing its existing worksheets instead of replacing the workbook with a different deliverable. Preserve the existing source evidence, verification labels, and historical Git revisions.
-- A CSV has no worksheets. This Git CSV is an **index**, not a substitute for the multi-tab XLSX or the full owner-local CSV tables.
-- No automatic background synchronization is claimed: reference changes must be committed together with each independently verified new extraction. Repository contributors should check and update this index as part of that change.
-- Public Git must not contain commercial ROM bytes, proprietary generated cartridge code, private emulator snapshots, save states, TAS recordings, or owner-local control configurations. This catalog includes hashes and counts, **not** the underlying owner-local files.
-- Canonical ROM target is Japanese *Akumajou Densetsu*, SHA-256 `958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28`, mapper 24 / VRC6. The U.S. MMC5 version is a separate reference.
+| Domain | Records | Evidence |
+| --- | ---: | --- |
+| PRG | 135 | Stage/area/room pointers and effective PRG bank selectors |
+| LEVELS | 130 | Room dimensions, orientation metadata and metatile spans |
+| CHR | 135 | ROM-defined room CHR bank selectors and conditional baseline |
+| VRC6 | 12 | ROM-defined IRQ CHR profiles, excluding observed runtime writes |
 
-## Git cleanup boundary
+Canonical cartridge: *Akumajou Densetsu* (Japan), VRC6 mapper 24, SHA-256 `958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28`.
 
-The legacy `Play-Alpha.bat` and `Play-Original.bat` were identical and obsolete. The current public entry is `JP/recomp/release/alpha/Play-CVIII.bat`. The `Build-Alpha.ps1` cleanup of older private candidate shortcut names is intentionally retained. All other source and historical evidence files were preserved; similar report names do not prove duplicate content.
+**Excluded:** TAS movie input, controller-poll logs, emulator-generated PPU/OAM/palette snapshots, runtime mapper traces, external-document-only RAM crosswalks, and file inventories. The former VRC6 runtime write rows were removed; only 12 code-defined profiles remain.
 
-## Maintenance check
+PPU and OAM categories may return when a directly ROM-derived static dataset exists with verified ROM offsets and source evidence. Empty placeholder categories are prohibited. U.S. MMC5 mappings cannot substitute for Japanese VRC6 source evidence.
 
-Run `python3 JP/recomp/reference/check_master_reference.py`. This validates the master catalog schema, unique domains, SHA formatting, nonempty evidence scope, and count. It cannot assert that private owner-local source tables have been refreshed; the contributor must do that when adding evidence.
+## Maintenance — preserve the permanent master
+
+1. Update each verified owner-local `tables/<DOMAIN>.csv` **at its existing path** and keep source offsets/provenance.
+2. Update the matching worksheet in the existing owner-local `NES_Recomp_Master_Reference.xlsx`.
+3. Run `python3 update_rom_reference.py` locally to validate ROM-only inputs and refresh counts/checksums in the existing master CSV.
+4. Commit the same Git master CSV path with new verified findings; run `python3 JP/recomp/reference/check_master_reference.py`.
+
+GitHub CI validates the index's domain/schema policy. The underlying detailed owner-local CSVs are not in the public repository, so CI cannot verify their contents or automatically synchronize new findings. Updates occur when the extraction is made, not asynchronously.

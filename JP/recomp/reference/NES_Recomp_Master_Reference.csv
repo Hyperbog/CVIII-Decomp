@@ -1,11 +1,5 @@
 Domain,Rows,Canonical_Export,Workbook_Sheet,CSV_SHA256,Verification_Scope,Availability,Last_Indexed_UTC
-CHR,135,CHR.csv,CHR,773c9ce3b84c11246f4d28ea502cc9f60db497634acb885ae037f45f5fcfefd9,"room-selected/conditional background baselines",owner-local,2026-10-30
-CPU_RAM,12,CPU_RAM.csv,CPU_RAM,db00e74d9f9ba1e2060ceedeb12e12c9cffce63a2c596283be8e8eccaa972df0,"documented JP/US crosswalk",owner-local,2026-10-30
-DOCUMENTS,146,DOCUMENTS.csv,DOCUMENTS,bde8738d6bd88fed5a49b04a654fd621fad070a2f63675e4a01f3b1a3203847d,"owner-local source index",owner-local,2026-10-30
-LEVELS,130,LEVELS.csv,LEVELS,74a1ce9dd4ab81045740f6959a0b16bef789158df84d8f185ff25c20e46024e8,"ROM-derived structural geometry",owner-local,2026-10-30
-OAM,15,OAM.csv,OAM,61fdfe0445a52dbfc2ccbfd19b2103d3e0806f1f2e144eceade4717533767487,"unverified gameplay snapshots",owner-local,2026-10-30
-PPU,28,PPU.csv,PPU,1052bfabdb637f0e73d4ec44e6a935962b1b1961e5a87329574aeb9059cd8177,"unverified gameplay snapshots",owner-local,2026-10-30
-PRG,135,PRG.csv,PRG,bf98a0b799a3eef0186dd6a63cd464cfc8a42cb98a8aa24f3ee1c3907fdab38b,"Japanese selector ROM code",owner-local,2026-10-30
-SOURCES,10,SOURCES.csv,SOURCES,84027f6b95f27a60fcf4cd56458aeb99b1624e60f1c8088d53b2b928168f884d,"technical source index",owner-local,2026-10-30
-TAS,330,TAS.csv,TAS,bfed7441e57aef40a01449ca51031537652a74be9f648c0434dceb2c598d97c9,"controller callbacks; no BizHawk gameplay match",owner-local,2026-10-30
-VRC6,3636,VRC6.csv,VRC6,afd0701062ba51a3e6abd721661c0f583e5affb7e8931eb269872b79716b649c,"early emulator trace and ROM-defined profiles",owner-local,2026-10-30
+CHR,135,CHR.csv,CHR,773c9ce3b84c11246f4d28ea502cc9f60db497634acb885ae037f45f5fcfefd9,Japanese ROM room bank tables; conditional default banks,owner-local,2026-10-31
+LEVELS,130,LEVELS.csv,LEVELS,74a1ce9dd4ab81045740f6959a0b16bef789158df84d8f185ff25c20e46024e8,"Japanese ROM layout headers, metadata and metatile grids",owner-local,2026-10-31
+PRG,135,PRG.csv,PRG,bf98a0b799a3eef0186dd6a63cd464cfc8a42cb98a8aa24f3ee1c3907fdab38b,Japanese ROM selector-code and stage/area/room pointer tables,owner-local,2026-10-31
+VRC6,12,VRC6.csv,VRC6,92c46a8d92f5841222f1784b86dba8bfb1ea969b3902978746ad756d01552367,Japanese ROM-defined IRQ CHR bank profiles; no runtime trace,owner-local,2026-10-31
