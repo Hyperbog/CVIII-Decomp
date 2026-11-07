@@ -11,6 +11,7 @@
 #include "cviii_room_gfx.h"
 #include "cviii_room_preview.h"
 #include "cviii_room_native_host_0660.h"
+#include "cviii_stage1_host_0725.h"
 #include "cviii_chr_audit_0599.h"
 #include "cviii_chr_fetch_0600.h"
 #include "cviii_frame_evidence_0601.h"
@@ -66,6 +67,7 @@ typedef struct {
     CviiiWholeRoomPack rooms; /* immutable owner-local preloaded room resources */
     CviiiRoomGfx gfx; /* native pattern quads and palette attributes */
     CviiiRoomNativeBridge0660 room_native_bridge; /* original 6502 execution observer only */
+    CviiiStage1Host0725 stage1_world; /* optional, ROM-authenticated world and actor-source presenter */
     const CviiiGfxGroup *active_tileset;
     int room_preview; /* opt-in; original game remains unchanged */
     uint32_t room_preview_pixels[CVIII_ROOM_PREVIEW_W * CVIII_ROOM_PREVIEW_H];
@@ -206,6 +208,11 @@ static void load_setting(void *context, const char *key, const char *value)
         (void)parse_boolean(value, &cviii.sprite_unlimited);
     else if (!strcmp(key, "StableSprites"))
         (void)parse_boolean(value, &cviii.stable_sprites);
+    else if (!strcmp(key, "Stage1World")) {
+        int enabled;
+        if (value && parse_boolean(value,&enabled))
+            cviii_stage1_host_mode_0725(&cviii.stage1_world,enabled);
+    }
     else (void)cviii_audio_levels_load(&cviii.volume,key,value);
 }
 
@@ -215,6 +222,7 @@ static void save_settings(void *context, FILE *file)
     fprintf(file, "Edition = %s\nUnlimitedSprites = %d\nStableSprites = %d\n",
             cviii.enhanced ? "Enhanced" : "Original",
             cviii.sprite_unlimited, cviii.stable_sprites);
+    fprintf(file, "Stage1World = %d\n", cviii.stage1_world.enabled);
     cviii_audio_levels_save(&cviii.volume,file);
 }
 
@@ -226,6 +234,16 @@ static bool option(void *context, const char *name, const char *value)
         return value && parse_boolean(value, &cviii.sprite_unlimited);
     if (!strcmp(name, "--stable-sprites"))
         return value && parse_boolean(value, &cviii.stable_sprites);
+    if (!strcmp(name, "--stage1-world")) {
+        int enabled;
+        if (!value || !parse_boolean(value,&enabled)) return false;
+        cviii_stage1_host_mode_0725(&cviii.stage1_world,enabled);
+        return true;
+    }
+    if (!strcmp(name, "--stage1-world-rom"))
+        return cviii_stage1_host_rom_0725(&cviii.stage1_world,value)!=0;
+    if (!strcmp(name, "--stage1-resource-cache"))
+        return cviii_stage1_host_cache_0729(&cviii.stage1_world,value)!=0;
     /* Developer overrides only; final interface will use HUD-art sliders.
      * Music/SFX levels persist but do not yet affect the unsplit PCM bus. */
     if (!strcmp(name,"--audio-ui-preview"))
@@ -382,6 +400,7 @@ static void power_on(void *context)
      * Do not recapture in frame_begin: that clears the saved history.
      */
     cviii_layers_reset(&settings->sprite_layers);
+    cviii_stage1_host_reset_0751(&settings->stage1_world);
     cviii_audio_menu_state_close(&settings->audio_ui); /* reset cannot leave a stale modal */
     cviii_start_close(&settings->start_menu);
     cviii_slot_cancel(&settings->slot_menu);
@@ -413,6 +432,7 @@ static void state_loaded(void *context)
     settings->active_tileset=NULL;
     cviii_bridge0660_boundary(&settings->room_native_bridge);
     cviii_layers_reset(&settings->sprite_layers);
+    cviii_stage1_host_reset_0751(&settings->stage1_world);
     cviii_audio_menu_state_close(&settings->audio_ui); /* loaded gameplay never owns a stale modal */
     cviii_start_close(&settings->start_menu);
     cviii_slot_cancel(&settings->slot_menu);
@@ -654,6 +674,14 @@ static const uint32_t *present_room_comparison(void *context,int *width,int *hei
 {
     CviiiEdition *settings=(CviiiEdition *)context;
     const uint32_t *original=present(context,width,height);
+    /* Stage 1 takes precedence over the legacy optional room preview.
+     * The presenter reads only original CPU/PPU state and returns stock
+     * pixels on missing/unauthenticated ROM or in Original mode. */
+    settings->stage1_world.runtime_assets=&settings->assets;
+    const uint32_t *stage=cviii_stage1_host_present_0725(
+        &settings->stage1_world,original,width,height,settings->enhanced);
+    if (settings->enhanced && settings->stage1_world.enabled)
+        return stage;
     if(!settings->enhanced || !settings->room_preview || !original ||
        *width!=256 || *height!=240 || !settings->active_room_valid ||
        !settings->active_tileset || !settings->assets.pixels)
@@ -693,6 +721,12 @@ static const CycHostOption cviii_options[] = {
      "Enhanced experimental 64-OAM sprite compositor (0/1, default 0)"},
     {"--stable-sprites", true,
      "EXPERIMENTAL logical sprite-object layer order with 1-frame history (0/1, default 0)"},
+    {"--stage1-world", true,
+     "Opt-in authenticated original-JP Stage 1 widescreen (0/1, default 0)"},
+    {"--stage1-world-rom", true,
+     "Owner-private authenticated Japanese cartridge path for Stage 1"},
+    {"--stage1-resource-cache", true,
+     "Optional private validated Stage 1 resource cache file"},
     {"--sprite-object-trace", true,
      "Developer owner-local per-frame 28 object fields and 64 hardware OAM entries"},
     {"--audio-ui-preview", true, "Developer only: draw noninteractive authentic health-bar UI"},

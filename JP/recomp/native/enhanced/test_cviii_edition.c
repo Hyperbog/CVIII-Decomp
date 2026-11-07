@@ -64,6 +64,14 @@ const uint8_t *cyc_frame_bg_opaque(void) { static uint8_t mask[256*240]; return 
 /* Host-independent JP0608 layer accessors for headless C11 regression.
  * The independent actual layering tests exercise pixel priorities. */
 static uint8_t mock_oam[256];
+/* JP0832: inert original PPU evidence and wide-mode mocks. They cannot
+ * authenticate any Stage 1 world in the absence of a private ROM. */
+static int stage_video_mode=-1;
+void cyc_video_set_mode(int mode) { stage_video_mode=mode; }
+int cyc_render_line_scroll_x(int y) { (void)y; return 0; }
+int cyc_render_line_scroll_y(int y) { return y; }
+uint16_t cyc_render_line_bg_table(int y) { (void)y; return 0x1000; }
+uint8_t cyc_render_nametable(uint16_t address) { (void)address; return 0; }
 const uint8_t *cyc_render_oam(void) { return mock_oam; }
 const uint8_t *cyc_ppu_oam(void) { return mock_oam; }
 uint8_t cyc_render_chr(uint16_t addr) { (void)addr; return 0; }
@@ -90,12 +98,13 @@ int main(void) {
     assert(e && e->options && e->option && e->present);
     /* JP0646: all diagnostic CLI options must be advertised to the host,
      * rather than silently unreachable despite an implemented callback. */
-    assert(e->option_count == 23);
+    assert(e->option_count == 26);
     const char *const required[]={
         "--sound-request-trace","--sound-decision-trace",
         "--dmc-dma-trace","--audio-session-id","--audio-epoch-trace",
         "--room-resources","--room-graphics","--room-preview",
-        "--native-room-verify"
+        "--native-room-verify",
+        "--stage1-world", "--stage1-world-rom", "--stage1-resource-cache"
     };
     for(size_t i=0;i<sizeof required/sizeof required[0];++i) {
         size_t seen=0;
@@ -118,6 +127,15 @@ int main(void) {
     assert(!e->option(e->ctx,"--room-preview","invalid"));
     assert(e->option(e->ctx,"--room-preview","0"));
     assert(!e->option(e->ctx,"--audio-ui-preview","nonboolean"));
+    assert(!e->option(e->ctx,"--stage1-world","invalid"));
+    assert(!e->option(e->ctx,"--stage1-world-rom",NULL));
+    assert(e->option(e->ctx,"--stage1-world","1"));
+    assert(e->option(e->ctx,"--edition","enhanced"));
+    e->power_on(e->ctx);
+    assert(e->present(e->ctx,&w,&h)==native && w==256 && h==240);
+    assert(stage_video_mode==-1);
+    assert(e->option(e->ctx,"--stage1-world","0"));
+    assert(e->option(e->ctx,"--edition","original"));
     assert(e->option(e->ctx,"--audio-ui-preview","1"));
     int w=0,h=0;
     e->power_on(e->ctx);
