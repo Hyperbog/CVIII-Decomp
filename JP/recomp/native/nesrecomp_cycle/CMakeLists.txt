@@ -89,6 +89,36 @@ if(JP_EDITION_HOST_EXTRAS)
 endif()
 nesrecomp_add_cycle_game(jp_akumajou_densetsu
  ROM "${JP_ORIGINAL_JP_ROM}" ${JP_CYCLE_OPTIONS} ${JP_HOST_SOURCES})
+
+# JP0664: backport default first-gamepad Player-1 routing for the windowed
+# game only; the pinned upstream file and the NES controller/DMA core are unchanged.
+if(NOT JP_CYCLE_HEADLESS)
+ set(JP_INPUT_ORIGINAL "${NESRECOMP_EXTERNAL_ROOT}/runner/cyc/cyc_input.c")
+ set(JP_INPUT_OVERLAY "${NESRECOMP_EXTERNAL_ROOT}/runner/cyc/cviii_cyc_input_p1.c")
+ execute_process(
+  COMMAND "${Python3_EXECUTABLE}"
+   "${CMAKE_CURRENT_LIST_DIR}/../../tools/patch_cyc_controller_first_cause_0664.py"
+   --source "${JP_INPUT_ORIGINAL}" --out "${JP_INPUT_OVERLAY}"
+  RESULT_VARIABLE JP_INPUT_RESULT ERROR_VARIABLE JP_INPUT_ERROR)
+ if(NOT JP_INPUT_RESULT EQUAL 0)
+  message(FATAL_ERROR "JP0664 Player-1 input overlay rejected: ${JP_INPUT_ERROR}")
+ endif()
+ get_target_property(JP_INPUT_BASE_SOURCES jp_akumajou_densetsu SOURCES)
+ set(JP_INPUT_GAME_SOURCES "")
+ set(JP_INPUT_REPLACED 0)
+ foreach(JP_INPUT_FILE IN LISTS JP_INPUT_BASE_SOURCES)
+  if(JP_INPUT_FILE MATCHES "cyc_input\\.c$")
+   list(APPEND JP_INPUT_GAME_SOURCES "${JP_INPUT_OVERLAY}")
+   math(EXPR JP_INPUT_REPLACED "${JP_INPUT_REPLACED} + 1")
+  else()
+   list(APPEND JP_INPUT_GAME_SOURCES "${JP_INPUT_FILE}")
+  endif()
+ endforeach()
+ if(NOT JP_INPUT_REPLACED EQUAL 1)
+  message(FATAL_ERROR "JP0664 expected exactly one upstream cyc_input.c, got ${JP_INPUT_REPLACED}")
+ endif()
+ set_property(TARGET jp_akumajou_densetsu PROPERTY SOURCES "${JP_INPUT_GAME_SOURCES}")
+endif()
 if(JP_EDITION_HOST_EXTRAS)
  target_include_directories(jp_akumajou_densetsu PRIVATE
   "${NESRECOMP_EXTERNAL_ROOT}/runner/cyc"
