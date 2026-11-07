@@ -72,6 +72,21 @@ static void cviiiMesenDmcReference(NesConsole* console, uint64_t cycle,
 def blob_sha(data:bytes)->str:
     return hashlib.sha1(b"blob "+str(len(data)).encode("ascii")+b"\0"+data).hexdigest()
 
+def verified_pinned_bytes(raw:bytes, pin:str=PIN)->bytes:
+    """Accept only the exact pinned Git blob, modulo Windows CRLF checkout.
+
+    MesenCE's .gitattributes uses text=auto: core.autocrlf can change the
+    working-tree bytes while the canonical Git blob remains byte-identical.
+    Reject mixed/stray CR, altered content, and unrelated whitespace changes.
+    """
+    if b"\r" in raw:
+        if raw.count(b"\r")!=raw.count(b"\r\n") or raw.count(b"\r\n")!=raw.count(b"\n"):
+            raise ValueError("MesenCE CPU source has mixed/invalid line endings")
+        raw=raw.replace(b"\r\n",b"\n")
+    if blob_sha(raw)!=pin:
+        raise ValueError("MesenCE original CPU source blob does not match the pinned version")
+    return raw
+
 def generate(source:str)->str:
     if MARK in source:raise ValueError("Already instrumented MesenCE DMC core")
     if source.count(INCLUDE)!=1 or source.count(OLD)!=1:
@@ -102,7 +117,19 @@ def smoke()->None:
         except ValueError:pass
         else:raise AssertionError("Altered/duplicate MesenCE source accepted")
     assert blob_sha(b"test")==hashlib.sha1(b"blob 4\0test").hexdigest()
-    print("PASS JP0651 MesenCE actual DMC-only fetch observer patch and source fail-closed contracts")
+    # Synthetic Git blob pin: LF and Windows CRLF must represent the SAME
+    # pristine source. Real byte changes and mixed EOL must fail closed.
+    original=b"source line one\nsource line two\n"
+    original_pin=blob_sha(original)
+    assert verified_pinned_bytes(original,original_pin)==original
+    assert verified_pinned_bytes(original.replace(b"\n",b"\r\n"),original_pin)==original
+    for altered in (original+b" ",original.replace(b"\n",b"\r"),
+                    b"source line one\r\nsource line two\n",
+                    original.replace(b"one",b"two")):
+        try:verified_pinned_bytes(altered,original_pin)
+        except ValueError:pass
+        else:raise AssertionError("JP0651 accepted changed/mixed-endian pinned source")
+    print("PASS JP0651 MesenCE actual DMC observer, pinned Git blob, Windows CRLF and fail-closed checks")
 
 def main()->None:
     p=argparse.ArgumentParser(description=__doc__)
@@ -117,9 +144,7 @@ def main()->None:
         src=args.source.resolve(strict=True);out=args.out.resolve()
         if src.name!="NesCpu.cpp" or out.name!="NesCpu.cpp" or src==out:
             raise ValueError("Source and patched output must be separate NesCpu.cpp locations")
-        raw=src.read_bytes()
-        if blob_sha(raw)!=PIN:
-            raise ValueError("MesenCE original CPU source blob does not match the pinned version")
+        raw=verified_pinned_bytes(src.read_bytes())
         out.parent.mkdir(parents=True,exist_ok=True)
         out.write_text(generate(raw.decode("utf-8")),encoding="utf-8")
         print("PASS JP0651 generated pinned read-only MesenCE DMC-only source overlay")
