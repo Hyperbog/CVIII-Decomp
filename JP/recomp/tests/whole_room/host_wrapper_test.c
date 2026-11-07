@@ -2,6 +2,7 @@
 /* Compiles the exact installed comparison wrapper, with a synthetic host.
  * This is NOT the full original NESRecomp runtime or gameplay. */
 #include "cviii_room_preview.h"
+#include "cviii_stage1_host_0725.h"
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -17,11 +18,20 @@ typedef struct {
     const CviiiGfxGroup *active_tileset;
     int active_room_valid;
     int room_preview;
+    CviiiStage1Host0725 stage1_world;
     uint32_t room_preview_pixels[CVIII_ROOM_PREVIEW_W*CVIII_ROOM_PREVIEW_H];
 } CviiiEdition;
 static uint8_t synthetic_ram[2048];
 static uint32_t original[256*240];
 static uint32_t palette[16];
+/* Whole-room test isolates the host callback. The real Stage 1 compositor
+ * is checked independently by jp0725_native_framebuffer and the linked
+ * external NESRecomp smoke; this mock reproduces missing-ROM fallback. */
+const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
+    const uint32_t *frame,int *width,int *height,int enhanced) {
+    (void)h;(void)width;(void)height;(void)enhanced;
+    return frame;
+}
 static const uint8_t *cyc_cpu_ram(void) { return synthetic_ram; }
 static uint32_t cyc_render_color(int entry) { return palette[entry&15]; }
 static const uint32_t *present(void *unused,int *w,int *h) {
@@ -33,6 +43,14 @@ static const uint32_t *present_room_comparison(void *context,int *width,int *hei
 {
     CviiiEdition *settings=(CviiiEdition *)context;
     const uint32_t *original=present(context,width,height);
+    /* Stage 1 takes precedence over the legacy optional room preview.
+     * The presenter reads only original CPU/PPU state and returns stock
+     * pixels on missing/unauthenticated ROM or in Original mode. */
+    settings->stage1_world.runtime_assets=&settings->assets;
+    const uint32_t *stage=cviii_stage1_host_present_0725(
+        &settings->stage1_world,original,width,height,settings->enhanced);
+    if (settings->enhanced && settings->stage1_world.enabled)
+        return stage;
     if(!settings->enhanced || !settings->room_preview || !original ||
        *width!=256 || *height!=240 || !settings->active_room_valid ||
        !settings->active_tileset || !settings->assets.pixels)
@@ -58,7 +76,6 @@ static const uint32_t *present_room_comparison(void *context,int *width,int *hei
     *height=(int)CVIII_ROOM_PREVIEW_H;
     return settings->room_preview_pixels;
 }
-
 
 static void select_room(CviiiEdition *s) {
     s->active_room_valid=cviii_whole_room_find(&s->rooms,
@@ -96,6 +113,12 @@ int main(int argc,char **argv) {
     assert(p==original && w==256 && h==240); /* unbound */
     select_room(s);
     assert(s->active_room_valid && s->active_tileset && s->active_room.width==24);
+    /* Stage 1 and old whole-room preview are mutually exclusive: only the
+     * selected renderer owns presentation and default behavior is unchanged. */
+    s->stage1_world.enabled=1;
+    p=present_room_comparison(s,&w,&h);
+    assert(p==original && w==256 && h==240);
+    s->stage1_world.enabled=0;
     uint8_t before[2048];memcpy(before,synthetic_ram,sizeof before);
     p=present_room_comparison(s,&w,&h);
     assert(p==s->room_preview_pixels && w==512 && h==240);
