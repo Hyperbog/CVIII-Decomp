@@ -131,8 +131,10 @@ int main(void) {
     assert(!e->option(e->ctx,"--stage1-world-rom",NULL));
     assert(e->option(e->ctx,"--stage1-world","1"));
     assert(e->option(e->ctx,"--edition","enhanced"));
+    int stage_width=0,stage_height=0;
     e->power_on(e->ctx);
-    assert(e->present(e->ctx,&w,&h)==native && w==256 && h==240);
+    assert(e->present(e->ctx,&stage_width,&stage_height)==native &&
+           stage_width==256 && stage_height==240);
     assert(stage_video_mode==-1);
     assert(e->option(e->ctx,"--stage1-world","0"));
     assert(e->option(e->ctx,"--edition","original"));
