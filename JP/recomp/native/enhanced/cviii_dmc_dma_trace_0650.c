@@ -3,6 +3,7 @@
  */
 #include "cviii_dmc_dma_trace_0650.h"
 #include <inttypes.h>
+#include <stdlib.h>
 #include <string.h>
 static CviiiDmcDmaTrace *active;
 enum { ROW_LIMIT=200000 };
@@ -40,12 +41,22 @@ static int valid_clock(CviiiDmcDmaTrace *t,uint64_t cycle)
 int cviii_dmc_dma_trace_open(CviiiDmcDmaTrace *t,const char *path)
 {
     if(!t || !path || !*path || active)return 0;
+    const char *conflict_path=getenv("CVIII_DMC_CONFLICT_TRACE");
+    /* Refuse accidental truncation of the existing full DMA evidence. */
+    if(conflict_path && *conflict_path && !strcmp(conflict_path,path))return 0;
     FILE *f=fopen(path,"w");
     if(!f)return 0;
+    FILE *cf=NULL;
+    if(conflict_path && *conflict_path){
+        cf=fopen(conflict_path,"w");
+        if(!cf){fclose(f);return 0;}
+    }
     memset(t,0,sizeof(*t));
     t->output=f;
+    t->conflict_output=cf;
     active=t;
-    if(fputs("event,epoch,cycle,cpu_addr,physical,byte,bank8,bytes_before,requested_bank8\n",f)<0){
+    if(fputs("event,epoch,cycle,cpu_addr,physical,byte,bank8,bytes_before,requested_bank8\n",f)<0 ||
+       (cf && fputs("epoch,cycle,dmc_addr,physical,held_cpu_addr,cpu_reading,register_alias,alias_conditions_met\n",cf)<0)){
         cviii_dmc_dma_trace_close(t);return 0;
     }
     return 1;
@@ -55,7 +66,9 @@ void cviii_dmc_dma_trace_close(CviiiDmcDmaTrace *t)
     if(!t)return;
     if(active==t)active=NULL;
     if(t->output)fclose(t->output);
+    if(t->conflict_output)fclose(t->conflict_output);
     t->output=NULL;
+    t->conflict_output=NULL;
 }
 void cviii_dmc_dma_trace_boundary(const char *kind,uint64_t cycle)
 {
@@ -96,4 +109,26 @@ void cviii_dmc_dma_trace_fetch(uint64_t cycle,uint16_t addr,uint32_t physical,
     record(t,name,cycle,(int)addr,(int64_t)physical,(int)value,bank8,
            bytes_before<=65535u?(int)bytes_before:-1,-1);
     ++t->fetches;
+}
+
+/* JP0650: exception-only owner-local diagnostic. Does not access the bus or
+ * change any CPU, controller, APU, VRC6 mapper, DMC or PPU state.
+ * Input contains two already-observed bytes; neither is written to CSV. */
+void cviii_dmc_dma_trace_conflict(uint64_t cycle,uint16_t dmc_addr,
+                                  uint32_t physical,uint8_t actual,
+                                  uint8_t rom_byte,uint16_t held_cpu_addr,
+                                  uint8_t held_cpu_reading)
+{
+    CviiiDmcDmaTrace *t=active;
+    if(!t || !t->output || !t->conflict_output || t->dropped ||
+       actual==rom_byte)return;
+    const unsigned alias=0x4000u | (dmc_addr&0x1Fu);
+    const unsigned candidate=(held_cpu_addr>=0x4000u &&
+        held_cpu_addr<=0x401Fu && alias>=0x4015u && alias<=0x4017u);
+    if(fprintf(t->conflict_output,
+        "%" PRIu32 ",%" PRIu64 ",%u,%" PRIu32 ",%u,%u,%u,%u\n",
+        t->epoch,cycle,(unsigned)dmc_addr,physical,
+        (unsigned)held_cpu_addr,(unsigned)!!held_cpu_reading,
+        alias,candidate)<0 || fflush(t->conflict_output)!=0)++t->faults;
+    else ++t->conflict_rows;
 }
