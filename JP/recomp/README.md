@@ -8,11 +8,12 @@ This is the **active owner-tested C11/SDL2 NESRecomp product** for Japanese *Aku
 | [native/enhanced/](native/enhanced/) | Native Enhanced host modules and optional presentation/research helpers |
 | [tools/](tools/) | Original-ROM authenticated native builder, SDL overlays, assets and packaging |
 | [release/alpha/](release/alpha/) | ROM-free Windows builder, launcher, save-state and controls tools |
+| [release/product/](release/product/) | Private product-candidate staging contract and owner controller/DMA QA instructions |
 | [scenarios/](scenarios/) | Native/reference input replay scenarios |
 | [docs/](docs/) | Current release milestones, product features and QA |
 | [workstreams/native-recompilation/](workstreams/native-recompilation/) | Product-owned feature status and evidence |
 
-To build/play on Windows, begin with [release/alpha/README_ALPHA.md](release/alpha/README_ALPHA.md) and privately supply the original authenticated Japanese cartridge. Current owner-tested features, limitations and acceptance items are in [docs/ENHANCED_CURRENT_STATUS.md](docs/ENHANCED_CURRENT_STATUS.md).
+To build/play on Windows, begin with [release/alpha/README_ALPHA.md](release/alpha/README_ALPHA.md); the [release index](release/README.md) also explains the non-destructive private product-candidate layout and privately supply the original authenticated Japanese cartridge. Current owner-tested features, limitations and acceptance items are in [docs/ENHANCED_CURRENT_STATUS.md](docs/ENHANCED_CURRENT_STATUS.md).
 
 The upstream NESRecomp dependency stays external and is not copied into this repository. Do not commit retail ROMs, generated proprietary C source, save states or owner-local controls.
 
