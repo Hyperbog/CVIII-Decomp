@@ -35,7 +35,7 @@ Version choices preserve the stage-world source/actor module family together and
 - Lighting, weather, particles, editor and GPU sources are preserved but the default `cviii_edition.c` and main CMake integration have not been replaced with unverified competing historical versions.
 - Stage-world, widescreen and original actor VM sources are preserved. Their native host/launch glue, build targets, cross-feature compatibility and real gameplay need separate source-level reconciliation and tests.
 - FamiStudio/audio material and its test helpers are preserved, without declaring it an active replacement for the original sound runtime.
-- The Part 17 room-header corrections to existing files, including `JP/decomp/tools/jp_room_resources_0659.py`, remain in the merge-parent history pending targeted integration.
+- **Post-consolidation integration (2026-11-07):** recovered the original Part 17 room-header classification fix in `JP/decomp/tools/jp_room_resources_0659.py` and its evidence note, and added the archived Part 18 `jp_stage1_actor_sources_0664.py` synthetic smoke to the default regression script. The optional authenticated-ROM invocation now checks both modules, without publishing any proprietary bytes. Independent inspection of the exact authenticated Japanese ROM found original raw0E stream stage-selectors `$04, $01, $08, $02, $0B` (no `$00`). These remain analysis/extraction tools; **no native gameplay activation**, offscreen spawn timeline, mapper timing certification or strict PRG/VPP increase is claimed.
 - New historical workflows may need CI review before being treated as mandatory production gates.
 - No copyrighted retail ROM, NSF or binary release file was introduced.
 

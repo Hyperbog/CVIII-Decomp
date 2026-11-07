@@ -355,3 +355,12 @@ python3 "$root/JP/decomp/tools/jp_room_clear_0658.py" --smoke
 # JP0659 synthetic stage-room source and exact reversible resource geometry.
 python3 "$root/JP/decomp/tools/jp_room_stream_0659.py" --smoke
 python3 "$root/JP/decomp/tools/jp_room_resources_0659.py" --smoke
+# Part 17/18: separated Stage 1 source-cell event/auxiliary resolver;
+# ROM-free tests do not claim actual actor liveness or frame timing.
+python3 "$root/JP/decomp/tools/jp_stage1_actor_sources_0664.py" --smoke
+if [[ -n "$rom" ]]; then
+  # Owner-private, authenticated JP ROM: verify exact original header
+  # classification, source bytes, and Stage 1 conditional source cells.
+  python3 "$root/JP/decomp/tools/jp_room_resources_0659.py" --rom "$rom" --roundtrip
+  python3 "$root/JP/decomp/tools/jp_stage1_actor_sources_0664.py" --rom "$rom"
+fi
