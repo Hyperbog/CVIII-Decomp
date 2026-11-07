@@ -81,6 +81,22 @@ python3 JP/decomp/tools/jp_mesen_dmc_dma_compare_0651.py \
   --json "/private/JP0651-DMA-pair-summary.json"
 ```
 
+If the native JP0650 verifier reports any ROM-byte divergences,
+capture the exception-only owner-local CSV in that SAME native run with
+`CVIII_DMC_CONFLICT_TRACE` (the merged JP0650 read-only extension),
+and append:
+
+    --conflicts "/private/CVIII-DMC-Conflicts.csv"
+
+The sidecar is **required only when native sample bytes differ from
+authenticated PRG bytes**. It contains no sample byte values. Its row
+count and in-order cycle, CPU/physical source, power epoch, held CPU
+read address, and 2A03 `$4015-$4017` register alias are rechecked
+against every actual native mismatch; `cpu_reading=1` and
+`alias_conditions_met=1` are required. Missing, extra, duplicated,
+forged, or unclassified sidecar records fail closed. A sidecar alone
+is not proof of reference parity or capture provenance.
+
 The original SHA-256-pinned ROM must match
 `958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28`.
 Neither the cartridge, generated sample bytes, full private logs,
@@ -93,18 +109,33 @@ The independently recorded Mesen CSV has:
 and possible **rejected** `trace_limit`.
 
 The JP0650 native CSV is also revalidated using the existing
-source-authenticated ROM, mapper bank/page, epoch and byte checks.
+source-authenticated ROM, mapper bank/page, epoch and event checks.
+Normal fetches must match cartridge PRG bytes exactly. The ONLY
+exception is a recorded, validated, same-session JP0650 held-CPU
+register-conflict row for that specific native fetch ordinal.
+The native mismatch's **actual bus-returned byte is never changed,
+replaced, inferred or ignored**. The MesenCE reference may differ from
+ROM only at those classified ordinals and must produce the same
+returned byte as native, not a substituted pristine ROM byte.
+All other byte differences remain a hard failure.
 JP0651 demands **one native power-on epoch**, with no save/load,
 at least two DMA gets in each trace, one-to-one fetch count and order,
 and identical CPU address, mapped PRG offset and sample byte at every
 ordinal. Consecutive fetch **CPU cycle gaps** must match *exactly*.
 An overall constant cycle offset is reported explicitly, not
 interpreted as perfect cycle-number identity or hidden by averaging.
-The combined JSON report includes counts, observed bank IDs and
-an offset, **never the source PCM byte payload**.
+The combined JSON report includes counts, observed bank IDs, verified
+native conflict-fetch count, number of ordinary ROM-byte fetches,
+and an offset, **never the source PCM byte payload**. When classified
+hardware conflicts are present, `original_rom_byte_sequence_match`
+is correctly `false`, while `actual_returned_dma_byte_sequence_match`
+must be `true`. This does not relax source address, physical mapping,
+event count/order or consecutive CPU-cycle gap checks.
 
 Malformed/omitted/duplicated/reordered/altered reads, physical bank
-changes, fixed-PRG31 misuse, ROM-byte mismatches, clock drift,
+changes, fixed-PRG31 misuse, **unclassified** ROM-byte mismatches,
+mismatched native/Mesen returned bytes even for classified conflicts,
+clock drift,
 invalid epochs, bank-write/fetch contradictions, and truncated files
 are all **hard failures**. A valid syntax-only CSV or fabricated
 positive smoke fixture cannot establish an independently executed
@@ -119,6 +150,10 @@ anchors, the single real DMC read, and fail-closed duplicate
 instrumentation. `jp_mesen_dmc_dma_compare_0651.py --smoke` compares
 4 synthetic fetches spanning hypothetical mapper banks 17 and 3 plus
 fixed PRG31, with 20+ deliberately damaged ordering/cycle/source cases.
+Additional synthetic JP0650 sidecar tests cover an authorized
+`$4015` DMC conflict and rejected missing/extra/forged records,
+incorrect held CPU state, changes to Mesen's actual conflict byte,
+unclassified Mesen corruption and cycle drift.
 Both are wired into the existing Windows SDL2 Alpha and Linux NESRecomp
 workflows. No real retail-JP game capture or MesenCE compile occurs in
 these automated tests.
