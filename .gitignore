@@ -31,3 +31,28 @@ JP/recomp/release/alpha/control-backups/
 # Generated Python caches are never source artifacts.
 __pycache__/
 *.py[cod]
+
+# Build products, intermediate compilers and owner-local candidates.
+# Preserve tracked sources; these patterns only prevent accidental new media.
+**/CMakeFiles/
+**/CMakeCache.txt
+**/cmake_install.cmake
+**/_private_original_rom_build/
+**/_external/
+**/_external_nesrecomp/
+**/AlphaCandidate/
+**/ProductCandidate*/
+**/build/
+**/dist/
+**/out/
+*.obj
+*.o
+*.pdb
+*.ilk
+*.exe
+*.dll
+CVIII-Alpha-*-PRIVATE.zip
+CVIII-DMC-DMA.csv
+Mesen-DMC-DMA.csv
+Controller-Host.txt
+PRODUCT_CANDIDATE.json
