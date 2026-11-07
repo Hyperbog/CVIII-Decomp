@@ -78,7 +78,7 @@ def check_build(source: Path) -> dict:
 
 def stage(source: Path, destination: Path, manifest: Path, qa_doc: Path) -> dict:
     source = source.resolve(strict=True)
-    destination = destination.absolute()
+    destination = destination.resolve(strict=False)  # normalize Windows paths/junctions too
     if not source.is_dir() or destination.exists():
         raise ValueError("Need an existing AlphaCandidate and a NEW output directory")
     if source == destination or source in destination.parents or destination in source.parents:
