@@ -21,6 +21,17 @@ int main(void)
     assert(t.epoch==0u && t.rows==0u);
     cviii_dmc_dma_trace_boundary("power_on",100);
     assert(t.epoch==1u && t.rows==1u);
+    /* Synthetic sample-byte disagreement: no original game data. */
+    const char *conflict_file="jp0650_dmc_conflicts_synthetic.csv";
+    t.conflict_output=fopen(conflict_file,"w");
+    assert(t.conflict_output);
+    cviii_dmc_dma_trace_conflict(110,0xC015u,17u*8192u+21u,
+                                 0xA5u,0xA5u,0x4016u,1u); /* match: no row */
+    cviii_dmc_dma_trace_conflict(111,0xC015u,17u*8192u+21u,
+                                 0xA4u,0xA5u,0x4016u,1u); /* alias $4015 */
+    cviii_dmc_dma_trace_conflict(112,0xC034u,17u*8192u+52u,
+                                 0xA4u,0xA5u,0x6000u,1u); /* no alias */
+    assert(t.conflict_rows==2u && t.rows==1u && t.faults==0u);
     cviii_dmc_dma_trace_bank_write(101,0xC003u,0x91u);
     cviii_dmc_dma_trace_fetch(120,0xC040u,17u*8192u+64u,0xA5u,17u);
     cviii_dmc_dma_trace_fetch(121,0xD000u,17u*8192u+4096u,0x2Au,16u);
@@ -59,6 +70,15 @@ int main(void)
     fclose(f);
     assert(n==t.rows);
     assert(remove(file)==0);
+    f=fopen(conflict_file,"r");
+    assert(f);
+    assert(fgets(line,sizeof line,f));
+    assert(!strcmp(line,"1,111,49173,139285,16406,1,16405,1\n"));
+    assert(fgets(line,sizeof line,f));
+    assert(!strcmp(line,"1,112,49204,139316,24576,1,16404,0\n"));
+    assert(!fgets(line,sizeof line,f));
+    fclose(f);
+    assert(remove(conflict_file)==0);
     assert(cviii_dmc_dma_trace_open(&another,file));
     cviii_dmc_dma_trace_boundary("power_on",200u);
     another.rows=200000u; /* simulate a full private recording */
@@ -73,6 +93,6 @@ int main(void)
     assert(!fgets(line,sizeof line,f));
     fclose(f);
     assert(remove(file)==0);
-    puts("PASS JP0650 exact DMA fetch physical bank, mapper request, epochs, failed-map and cycle checks");
+    puts("PASS JP0650 DMA structure and read-only held-CPU register-conflict sidecar");
     return 0;
 }

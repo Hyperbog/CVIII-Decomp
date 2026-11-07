@@ -24,10 +24,20 @@ APU_NEW='''static void dmc_dma_get(void)
     const uint16_t observed_addr=apu.dmc_addr;
     const uint32_t observed_phys=hw_cart.prg_off[(observed_addr>>12)&7u] |
                                  (observed_addr&0x0FFFu);
+    /* Read held CPU state BEFORE this one original hardware bus access. */
+    const uint16_t observed_cpu_hold=hw.cpu_addr;
+    const uint8_t observed_cpu_reading=hw.cpu_reading;
     apu.dmc_buffer = hw_bus_read(apu.dmc_addr);
-    if(hw_cart.mapper==24)
+    if(hw_cart.mapper==24) {
         cviii_dmc_dma_trace_fetch(hw.cycles,observed_addr,observed_phys,
-                                 apu.dmc_buffer,apu.dmc_bytes);'''
+                                 apu.dmc_buffer,apu.dmc_bytes);
+        /* Sidecar compares the already-returned bus byte with the original
+         * mapped PRG byte. No second bus access or guest-state change. */
+        if(observed_phys<hw_cart.prg_len)
+            cviii_dmc_dma_trace_conflict(hw.cycles,observed_addr,
+                observed_phys,apu.dmc_buffer,hw_cart.prg[observed_phys],
+                observed_cpu_hold,observed_cpu_reading);
+    }'''
 MAPPER_OLD='''void hw_cart_cpu_write(uint16_t addr, uint8_t value)
 {
     /* JP0610: VRC6's three audio voices plus $9003 global control;'''
@@ -76,6 +86,10 @@ def smoke()->None:
             assert new.count('hw_bus_read(apu.dmc_addr)')==1
             assert 'observed_phys=hw_cart.prg_off' in new
             assert 'apu.dmc_bytes' in new
+            assert new.count('cviii_dmc_dma_trace_conflict(')==1
+            assert 'observed_cpu_hold=hw.cpu_addr' in new
+            assert 'observed_cpu_reading=hw.cpu_reading' in new
+            assert 'observed_phys<hw_cart.prg_len' in new
         else:
             assert 'addr&0xF000u)==0xC000u' in new
         for damaged in (new,old.replace(INCLUDE,'// lost JP0610 include'),
@@ -84,7 +98,7 @@ def smoke()->None:
             try:patch(damaged,kind)
             except ValueError:continue
             raise AssertionError("JP0650 accepted changed/duplicate pinned source")
-    print("PASS JP0650 actual DMC bus-get and mapper24 bank-intent private overlays, no duplicate reads")
+    print("PASS JP0650 DMA observer, held CPU conflict context, no duplicate bus reads")
 
 def main()->None:
     parser=argparse.ArgumentParser(description=__doc__)

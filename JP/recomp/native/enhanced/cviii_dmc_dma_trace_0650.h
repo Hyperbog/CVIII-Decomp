@@ -7,8 +7,8 @@
 #include <stdint.h>
 #include <stdio.h>
 typedef struct {
-    FILE *output;
-    uint64_t rows, fetches, bank_requests, faults, dropped, last_cycle;
+    FILE *output, *conflict_output;
+    uint64_t rows, conflict_rows, fetches, bank_requests, faults, dropped, last_cycle;
     uint32_t epoch;
     unsigned seen_cycle;
 } CviiiDmcDmaTrace;
@@ -20,6 +20,14 @@ void cviii_dmc_dma_trace_close(CviiiDmcDmaTrace *trace);
 void cviii_dmc_dma_trace_fetch(uint64_t cycle, uint16_t addr,
                                uint32_t physical, uint8_t read_value,
                                unsigned bytes_before);
+/* Opt-in exception-only sidecar. Read-only: caller supplies expected PRG byte,
+ * actual hw_bus_read result, and CPU address/RW sampled BEFORE the bus read.
+ * Never performs another hardware read or writes a guest register.
+ * Sidecar contains no original ROM sample bytes. */
+void cviii_dmc_dma_trace_conflict(uint64_t cycle, uint16_t dmc_addr,
+                                  uint32_t physical, uint8_t actual,
+                                  uint8_t rom_byte, uint16_t held_cpu_addr,
+                                  uint8_t held_cpu_reading);
 /* Observe CPU's mapper24 $Cxxx bank-register write intent, BEFORE
  * upstream vrc6_write commits mapping. This is not installed-bank proof. */
 void cviii_dmc_dma_trace_bank_write(uint64_t cycle, uint16_t addr,

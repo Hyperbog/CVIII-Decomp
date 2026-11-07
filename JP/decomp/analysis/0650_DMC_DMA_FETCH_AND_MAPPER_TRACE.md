@@ -66,6 +66,29 @@ Append these arguments to the **existing known-good** launch arguments
 
     --dmc-dma-trace "C:\Private\CVIII-DMC-DMA.csv"
 
+For exception-only read-only diagnostics, optionally set
+`CVIII_DMC_CONFLICT_TRACE` to a **different** owner-private CSV path
+before launching the already-built game. This requires rebuilding the
+native executable from the branch containing this change. For example:
+
+    $env:CVIII_DMC_CONFLICT_TRACE = "C:\Private\DMC-Conflicts.csv"
+    # Launch the game with the existing --dmc-dma-trace argument.
+    Remove-Item Env:\CVIII_DMC_CONFLICT_TRACE
+
+The optional sidecar preserves the original JP0650 CSV's strict schema.
+Its fields are `epoch,cycle,dmc_addr,physical,held_cpu_addr,cpu_reading,
+register_alias,alias_conditions_met`, where `register_alias` is
+`$4000 | (dmc_addr & $1F)`. The alias flag marks the exact held-address
+and register-alias conditions checked by pinned NESRecomp; the held CPU
+R/W state is reported separately, not inferred. Only fetches where
+the **already-returned DMC bus value differs from the mapped PRG byte**
+are written. Neither the ROM byte nor the returned sample byte is
+written to this sidecar. There is no additional hardware bus read,
+mapper write, or change to CPU, APU, DMA, PPU, controller, or timing.
+A missing/unwritable optional sidecar path fails trace setup rather
+than claiming a successful observation. Do not use the same path as
+the full DMC CSV.
+
 Play a known scene with sound effects, then exit normally. The CSV
 contains **individual original Japanese ROM-derived sample bytes**:
 do **not** commit it, upload it to GitHub, attach it publicly or
