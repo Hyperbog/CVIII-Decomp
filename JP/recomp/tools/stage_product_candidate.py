@@ -176,7 +176,7 @@ def smoke() -> None:
             assert not (output / "game" / prohibited).exists()
         for action in (
             lambda: stage(alpha, output, manifest, qa),
-            lambda: stage(alpha, root / "unsafe", manifest, qa),
+            lambda: stage(alpha, alpha / "nested", manifest, qa),
         ):
             try:
                 action()
