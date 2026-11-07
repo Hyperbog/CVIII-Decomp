@@ -1,0 +1,25 @@
+name: JP0823 Local Debug Source Bundle
+on:
+  push:
+    branches: [jp0813-level1-source-world-lifetime]
+    paths: [.github/workflows/jp0823_source_checkout.yml]
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Upload public source for isolated local regression
+        uses: actions/upload-artifact@v4
+        with:
+          name: jp0823-source-bundle
+          path: |
+            JP/recomp/native/enhanced/
+            JP/recomp/native/nesrecomp_cycle/
+            JP/decomp/tools/
+            .github/workflows/jp_alpha_windows.yml
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 1

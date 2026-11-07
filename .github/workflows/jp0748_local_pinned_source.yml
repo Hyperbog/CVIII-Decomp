@@ -1,0 +1,50 @@
+name: JP0748 Local Pinned CPU-DMA Diagnostics Source (ROM-free)
+# Experimental-only; NEVER run on normal PR updates.
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/jp0748_local_pinned_source.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  diagnostic-source:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: mstan/nesrecomp
+          ref: 2b4fcdb98c9e702be3fb365cfc645003c50b5fc1
+          path: _external_nesrecomp
+          persist-credentials: false
+      - name: Assemble pinned source without original ROM or third-party game data
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q "PolyForm Noncommercial License 1.0.0" _external_nesrecomp/LICENSE
+          test ! -f 'Akumajou Densetsu (Japan).nes'
+          test ! -f 'JP/Akumajou Densetsu (Japan).nes'
+          test -f _external_nesrecomp/runner/cyc/cyc.cmake
+          tar -czf jp0748_pinned_runner_sources.tar.gz \
+             -C _external_nesrecomp \
+             --exclude='*.nes' --exclude='*.nsf' --exclude='*.fds' \
+             LICENSE runner common recompiler
+          tar -tzf jp0748_pinned_runner_sources.tar.gz | grep 'runner/cyc/hw_apu.c' > /dev/null
+          sha256sum jp0748_pinned_runner_sources.tar.gz > jp0748_pinned_runner_sources.tar.gz.sha256
+          tar -czf jp0748_game_owned_native_diagnostics.tar.gz JP/recomp/native JP/recomp/tools JP/decomp/tools
+          sha256sum jp0748_game_owned_native_diagnostics.tar.gz > jp0748_game_owned_native_diagnostics.tar.gz.sha256
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: jp0748-source-pinned-cycle-runner-no-media
+          if-no-files-found: error
+          retention-days: 3
+          path: |
+            jp0748_pinned_runner_sources.tar.gz
+            jp0748_pinned_runner_sources.tar.gz.sha256
+            jp0748_game_owned_native_diagnostics.tar.gz
+            jp0748_game_owned_native_diagnostics.tar.gz.sha256

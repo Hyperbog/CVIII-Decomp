@@ -1,0 +1,48 @@
+name: JP0828 Original Detached Actor CPU Gate
+on:
+  push:
+    branches: [jp0813-level1-source-world-lifetime]
+    paths:
+      - '.github/workflows/jp0828_virtual_cpu_gate.yml'
+      - 'JP/recomp/native/enhanced/cviii_virtual_*0828*'
+      - 'JP/recomp/native/enhanced/cviii_actor_vm_0827.h'
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: GCC strict C11 native detached actor test
+        run: |
+          set -euo pipefail
+          gcc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
+            -IJP/recomp/native/enhanced \
+            JP/recomp/native/enhanced/cviii_virtual_3d_test_0828.c \
+            -o /tmp/jp0828
+          /tmp/jp0828
+      - name: Clang sanitizer detached 6502 and collision input tests
+        run: |
+          set -euo pipefail
+          clang -std=c11 -O1 -g -Wall -Wextra -Werror -pedantic \
+            -fsanitize=address,undefined -fno-omit-frame-pointer \
+            -IJP/recomp/native/enhanced \
+            JP/recomp/native/enhanced/cviii_virtual_3d_test_0828.c \
+            -o /tmp/jp0828_asan
+          /tmp/jp0828_asan
+      - name: Bundle open-source actor execution test files only
+        uses: actions/upload-artifact@v4
+        with:
+          name: jp0828-virtual-6502-public-source
+          retention-days: 1
+          if-no-files-found: error
+          path: |
+            JP/recomp/native/enhanced/cviii_actor_vm_0827.h
+            JP/recomp/native/enhanced/cviii_virtual_3d_0828.h
+            JP/recomp/native/enhanced/cviii_virtual_collision_0828.h
+            JP/recomp/native/enhanced/cviii_virtual_3d_test_0828.c
+            JP/recomp/native/enhanced/cviii_wide_instance_0826.h
+            JP/recomp/native/enhanced/cviii_wide_source_admission_0825.h
+            JP/recomp/native/enhanced/cviii_horizontal_sources_0816.h
+            JP/recomp/native/enhanced/cviii_contact_effects_0821.h

@@ -1,0 +1,50 @@
+name: Optional CVIII ReShade Add-on Compile
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [decompilation]
+    paths:
+      - "JP/recomp/reshade/**"
+      - "JP/recomp/native/enhanced/cviii_lighting.h"
+      - ".github/workflows/jp_reshade_addon_windows.yml"
+  push:
+    branches: [decompilation, feature/enhanced-lighting-foundation]
+    paths:
+      - "JP/recomp/reshade/**"
+      - "JP/recomp/native/enhanced/cviii_lighting.h"
+      - ".github/workflows/jp_reshade_addon_windows.yml"
+jobs:
+  build-sdk-addon:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch pinned official ReShade SDK and its Dear ImGui headers
+        shell: pwsh
+        run: |
+          $sdk = Join-Path $env:RUNNER_TEMP 'reshade-sdk'
+          git clone --depth 1 --branch v6.8.0 https://github.com/crosire/reshade.git $sdk
+          if ($LASTEXITCODE -ne 0) { throw 'ReShade 6.8 SDK checkout failed' }
+          git -C $sdk submodule update --init --depth 1 deps/imgui
+          if ($LASTEXITCODE -ne 0) { throw 'ReShade Dear ImGui submodule failed' }
+          if (!(Test-Path (Join-Path $sdk 'include/reshade.hpp'))) { throw 'ReShade SDK header missing' }
+          if (!(Test-Path (Join-Path $sdk 'deps/imgui/imgui.h'))) { throw 'Matching Dear ImGui header missing' }
+      - name: Compile independent Win64 add-on (no original ROM required)
+        shell: pwsh
+        run: |
+          $sdk = Join-Path $env:RUNNER_TEMP 'reshade-sdk'
+          $build = Join-Path $env:RUNNER_TEMP 'cviii-reshade-build'
+          cmake -S JP/recomp/reshade -B $build -A x64 "-DCVIII_RESHADE_SDK_ROOT=$sdk"
+          if ($LASTEXITCODE -ne 0) { throw 'ReShade add-on CMake configure failed' }
+          cmake --build $build --config Release
+          if ($LASTEXITCODE -ne 0) { throw 'ReShade add-on native compile failed' }
+          $file = Get-ChildItem -Path $build -Filter 'CVIII_Lighting.addon64' -Recurse | Select-Object -First 1
+          if (!$file) { throw 'Expected Win64 ReShade add-on output missing' }
+          Write-Host ('PASS optional ReShade SDK compile: '+$file.Name)
+      - name: Publish optional ROM-free ReShade add-on for owner QA
+        uses: actions/upload-artifact@v4
+        with:
+          name: CVIII-ReShade-Lighting-Addon-Experimental
+          path: ${{ runner.temp }}/cviii-reshade-build/Release/CVIII_Lighting.addon64
+          if-no-files-found: error
+          retention-days: 14
