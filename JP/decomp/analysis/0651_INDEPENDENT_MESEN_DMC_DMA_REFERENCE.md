@@ -33,6 +33,12 @@ The private patch:
   `4b8a196e299b3de297b204fd1208d2981562c89b` and exact
   Git blob SHA-1 `d411c11981f16011bd8a19f7cc0b2a69cae1a019`
   for `Core/NES/NesCpu.cpp`. A different checkout fails closed.
+  Because MesenCE uses `* text=auto` in `.gitattributes`, Windows Git
+  may check out the pristine file with CRLF even though the canonical
+  Git blob uses LF. The patcher permits **only** full-file CRLF-to-LF
+  normalization before checking the unchanged pinned blob SHA.
+  Mixed line endings, stray CR bytes and modified content remain
+  rejected; the canonical SHA is not replaced or bypassed.
 - Produces a separate patch output file for a **private separately
   compiled MesenCE checkout**, not a repository edit or distributed
   emulator binary.
