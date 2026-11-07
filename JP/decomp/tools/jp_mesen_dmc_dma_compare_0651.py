@@ -15,6 +15,7 @@ import json
 from pathlib import Path
 from jp_dmc_dma_trace_verify_0650 import ROM_SHA, PRG_SIZE, parse as native_parse
 from jp_dmc_dma_trace_verify_0650 import COLUMNS as NATIVE_COLUMNS
+from jp_dmc_conflict_sidecar_0651 import classified_ordinals
 
 MESEN_COLUMNS=["event","cycle","cpu_addr","physical","byte"]
 CAP=200000
@@ -44,7 +45,7 @@ def number(s:str)->int:
         raise ValueError("Numeric source value overflows uint64")
     return n
 
-def mesen_decode(text:str,prg:bytes)->list[tuple[int,int,int,int]]:
+def mesen_decode(text:str,prg:bytes,classified:frozenset[int]=frozenset())->list[tuple[int,int,int,int]]:
     if len(prg)!=PRG_SIZE:raise ValueError("Need authenticated 256-KiB original PRG")
     rows=table(text,MESEN_COLUMNS)
     if len(rows)<2:raise ValueError("At least two real DMC events required for timing comparison")
@@ -68,22 +69,25 @@ def mesen_decode(text:str,prg:bytes)->list[tuple[int,int,int,int]]:
         elif addr>=0xE000:
             if physical!=31*8192+addr-0xE000:
                 raise ValueError("Mesen fixed PRG31 physical mapping mismatch")
-        if prg[physical]!=byte:
-            raise ValueError("Independent reference DMC byte differs from original ROM")
+        if prg[physical]!=byte and len(result) not in classified:
+            raise ValueError("Unclassified independent MesenCE ROM-byte difference")
         if result and cycle<=result[-1][0]:
             raise ValueError("Mesen DMA cycle did not increase")
         result.append((cycle,addr,physical,byte))
     return result
 
-def native_decode(text:str,prg:bytes)->list[tuple[int,int,int,int]]:
-    # JP0650 enforces original ROM-byte identity, slot offset, epochs,
-    # truncation flags, and malformed mapper intent. Never bypass it.
-    summary=native_parse(io.StringIO(text),prg,True)
+def native_decode(
+    text:str,prg:bytes,conflicts:str|None=None
+)->tuple[list[tuple[int,int,int,int]],frozenset[int]]:
+    # Keep JP0650's original structure, exact ROM physical offsets,
+    # per-epoch ordering and mapper-intent checks. Only the explicit,
+    # independently classified register-conflict byte check is relaxed.
+    summary=native_parse(io.StringIO(text),prg,False)
     rows=table(text,NATIVE_COLUMNS)
     if summary["epochs"]!=1 or not rows or rows[0]["event"]!="power_on":
         raise ValueError("Require one native power-on epoch with no state loads")
-    if summary["rom_byte_mismatches"] or summary["mapper_write_fetch_disagreements"]:
-        raise ValueError("Native byte or bank-request inconsistency must be investigated")
+    if summary["mapper_write_fetch_disagreements"]:
+        raise ValueError("Native mapper bank-request inconsistency must be investigated")
     results=[]
     for row in rows:
         if row["event"]=="dma_fetch":
@@ -95,14 +99,21 @@ def native_decode(text:str,prg:bytes)->list[tuple[int,int,int,int]]:
         raise ValueError("Native trace has too few actual DMA gets to compare timing")
     if len(results)!=summary["actual_dma_fetches"]:
         raise ValueError("Native declared DMA count disagrees with data")
-    return results
+    classified=classified_ordinals(results,prg,conflicts)
+    if len(classified)!=summary["rom_byte_mismatches"]:
+        raise ValueError("JP0650 native ROM-byte discrepancy count is inconsistent")
+    return results,classified
 
-def compare(native:str,mesen:str,prg:bytes)->dict:
-    n=native_decode(native,prg)
-    m=mesen_decode(mesen,prg)
+
+def compare(native:str,mesen:str,prg:bytes,conflicts:str|None=None)->dict:
+    n,classified=native_decode(native,prg,conflicts)
+    m=mesen_decode(mesen,prg,classified)
     if len(n)!=len(m):
         raise ValueError(f"DMC DMA event count mismatch: native {len(n)}, reference {len(m)}")
     for i,(a,b) in enumerate(zip(n,m)):
+        # Do NOT normalize or substitute original ROM bytes in conflict cases.
+        # The independently returned Mesen DMA byte must equal the native
+        # bus-returned byte, even when both differ from the cartridge PRG.
         if a[1:]!=b[1:]:
             raise ValueError(f"Independent DMC CPU/physical/byte mismatch at fetch #{i}")
         if i and a[0]-n[i-1][0]!=b[0]-m[i-1][0]:
@@ -115,7 +126,11 @@ def compare(native:str,mesen:str,prg:bytes)->dict:
         "observed_switchable_dmc_banks":banks,
         "native_minus_mesen_cycle_offset":offset,
         "cpu_address_and_physical_prg_sequence_match":True,
-        "original_rom_byte_sequence_match":True,
+        "original_rom_byte_sequence_match":len(classified)==0,
+        "native_verified_register_conflict_fetches":len(classified),
+        "nonconflict_rom_byte_fetches":len(n)-len(classified),
+        "actual_returned_dma_byte_sequence_match":True,
+        "verified_conflict_bytes_match_mesen":True,
         "inter_fetch_cpu_cycle_gaps_match":True,
         "full_gameplay_execution_reproduced":False,
         "mesen_executable_original_rom_attested":False,
@@ -189,7 +204,60 @@ def smoke():
     fail([["power_on",1,10,-1,-1,-1,-1,-1,-1]],m,"zero native fetches")
     fail(n,m[:1],"single Mesen event")
     fail(n+[["trace_limit",1,999,-1,-1,-1,-1,-1,-1]],m,"native incomplete")
-    print("PASS JP0651 independent DMC pair: 4 mapped synthetic events, cycle deltas, >=20 negative checks, no fake parity")
+    # JP0651 conflict-aware synthetic cases: never substitute expected ROM
+    # bytes for observed values, and never permit an unsupported exception.
+    n2=[r[:] for r in n]
+    m2=[r[:] for r in m]
+    n2[3][3]=m2[1][2]=0xC055
+    n2[3][4]=m2[1][3]=17*8192+0x55
+    n2[3][5]=m2[1][4]=0x54  # Synthetic bus-conflict value; PRG has 0x55.
+    sidecars=[[1,232,0xC055,17*8192+0x55,0x4016,1,0x4015,1]]
+    from jp_dmc_conflict_sidecar_0651 import COLUMNS as CONFLICT_COLUMNS
+    def pair(ns=n2,ms=m2,cs=sidecars):
+        return compare(csv_rows(NATIVE_COLUMNS,ns),
+                       csv_rows(MESEN_COLUMNS,ms),prg,
+                       csv_rows(CONFLICT_COLUMNS,cs) if cs is not None else None)
+    proof=pair()
+    assert proof["paired_dma_fetches"]==4
+    assert proof["native_verified_register_conflict_fetches"]==1
+    assert proof["nonconflict_rom_byte_fetches"]==3
+    assert proof["actual_returned_dma_byte_sequence_match"]
+    assert not proof["original_rom_byte_sequence_match"]
+    assert not proof["mesen_executable_original_rom_attested"]
+    def conflict_fail(ns,ms,cs,label):
+        try:pair(ns,ms,cs)
+        except ValueError:return
+        raise AssertionError("JP0651 wrongly approved "+label)
+    conflict_fail(n2,m2,None,"missing required sidecar")
+    conflict_fail(n2,m2,[],"missing conflict row")
+    conflict_fail(n2,m2,sidecars+sidecars,"duplicate conflict row")
+    for col,val,label in [
+        (0,2,"wrong power epoch"),(1,233,"wrong cycle"),
+        (2,0xC056,"wrong DMC address"),(3,17*8192+86,"wrong PRG offset"),
+        (4,0x6000,"non-IO held CPU address"),(5,0,"CPU writing"),
+        (6,0x4016,"forged register alias"),(7,0,"missing alias condition"),
+    ]:
+        bad=[r[:] for r in sidecars]
+        bad[0][col]=val
+        conflict_fail(n2,m2,bad,label)
+    bad=[r[:] for r in m2];bad[1][4]=0x55
+    conflict_fail(n2,bad,sidecars,"Mesen substituted original ROM byte")
+    bad=[r[:] for r in m2];bad[1][4]=0x53
+    conflict_fail(n2,bad,sidecars,"Mesen disagreement with native conflict byte")
+    bad=[r[:] for r in m2];bad[0][4]=63
+    conflict_fail(n2,bad,sidecars,"unclassified Mesen ROM-byte change")
+    bad=[r[:] for r in m2];bad[2][1]+=1
+    conflict_fail(n2,bad,sidecars,"conflict trace CPU-cycle gap drift")
+    bad=[r[:] for r in n2];bad[3][5]=0x55
+    conflict_fail(bad,m2,sidecars,"sidecar attached to ordinary ROM byte")
+    bad=[r[:] for r in n2];bad[2][8]=19
+    conflict_fail(bad,m2,sidecars,"mapper intent mismatch concealed by sidecar")
+    conflict_fail(n2,m2,[sidecars[0][:-1]],"truncated sidecar record")
+    conflict_fail(n2,m2,[sidecars[0]+[0]],"extra sidecar column")
+    empty=compare(csv_rows(NATIVE_COLUMNS,n),csv_rows(MESEN_COLUMNS,m),
+                  prg,csv_rows(CONFLICT_COLUMNS,[]))
+    assert empty["native_verified_register_conflict_fetches"]==0
+    print("PASS JP0651 strict independent DMC pairs, conflict classification, returned-byte fidelity and adversarial negatives")
 
 def main():
     p=argparse.ArgumentParser(description=__doc__)
@@ -197,9 +265,12 @@ def main():
     p.add_argument("--rom",type=Path)
     p.add_argument("--native",type=Path)
     p.add_argument("--mesen",type=Path)
+    p.add_argument("--conflicts",type=Path,help="JP0650 same-session held-CPU conflict sidecar (required for ROM-byte differences)")
     p.add_argument("--json",type=Path)
     a=p.parse_args()
     if a.smoke:smoke()
+    if a.conflicts and not all(x is not None for x in (a.rom,a.native,a.mesen)):
+        p.error("--conflicts requires --rom, --native and --mesen")
     if any(x is not None for x in (a.rom,a.native,a.mesen)):
         if not all(x is not None for x in (a.rom,a.native,a.mesen)):
             p.error("Need --rom, --native, --mesen together")
@@ -210,7 +281,8 @@ def main():
            ((rom[6]>>4)|(rom[7]&0xF0))!=24:
             raise ValueError("Cartridge NES mapper24 header does not match")
         result=compare(a.native.read_text(encoding="utf-8"),
-                       a.mesen.read_text(encoding="utf-8"),rom[16:16+PRG_SIZE])
+                       a.mesen.read_text(encoding="utf-8"),rom[16:16+PRG_SIZE],
+                       a.conflicts.read_text(encoding="utf-8") if a.conflicts else None)
         if a.json:
             a.json.write_text(json.dumps(result,sort_keys=True,indent=2)+"\n",encoding="utf-8")
         print("JP0651 private pair passes structural source and cycle-delta checks; external original-reference provenance requires owner confirmation")
