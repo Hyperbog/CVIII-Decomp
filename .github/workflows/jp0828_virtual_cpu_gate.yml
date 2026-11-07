@@ -1,11 +1,12 @@
 name: JP0828 Original Detached Actor CPU Gate
 on:
   push:
-    branches: [jp0813-level1-source-world-lifetime]
+    branches: [decompilation]
     paths:
       - '.github/workflows/jp0828_virtual_cpu_gate.yml'
       - 'JP/recomp/native/enhanced/cviii_virtual_*0828*'
       - 'JP/recomp/native/enhanced/cviii_actor_vm_0827.h'
+      - 'JP/recomp/tools/jp0833_stage1_lifetime_diff.py'
 permissions:
   contents: read
 jobs:
