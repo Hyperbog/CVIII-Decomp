@@ -189,6 +189,10 @@ jobs:
       - uses: actions/checkout@v4
       - name: Validate weighted evidence rubric
         run: python3 JP/decomp/tools/progress_score.py
+      - name: JP0834 Mesen/NESRecomp synced source-actor bridge smoke (ROM-free)
+        run: |
+          python3 -m py_compile JP/recomp/tools/jp0833_stage1_lifetime_diff.py JP/recomp/tools/jp0834_sync_stage1_capture.py
+          python3 JP/recomp/tools/jp0834_sync_stage1_capture.py --smoke
       - name: Compile native source-level regressions and audit evidence provenance
         run: bash JP/decomp/tools/run_native_regressions.sh
       - name: Configure headless native CMake package and run CTest
