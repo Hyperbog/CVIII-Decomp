@@ -195,6 +195,8 @@ jobs:
           python3 JP/recomp/tools/jp0834_sync_stage1_capture.py --smoke
           python3 -m py_compile JP/recomp/tools/jp0836_stage1_fresh_replay.py
           python3 JP/recomp/tools/jp0836_stage1_fresh_replay.py --smoke
+          python3 -m py_compile JP/recomp/tools/jp0837_bank_coverage_firstdiff.py
+          python3 JP/recomp/tools/jp0837_bank_coverage_firstdiff.py --smoke
       - name: Compile native source-level regressions and audit evidence provenance
         run: bash JP/decomp/tools/run_native_regressions.sh
       - name: Configure headless native CMake package and run CTest
