@@ -42,8 +42,8 @@ def commands(rom:Path,engine:Path,out:Path,frames:int,headless:bool,
           "-DNESRECOMP_EXTERNAL_ROOT="+str(engine),
           "-DJP_ORIGINAL_JP_ROM="+str(rom),
           "-DJP_CYCLE_HEADLESS="+("ON" if headless else "OFF"),
-          "-DJP_PPU_IMPLEMENTATION="+ppu_impl,
-          "-DJP_CYCLE_SEED_FILE="+(str(Path(seed_file).resolve()) if seed_file else "")]
+          "-DJP_CYCLE_SEED_FILE="+(str(Path(seed_file).resolve()) if seed_file else ""),
+          "-DJP_PPU_IMPLEMENTATION="+ppu_impl]
     build=["cmake","--build",str(out),"--config","Release","--parallel","4"]
     return opts,build,[str(out/"jp_akumajou_densetsu"),str(rom),"--frames",str(frames)]
 
