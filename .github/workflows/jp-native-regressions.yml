@@ -201,6 +201,8 @@ jobs:
           python3 JP/recomp/tools/jp0838_actor_boundary_triage.py --smoke
           python3 -m py_compile JP/recomp/tools/jp0839_player_boundary_probe.py
           python3 JP/recomp/tools/jp0839_player_boundary_probe.py --smoke
+          python3 -m py_compile JP/recomp/tools/jp0840_input_pulse_firstcause.py
+          python3 JP/recomp/tools/jp0840_input_pulse_firstcause.py --smoke
       - name: Compile native source-level regressions and audit evidence provenance
         run: bash JP/decomp/tools/run_native_regressions.sh
       - name: Configure headless native CMake package and run CTest
