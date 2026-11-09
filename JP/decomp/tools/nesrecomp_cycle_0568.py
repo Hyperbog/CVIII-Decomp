@@ -33,7 +33,7 @@ def validate_engine(engine:Path)->None:
         raise ValueError("The external NESRecomp checkout must be outside the CVIII repository")
 
 def commands(rom:Path,engine:Path,out:Path,frames:int,headless:bool,
-             ppu_impl:str="LLE")->tuple[list[str],list[str],list[str]]:
+             ppu_impl:str="LLE",seed_file:Path|None=None)->tuple[list[str],list[str],list[str]]:
     if frames<1 or frames>12000:
         raise ValueError("Bounded frame count must be 1..12000")
     if ppu_impl not in ("LLE","HLE"):
@@ -42,7 +42,8 @@ def commands(rom:Path,engine:Path,out:Path,frames:int,headless:bool,
           "-DNESRECOMP_EXTERNAL_ROOT="+str(engine),
           "-DJP_ORIGINAL_JP_ROM="+str(rom),
           "-DJP_CYCLE_HEADLESS="+("ON" if headless else "OFF"),
-          "-DJP_PPU_IMPLEMENTATION="+ppu_impl]
+          "-DJP_PPU_IMPLEMENTATION="+ppu_impl,
+          "-DJP_CYCLE_SEED_FILE="+(str(Path(seed_file).resolve()) if seed_file else "")]
     build=["cmake","--build",str(out),"--config","Release","--parallel","4"]
     return opts,build,[str(out/"jp_akumajou_densetsu"),str(rom),"--frames",str(frames)]
 
@@ -54,8 +55,17 @@ def run(args)->dict:
     rom_meta=authenticated(rom)
     validate_engine(engine)
     ppu_impl=getattr(args,"ppu_impl","LLE")
+    # JP0842: no implicit source-tree seed discovery or stale cache reuse.
+    seed_file=getattr(args,"seed_file",None)
+    seed_info=None
+    if seed_file is not None:
+        seed_file=Path(seed_file).resolve(strict=True)
+        sys.path.insert(0,str(ROOT/"JP"/"recomp"/"tools"))
+        from jp0842_seed_profile import validate as validate_bank_qualified_seeds
+        seed_info=validate_bank_qualified_seeds(rom,seed_file)
+        seed_info["seed_file"]=str(seed_file)
     configure,build,execute=commands(
-        rom,engine,out,args.frames,not args.windowed,ppu_impl)
+        rom,engine,out,args.frames,not args.windowed,ppu_impl,seed_file=seed_file)
     build_only=bool(getattr(args,"build_only",False))
     if args.plan:
         return {"schema":"JP0568-external-cycle-plan/v2","rom":rom_meta,
@@ -91,6 +101,8 @@ def run(args)->dict:
                   build_completed=True,frame_execution_attempted=False,
                   gameplay_parity_verified=False,logs=logs,
                   strict_prg_new_bytes=0,new_vpp_points=0)
+    if seed_info is not None:
+        compiled["coverage_seeds"]=seed_info
     (out/"jp_cycle_build.json").write_text(
         json.dumps(compiled,indent=2,sort_keys=True)+"\n",encoding="utf-8")
     if build_only:
@@ -127,6 +139,9 @@ def run(args)->dict:
             "original_cpu_trace_compared":False,
             "mesen_frame_parity":False,"strict_prg_new_bytes":0,
             "new_vpp_points":0}
+    if seed_info is not None:
+        report["coverage_seeds"]=seed_info
+        report["post_build_interpreter_coverage_measurement"]=False
     (out/"jp_cycle_0568.json").write_text(json.dumps(report,indent=2,sort_keys=True)+"\n")
     return report
 
@@ -146,6 +161,8 @@ def main():
                    help="Authenticate, generate and compile C11; do not run frames")
     p.add_argument("--input-script",type=Path,
                    help="Optional deterministic NESRecomp frame/button schedule")
+    p.add_argument("--seed-file",type=Path,
+                   help="Optional JP0842 validated private bank-qualified seed profile")
     p.add_argument("--plan",action="store_true")
     a=p.parse_args()
     if a.validate_rom is not None:

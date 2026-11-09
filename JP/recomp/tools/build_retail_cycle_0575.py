@@ -52,16 +52,23 @@ def plan(rom:Path,out:Path,frames:int,windowed:bool,
 
 def build(rom:Path,out:Path,frames:int,windowed:bool,offline:bool,
           build_only:bool=False,input_script:Path|None=None,
-          ppu_impl:str="LLE")->dict:
+          ppu_impl:str="LLE",jp0837_dir:Path|None=None)->dict:
     info=plan(rom,out,frames,windowed,ppu_impl)
     folder=output_directory(out);folder.mkdir(parents=True,exist_ok=True)
+    seed_file=None;seed_meta=None
+    if jp0837_dir is not None:
+        from jp0842_seed_profile import prepare
+        seed_file,seed_meta=prepare(rom,jp0837_dir,folder)
     engine=pinned_engine(folder,offline)
     args=SimpleNamespace(rom=rom.resolve(strict=True),engine=engine,
                          out=folder/"build",frames=frames,build_only=build_only,
                          input_script=input_script,windowed=windowed,
-                         ppu_impl=ppu_impl,plan=False)
+                         ppu_impl=ppu_impl,seed_file=seed_file,plan=False)
     result=run(args)
     result["external_engine_sha"]=PIN
+    if seed_meta is not None:
+        result["bank_qualified_seed_provenance"]=seed_meta
+        result["seeded_executable_coverage_measured"]=False
     (folder/"jp0575_build_report.json").write_text(
         json.dumps(result,indent=2,sort_keys=True)+"\n",encoding="utf-8")
     return result
@@ -90,6 +97,8 @@ def main():
                    help="Build original game into native C11 executable without running")
     p.add_argument("--input-script",type=Path,
                    help="Optional deterministic frame/button schedule, no recording required")
+    p.add_argument("--jp0837-dir",type=Path,
+                   help="Use existing private JP0837 misses and matching native/interpreter hashes; no new capture")
     p.add_argument("--plan",action="store_true")
     p.add_argument("--smoke",action="store_true")
     a=p.parse_args()
@@ -102,7 +111,7 @@ def main():
                          indent=2,sort_keys=True))
     else:
         print(json.dumps(build(a.rom,a.out,a.frames,a.windowed,a.offline,
-                              a.build_only,a.input_script,a.ppu_impl),
+                              a.build_only,a.input_script,a.ppu_impl,a.jp0837_dir),
                          indent=2,sort_keys=True))
 if __name__=="__main__":
     try:main()

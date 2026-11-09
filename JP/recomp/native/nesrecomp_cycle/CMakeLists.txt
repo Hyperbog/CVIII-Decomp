@@ -4,6 +4,7 @@ project(JP_Akumajou_Densetsu_Cycle C)
 # dependency. DO NOT vendor its sources or game-derived generated C files.
 set(JP_ORIGINAL_JP_ROM "" CACHE FILEPATH "Privately supplied verified original Japanese ROM")
 set(NESRECOMP_EXTERNAL_ROOT "" CACHE PATH "External checkout of mstan/nesrecomp")
+set(JP_CYCLE_SEED_FILE "" CACHE FILEPATH "Optional private JP0842 validated bank-qualified ROM seed profile")
 option(JP_CYCLE_HEADLESS "Build a headless C11 cycle runtime" ON)
 option(JP_CYCLE_SYNTHETIC_MEDIA "Allow only the exact synthetic CI fixture" OFF)
 # JP0590: compare LLE and experimental HLE PPU render backends on the
@@ -96,6 +97,25 @@ if(JP_EDITION_HOST_EXTRAS)
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_start_ui_0623.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_slot_picker_0625.c"
   "${CMAKE_CURRENT_LIST_DIR}/../enhanced/cviii_menu_stack_0626.c")
+endif()
+# JP0842: consume only explicit, validated, private bank-qualified ROM seeds.
+# Default (including synthetic CI) remains the original unseeded build.
+if(NOT "${JP_CYCLE_SEED_FILE}" STREQUAL "")
+ if(JP_CYCLE_SYNTHETIC_MEDIA)
+  message(FATAL_ERROR "JP0842 private retail seed file is not valid for synthetic media")
+ endif()
+ if(NOT EXISTS "${JP_CYCLE_SEED_FILE}")
+  message(FATAL_ERROR "JP0842 seed profile does not exist: ${JP_CYCLE_SEED_FILE}")
+ endif()
+ execute_process(
+  COMMAND "${Python3_EXECUTABLE}"
+   "${CMAKE_CURRENT_LIST_DIR}/../../tools/jp0842_seed_profile.py"
+   --validate-seeds --rom "${JP_ORIGINAL_JP_ROM}" --seed-file "${JP_CYCLE_SEED_FILE}"
+  RESULT_VARIABLE JP0842_RESULT ERROR_VARIABLE JP0842_ERROR)
+ if(NOT JP0842_RESULT EQUAL 0)
+  message(FATAL_ERROR "JP0842 invalid mapper24 seed profile: ${JP0842_ERROR}")
+ endif()
+ list(APPEND JP_CYCLE_OPTIONS SEED_FILE "${JP_CYCLE_SEED_FILE}")
 endif()
 nesrecomp_add_cycle_game(jp_akumajou_densetsu
  ROM "${JP_ORIGINAL_JP_ROM}" ${JP_CYCLE_OPTIONS} ${JP_HOST_SOURCES})
