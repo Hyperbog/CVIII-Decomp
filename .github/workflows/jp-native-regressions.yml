@@ -23,6 +23,7 @@ on:
       - 'JP/decomp/tests/**'
       - 'JP/decomp/tools/run_native_regressions.sh'
       - 'JP/recomp/tools/jp0842_seed_profile.py'
+      - 'JP/recomp/tools/jp0843_seeded_coverage_verify.py'
       - 'JP/recomp/tools/build_retail_cycle_0575.py'
       - 'JP/decomp/tools/nesrecomp_cycle_0568.py'
       - 'JP/recomp/native/nesrecomp_cycle/CMakeLists.txt'
@@ -120,6 +121,7 @@ on:
       - 'JP/decomp/tests/**'
       - 'JP/decomp/tools/run_native_regressions.sh'
       - 'JP/recomp/tools/jp0842_seed_profile.py'
+      - 'JP/recomp/tools/jp0843_seeded_coverage_verify.py'
       - 'JP/recomp/tools/build_retail_cycle_0575.py'
       - 'JP/decomp/tools/nesrecomp_cycle_0568.py'
       - 'JP/recomp/native/nesrecomp_cycle/CMakeLists.txt'
@@ -213,6 +215,8 @@ jobs:
           python3 JP/recomp/tools/jp0840_input_pulse_firstcause.py --smoke
           python3 -m py_compile JP/decomp/tools/nesrecomp_cycle_0568.py JP/recomp/tools/build_retail_cycle_0575.py JP/recomp/tools/jp0842_seed_profile.py
           python3 JP/recomp/tools/jp0842_seed_profile.py --smoke
+          python3 -m py_compile JP/recomp/tools/jp0843_seeded_coverage_verify.py
+          python3 JP/recomp/tools/jp0843_seeded_coverage_verify.py --smoke
       - name: Compile native source-level regressions and audit evidence provenance
         run: bash JP/decomp/tools/run_native_regressions.sh
       - name: Configure headless native CMake package and run CTest
