@@ -211,7 +211,6 @@ jobs:
         shell: pwsh
         run: |
           ./JP/recomp/tools/test_alpha_seed_bridge_0844.ps1
-          if ($LASTEXITCODE -ne 0) { throw 'JP0844 seed bridge regression failed' }
       - name: Validate JP0603 ROM-free first-run builder and launcher contract
         shell: pwsh
         run: |
