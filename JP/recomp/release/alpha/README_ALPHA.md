@@ -54,6 +54,21 @@ game once to let its normal settings engine create it.
 
 [JP0661 product evidence and testing](../../workstreams/native-recompilation/0661_NATIVE_KEYBOARD_PROFILE_MANAGER.md).
 
+## JP0845 — Opt-in Enhanced Stage 1 widescreen presentation
+
+The Enhanced renderer can show already-authenticated detached type-3D
+actors outside the NES's original 256-pixel strip using independent
+source-verified movement and their last observed original sprite frame.
+This is a visual preview, not verified independent AI or combat.
+It is disabled by default, even if saved settings requested it.
+
+Pass -Stage1World to Build-And-Play.bat, Launch-Alpha.ps1
+(with -Edition Enhanced), or Build-Alpha.ps1 (with -PlayAfterBuild).
+The launcher verifies the original Japanese ROM, enables native
+--stage1-world 1, and supplies --stage1-world-rom using the verified
+ROM path. Original mode rejects this experimental flag. The game CPU,
+mapper, PPU, audio and savestates remain authoritative.
+
 ## JP0844 — Bank-qualified native execution in the private Windows Alpha
 
 The Windows Alpha builder automatically uses a **complete private JP0837

@@ -5,6 +5,7 @@ param(
  [string]$OutDir=(Join-Path $env:USERPROFILE 'CVIII-Alpha'),
  [string]$ProjectRoot='',
  [string]$Jp0837Dir='',
+ [switch]$Stage1World,
  [switch]$PlayAfterBuild
 )
 Set-StrictMode -Version Latest
@@ -223,6 +224,8 @@ Write-Host ('Private alpha candidate ZIP: '+$zip)
 Write-Host 'Enhanced is the public edition; reference-only original PPU comparisons remain internal.'
 Write-Host ('Launch using Launch-Alpha.ps1 -Rom "'+$romPath+'"')
 if ($PlayAfterBuild) {
- & (Join-Path $stage 'Launch-Alpha.ps1') -Rom $romPath -Edition Enhanced
+ $launchOptions=@{ Rom=$romPath; Edition='Enhanced' }
+ if ($Stage1World) { $launchOptions.Stage1World=$true }
+ & (Join-Path $stage 'Launch-Alpha.ps1') @launchOptions
  if ($LASTEXITCODE -ne 0) { throw "Native game failed with exit $LASTEXITCODE" }
 }

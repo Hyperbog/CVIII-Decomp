@@ -5,6 +5,7 @@ param(
  [ValidateSet('Original','Enhanced')][string]$Edition='Enhanced',
  [switch]$UnlimitedSprites,
  [switch]$StableSprites,
+ [switch]$Stage1World,
  [string]$ControlsProfile='',
  [switch]$SpriteTrace,
  [switch]$AudioTrace,
@@ -45,6 +46,7 @@ if (-not (Test-Path -LiteralPath $game) -or -not (Test-Path -LiteralPath $dll)) 
 }
 $sprites=if ($Edition -eq 'Enhanced' -and $UnlimitedSprites) {'1'} else {'0'}
 $stable=if ($Edition -eq 'Enhanced' -and $StableSprites) {'1'} else {'0'}
+if ($Stage1World -and $Edition -ne 'Enhanced') { throw 'Stage1World is Enhanced-only' }
 Write-Host "CVIII Enhanced (extra-OAM $sprites; experimental stable sprite layers $stable)"
 Write-Host 'Controls: arrows=D-pad, Z=A, X=B, Enter=Start, Backslash=Select.'
 Write-Host 'Enhanced Pause: F4 opens Save State / Load State / Audio / Quit; arrows navigate, Enter selects, Esc closes.'
@@ -78,6 +80,14 @@ if ($ControlsProfile) {
 Push-Location $PSScriptRoot
 try {
  $gameArgs=@($romPath,'--edition',$Edition.ToLowerInvariant(),'--unlimited-sprites',$sprites,'--stable-sprites',$stable)
+ # JP0845: explicit opt-in; do not honor a stale config.ini Stage1World value.
+ # The original Japanese ROM path was authenticated before this point.
+ if ($Stage1World) {
+  $gameArgs+=@('--stage1-world','1','--stage1-world-rom',$romPath)
+  Write-Host 'Experimental Stage 1 widescreen enabled (detached side sprites; no independent combat).'
+ } else {
+  $gameArgs+=@('--stage1-world','0')
+ }
  if ($PSBoundParameters.ContainsKey('MasterVolume')) {
   $gameArgs+=@('--master-volume',[string]$MasterVolume)
   Write-Host ('Enhanced master output gain override: '+$MasterVolume+'%')

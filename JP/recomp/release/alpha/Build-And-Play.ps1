@@ -6,6 +6,7 @@ param(
  [string]$Rom='',
  [switch]$UnlimitedSprites,
  [switch]$StableSprites,
+ [switch]$Stage1World,
  [string]$ControlsProfile='',
  [string]$Jp0837Dir='',
  [switch]$Rebuild
@@ -131,6 +132,10 @@ $launcher=Join-Path $runDir 'Launch-Alpha.ps1'
 $options=@{Rom=$romPath;Edition=$Edition}
 if ($UnlimitedSprites -and $Edition -eq 'Enhanced') { $options.UnlimitedSprites=$true }
 if ($StableSprites -and $Edition -eq 'Enhanced') { $options.StableSprites=$true }
+if ($Stage1World) {
+ if ($Edition -ne 'Enhanced') { throw 'Stage1World is Enhanced-only' }
+ $options.Stage1World=$true
+}
 if ($ControlsProfile) { $options.ControlsProfile=$ControlsProfile }
 & $launcher @options
 if ($LASTEXITCODE -ne 0) { throw ('Native game exited with status '+$LASTEXITCODE) }
