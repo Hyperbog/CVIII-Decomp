@@ -2,6 +2,26 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+/* JP0845 ROM-free standalone compositor test stubs. The actual
+ * production binary always links the genuine JP0803 world graph. */
+#ifdef CVIII_SPRITE_STANDALONE_TEST_0845
+int cviii_world_index_0803(const CviiiLevel1World0803 *w,
+                           const uint8_t key[3]) {
+    if(!w || !key)return -1;
+    for(unsigned i=0;i<CVIII_WORLD_ROOMS_0803;i++)
+        if(!memcmp(w->rooms[i].selector,key,3))return (int)i;
+    return -1;
+}
+int cviii_world_camera_0803(const CviiiLevel1World0803 *w,
+    const uint8_t key[3],int cx,int cy,int32_t *x,int32_t *y){
+    int index=cviii_world_index_0803(w,key);
+    if(index<0 || !w->rooms[index].placed || cx<0 || cy<0 ||
+       !x || !y)return 0;
+    *x=w->rooms[index].x+cx;
+    *y=w->rooms[index].y+cy;
+    return 1;
+}
+#endif
 static uint32_t pic[426*240];
 static uint8_t data[CVIII_SPRITE_BANK_BYTES_0807],ram[2048];
 static uint8_t pixel(uint16_t addr){(void)addr;return 0x80u;}
@@ -50,6 +70,72 @@ int main(void){
     count=cviii_world_sprites_draw_0807(&world,first,
         700,0,85,pic,426,240,data,ram,0x1000,0,pixel,palette);
     if(count)return 3;
+    /* JP0845: a previously genuine original type3D actor has been
+     * released offscreen. Its private, source-authenticated movement
+     * can present the LAST original sprite frame in the side margin,
+     * without making a new guest actor or changing the NES image. */
+    world.wide_sources_0825.resident=1u;
+    world.wide_sources_0825.source[0].state=
+        CVIII_WIDE_SOURCE_UNVERIFIED_0825;
+    world.wide_sources_0825.source[0].event_cpu=0xa444u;
+    world.wide_sources_0825.source[0].original_type=0x3du;
+    world.wide_sources_0825.source[0].original_source_slot=3u;
+    world.virtual_3d_0828.initialized=1u;
+    CviiiVirtual3D0828 *v=&world.virtual_3d_0828.actor[0];
+    v->state=CVIII_VIRTUAL_0828_DETACHED;
+    v->source_cpu=0xa444u;
+    v->original_parent=3u;
+    v->original_slot=1u;
+    v->original_frame=2u;
+    v->original_flags=0x81u;
+    v->world_x=-16;
+    v->world_y=99;
+    v->detached_frames=2u;
+    v->cpu.ram[0x54fu]=0x3du;
+    v->cpu.ram[0x646u]=3u;
+    v->cpu.ram[0x48du]=0u; /* authenticated prior selector */
+    v->cpu.ram[0x4a9u]=1u; /* no mirror */
+    v->cpu.ram[0x455u]=2u; /* original sprite palette */
+    uint8_t before_ram[2048];
+    memcpy(before_ram,ram,sizeof ram);
+    for(unsigned i=0;i<426u*240u;i++)pic[i]=0xff112233u;
+    count=cviii_world_sprites_draw_0807(&world,next,
+        0,0,85,pic,426,240,data,ram,0x1000,0,pixel,palette);
+    if(count!=8u || pic[100*426+69]!=0xff88001bu ||
+       pic[100*426+85]!=0xff112233u ||
+       memcmp(before_ram,ram,sizeof ram))return 4;
+    /* No source-only spawn; no projection when merely linked. */
+    v->state=CVIII_VIRTUAL_0828_LINKED;
+    count=cviii_world_sprites_draw_0807(&world,next,
+        0,0,85,pic,426,240,data,ram,0x1000,0,pixel,palette);
+    if(count)return 5;
+    v->state=CVIII_VIRTUAL_0828_DETACHED;
+    v->detached_frames=0u;
+    count=cviii_world_sprites_draw_0807(&world,next,
+        0,0,85,pic,426,240,data,ram,0x1000,0,pixel,palette);
+    if(count)return 6;
+    v->detached_frames=2u;
+    v->source_cpu=0xa43fu;
+    count=cviii_world_sprites_draw_0807(&world,next,
+        0,0,85,pic,426,240,data,ram,0x1000,0,pixel,palette);
+    if(count)return 7;
+    v->source_cpu=0xa444u;
+    v->world_x=60; /* private position within original NES viewport */
+    count=cviii_world_sprites_draw_0807(&world,next,
+        0,0,85,pic,426,240,data,ram,0x1000,0,pixel,palette);
+    if(count)return 8;
+    v->world_x=-16;
+    world.actors[1].active=1;
+    world.actors[1].room=1;
+    world.actors[1].original_type=0x3du;
+    count=cviii_world_sprites_draw_0807(&world,next,
+        0,0,85,pic,426,240,data,ram,0x1000,0,pixel,palette);
+    if(count)return 9;
+    world.actors[1].active=0;
+    count=cviii_world_sprites_draw_0807(&world,first,
+        700,0,85,pic,426,240,data,ram,0x1000,0,pixel,palette);
+    if(count)return 10;
+    puts("PASS JP0845 detached type3D source identity, authentic sprite snapshot, side-only projection and no guest effects");
     puts("PASS JP0807 original descriptor-driven active sprites only outside native viewport");
     return 0;
 }

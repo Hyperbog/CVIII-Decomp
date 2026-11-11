@@ -25,6 +25,56 @@ static int shifted_y(uint8_t v){
     uint8_t shifted=(uint8_t)((v>>1u)|(v&0x80u));
     return signed_byte(shifted);
 }
+/* JP0845: an offscreen-only presentation view of a previously genuine
+ * type-$3D actor. Never turn a source row into an actor: the private
+ * instance must have witnessed a real CPU slot, then conservatively
+ * detached and advanced its source-authenticated $8001 movement.
+ * The last genuine sprite frame/attributes are held; independent AI,
+ * animation, collisions and defeat are NOT simulated here. */
+static int detached_view_0845(const CviiiLevel1World0803 *w,
+    const uint8_t key[3],int room,int cx,unsigned index,
+    CviiiWorldActor0803 *view)
+{
+    if(!w->wide_sources_0825.resident ||
+       !w->virtual_3d_0828.initialized ||
+       key[0]!=0u || key[1]!=1u || key[2]!=0u ||
+       room<0 || !w->rooms[room].placed ||
+       index>=CVIII_WIDE_SOURCE_COUNT_0825)return 0;
+    const CviiiVirtual3D0828 *v=&w->virtual_3d_0828.actor[index];
+    const CviiiWideSource0825 *s=&w->wide_sources_0825.source[index];
+    const unsigned slot=v->original_slot;
+    if(v->state!=CVIII_VIRTUAL_0828_DETACHED ||
+       !v->detached_frames || !v->source_cpu ||
+       v->source_cpu!=s->event_cpu ||
+       v->original_parent!=s->original_source_slot ||
+       s->original_type!=0x3du ||
+       s->state!=CVIII_WIDE_SOURCE_UNVERIFIED_0825 ||
+       slot<1u || slot>12u || !v->original_frame ||
+       (v->original_flags&0x81u)!=0x81u ||
+       v->cpu.ram[0x54eu+slot]!=0x3du ||
+       v->cpu.ram[0x645u+slot]!=v->original_parent ||
+       (v->world_x>=cx && v->world_x<cx+256))return 0;
+    /* If the original allocator is still presenting a type3D in the
+     * same slot/room, give its authentic sprite priority. */
+    const CviiiWorldActor0803 *guest=&w->actors[slot];
+    if(guest->active && guest->room==(uint8_t)room &&
+       guest->original_type==0x3du)return 0;
+    memset(view,0,sizeof *view);
+    view->active=1u;
+    view->room=(uint8_t)room;
+    view->slot=(uint8_t)slot;
+    view->selector=v->cpu.ram[0x48cu+slot];
+    view->frame=v->original_frame;
+    view->mirror=v->cpu.ram[0x4a8u+slot];
+    view->attrs=v->cpu.ram[0x454u+slot];
+    view->flags=v->original_flags;
+    view->guest_adjacent_0824=1u;
+    view->original_type=0x3du;
+    view->x=w->rooms[room].x+v->world_x;
+    view->y=w->rooms[room].y+v->world_y;
+    return 1;
+}
+
 uint32_t cviii_world_sprites_draw_0807(const CviiiLevel1World0803 *w,
     const uint8_t key[3],int cx,int cy,int center,
     uint32_t *dest,int width,int height,
@@ -45,11 +95,17 @@ uint32_t cviii_world_sprites_draw_0807(const CviiiLevel1World0803 *w,
     if(local){wx=cx;wy=cy;}
     else if(!cviii_world_camera_0803(w,key,cx,cy,&wx,&wy))return 0;
     uint32_t painted=0;
-    uint8_t attr_cache=0;
-    int cached=0;
-    for(unsigned i=0;i<CVIII_WORLD_ACTORS_0803;i++){
-        const CviiiWorldActor0803 *a=&w->actors[i];
-        if(!a->active || a->slot!=i || !a->frame ||
+    for(unsigned i=0;i<CVIII_WORLD_ACTORS_0803+
+                         CVIII_WIDE_SOURCE_COUNT_0825;i++){
+        CviiiWorldActor0803 projected={0};
+        const CviiiWorldActor0803 *a=NULL;
+        const int detached=i>=CVIII_WORLD_ACTORS_0803;
+        if(detached){
+            if(!detached_view_0845(w,key,room,cx,
+                    i-CVIII_WORLD_ACTORS_0803,&projected))continue;
+            a=&projected;
+        }else a=&w->actors[i];
+        if(!a->active || (!detached && a->slot!=i) || !a->frame ||
            ((a->flags&0x80u) && !a->guest_adjacent_0824) ||
            (local && (a->room!=(uint8_t)room ||
                       !a->local_coords_0824)) ||
@@ -59,6 +115,9 @@ uint32_t cviii_world_sprites_draw_0807(const CviiiLevel1World0803 *w,
            !ptr_at(bank,set,a->frame,&descriptor))continue;
         uint8_t count=0,cursor=1;
         if(!byte_at(bank,descriptor,&count) || count>27u)continue;
+        /* Compressed sprite attributes are scoped to each descriptor. */
+        uint8_t attr_cache=0;
+        int cached=0;
         const int mirror=a->mirror==0u;
         const int sx=(int)(a->x-wx)+center;
         const int sy=(int)(a->y-wy)+1; /* NES OAM Y+1 semantics */

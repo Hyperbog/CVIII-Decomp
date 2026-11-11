@@ -635,9 +635,10 @@ const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
             }
         }
     }
-    /* Project only authentic, still-active PRG26 actor descriptors
-     * into the extra world margins. The native 256px original picture
-     * is always left untouched and remains gameplay-authoritative. */
+    /* JP0845: authentic PRG26 sprite descriptors in the side margins,
+     * including conservatively detached source-linked type3D movement
+     * snapshots. No fabricated animation/combat, and NEVER touch the
+     * original 256px guest framebuffer or collision state. */
     if(valid_camera && h->sprite_bank_valid_0807 && ram)
         (void)cviii_world_sprites_draw_0807(&h->world,
             selector,camera_x,camera_y,center,h->pixels,

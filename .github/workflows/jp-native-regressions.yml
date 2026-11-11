@@ -27,6 +27,10 @@ on:
       - 'JP/recomp/tools/build_retail_cycle_0575.py'
       - 'JP/decomp/tools/nesrecomp_cycle_0568.py'
       - 'JP/recomp/native/nesrecomp_cycle/CMakeLists.txt'
+      - 'JP/recomp/native/enhanced/cviii_world_sprites_0807.c'
+      - 'JP/recomp/native/enhanced/cviii_world_sprites_0807.h'
+      - 'JP/recomp/native/enhanced/cviii_world_sprites_test_0807.c'
+      - 'JP/recomp/native/enhanced/cviii_stage1_host_0725.c'
       - 'JP/recomp/native/room0a/**'
       - 'JP/recomp/native/bank0a/**'
       - 'JP/recomp/native/boot/**'
@@ -125,6 +129,10 @@ on:
       - 'JP/recomp/tools/build_retail_cycle_0575.py'
       - 'JP/decomp/tools/nesrecomp_cycle_0568.py'
       - 'JP/recomp/native/nesrecomp_cycle/CMakeLists.txt'
+      - 'JP/recomp/native/enhanced/cviii_world_sprites_0807.c'
+      - 'JP/recomp/native/enhanced/cviii_world_sprites_0807.h'
+      - 'JP/recomp/native/enhanced/cviii_world_sprites_test_0807.c'
+      - 'JP/recomp/native/enhanced/cviii_stage1_host_0725.c'
       - 'JP/recomp/native/room0a/**'
       - 'JP/recomp/native/bank0a/**'
       - 'JP/recomp/native/boot/**'
@@ -217,6 +225,14 @@ jobs:
           python3 JP/recomp/tools/jp0842_seed_profile.py --smoke
           python3 -m py_compile JP/recomp/tools/jp0843_seeded_coverage_verify.py
           python3 JP/recomp/tools/jp0843_seeded_coverage_verify.py --smoke
+      - name: JP0845 Enhanced detached sprite projection (synthetic source only)
+        run: |
+          gcc -std=c11 -Wall -Wextra -Werror -pedantic \
+            -DCVIII_SPRITE_STANDALONE_TEST_0845=1 \
+            JP/recomp/native/enhanced/cviii_world_sprites_0807.c \
+            JP/recomp/native/enhanced/cviii_world_sprites_test_0807.c \
+            -o /tmp/jp0845-world-sprites
+          /tmp/jp0845-world-sprites
       - name: Compile native source-level regressions and audit evidence provenance
         run: bash JP/decomp/tools/run_native_regressions.sh
       - name: Configure headless native CMake package and run CTest

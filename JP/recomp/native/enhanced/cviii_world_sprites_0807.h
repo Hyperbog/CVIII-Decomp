@@ -1,5 +1,7 @@
-/* JP0807 original PRG26 descriptor rendering of already-active world
- * object slots outside the NES viewport. Gameplay/OAM stay authoritative. */
+/* JP0807/JP0845: authentic PRG26 descriptors for existing guest actors,
+ * plus previously genuine, independently moved detached type3D actors.
+ * Both are clipped to Enhanced margins; no guest gameplay/OAM writes.
+ * Detached original animation is frozen at the last observed frame. */
 #ifndef CVIII_WORLD_SPRITES_0807_H
 #define CVIII_WORLD_SPRITES_0807_H
 #include "cviii_level1_world_0803.h"
