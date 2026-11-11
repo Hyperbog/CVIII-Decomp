@@ -54,6 +54,25 @@ game once to let its normal settings engine create it.
 
 [JP0661 product evidence and testing](../../workstreams/native-recompilation/0661_NATIVE_KEYBOARD_PROFILE_MANAGER.md).
 
+## JP0844 — Bank-qualified native execution in the private Windows Alpha
+
+The Windows Alpha builder automatically uses a **complete private JP0837
+profile** at %USERPROFILE%\Documents\jp0837-private when present. This feeds
+the already verified JP0842 physical-bank seeds to the pinned native SDL2
+build. Without that profile, compilation uses the original unseeded path.
+
+For alternate evidence locations, pass -Jp0837Dir to Build-Alpha.ps1 or
+Build-And-Play.ps1. The first-run launcher rebuilds an older unseeded
+candidate when valid private seeds become available, and reuses a seeded
+candidate only when its source miss-log and executable hashes still match.
+
+The private AlphaCandidate manifest contains only seed count and SHA-256
+fingerprints. The seed file, source capture and original ROM remain outside
+the packaged candidate; nothing is added to the public ROM-free bundle.
+Original and Enhanced continue to share the same compiled 6502/VRC6 engine.
+The previously measured 99.999963% native execution was for the JP0843
+headless route; it is not a full-game or Windows GUI parity certification.
+
 ## First-run setup — JP0603
 
 The public ZIP contains **only a ROM-free build kit**. It is NOT a

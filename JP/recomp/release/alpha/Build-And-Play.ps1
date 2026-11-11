@@ -7,6 +7,7 @@ param(
  [switch]$UnlimitedSprites,
  [switch]$StableSprites,
  [string]$ControlsProfile='',
+ [string]$Jp0837Dir='',
  [switch]$Rebuild
 )
 Set-StrictMode -Version Latest
@@ -55,9 +56,24 @@ if ($actual -ne $expected) {
 Set-Content -LiteralPath $romLocationFile -Value $romPath -Encoding UTF8
 $privateCandidate=Join-Path $homeBuild 'AlphaCandidate'
 $localCandidate=$PSScriptRoot
-if ((Test-PrivateGame $localCandidate) -and -not $Rebuild) {
+$seedResolver=Join-Path $PSScriptRoot 'Resolve-Seed-0844.ps1'
+if (-not (Test-Path -LiteralPath $seedResolver -PathType Leaf)) {
+ $seedResolver=Join-Path $homeBuild '_cviisource\JP\recomp\release\alpha\Resolve-Seed-0844.ps1'
+}
+if (-not (Test-Path -LiteralPath $seedResolver -PathType Leaf)) {
+ throw 'JP0844 seed resolver missing; update the ROM-free build kit.'
+}
+. $seedResolver
+$seedEvidence=Resolve-CviiiSeedEvidence -Directory $Jp0837Dir
+$localReady=Test-PrivateGame $localCandidate
+$privateReady=Test-PrivateGame $privateCandidate
+if ($seedEvidence) {
+ $localReady=$localReady -and (Test-CviiiSeededCandidate -Directory $localCandidate -MissSha256 $seedEvidence.MissSha256)
+ $privateReady=$privateReady -and (Test-CviiiSeededCandidate -Directory $privateCandidate -MissSha256 $seedEvidence.MissSha256)
+}
+if ($localReady -and -not $Rebuild) {
  $runDir=$localCandidate
-} elseif ((Test-PrivateGame $privateCandidate) -and -not $Rebuild) {
+} elseif ($privateReady -and -not $Rebuild) {
  $runDir=$privateCandidate
 } else {
  $missing=@()
@@ -96,7 +112,11 @@ if ((Test-PrivateGame $localCandidate) -and -not $Rebuild) {
  try {
   Start-Transcript -Path $log -ErrorAction Stop | Out-Null
   $started=$true
-  & $builder -Rom $romPath -OutDir $homeBuild
+  if ($seedEvidence) {
+   & $builder -Rom $romPath -OutDir $homeBuild -Jp0837Dir $seedEvidence.Directory
+  } else {
+   & $builder -Rom $romPath -OutDir $homeBuild
+  }
  } finally {
   if ($started) { Stop-Transcript | Out-Null }
  }

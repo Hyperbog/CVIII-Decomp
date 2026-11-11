@@ -6,6 +6,7 @@
         'Debug-Stage-Companion.bat'
         'Capture-QA-0602.ps1'
         'Build-And-Play.ps1'
+        'Resolve-Seed-0844.ps1'
         'Build-And-Play.bat'
         'Resolve-Python.ps1'
         'Control-Profiles.py'

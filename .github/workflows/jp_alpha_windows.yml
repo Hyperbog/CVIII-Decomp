@@ -18,6 +18,7 @@ on:
       - "JP/decomp/tools/mesen_jp_room_chain_0630.lua"
       - "JP/decomp/tools/audit_mesen_room_chain_0630.py"
       - "JP/recomp/tools/package_alpha_builder_0580.py"
+      - "JP/recomp/tools/test_alpha_seed_bridge_0844.ps1"
       - "JP/recomp/tools/test_alpha_arguments_0604.ps1"
       - "JP/recomp/tools/test_alpha_python_0607.ps1"
       - "JP/decomp/tools/jp_password_*0593.py"
@@ -206,6 +207,11 @@ jobs:
             [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path -LiteralPath $file).Path,[ref]$tokens,[ref]$parseErrors) | Out-Null
             if ($parseErrors.Count -gt 0) { throw ("PowerShell syntax check failed: " + $file + ": " + ($parseErrors | Out-String)) }
           }
+      - name: JP0844 ROM-free seeded Alpha selection and cache freshness
+        shell: pwsh
+        run: |
+          ./JP/recomp/tools/test_alpha_seed_bridge_0844.ps1
+          if ($LASTEXITCODE -ne 0) { throw 'JP0844 seed bridge regression failed' }
       - name: Validate JP0603 ROM-free first-run builder and launcher contract
         shell: pwsh
         run: |
@@ -252,7 +258,7 @@ jobs:
               Copy-Item -LiteralPath $source -Destination (Join-Path $stage $name)
             }
           }
-          if ($seen.Count -ne 29) { throw "Bundle manifest unexpectedly contains $($seen.Count) files" }
+          if ($seen.Count -ne 30) { throw "Bundle manifest unexpectedly contains $($seen.Count) files" }
           if (@(Get-ChildItem -LiteralPath $stage -File).Count -ne $seen.Count) {
             throw 'Private release fixture staging lost or duplicated files'
           }

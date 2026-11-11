@@ -4,6 +4,7 @@ param(
  [Parameter(Mandatory=$true)][string]$Rom,
  [string]$OutDir=(Join-Path $env:USERPROFILE 'CVIII-Alpha'),
  [string]$ProjectRoot='',
+ [string]$Jp0837Dir='',
  [switch]$PlayAfterBuild
 )
 Set-StrictMode -Version Latest
@@ -54,6 +55,12 @@ $buildScript=Join-Path $repoPath 'JP/recomp/tools/build_retail_cycle_0575.py'
 if (-not (Test-Path -LiteralPath $buildScript)) {
  throw 'CVIII repository missing original-JP C11 compiler entry point.'
 }
+$seedResolver=Join-Path $repoPath 'JP/recomp/release/alpha/Resolve-Seed-0844.ps1'
+if (-not (Test-Path -LiteralPath $seedResolver -PathType Leaf)) {
+ throw 'JP0844 private coverage resolver missing from synchronized source.'
+}
+. $seedResolver
+$seedEvidence=Resolve-CviiiSeedEvidence -Directory $Jp0837Dir
 # Verify the complete private release payload before compiling the owner ROM.
 $bundleManifestPath=Join-Path $repoPath 'JP/recomp/release/alpha/Private-Release-Manifest.psd1'
 if (-not (Test-Path -LiteralPath $bundleManifestPath -PathType Leaf)) {
@@ -88,14 +95,36 @@ foreach ($group in @('launchers','native_tools','support_tools')) {
 }
 Write-Host ('Validated '+$bundleSources.Count+' private release source files.')
 $privateOut=Join-Path $outPath '_private_original_rom_build'
+$buildArguments=@($buildScript,'--rom',$romPath,'--out',$privateOut,'--windowed','--build-only')
+if ($seedEvidence) {
+ $buildArguments+=@('--jp0837-dir',$seedEvidence.Directory)
+ Write-Host 'Reusing existing private JP0837 bank-qualified coverage in the SDL2 runtime.'
+} else {
+ Write-Host 'No complete JP0837 private profile; retaining unseeded Alpha build.'
+}
 Write-Host 'Compiling the original Japanese game to native C11 with SDL2...'
-Invoke-Checked -Program $pyCmd.Executable -CommandArguments (@($pyCmd.Prefix) + @($buildScript,'--rom',$romPath,'--out',$privateOut,'--windowed','--build-only'))
+Invoke-Checked -Program $pyCmd.Executable -CommandArguments (@($pyCmd.Prefix) + $buildArguments)
 $reportPath=Join-Path $privateOut 'jp0575_build_report.json'
 if (-not (Test-Path -LiteralPath $reportPath)) {throw 'No compiler build report was produced.'}
 $report=Get-Content -LiteralPath $reportPath -Raw | ConvertFrom-Json
 if (-not $report.build_completed -or $report.frame_execution_attempted) {
  throw 'Native compilation failed or was incorrectly reported.'
 }
+$hasSeeds=$null -ne $report.PSObject.Properties['coverage_seeds']
+$hasProvenance=$null -ne $report.PSObject.Properties['bank_qualified_seed_provenance']
+if ($seedEvidence) {
+ if (-not $hasSeeds -or -not $hasProvenance -or
+     [int]$report.coverage_seeds.seed_count -le 0 -or
+     $report.coverage_seeds.seed_sha256 -ne $report.bank_qualified_seed_provenance.seed_sha256 -or
+     $report.bank_qualified_seed_provenance.miss_log_sha256 -ne $seedEvidence.MissSha256) {
+  throw 'Seeded runtime is not tied to authenticated JP0837 coverage.'
+ }
+} elseif ($hasSeeds -or $hasProvenance) {
+ throw 'Unseeded Alpha unexpectedly contains a seeded build.'
+}
+$seedCount=if ($seedEvidence) {[int]$report.coverage_seeds.seed_count} else {0}
+$seedHash=if ($seedEvidence) {[string]$report.coverage_seeds.seed_sha256} else {''}
+$missHash=if ($seedEvidence) {[string]$seedEvidence.MissSha256} else {''}
 $program=[IO.Path]::GetFullPath([string]$report.runner)
 if (-not (Test-Path -LiteralPath $program) -or
     [IO.Path]::GetExtension($program).ToLowerInvariant() -ne '.exe') {
@@ -153,6 +182,10 @@ $manifest=[ordered]@{
  runtime='generated native C11 2A03/VRC6 cycle backend'
  original_rom_sha256='958a4b5e95e80acb2c71a43e9ef2e91444f3d097ae9d4eeb747f0dac8abe7a28'
  game_exe_sha256=(Get-FileHash -LiteralPath (Join-Path $stage 'jp_akumajou_densetsu.exe') -Algorithm SHA256).Hash.ToLowerInvariant()
+ jp0844_seeded_native_backend=[bool]$seedEvidence
+ jp0844_seed_count=$seedCount
+ jp0844_seed_sha256=$seedHash
+ jp0844_source_miss_sha256=$missHash
  gameplay_verified=$false
  playable_alpha_qualified=$false
  original_enhanced_options=$true
