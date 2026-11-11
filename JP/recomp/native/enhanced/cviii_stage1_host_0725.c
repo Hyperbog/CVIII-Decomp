@@ -473,12 +473,24 @@ const uint32_t *cviii_stage1_host_present_0725(CviiiStage1Host0725 *h,
                      * No detached combat/effect callback is authorized. */
                     if(selector[0]==0u && selector[1]==1u &&
                        selector[2]==0u && !camera_phase_only &&
-                       strictly_verified_camera)
-                        (void)cviii_virtual_tick_0828(
+                       strictly_verified_camera) {
+                        int moved=cviii_virtual_tick_0828(
                             &h->world.virtual_3d_0828,
                             &h->world.wide_sources_0825,
                             h->actor_vm_bank0b_0827,ram,selector,
                             camera_x);
+                        /* Source-qualified B447 partner 20..22 inputs,
+                         * with no gameplay damage or effect writes. */
+                        if(moved>=0)
+                            (void)cviii_detached_contacts_tick_0846(
+                                &h->world.detached_contacts_0846,
+                                &h->world.virtual_3d_0828,
+                                &h->world.wide_sources_0825,
+                                ram,h->actor_vm_bank0b_0827,
+                                selector,camera_x);
+                        else cviii_detached_contacts_clear_0846(
+                                &h->world.detached_contacts_0846);
+                    }
                 }
             }
             /* JP0813: follow the genuine vertical chapel camera with

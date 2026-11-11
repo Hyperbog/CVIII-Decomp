@@ -18,6 +18,7 @@
 #include "cviii_wide_instance_0826.h"
 #include "cviii_actor_vm_0827.h"
 #include "cviii_virtual_collision_0828.h"
+#include "cviii_detached_contacts_0846.h"
 #include "cviii_sound_prelude_0828.h"
 #include <stdint.h>
 #include <stddef.h>
@@ -155,6 +156,8 @@ typedef struct {
      * virtual $8001 movement continues without any guest write.
      * Authoritative combat remains deliberately disabled. */
     CviiiVirtualActors0828 virtual_3d_0828;
+    /* JP0846: B447 private candidate inputs, never guest effects. */
+    CviiiDetachedContacts0846 detached_contacts_0846;
     /* JP0827: bounded physical-ROM opcode execution for the genuine
      * actor slots. Counterfactual replay on isolated private RAM,
      * NEVER original CPU gameplay authority. */

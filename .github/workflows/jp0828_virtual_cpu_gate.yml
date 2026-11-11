@@ -6,6 +6,11 @@ on:
       - '.github/workflows/jp0828_virtual_cpu_gate.yml'
       - 'JP/recomp/native/enhanced/cviii_virtual_*0828*'
       - 'JP/recomp/native/enhanced/cviii_actor_vm_0827.h'
+      - 'JP/recomp/native/enhanced/cviii_detached_contacts_0846.h'
+      - 'JP/recomp/native/enhanced/cviii_detached_contacts_test_0846.c'
+      - 'JP/recomp/native/enhanced/cviii_level1_world_0803.h'
+      - 'JP/recomp/native/enhanced/cviii_level1_world_0803.c'
+      - 'JP/recomp/native/enhanced/cviii_stage1_host_0725.c'
       - 'JP/recomp/tools/jp0833_stage1_lifetime_diff.py'
 permissions:
   contents: read
@@ -32,6 +37,20 @@ jobs:
             JP/recomp/native/enhanced/cviii_virtual_3d_test_0828.c \
             -o /tmp/jp0828_asan
           /tmp/jp0828_asan
+      - name: JP0846 original B447 detached contact input bridge (synthetic only)
+        run: |
+          set -euo pipefail
+          gcc -std=c11 -O2 -Wall -Wextra -Werror -pedantic \
+            -IJP/recomp/native/enhanced \
+            JP/recomp/native/enhanced/cviii_detached_contacts_test_0846.c \
+            -o /tmp/jp0846
+          /tmp/jp0846
+          clang -std=c11 -O1 -g -Wall -Wextra -Werror -pedantic \
+            -fsanitize=address,undefined -fno-omit-frame-pointer \
+            -IJP/recomp/native/enhanced \
+            JP/recomp/native/enhanced/cviii_detached_contacts_test_0846.c \
+            -o /tmp/jp0846_san
+          /tmp/jp0846_san
       - name: Bundle open-source actor execution test files only
         uses: actions/upload-artifact@v4
         with:
@@ -42,6 +61,8 @@ jobs:
             JP/recomp/native/enhanced/cviii_actor_vm_0827.h
             JP/recomp/native/enhanced/cviii_virtual_3d_0828.h
             JP/recomp/native/enhanced/cviii_virtual_collision_0828.h
+            JP/recomp/native/enhanced/cviii_detached_contacts_0846.h
+            JP/recomp/native/enhanced/cviii_detached_contacts_test_0846.c
             JP/recomp/native/enhanced/cviii_virtual_3d_test_0828.c
             JP/recomp/native/enhanced/cviii_wide_instance_0826.h
             JP/recomp/native/enhanced/cviii_wide_source_admission_0825.h

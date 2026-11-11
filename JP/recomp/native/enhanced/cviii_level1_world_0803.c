@@ -644,6 +644,7 @@ void cviii_world_clear_live_0805(CviiiLevel1World0803 *w){
     w->effect23_observations=0u;
     w->effect23_entries=0u;
     w->effect23_room=0xffu;
+    cviii_detached_contacts_clear_0846(&w->detached_contacts_0846);
     w->actor_vm_probes_0827=0u;
     w->actor_vm_matched_0827=0u;
     w->actor_vm_mismatched_0827=0u;
